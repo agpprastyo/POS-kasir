@@ -10,6 +10,22 @@ type AppConfig struct {
 	Server serverConfig
 	DB     dbConfig
 	Logger loggerConfig
+	JWT    jwtConfig
+	Minio  minioConfig
+}
+
+type minioConfig struct {
+	Endpoint  string
+	AccessKey string
+	SecretKey string
+	UseSSL    bool
+	Bucket    string
+}
+
+type jwtConfig struct {
+	Secret   string
+	Duration time.Duration
+	Issuer   string
 }
 
 type serverConfig struct {
@@ -58,6 +74,18 @@ func Load() *AppConfig {
 			AppName: getEnv("APP_NAME", "agprastyowsl"),
 			Env:     getEnv("APP_ENV", "production"),
 			Port:    getEnv("APP_PORT", "8080"),
+		},
+		JWT: jwtConfig{
+			Secret:   getEnv("JWT_SECRET", "secret"),
+			Duration: time.Duration(getInt("JWT_DURATION_HOURS", 24)) * time.Hour,
+			Issuer:   getEnv("JWT_ISSUER", "agprastyo"),
+		},
+		Minio: minioConfig{
+			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
+			AccessKey: getEnv("MINIO_ACCESS_KEY", "secret"),
+			SecretKey: getEnv("MINIO_SECRET_KEY", "secret"),
+			UseSSL:    getBool("MINIO_USE_SSL", true),
+			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
 		},
 	}
 }

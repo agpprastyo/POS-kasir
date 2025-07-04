@@ -14,6 +14,7 @@ func HealthHandler(app *App) fiber.Handler {
 				"error":  "PostgreSQL unavailable",
 			})
 		}
+
 		return c.JSON(fiber.Map{
 			"status": "ok",
 		})

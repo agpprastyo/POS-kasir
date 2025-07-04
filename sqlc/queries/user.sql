@@ -12,17 +12,17 @@ INSERT INTO users (
 RETURNING *;
 
 -- name: GetUserByID :one
-SELECT id, username, email, password_hash, avatar, role, is_active
+SELECT id, username, email, password_hash, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE id = $1;
 
 -- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, avatar, role, is_active
+SELECT id, username, email, password_hash, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE username = $1;
 
 -- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, avatar, role, is_active
+SELECT id, username, email, password_hash, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE email = $1;
 
@@ -54,7 +54,7 @@ WHERE id = $1;
 
 
 -- name: ListUsers :many
-SELECT id, username, email, password_hash, avatar, role, is_active
+SELECT id, username, email, password_hash, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE
   (@search_text::text  IS NULL OR username ILIKE '%' || @search_text || '%' OR email ILIKE '%' || @search_text  || '%')

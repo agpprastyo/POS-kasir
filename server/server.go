@@ -4,6 +4,7 @@ import (
 	"POS-kasir/config"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,7 @@ type App struct {
 	Logger   *logger.Logger
 	DB       *database.Postgres
 	FiberApp *fiber.App
+	JWT      utils.Manager
 }
 
 func InitApp() *App {
@@ -46,12 +48,15 @@ func InitApp() *App {
 	fiberApp := fiber.New(fiber.Config{
 		AppName: cfg.Server.AppName,
 	})
+	// Initialize JWT manager
+	jwtManager := utils.NewJWTManager(cfg)
 
 	return &App{
 		Config:   cfg,
 		Logger:   log,
 		DB:       db,
 		FiberApp: fiberApp,
+		JWT:      jwtManager,
 	}
 }
 
@@ -59,8 +64,10 @@ func StartServer(app *App) {
 	// Setup middleware
 	SetupMiddleware(app)
 
+	jwt := app.JWT
+
 	// Setup routes
-	SetupRoutes(app.FiberApp, app.Logger, app.DB, app.Config)
+	SetupRoutes(app.FiberApp, app.Logger, app.DB, app.Config, jwt)
 
 	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)

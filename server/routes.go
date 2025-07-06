@@ -31,8 +31,6 @@ func SetupRoutes(app *fiber.App, logger *logger.Logger, db *database.Postgres, c
 	api.Post("/auth/login", authHandler.Loginhandler)
 	api.Post("/auth/register", authHandler.RegisterHandler)
 	api.Get("/auth/me", authMiddleware, authHandler.ProfileHandler)
-
 	api.Post("/auth/add", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), authHandler.AddUserHandler)
-
 	api.Put("/auth/avatar", authMiddleware, authHandler.UpdateAvatarHandler)
 }

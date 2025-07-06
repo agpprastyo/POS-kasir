@@ -5,8 +5,12 @@ import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/utils"
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"image"
+	"image/jpeg"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,9 +18,10 @@ import (
 
 // AthService is a concrete implementation of IAuthService.
 type AthService struct {
-	repo  repository.Queries
-	log   *logger.Logger
-	token utils.Manager
+	repo       repository.Queries
+	log        *logger.Logger
+	token      utils.Manager
+	avatarRepo AthRepo
 }
 
 func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error) {
@@ -51,6 +56,66 @@ type IAuthService interface {
 	Login(ctx context.Context, req LoginRequest) (*LoginResponse, error)
 	Register(ctx context.Context, req RegisterRequest) (*ProfileResponse, error)
 	Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error)
+	UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error)
+}
+
+func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error) {
+	// Validate file size
+	const maxSize = 3 * 1024 * 1024 // 3MB
+	if len(data) > maxSize {
+		return nil, fmt.Errorf("avatar file too large, max 3MB allowed")
+	}
+
+	// Validate image format and aspect ratio
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("invalid image format: %w", err)
+	}
+	bounds := img.Bounds()
+	if bounds.Dx() != bounds.Dy() {
+		return nil, fmt.Errorf("avatar image must have a 1:1 aspect ratio")
+	}
+
+	// Compress image
+	var buf bytes.Buffer
+	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
+	if err != nil {
+		return nil, fmt.Errorf("failed to process image: %w", err)
+	}
+
+	// Generate filename
+	filename := "avatars/" + userID.String() + ".jpg"
+
+	// Upload file via repository
+	url, err := s.avatarRepo.UploadAvatar(ctx, filename, buf.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+	}
+
+	// Update database
+	params := repository.UpdateAvatarParams{
+		ID:     userID,
+		Avatar: &filename,
+	}
+	err = s.repo.UpdateAvatar(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update avatar in database: %w", err)
+	}
+
+	// Fetch updated profile
+	profile, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch user profile: %w", err)
+	}
+
+	// Prepare response
+	return &ProfileResponse{
+		Username:  profile.Username,
+		Avatar:    &url,
+		CreatedAt: profile.CreatedAt.Time,
+		UpdatedAt: profile.UpdatedAt.Time,
+		Role:      profile.Role,
+	}, nil
 }
 
 type checkResult struct {

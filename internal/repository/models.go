@@ -12,48 +12,353 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type UserOrder string
+type DiscountType string
 
 const (
-	UserOrderUsername UserOrder = "username"
-	UserOrderEmail    UserOrder = "email"
-	UserOrderRole     UserOrder = "role"
-	UserOrderID       UserOrder = "id"
+	DiscountTypePercentage  DiscountType = "percentage"
+	DiscountTypeFixedAmount DiscountType = "fixed_amount"
 )
 
-func (e *UserOrder) Scan(src interface{}) error {
+func (e *DiscountType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = UserOrder(s)
+		*e = DiscountType(s)
 	case string:
-		*e = UserOrder(s)
+		*e = DiscountType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for UserOrder: %T", src)
+		return fmt.Errorf("unsupported scan type for DiscountType: %T", src)
 	}
 	return nil
 }
 
-type NullUserOrder struct {
-	UserOrder UserOrder `json:"user_order"`
-	Valid     bool      `json:"valid"` // Valid is true if UserOrder is not NULL
+type NullDiscountType struct {
+	DiscountType DiscountType `json:"discount_type"`
+	Valid        bool         `json:"valid"` // Valid is true if DiscountType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullUserOrder) Scan(value interface{}) error {
+func (ns *NullDiscountType) Scan(value interface{}) error {
 	if value == nil {
-		ns.UserOrder, ns.Valid = "", false
+		ns.DiscountType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.UserOrder.Scan(value)
+	return ns.DiscountType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullUserOrder) Value() (driver.Value, error) {
+func (ns NullDiscountType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.UserOrder), nil
+	return string(ns.DiscountType), nil
+}
+
+type LogActionType string
+
+const (
+	LogActionTypeCREATE         LogActionType = "CREATE"
+	LogActionTypeUPDATE         LogActionType = "UPDATE"
+	LogActionTypeDELETE         LogActionType = "DELETE"
+	LogActionTypeCANCEL         LogActionType = "CANCEL"
+	LogActionTypeAPPLYPROMOTION LogActionType = "APPLY_PROMOTION"
+	LogActionTypePROCESSPAYMENT LogActionType = "PROCESS_PAYMENT"
+)
+
+func (e *LogActionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LogActionType(s)
+	case string:
+		*e = LogActionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LogActionType: %T", src)
+	}
+	return nil
+}
+
+type NullLogActionType struct {
+	LogActionType LogActionType `json:"log_action_type"`
+	Valid         bool          `json:"valid"` // Valid is true if LogActionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLogActionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.LogActionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LogActionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLogActionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LogActionType), nil
+}
+
+type LogEntityType string
+
+const (
+	LogEntityTypePRODUCT   LogEntityType = "PRODUCT"
+	LogEntityTypeCATEGORY  LogEntityType = "CATEGORY"
+	LogEntityTypePROMOTION LogEntityType = "PROMOTION"
+	LogEntityTypeORDER     LogEntityType = "ORDER"
+	LogEntityTypeUSER      LogEntityType = "USER"
+)
+
+func (e *LogEntityType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LogEntityType(s)
+	case string:
+		*e = LogEntityType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LogEntityType: %T", src)
+	}
+	return nil
+}
+
+type NullLogEntityType struct {
+	LogEntityType LogEntityType `json:"log_entity_type"`
+	Valid         bool          `json:"valid"` // Valid is true if LogEntityType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLogEntityType) Scan(value interface{}) error {
+	if value == nil {
+		ns.LogEntityType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LogEntityType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLogEntityType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LogEntityType), nil
+}
+
+type OrderStatus string
+
+const (
+	OrderStatusOpen       OrderStatus = "open"
+	OrderStatusInProgress OrderStatus = "in_progress"
+	OrderStatusServed     OrderStatus = "served"
+	OrderStatusPaid       OrderStatus = "paid"
+	OrderStatusCancelled  OrderStatus = "cancelled"
+)
+
+func (e *OrderStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderStatus(s)
+	case string:
+		*e = OrderStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOrderStatus struct {
+	OrderStatus OrderStatus `json:"order_status"`
+	Valid       bool        `json:"valid"` // Valid is true if OrderStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderStatus), nil
+}
+
+type OrderType string
+
+const (
+	OrderTypeDineIn   OrderType = "dine_in"
+	OrderTypeTakeaway OrderType = "takeaway"
+)
+
+func (e *OrderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderType(s)
+	case string:
+		*e = OrderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderType: %T", src)
+	}
+	return nil
+}
+
+type NullOrderType struct {
+	OrderType OrderType `json:"order_type"`
+	Valid     bool      `json:"valid"` // Valid is true if OrderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderType), nil
+}
+
+type PromotionRuleType string
+
+const (
+	PromotionRuleTypeMINIMUMORDERAMOUNT   PromotionRuleType = "MINIMUM_ORDER_AMOUNT"
+	PromotionRuleTypeREQUIREDPRODUCT      PromotionRuleType = "REQUIRED_PRODUCT"
+	PromotionRuleTypeREQUIREDCATEGORY     PromotionRuleType = "REQUIRED_CATEGORY"
+	PromotionRuleTypeALLOWEDPAYMENTMETHOD PromotionRuleType = "ALLOWED_PAYMENT_METHOD"
+	PromotionRuleTypeALLOWEDORDERTYPE     PromotionRuleType = "ALLOWED_ORDER_TYPE"
+)
+
+func (e *PromotionRuleType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PromotionRuleType(s)
+	case string:
+		*e = PromotionRuleType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PromotionRuleType: %T", src)
+	}
+	return nil
+}
+
+type NullPromotionRuleType struct {
+	PromotionRuleType PromotionRuleType `json:"promotion_rule_type"`
+	Valid             bool              `json:"valid"` // Valid is true if PromotionRuleType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPromotionRuleType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PromotionRuleType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PromotionRuleType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPromotionRuleType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PromotionRuleType), nil
+}
+
+type PromotionScope string
+
+const (
+	PromotionScopeORDER PromotionScope = "ORDER"
+	PromotionScopeITEM  PromotionScope = "ITEM"
+)
+
+func (e *PromotionScope) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PromotionScope(s)
+	case string:
+		*e = PromotionScope(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PromotionScope: %T", src)
+	}
+	return nil
+}
+
+type NullPromotionScope struct {
+	PromotionScope PromotionScope `json:"promotion_scope"`
+	Valid          bool           `json:"valid"` // Valid is true if PromotionScope is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPromotionScope) Scan(value interface{}) error {
+	if value == nil {
+		ns.PromotionScope, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PromotionScope.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPromotionScope) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PromotionScope), nil
+}
+
+type PromotionTargetType string
+
+const (
+	PromotionTargetTypePRODUCT  PromotionTargetType = "PRODUCT"
+	PromotionTargetTypeCATEGORY PromotionTargetType = "CATEGORY"
+)
+
+func (e *PromotionTargetType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PromotionTargetType(s)
+	case string:
+		*e = PromotionTargetType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PromotionTargetType: %T", src)
+	}
+	return nil
+}
+
+type NullPromotionTargetType struct {
+	PromotionTargetType PromotionTargetType `json:"promotion_target_type"`
+	Valid               bool                `json:"valid"` // Valid is true if PromotionTargetType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPromotionTargetType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PromotionTargetType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PromotionTargetType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPromotionTargetType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PromotionTargetType), nil
 }
 
 type UserRole string
@@ -99,14 +404,140 @@ func (ns NullUserRole) Value() (driver.Value, error) {
 	return string(ns.UserRole), nil
 }
 
+type ActivityLog struct {
+	ID         uuid.UUID          `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	ActionType LogActionType      `json:"action_type"`
+	EntityType LogEntityType      `json:"entity_type"`
+	EntityID   string             `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type CancellationReason struct {
+	ID          int32              `json:"id"`
+	Reason      string             `json:"reason"`
+	Description *string            `json:"description"`
+	IsActive    bool               `json:"is_active"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Category struct {
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Order struct {
+	ID                      uuid.UUID          `json:"id"`
+	UserID                  pgtype.UUID        `json:"user_id"`
+	Type                    OrderType          `json:"type"`
+	Status                  OrderStatus        `json:"status"`
+	CreatedAt               pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt               pgtype.Timestamptz `json:"updated_at"`
+	GrossTotal              pgtype.Numeric     `json:"gross_total"`
+	DiscountAmount          pgtype.Numeric     `json:"discount_amount"`
+	NetTotal                pgtype.Numeric     `json:"net_total"`
+	AppliedPromotionID      pgtype.UUID        `json:"applied_promotion_id"`
+	PaymentMethodID         *int32             `json:"payment_method_id"`
+	PaymentGatewayReference *string            `json:"payment_gateway_reference"`
+	CashReceived            pgtype.Numeric     `json:"cash_received"`
+	ChangeDue               pgtype.Numeric     `json:"change_due"`
+	CancellationReasonID    *int32             `json:"cancellation_reason_id"`
+	CancellationNotes       *string            `json:"cancellation_notes"`
+}
+
+type OrderItem struct {
+	ID             uuid.UUID      `json:"id"`
+	OrderID        uuid.UUID      `json:"order_id"`
+	ProductID      uuid.UUID      `json:"product_id"`
+	Quantity       int32          `json:"quantity"`
+	PriceAtSale    pgtype.Numeric `json:"price_at_sale"`
+	Subtotal       pgtype.Numeric `json:"subtotal"`
+	DiscountAmount pgtype.Numeric `json:"discount_amount"`
+	NetSubtotal    pgtype.Numeric `json:"net_subtotal"`
+}
+
+type OrderItemOption struct {
+	ID              uuid.UUID      `json:"id"`
+	OrderItemID     uuid.UUID      `json:"order_item_id"`
+	ProductOptionID uuid.UUID      `json:"product_option_id"`
+	PriceAtSale     pgtype.Numeric `json:"price_at_sale"`
+}
+
+type PaymentMethod struct {
+	ID        int32              `json:"id"`
+	Name      string             `json:"name"`
+	IsActive  bool               `json:"is_active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Product struct {
+	ID         uuid.UUID          `json:"id"`
+	Name       string             `json:"name"`
+	CategoryID *int32             `json:"category_id"`
+	ImageUrl   *string            `json:"image_url"`
+	Price      pgtype.Numeric     `json:"price"`
+	Stock      int32              `json:"stock"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ProductOption struct {
+	ID              uuid.UUID          `json:"id"`
+	ProductID       uuid.UUID          `json:"product_id"`
+	Name            string             `json:"name"`
+	AdditionalPrice pgtype.Numeric     `json:"additional_price"`
+	ImageUrl        *string            `json:"image_url"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Promotion struct {
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	Description       *string            `json:"description"`
+	Scope             PromotionScope     `json:"scope"`
+	DiscountType      DiscountType       `json:"discount_type"`
+	DiscountValue     pgtype.Numeric     `json:"discount_value"`
+	MaxDiscountAmount pgtype.Numeric     `json:"max_discount_amount"`
+	StartDate         pgtype.Timestamptz `json:"start_date"`
+	EndDate           pgtype.Timestamptz `json:"end_date"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PromotionRule struct {
+	ID          uuid.UUID          `json:"id"`
+	PromotionID uuid.UUID          `json:"promotion_id"`
+	RuleType    PromotionRuleType  `json:"rule_type"`
+	RuleValue   string             `json:"rule_value"`
+	Description *string            `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PromotionTarget struct {
+	ID          uuid.UUID           `json:"id"`
+	PromotionID uuid.UUID           `json:"promotion_id"`
+	TargetType  PromotionTargetType `json:"target_type"`
+	TargetID    string              `json:"target_id"`
+	CreatedAt   pgtype.Timestamptz  `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz  `json:"updated_at"`
+}
+
 type User struct {
-	ID           uuid.UUID        `json:"id"`
-	Username     string           `json:"username"`
-	Email        string           `json:"email"`
-	PasswordHash string           `json:"password_hash"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
-	Avatar       *string          `json:"avatar"`
-	Role         UserRole         `json:"role"`
-	IsActive     bool             `json:"is_active"`
+	ID           uuid.UUID          `json:"id"`
+	Username     string             `json:"username"`
+	Email        string             `json:"email"`
+	PasswordHash string             `json:"password_hash"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	Avatar       *string            `json:"avatar"`
+	Role         UserRole           `json:"role"`
+	IsActive     bool               `json:"is_active"`
 }

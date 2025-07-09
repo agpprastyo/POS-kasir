@@ -4,6 +4,7 @@ import (
 	"POS-kasir/config"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/minio"
 	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
@@ -24,6 +25,7 @@ type App struct {
 	DB       *database.Postgres
 	FiberApp *fiber.App
 	JWT      utils.Manager
+	Minio    *minio.Minio
 }
 
 func InitApp() *App {
@@ -51,12 +53,18 @@ func InitApp() *App {
 	// Initialize JWT manager
 	jwtManager := utils.NewJWTManager(cfg)
 
+	minio, err := minio.NewMinio(cfg, log)
+	if err != nil {
+		log.Fatalf("Failed to initialize Minio: %v", err)
+	}
+
 	return &App{
 		Config:   cfg,
 		Logger:   log,
 		DB:       db,
 		FiberApp: fiberApp,
 		JWT:      jwtManager,
+		Minio:    minio,
 	}
 }
 
@@ -67,7 +75,7 @@ func StartServer(app *App) {
 	jwt := app.JWT
 
 	// Setup routes
-	SetupRoutes(app.FiberApp, app.Logger, app.DB, app.Config, jwt)
+	SetupRoutes(app.FiberApp, app.Logger, app.DB, app.Config, jwt, app.Minio)
 
 	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)

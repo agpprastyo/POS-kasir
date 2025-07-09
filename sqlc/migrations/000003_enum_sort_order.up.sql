@@ -1,0 +1,1 @@
+CREATE TYPE sort_order AS ENUM ('asc', 'desc');

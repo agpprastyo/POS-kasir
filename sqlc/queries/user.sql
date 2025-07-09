@@ -11,40 +11,45 @@ SELECT id, username, email, password_hash, created_at, updated_at, avatar, role,
 FROM users WHERE email = $1 LIMIT 1;
 
 -- name: ListUsers :many
-SELECT id, username, email, avatar, role, is_active, created_at
+SELECT id, username, email, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE
-  (
-    ($1::text IS NULL OR username ILIKE '%' || $1 || '%')
-    OR
-    ($1::text IS NULL OR email ILIKE '%' || $1 || '%')
-  )
-  AND ($2::user_role IS NULL OR role = $2)
-  AND ($3::bool IS NULL OR is_active = $3)
+    (
+        (sqlc.narg(search_text)::text IS NULL OR username ILIKE '%' || sqlc.narg(search_text) || '%')
+            OR
+        (sqlc.narg(search_text)::text IS NULL OR email ILIKE '%' || sqlc.narg(search_text) || '%')
+        )
+  AND (sqlc.narg(role)::user_role IS NULL OR role = sqlc.narg(role))
+  AND (sqlc.narg(is_active)::bool IS NULL OR is_active = sqlc.narg(is_active))
 ORDER BY
-  CASE WHEN $4 = 'username' THEN username
-       WHEN $4 = 'email' THEN email
-       ELSE created_at
-  END
-  -- sortOrder: 'asc' or 'desc'
-  -- Use CASE to dynamically set order direction
-  -- sqlc does not support dynamic ASC/DESC, so you may need to generate two queries or handle in code
-  -- Here is DESC as default
-  DESC
-LIMIT $5 OFFSET $6;
+  CASE WHEN @order_by::user_order_column = 'username' AND @sort_order::sort_order = 'asc'  THEN username END ASC,
+  CASE WHEN @order_by::user_order_column = 'username' AND @sort_order::sort_order = 'desc' THEN username END DESC,
+  CASE WHEN @order_by::user_order_column = 'email' AND @sort_order::sort_order = 'asc' THEN email END ASC,
+  CASE WHEN @order_by::user_order_column = 'email' AND @sort_order::sort_order = 'desc' THEN email END DESC,
+  CASE WHEN @order_by::user_order_column = 'created_at' AND @sort_order::sort_order = 'asc' THEN created_at END ASC,
+  CASE WHEN @order_by::user_order_column = 'created_at' AND @sort_order::sort_order = 'desc' THEN created_at END DESC,
+  created_at ASC
+
+LIMIT $1 OFFSET $2;
 
 -- name: CreateUser :one
-INSERT INTO users (username, email, password_hash, avatar, role, is_active)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO users (id,username, email, password_hash, avatar, role, is_active)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active;
 
 -- name: UpdateUser :one
 UPDATE users
-SET username = $2,
-    email = $3,
-    avatar = $4,
-    role = $5,
-    is_active = $6
+SET
+    username = COALESCE(sqlc.narg(username), username),
+    email = COALESCE(sqlc.narg(email), email),
+    avatar = COALESCE(sqlc.narg(avatar), avatar),
+    is_active = COALESCE(sqlc.narg(is_active), is_active)
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active;
+
+-- name: UpdateUserRole :exec
+UPDATE users
+SET role = $2
 WHERE id = $1
 RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active;
 

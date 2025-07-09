@@ -21,7 +21,7 @@ type AthService struct {
 	repo       repository.Queries
 	log        *logger.Logger
 	token      utils.Manager
-	avatarRepo AthRepo
+	avatarRepo IAthRepo
 }
 
 func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error) {
@@ -31,6 +31,8 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 	}
 
 	response := ProfileResponse{
+		ID:        user.ID,
+		IsActive:  user.IsActive,
 		Username:  user.Username,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Time,
@@ -43,11 +45,12 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 
 }
 
-func NewAuthService(repo repository.Queries, log *logger.Logger, tokenManager utils.Manager) IAuthService {
+func NewAuthService(repo repository.Queries, log *logger.Logger, tokenManager utils.Manager, avaRepo IAthRepo) IAuthService {
 	return &AthService{
-		repo:  repo,
-		log:   log,
-		token: tokenManager,
+		repo:       repo,
+		log:        log,
+		token:      tokenManager,
+		avatarRepo: avaRepo,
 	}
 }
 
@@ -57,14 +60,50 @@ type IAuthService interface {
 	Register(ctx context.Context, req RegisterRequest) (*ProfileResponse, error)
 	Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error)
 	UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error)
+	UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error
+}
+
+func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		s.log.Errorf("User Service | Failed to find user by ID: %v", userID)
+		return common.ErrNotFound
+	}
+
+	if !utils.CheckPassword(user.PasswordHash, req.OldPassword) {
+		s.log.Errorf("User Service | Incorrect old password for user: %v", userID)
+		return common.ErrInvalidCredentials
+	}
+
+	newPassHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		s.log.Errorf("User Service | Failed to hash new password: %v", err)
+		return err
+	}
+
+	params := repository.UpdateUserPasswordParams{
+		ID:           userID,
+		PasswordHash: newPassHash,
+	}
+
+	if err := s.repo.UpdateUserPassword(ctx, params); err != nil {
+		s.log.Errorf("User Service | Failed to update user password: %v", err)
+		return fmt.Errorf("failed to update password in database")
+	}
+
+	s.log.Infof("User Service | Password updated successfully for user: %v", user.Username)
+	return nil
 }
 
 func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error) {
+	fmt.Println("UploadAvatar 1")
 	// Validate file size
 	const maxSize = 3 * 1024 * 1024 // 3MB
 	if len(data) > maxSize {
 		return nil, fmt.Errorf("avatar file too large, max 3MB allowed")
 	}
+
+	fmt.Println("UploadAvatar 2")
 
 	// Validate image format and aspect ratio
 	img, _, err := image.Decode(bytes.NewReader(data))
@@ -76,6 +115,8 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 		return nil, fmt.Errorf("avatar image must have a 1:1 aspect ratio")
 	}
 
+	fmt.Println("UploadAvatar 3")
+
 	// Compress image
 	var buf bytes.Buffer
 	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
@@ -83,8 +124,12 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 		return nil, fmt.Errorf("failed to process image: %w", err)
 	}
 
+	fmt.Println("UploadAvatar 4")
+
 	// Generate filename
 	filename := "avatars/" + userID.String() + ".jpg"
+
+	fmt.Println("UploadAvatar 5")
 
 	// Upload file via repository
 	url, err := s.avatarRepo.UploadAvatar(ctx, filename, buf.Bytes())
@@ -92,25 +137,27 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 		return nil, fmt.Errorf("failed to upload avatar: %w", err)
 	}
 
+	fmt.Println("UploadAvatar 6")
+
 	// Update database
-	params := repository.UpdateAvatarParams{
+	params := repository.UpdateUserParams{
 		ID:     userID,
 		Avatar: &filename,
 	}
-	err = s.repo.UpdateAvatar(ctx, params)
+	profile, err := s.repo.UpdateUser(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update avatar in database: %w", err)
+		s.log.Errorf("User Service | Failed to update user avatar: %v", err)
+		return nil, fmt.Errorf("failed to update avatar in database")
 	}
 
-	// Fetch updated profile
-	profile, err := s.repo.GetUserByID(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch user profile: %w", err)
-	}
+	s.log.Infof("User Service | profile updated successfully: %v", profile.Username)
 
 	// Prepare response
 	return &ProfileResponse{
+		ID:        profile.ID,
+		IsActive:  profile.IsActive,
 		Username:  profile.Username,
+		Email:     profile.Email,
 		Avatar:    &url,
 		CreatedAt: profile.CreatedAt.Time,
 		UpdatedAt: profile.UpdatedAt.Time,
@@ -195,6 +242,8 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 	}
 
 	return &ProfileResponse{
+		ID:        user.ID,
+		IsActive:  user.IsActive,
 		Username:  user.Username,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Time,
@@ -233,6 +282,8 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		ExpiredAt: expiredAt,
 		Token:     token,
 		Profile: ProfileResponse{
+			ID:        user.ID,
+			IsActive:  user.IsActive,
 			Username:  user.Username,
 			Email:     user.Email,
 			CreatedAt: user.CreatedAt.Time,

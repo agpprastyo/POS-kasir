@@ -82,9 +82,9 @@ func Load() *AppConfig {
 		},
 		Minio: minioConfig{
 			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
-			AccessKey: getEnv("MINIO_ACCESS_KEY", "secret"),
-			SecretKey: getEnv("MINIO_SECRET_KEY", "secret"),
-			UseSSL:    getBool("MINIO_USE_SSL", true),
+			AccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+			SecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin123"),
+			UseSSL:    getBool("MINIO_USE_SSL", false),
 			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
 		},
 	}

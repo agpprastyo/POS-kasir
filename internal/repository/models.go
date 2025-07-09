@@ -361,6 +361,91 @@ func (ns NullPromotionTargetType) Value() (driver.Value, error) {
 	return string(ns.PromotionTargetType), nil
 }
 
+type SortOrder string
+
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+)
+
+func (e *SortOrder) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = SortOrder(s)
+	case string:
+		*e = SortOrder(s)
+	default:
+		return fmt.Errorf("unsupported scan type for SortOrder: %T", src)
+	}
+	return nil
+}
+
+type NullSortOrder struct {
+	SortOrder SortOrder `json:"sort_order"`
+	Valid     bool      `json:"valid"` // Valid is true if SortOrder is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSortOrder) Scan(value interface{}) error {
+	if value == nil {
+		ns.SortOrder, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.SortOrder.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSortOrder) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.SortOrder), nil
+}
+
+type UserOrderColumn string
+
+const (
+	UserOrderColumnCreatedAt UserOrderColumn = "created_at"
+	UserOrderColumnUsername  UserOrderColumn = "username"
+	UserOrderColumnEmail     UserOrderColumn = "email"
+)
+
+func (e *UserOrderColumn) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserOrderColumn(s)
+	case string:
+		*e = UserOrderColumn(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserOrderColumn: %T", src)
+	}
+	return nil
+}
+
+type NullUserOrderColumn struct {
+	UserOrderColumn UserOrderColumn `json:"user_order_column"`
+	Valid           bool            `json:"valid"` // Valid is true if UserOrderColumn is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserOrderColumn) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserOrderColumn, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserOrderColumn.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserOrderColumn) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserOrderColumn), nil
+}
+
 type UserRole string
 
 const (

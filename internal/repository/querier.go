@@ -23,6 +23,7 @@ type Querier interface {
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error
 }
 
 var _ Querier = (*Queries)(nil)

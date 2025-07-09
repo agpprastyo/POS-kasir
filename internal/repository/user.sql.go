@@ -46,22 +46,24 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password_hash, avatar, role, is_active)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO users (id,username, email, password_hash, avatar, role, is_active)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
 `
 
 type CreateUserParams struct {
-	Username     string   `json:"username"`
-	Email        string   `json:"email"`
-	PasswordHash string   `json:"password_hash"`
-	Avatar       *string  `json:"avatar"`
-	Role         UserRole `json:"role"`
-	IsActive     bool     `json:"is_active"`
+	ID           uuid.UUID `json:"id"`
+	Username     string    `json:"username"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"password_hash"`
+	Avatar       *string   `json:"avatar"`
+	Role         UserRole  `json:"role"`
+	IsActive     bool      `json:"is_active"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
 		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
@@ -160,36 +162,36 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, email, avatar, role, is_active, created_at
+SELECT id, username, email, avatar, role, is_active, created_at, updated_at
 FROM users
 WHERE
-  (
-    ($1::text IS NULL OR username ILIKE '%' || $1 || '%')
-    OR
-    ($1::text IS NULL OR email ILIKE '%' || $1 || '%')
-  )
-  AND ($2::user_role IS NULL OR role = $2)
-  AND ($3::bool IS NULL OR is_active = $3)
+    (
+        ($3::text IS NULL OR username ILIKE '%' || $3 || '%')
+            OR
+        ($3::text IS NULL OR email ILIKE '%' || $3 || '%')
+        )
+  AND ($4::user_role IS NULL OR role = $4)
+  AND ($5::bool IS NULL OR is_active = $5)
 ORDER BY
-  CASE WHEN $4 = 'username' THEN username
-       WHEN $4 = 'email' THEN email
-       ELSE created_at
-  END
-  -- sortOrder: 'asc' or 'desc'
-  -- Use CASE to dynamically set order direction
-  -- sqlc does not support dynamic ASC/DESC, so you may need to generate two queries or handle in code
-  -- Here is DESC as default
-  DESC
-LIMIT $5 OFFSET $6
+  CASE WHEN $6::user_order_column = 'username' AND $7::sort_order = 'asc'  THEN username END ASC,
+  CASE WHEN $6::user_order_column = 'username' AND $7::sort_order = 'desc' THEN username END DESC,
+  CASE WHEN $6::user_order_column = 'email' AND $7::sort_order = 'asc' THEN email END ASC,
+  CASE WHEN $6::user_order_column = 'email' AND $7::sort_order = 'desc' THEN email END DESC,
+  CASE WHEN $6::user_order_column = 'created_at' AND $7::sort_order = 'asc' THEN created_at END ASC,
+  CASE WHEN $6::user_order_column = 'created_at' AND $7::sort_order = 'desc' THEN created_at END DESC,
+  created_at ASC
+
+LIMIT $1 OFFSET $2
 `
 
 type ListUsersParams struct {
-	Column1 string      `json:"column_1"`
-	Column2 UserRole    `json:"column_2"`
-	Column3 bool        `json:"column_3"`
-	Column4 interface{} `json:"column_4"`
-	Limit   int32       `json:"limit"`
-	Offset  int32       `json:"offset"`
+	Limit      int32           `json:"limit"`
+	Offset     int32           `json:"offset"`
+	SearchText *string         `json:"search_text"`
+	Role       NullUserRole    `json:"role"`
+	IsActive   *bool           `json:"is_active"`
+	OrderBy    UserOrderColumn `json:"order_by"`
+	SortOrder  SortOrder       `json:"sort_order"`
 }
 
 type ListUsersRow struct {
@@ -200,16 +202,18 @@ type ListUsersRow struct {
 	Role      UserRole           `json:"role"`
 	IsActive  bool               `json:"is_active"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers,
-		arg.Column1,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
 		arg.Limit,
 		arg.Offset,
+		arg.SearchText,
+		arg.Role,
+		arg.IsActive,
+		arg.OrderBy,
+		arg.SortOrder,
 	)
 	if err != nil {
 		return nil, err
@@ -226,6 +230,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 			&i.Role,
 			&i.IsActive,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -250,22 +255,21 @@ func (q *Queries) ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) erro
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET username = $2,
-    email = $3,
-    avatar = $4,
-    role = $5,
-    is_active = $6
+SET
+    username = COALESCE($2, username),
+    email = COALESCE($3, email),
+    avatar = COALESCE($4, avatar),
+    is_active = COALESCE($5, is_active)
 WHERE id = $1
 RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
 `
 
 type UpdateUserParams struct {
 	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	Email    string    `json:"email"`
+	Username *string   `json:"username"`
+	Email    *string   `json:"email"`
 	Avatar   *string   `json:"avatar"`
-	Role     UserRole  `json:"role"`
-	IsActive bool      `json:"is_active"`
+	IsActive *bool     `json:"is_active"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -274,7 +278,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Username,
 		arg.Email,
 		arg.Avatar,
-		arg.Role,
 		arg.IsActive,
 	)
 	var i User
@@ -305,5 +308,22 @@ type UpdateUserPasswordParams struct {
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
 	_, err := q.db.Exec(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
+	return err
+}
+
+const updateUserRole = `-- name: UpdateUserRole :exec
+UPDATE users
+SET role = $2
+WHERE id = $1
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
+`
+
+type UpdateUserRoleParams struct {
+	ID   uuid.UUID `json:"id"`
+	Role UserRole  `json:"role"`
+}
+
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error {
+	_, err := q.db.Exec(ctx, updateUserRole, arg.ID, arg.Role)
 	return err
 }

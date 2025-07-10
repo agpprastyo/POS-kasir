@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
@@ -18,10 +19,11 @@ import (
 
 // AthService is a concrete implementation of IAuthService.
 type AthService struct {
-	repo       repository.Queries
-	log        *logger.Logger
-	token      utils.Manager
-	avatarRepo IAthRepo
+	repo           repository.Querier
+	log            *logger.Logger
+	token          utils.Manager
+	avatarRepo     IAthRepo
+	activityLogger activitylog.Service
 }
 
 func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error) {
@@ -45,12 +47,13 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 
 }
 
-func NewAuthService(repo repository.Queries, log *logger.Logger, tokenManager utils.Manager, avaRepo IAthRepo) IAuthService {
+func NewAuthService(repo repository.Querier, log *logger.Logger, tokenManager utils.Manager, avaRepo IAthRepo, actLog activitylog.Service) IAuthService {
 	return &AthService{
-		repo:       repo,
-		log:        log,
-		token:      tokenManager,
-		avatarRepo: avaRepo,
+		repo:           repo,
+		log:            log,
+		token:          tokenManager,
+		avatarRepo:     avaRepo,
+		activityLogger: actLog,
 	}
 }
 
@@ -90,6 +93,27 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 		s.log.Errorf("User Service | Failed to update user password: %v", err)
 		return fmt.Errorf("failed to update password in database")
 	}
+
+	// Log activity
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"updated_username": user.Username,
+		"updated_email":    user.Email,
+		"updated_role":     user.Role,
+	}
+
+	s.activityLogger.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATEPASSWORD,
+		repository.LogEntityTypeUSER,
+		user.ID.String(),
+		logDetails,
+	)
 
 	s.log.Infof("User Service | Password updated successfully for user: %v", user.Username)
 	return nil
@@ -151,6 +175,26 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 	}
 
 	s.log.Infof("User Service | profile updated successfully: %v", profile.Username)
+
+	// Log activity
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for activity logging")
+	}
+	logDetails := map[string]interface{}{
+		"updated_username": profile.Username,
+		"updated_email":    profile.Email,
+		"updated_role":     profile.Role,
+		"updated_avatar":   url,
+	}
+	s.activityLogger.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATEAVATAR,
+		repository.LogEntityTypeUSER,
+		profile.ID.String(),
+		logDetails,
+	)
 
 	// Prepare response
 	return &ProfileResponse{
@@ -241,6 +285,26 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 		return nil, err
 	}
 
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"created_username": user.Username,
+		"created_email":    user.Email,
+		"created_role":     user.Role,
+	}
+
+	s.activityLogger.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeCREATE,
+		repository.LogEntityTypeUSER,
+		user.ID.String(),
+		logDetails,
+	)
+
 	return &ProfileResponse{
 		ID:        user.ID,
 		IsActive:  user.IsActive,
@@ -254,6 +318,7 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 }
 
 func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+
 	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		switch {
@@ -266,17 +331,53 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		}
 	}
 
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"login_username": user.Username,
+		"login_email":    user.Email,
+		"login_role":     user.Role,
+	}
+
 	pass := utils.CheckPassword(user.PasswordHash, req.Password)
 	if !pass {
 		s.log.Errorf("User Service | Failed to find user by email: %v", req.Email)
+		s.activityLogger.Log(
+			ctx,
+			actorID,
+			repository.LogActionTypeLOGINFAILED,
+			repository.LogEntityTypeUSER,
+			user.ID.String(),
+			logDetails,
+		)
 		return nil, common.ErrInvalidCredentials
 	}
 
 	token, expiredAt, err := s.token.GenerateToken(user.Username, user.Email, user.ID, user.Role)
 	if err != nil {
 		s.log.Errorf("User Service | Failed to generate token: %v", err)
+		s.activityLogger.Log(
+			ctx,
+			actorID,
+			repository.LogActionTypeLOGINFAILED,
+			repository.LogEntityTypeUSER,
+			user.ID.String(),
+			logDetails,
+		)
 		return nil, common.ErrInvalidCredentials
 	}
+
+	s.activityLogger.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeLOGINSUCCESS,
+		repository.LogEntityTypeUSER,
+		user.ID.String(),
+		logDetails,
+	)
 
 	return &LoginResponse{
 		ExpiredAt: expiredAt,

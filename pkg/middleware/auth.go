@@ -31,6 +31,10 @@ func AuthMiddleware(tokenManager utils.Manager, log *logger.Logger) fiber.Handle
 		log.Infof("current email is %v", claims.Email)
 		log.Infof("current user ID is %v", claims.UserID)
 
+		c.Context().SetUserValue(common.UserIDKey, claims.UserID)
+
+		log.Infof("current user ID is %v", claims.UserID)
+
 		return c.Next()
 	}
 }

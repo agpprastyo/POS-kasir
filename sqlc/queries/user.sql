@@ -61,17 +61,31 @@ WHERE id = $1;
 -- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1;
 
--- name: ToggleUserActiveStatus :exec
+-- name: ToggleUserActiveStatus :one
 UPDATE users
 SET is_active = NOT is_active
-WHERE id = $1;
+WHERE id = $1
+RETURNING id;
 
 -- name: CountUsers :one
-SELECT COUNT(*) FROM users;
+SELECT count(*) FROM users
+WHERE
+    (
+        (sqlc.narg(search_text)::text IS NULL OR username ILIKE '%' || sqlc.narg(search_text) || '%')
+            OR
+        (sqlc.narg(search_text)::text IS NULL OR email ILIKE '%' || sqlc.narg(search_text) || '%')
+        )
+  AND (sqlc.narg(role)::user_role IS NULL OR role = sqlc.narg(role))
+  AND (sqlc.narg(is_active)::bool IS NULL OR is_active = sqlc.narg(is_active));
 
 -- name: CountActiveUsers :one
 SELECT COUNT(*) FROM users WHERE is_active = true;
 
 -- name: CountInactiveUsers :one
 SELECT COUNT(*) FROM users WHERE is_active = false;
+
+-- name: CheckUserExistence :one
+SELECT
+    EXISTS(SELECT 1 FROM users u WHERE u.email = sqlc.arg(email)) AS email_exists,
+    EXISTS(SELECT 1 FROM users u WHERE u.username = sqlc.arg(username)) AS username_exists;
 

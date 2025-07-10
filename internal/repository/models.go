@@ -63,6 +63,11 @@ const (
 	LogActionTypeCANCEL         LogActionType = "CANCEL"
 	LogActionTypeAPPLYPROMOTION LogActionType = "APPLY_PROMOTION"
 	LogActionTypePROCESSPAYMENT LogActionType = "PROCESS_PAYMENT"
+	LogActionTypeREGISTER       LogActionType = "REGISTER"
+	LogActionTypeUPDATEPASSWORD LogActionType = "UPDATE_PASSWORD"
+	LogActionTypeUPDATEAVATAR   LogActionType = "UPDATE_AVATAR"
+	LogActionTypeLOGINSUCCESS   LogActionType = "LOGIN_SUCCESS"
+	LogActionTypeLOGINFAILED    LogActionType = "LOGIN_FAILED"
 )
 
 func (e *LogActionType) Scan(src interface{}) error {

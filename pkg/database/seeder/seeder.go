@@ -6,7 +6,7 @@ import (
 	"context"
 )
 
-func RunSeeders(ctx context.Context, q *repository.Queries, log *logger.Logger) error {
+func RunSeeders(ctx context.Context, q repository.Querier, log *logger.Logger) error {
 	if err := SeedUsers(ctx, q, log); err != nil {
 		return err
 	}

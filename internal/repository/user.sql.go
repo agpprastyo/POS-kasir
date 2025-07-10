@@ -12,6 +12,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkUserExistence = `-- name: CheckUserExistence :one
+SELECT
+    EXISTS(SELECT 1 FROM users u WHERE u.email = $1) AS email_exists,
+    EXISTS(SELECT 1 FROM users u WHERE u.username = $2) AS username_exists
+`
+
+type CheckUserExistenceParams struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+}
+
+type CheckUserExistenceRow struct {
+	EmailExists    bool `json:"email_exists"`
+	UsernameExists bool `json:"username_exists"`
+}
+
+func (q *Queries) CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error) {
+	row := q.db.QueryRow(ctx, checkUserExistence, arg.Email, arg.Username)
+	var i CheckUserExistenceRow
+	err := row.Scan(&i.EmailExists, &i.UsernameExists)
+	return i, err
+}
+
 const countActiveUsers = `-- name: CountActiveUsers :one
 SELECT COUNT(*) FROM users WHERE is_active = true
 `
@@ -35,11 +58,25 @@ func (q *Queries) CountInactiveUsers(ctx context.Context) (int64, error) {
 }
 
 const countUsers = `-- name: CountUsers :one
-SELECT COUNT(*) FROM users
+SELECT count(*) FROM users
+WHERE
+    (
+        ($1::text IS NULL OR username ILIKE '%' || $1 || '%')
+            OR
+        ($1::text IS NULL OR email ILIKE '%' || $1 || '%')
+        )
+  AND ($2::user_role IS NULL OR role = $2)
+  AND ($3::bool IS NULL OR is_active = $3)
 `
 
-func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, countUsers)
+type CountUsersParams struct {
+	SearchText *string      `json:"search_text"`
+	Role       NullUserRole `json:"role"`
+	IsActive   *bool        `json:"is_active"`
+}
+
+func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsers, arg.SearchText, arg.Role, arg.IsActive)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -242,15 +279,17 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 	return items, nil
 }
 
-const toggleUserActiveStatus = `-- name: ToggleUserActiveStatus :exec
+const toggleUserActiveStatus = `-- name: ToggleUserActiveStatus :one
 UPDATE users
 SET is_active = NOT is_active
 WHERE id = $1
+RETURNING id
 `
 
-func (q *Queries) ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, toggleUserActiveStatus, id)
-	return err
+func (q *Queries) ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, toggleUserActiveStatus, id)
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateUser = `-- name: UpdateUser :one

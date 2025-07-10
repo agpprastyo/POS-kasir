@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func SeedUsers(ctx context.Context, q *repository.Queries, log *logger.Logger) error {
+func SeedUsers(ctx context.Context, q repository.Querier, log *logger.Logger) error {
 	userData := []struct {
 		Username string
 		Email    string

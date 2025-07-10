@@ -11,16 +11,31 @@ import (
 )
 
 type Querier interface {
+	CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error)
 	CountActiveUsers(ctx context.Context) (int64, error)
+	// Menghitung total jumlah kategori, berguna untuk pagination.
+	CountCategories(ctx context.Context) (int64, error)
 	CountInactiveUsers(ctx context.Context) (int64, error)
-	CountUsers(ctx context.Context) (int64, error)
+	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
+	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
+	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
+	// Membuat kategori baru dan mengembalikan data lengkapnya.
+	CreateCategory(ctx context.Context, name string) (Category, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	// Menghapus satu kategori berdasarkan ID.
+	DeleteCategory(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	// Mengambil satu kategori berdasarkan ID.
+	GetCategory(ctx context.Context, id int32) (Category, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	// Mengambil daftar semua kategori dengan pagination.
+	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
-	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) error
+	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
+	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
+	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error

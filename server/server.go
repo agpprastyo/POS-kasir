@@ -40,7 +40,6 @@ func InitApp() *App {
 	// Initialize logger
 	log := logger.New(cfg)
 
-	// Initialize PostgreSQL
 	db, err := database.NewPostgresPool(cfg, log)
 	if err != nil {
 		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
@@ -48,12 +47,13 @@ func InitApp() *App {
 
 	// Create Fiber app
 	fiberApp := fiber.New(fiber.Config{
-		AppName: cfg.Server.AppName,
+		AppName:      cfg.Server.AppName,
+		ErrorHandler: CustomErrorHandler(log),
 	})
 	// Initialize JWT manager
 	jwtManager := utils.NewJWTManager(cfg)
 
-	minio, err := minio.NewMinio(cfg, log)
+	newMinio, err := minio.NewMinio(cfg, log)
 	if err != nil {
 		log.Fatalf("Failed to initialize Minio: %v", err)
 	}
@@ -64,7 +64,7 @@ func InitApp() *App {
 		DB:       db,
 		FiberApp: fiberApp,
 		JWT:      jwtManager,
-		Minio:    minio,
+		Minio:    newMinio,
 	}
 }
 
@@ -120,6 +120,7 @@ func CustomErrorHandler(logger *logger.Logger) fiber.ErrorHandler {
 
 		var e *fiber.Error
 		if errors.As(err, &e) {
+			logger.Errorf("Fiber error 1: %v", e)
 			return c.Status(e.Code).JSON(fiber.Map{
 				"error": e.Message,
 			})

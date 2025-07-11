@@ -9,8 +9,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	"net/url"
-
 	"time"
 )
 
@@ -41,18 +39,19 @@ func NewMinio(cfg *config.AppConfig, log *logger.Logger) (*Minio, error) {
 
 type IMinio interface {
 	UploadFile(ctx context.Context, objectName string, data []byte, contentType string) (string, error)
-	GetFileShareLink(ctx context.Context, objectName string, expirySeconds int64) (string, error)
+	GetFileShareLink(ctx context.Context, objectName string) (string, error)
 }
 
 // GetFileShareLink generates a presigned URL for sharing a file.
-func (m *Minio) GetFileShareLink(ctx context.Context, objectName string, expirySeconds int64) (string, error) {
-	reqParams := make(url.Values)
+func (m *Minio) GetFileShareLink(ctx context.Context, objectName string) (string, error) {
+
+	m.Log.Info("GetFileShareLink", "objectName", objectName)
 	presignedURL, err := m.Client.PresignedGetObject(
 		ctx,
 		m.Cfg.Minio.Bucket,
 		objectName,
-		time.Duration(expirySeconds)*time.Second,
-		reqParams,
+		time.Duration(m.Cfg.Minio.ExpirySec)*time.Second,
+		nil,
 	)
 	if err != nil {
 		m.Log.Error("Failed to generate presigned URL", "error", err, "objectName", objectName)
@@ -66,7 +65,7 @@ func (m *Minio) UploadFile(ctx context.Context, objectName string, data []byte, 
 		if m != nil && m.Log != nil {
 			m.Log.Error("Minio or its dependencies are nil")
 		}
-		return "", fmt.Errorf("Minio or its dependencies are nil")
+		return "", fmt.Errorf("minio or its dependencies are nil")
 	}
 	fmt.Println("UploadFile repo 1")
 	reader := bytes.NewReader(data)
@@ -87,7 +86,7 @@ func (m *Minio) UploadFile(ctx context.Context, objectName string, data []byte, 
 		ctx,
 		m.Cfg.Minio.Bucket,
 		objectName,
-		time.Hour,
+		time.Duration(m.Cfg.Minio.ExpirySec)*time.Second,
 		nil,
 	)
 

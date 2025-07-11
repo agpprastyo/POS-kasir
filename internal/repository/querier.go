@@ -16,26 +16,51 @@ type Querier interface {
 	// Menghitung total jumlah kategori, berguna untuk pagination.
 	CountCategories(ctx context.Context) (int64, error)
 	CountInactiveUsers(ctx context.Context) (int64, error)
+	// Counts total products for pagination, respecting filters.
+	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
 	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
+	// Queries for Products
+	// Creates a new product and returns its full details.
+	// Product options should be created separately in a transaction.
+	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	// Queries for Product Options (Variants)
+	// Creates a new option for a specific product.
+	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Menghapus satu kategori berdasarkan ID.
 	DeleteCategory(ctx context.Context, id int32) error
+	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
+	DeleteProduct(ctx context.Context, id uuid.UUID) error
+	// Deletes a single product option.
+	DeleteProductOption(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
+	// Retrieves a single product and aggregates its options into a JSON array.
+	// This is an efficient way to fetch a product and its variants in one query.
+	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	// Mengambil daftar semua kategori dengan pagination.
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
+	// Retrieves all options for a single product.
+	ListOptionsForProduct(ctx context.Context, productID uuid.UUID) ([]ProductOption, error)
+	// Lists products with filtering and pagination.
+	// Does not include variants for performance reasons on a list view.
+	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
+	// Updates a product's details. Use COALESCE for optional fields.
+	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
+	// Updates a specific product option.
+	UpdateProductOption(ctx context.Context, arg UpdateProductOptionParams) (ProductOption, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error

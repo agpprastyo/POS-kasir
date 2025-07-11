@@ -43,7 +43,7 @@ func SetupRoutes(app *fiber.App, logger *logger.Logger, db *database.Postgres, c
 	api.Put("/auth/me/password", authMiddleware, authHandler.UpdatePasswordHandler)
 	api.Post("/auth/logout", authMiddleware, authHandler.LogoutHandler)
 
-	userService := user.NewUsrService(repo, logger, activityLog)
+	userService := user.NewUsrService(repo, logger, activityLog, authRepo)
 	userHandler := user.NewUsrHandler(userService, logger, val)
 
 	api.Get("/users", authMiddleware, userHandler.GetAllUsersHandler)

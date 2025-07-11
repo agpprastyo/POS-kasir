@@ -20,6 +20,7 @@ type minioConfig struct {
 	SecretKey string
 	UseSSL    bool
 	Bucket    string
+	ExpirySec int64
 }
 
 type jwtConfig struct {
@@ -86,6 +87,7 @@ func Load() *AppConfig {
 			SecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin123"),
 			UseSSL:    getBool("MINIO_USE_SSL", false),
 			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
+			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400), // Default 24 hours
 		},
 	}
 }

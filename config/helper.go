@@ -49,3 +49,16 @@ func getDuration(key string, fallback time.Duration) time.Duration {
 	}
 	return value
 }
+
+// getInt64
+func getInt64(key string, fallback int64) int64 {
+	strValue := getEnv(key, "")
+	if strValue == "" {
+		return fallback
+	}
+	value, err := strconv.ParseInt(strValue, 10, 64)
+	if err != nil {
+		return fallback
+	}
+	return value
+}

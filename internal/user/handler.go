@@ -45,6 +45,8 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 
 	h.log.Info("DTO after manual parse:", "dto", req)
 
+	h.log.Info("Get all users 1", "dto", req)
+
 	if err := h.validator.Validate(req); err != nil {
 		h.log.Error("Validation failed", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -53,6 +55,8 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	h.log.Info("Get all users 2", "dto", req)
+
 	response, err := h.service.GetAllUsers(ctx, *req)
 	if err != nil {
 		h.log.Error("Failed to get all users", "error", err)
@@ -60,6 +64,8 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 			"error": "Failed to get users",
 		})
 	}
+
+	h.log.Info("Get all users 3", "response", response)
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Users retrieved successfully",

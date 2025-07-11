@@ -26,6 +26,7 @@ type UsrService struct {
 	repo           repository.Querier
 	log            *logger.Logger
 	activityLogger activitylog.Service
+	avatar         auth.IAthRepo
 }
 
 func (s *UsrService) ToggleUserStatus(ctx context.Context, userID uuid.UUID) error {
@@ -163,6 +164,17 @@ func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.P
 		return nil, common.ErrNotFound
 	}
 
+	if user.Avatar != nil && *user.Avatar != "" {
+		avatarURL, err := s.avatar.AvatarLink(ctx, user.ID, *user.Avatar)
+		if err != nil {
+			s.log.Error("Failed to get avatar link", "error", err, "userID", user.ID)
+			return nil, err
+		}
+		user.Avatar = &avatarURL
+	} else {
+		user.Avatar = nil
+	}
+
 	response := auth.ProfileResponse{
 		ID:        user.ID,
 		Username:  user.Username,
@@ -267,15 +279,19 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 	return &response, nil
 }
 
-func NewUsrService(repo repository.Querier, log *logger.Logger, actLog activitylog.Service) IUsrService {
+func NewUsrService(repo repository.Querier, log *logger.Logger, actLog activitylog.Service, avatar auth.IAthRepo) IUsrService {
 	return &UsrService{
 		repo:           repo,
 		log:            log,
 		activityLogger: actLog,
+		avatar:         avatar,
 	}
+
 }
 
 func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersResponse, error) {
+	s.log.Info("Get all users 1", "req", req)
+
 	orderBy := repository.UserOrderColumn("created_at")
 	if req.SortBy != nil {
 		orderBy = *req.SortBy
@@ -292,6 +308,8 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 	if req.SortOrder != nil {
 		sortOrder = *req.SortOrder
 	}
+
+	s.log.Info("Get all users 2", "req", req)
 
 	listParams := repository.ListUsersParams{
 		OrderBy:   orderBy,
@@ -310,11 +328,15 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 	}
 	listParams.IsActive = req.IsActive
 
+	s.log.Info("Get all users 3", "listParams", listParams)
+
 	users, err := s.repo.ListUsers(ctx, listParams)
 	if err != nil {
 		s.log.Error("Failed to list users", "error", err)
 		return nil, err
 	}
+
+	s.log.Info("Get all users 4", "users", users)
 
 	countParams := repository.CountUsersParams{
 		SearchText: listParams.SearchText,
@@ -322,11 +344,15 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		IsActive:   listParams.IsActive,
 	}
 
+	s.log.Info("Get all users 5", "countParams", countParams)
+
 	totalFilteredUsers, err := s.repo.CountUsers(ctx, countParams)
 	if err != nil {
 		s.log.Error("Failed to count users", "error", err)
 		return nil, err
 	}
+
+	s.log.Info("Get all users 6", "totalFilteredUsers: ", totalFilteredUsers)
 
 	response := UsersResponse{
 		Users: make([]auth.ProfileResponse, len(users)),
@@ -339,6 +365,16 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 	}
 
 	for i, u := range users {
+		if u.Avatar != nil && *u.Avatar != "" {
+			s.log.Info("Get all users 7", "userID", u.ID, "avatar", *u.Avatar)
+			avatarURL, err := s.avatar.AvatarLink(ctx, u.ID, *u.Avatar)
+			if err != nil {
+				s.log.Error("Failed to get avatar link", "error", err, "userID", u.ID)
+				// Biarkan u.Avatar sebagai nil jika terjadi error
+			} else {
+				u.Avatar = &avatarURL
+			}
+		}
 		response.Users[i] = auth.ProfileResponse{
 			ID:        u.ID,
 			Username:  u.Username,

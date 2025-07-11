@@ -32,6 +32,18 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 		return nil, common.ErrNotFound
 	}
 
+	if user.Avatar != nil {
+		// Fetch avatar URL if it exists
+		avatarURL, err := s.avatarRepo.AvatarLink(ctx, user.ID, *user.Avatar)
+		if err != nil {
+			s.log.Errorf("User Service | Failed to get avatar link: %v", err)
+			return nil, fmt.Errorf("failed to get avatar link: %w", err)
+		}
+		user.Avatar = &avatarURL
+	} else {
+		user.Avatar = nil
+	}
+
 	response := ProfileResponse{
 		ID:        user.ID,
 		IsActive:  user.IsActive,

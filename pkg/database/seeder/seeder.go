@@ -10,5 +10,9 @@ func RunSeeders(ctx context.Context, q repository.Querier, log *logger.Logger) e
 	if err := SeedUsers(ctx, q, log); err != nil {
 		return err
 	}
+
+	if err := SeedCategory(ctx, q, log); err != nil {
+		return err
+	}
 	return nil
 }

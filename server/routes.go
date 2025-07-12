@@ -5,6 +5,7 @@ import (
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/auth"
 	"POS-kasir/internal/categories"
+	"POS-kasir/internal/products"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/user"
 	"POS-kasir/pkg/database"
@@ -25,6 +26,8 @@ func SetupRoutes(app *fiber.App, logger *logger.Logger, db *database.Postgres, c
 	app.Get("/healthz", hltHandler)
 
 	api := app.Group("/api/v1")
+
+	store := repository.NewStore(db.DB, logger)
 
 	repo := repository.New(db.DB)
 	activityLog := activitylog.NewService(repo, logger)
@@ -60,4 +63,30 @@ func SetupRoutes(app *fiber.App, logger *logger.Logger, db *database.Postgres, c
 	api.Get("/categories/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), categoryHandler.GetCategoryByIDHandler)
 	api.Put("/categories/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), categoryHandler.UpdateCategoryHandler)
 	api.Delete("/categories/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), categoryHandler.DeleteCategoryHandler)
+
+	// Initialize product service and handler
+	prdRepo := products.NewPrdRepo(minio, logger)
+	prdService := products.NewPrdService(store, logger, prdRepo, activityLog)
+	prdHandler := products.NewPrdHandler(prdService, logger, val)
+
+	api.Post("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.CreateProductHandler)
+
+	api.Post("/products/:id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UploadProductImageHandler)
+
+	api.Get("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), prdHandler.ListProductsHandler)
+
+	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), prdHandler.GetProductHandler)
+
+	//api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductHandler)
+	//
+	//api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), prdHandler.DeleteProductHandler)
+	//
+	//api.Post("/products/:product_id/options", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.CreateProductOptionHandler)
+	//
+	//api.Post("/products/:product_id/options/:option_id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UploadProductOptionImageHandler)
+	//
+	//api.Patch("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductOptionHandler)
+	//
+	//api.Delete("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.DeleteProductOptionHandler)
+
 }

@@ -18,23 +18,25 @@ import (
 	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 type App struct {
-	Config   *config.AppConfig
-	Logger   *logger.Logger
-	DB       *database.Postgres
-	FiberApp *fiber.App
-	JWT      utils.Manager
-	Minio    *minio.Minio
+	Config          *config.AppConfig
+	Logger          *logger.Logger
+	DB              *database.Postgres
+	FiberApp        *fiber.App
+	JWT             utils.Manager
+	Minio           *minio.Minio
+	Store           repository.Store
+	Validator       validator.Validator
+	MidtransService payment.IMidtrans
 }
 
 type AppContainer struct {
@@ -45,36 +47,73 @@ type AppContainer struct {
 	OrderHandler    orders.IOrderHandler
 }
 
-func BuildAppContainer(app *App) *AppContainer {
+func InitApp() *App {
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	cfg := config.Load()
+	log := logger.New(cfg)
+
+	db, err := database.NewPostgresPool(cfg, log)
+	if err != nil {
+		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
+	}
+
+	fiberApp := fiber.New(fiber.Config{
+		AppName:      cfg.Server.AppName,
+		ErrorHandler: CustomErrorHandler(log),
+	})
+
+	jwtManager := utils.NewJWTManager(cfg)
+	newMinio, err := minio.NewMinio(cfg, log)
+	if err != nil {
+		log.Fatalf("Failed to initialize Minio: %v", err)
+	}
+
+	store := repository.NewStore(db.DB, log)
 	val := validator.NewValidator()
+	midtransService := payment.NewMidtransService(cfg, log)
 
-	store := repository.NewStore(app.DB.DB, app.Logger)
+	return &App{
+		Config:          cfg,
+		Logger:          log,
+		DB:              db,
+		FiberApp:        fiberApp,
+		JWT:             jwtManager,
+		Minio:           newMinio,
+		Store:           store,
+		Validator:       val,
+		MidtransService: midtransService,
+	}
+}
 
+func BuildAppContainer(app *App) *AppContainer {
 	// Activity Log Service
-	activityService := activitylog.NewService(store, app.Logger)
+	activityService := activitylog.NewService(app.Store, app.Logger)
 
 	// Auth Module
 	authRepo := auth.NewAuthRepo(app.Logger, app.Minio)
-	authService := auth.NewAuthService(store, app.Logger, app.JWT, authRepo, activityService)
-	authHandler := auth.NewAuthHandler(authService, app.Logger, val)
+	authService := auth.NewAuthService(app.Store, app.Logger, app.JWT, authRepo, activityService)
+	authHandler := auth.NewAuthHandler(authService, app.Logger, app.Validator)
 
 	// User Module
-	userService := user.NewUsrService(store, app.Logger, activityService, authRepo)
-	userHandler := user.NewUsrHandler(userService, app.Logger, val)
+	userService := user.NewUsrService(app.Store, app.Logger, activityService, authRepo)
+	userHandler := user.NewUsrHandler(userService, app.Logger, app.Validator)
 
 	// Category Module
-	categoryService := categories.NewCtgService(store, app.Logger, activityService)
+	categoryService := categories.NewCtgService(app.Store, app.Logger, activityService)
 	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
 
 	// Product Module
 	prdRepo := products.NewPrdRepo(app.Minio, app.Logger)
-	prdService := products.NewPrdService(store, app.Logger, prdRepo, activityService)
-	prdHandler := products.NewPrdHandler(prdService, app.Logger, val)
+	prdService := products.NewPrdService(app.Store, app.Logger, prdRepo, activityService)
+	prdHandler := products.NewPrdHandler(prdService, app.Logger, app.Validator)
 
 	// Order & Payment Module
-	midtransService := payment.NewMidtransService(app.Config, app.Logger)
-	orderService := orders.NewOrderService(store, midtransService, activityService, app.Logger)
-	orderHandler := orders.NewOrderHandler(orderService, app.Logger, val)
+	orderService := orders.NewOrderService(app.Store, app.MidtransService, activityService, app.Logger)
+	orderHandler := orders.NewOrderHandler(orderService, app.Logger, app.Validator)
 
 	return &AppContainer{
 		AuthHandler:     *authHandler,
@@ -85,55 +124,14 @@ func BuildAppContainer(app *App) *AppContainer {
 	}
 }
 
-func InitApp() *App {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
-
-	// Load configuration
-	cfg := config.Load()
-
-	// Initialize logger
-	log := logger.New(cfg)
-
-	db, err := database.NewPostgresPool(cfg, log)
-	if err != nil {
-		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
-	}
-
-	// Create Fiber app
-	fiberApp := fiber.New(fiber.Config{
-		AppName:      cfg.Server.AppName,
-		ErrorHandler: CustomErrorHandler(log),
-	})
-	// Initialize JWT manager
-	jwtManager := utils.NewJWTManager(cfg)
-
-	newMinio, err := minio.NewMinio(cfg, log)
-	if err != nil {
-		log.Fatalf("Failed to initialize Minio: %v", err)
-	}
-
-	return &App{
-		Config:   cfg,
-		Logger:   log,
-		DB:       db,
-		FiberApp: fiberApp,
-		JWT:      jwtManager,
-		Minio:    newMinio,
-	}
-}
-
 func StartServer(app *App) {
 	// Setup middleware
 	SetupMiddleware(app)
 
 	container := BuildAppContainer(app)
 
-	SetupRoutes(app, container, app.JWT)
+	SetupRoutes(app, container)
 
-	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)
 	if err := app.FiberApp.Listen(":" + app.Config.Server.Port); err != nil {
 		app.Logger.Fatalf("Error starting app: %v", err)
@@ -143,7 +141,6 @@ func StartServer(app *App) {
 func SetupMiddleware(app *App) {
 	app.FiberApp.Use(fiberlog.New())
 	app.FiberApp.Use(recover.New())
-
 }
 
 func Cleanup(app *App) {
@@ -152,7 +149,6 @@ func Cleanup(app *App) {
 			app.Logger.Errorf("Error closing database connection: %v", err)
 		}
 	}
-
 }
 
 func WaitForShutdown(app *App) {
@@ -185,6 +181,5 @@ func CustomErrorHandler(logger *logger.Logger) fiber.ErrorHandler {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Internal Server Error",
 		})
-
 	}
 }

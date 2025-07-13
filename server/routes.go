@@ -3,16 +3,15 @@ package server
 import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/middleware"
-	"POS-kasir/pkg/utils"
 )
 
-func SetupRoutes(app *App, container *AppContainer, jwt utils.Manager) {
+func SetupRoutes(app *App, container *AppContainer) {
 	hltHandler := HealthHandler(app)
 	app.FiberApp.Get("/healthz", hltHandler)
 
 	api := app.FiberApp.Group("/api/v1")
 
-	authMiddleware := middleware.AuthMiddleware(jwt, app.Logger)
+	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
 	api.Post("/auth/register", container.AuthHandler.RegisterHandler)

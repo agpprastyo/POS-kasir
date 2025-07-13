@@ -7,11 +7,17 @@ import (
 )
 
 type AppConfig struct {
-	Server serverConfig
-	DB     dbConfig
-	Logger loggerConfig
-	JWT    jwtConfig
-	Minio  minioConfig
+	Server   serverConfig
+	DB       dbConfig
+	Logger   loggerConfig
+	JWT      jwtConfig
+	Minio    minioConfig
+	Midtrans midtransConfig
+}
+
+type midtransConfig struct {
+	ServerKey string `mapstructure:"server_key"`
+	IsProd    bool   `mapstructure:"is_prod"`
 }
 
 type minioConfig struct {
@@ -72,8 +78,8 @@ func Load() *AppConfig {
 			Output:     os.Stdout,
 		},
 		Server: serverConfig{
-			AppName: getEnv("APP_NAME", "agprastyowsl"),
-			Env:     getEnv("APP_ENV", "production"),
+			AppName: getEnv("APP_NAME", "hmm"),
+			Env:     getEnvEnum("APP_ENV", []string{"production", "development"}, "production"),
 			Port:    getEnv("APP_PORT", "8080"),
 		},
 		JWT: jwtConfig{
@@ -87,7 +93,7 @@ func Load() *AppConfig {
 			SecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin123"),
 			UseSSL:    getBool("MINIO_USE_SSL", false),
 			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
-			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400), // Default 24 hours
+			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400),
 		},
 	}
 }

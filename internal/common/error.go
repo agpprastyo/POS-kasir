@@ -18,6 +18,7 @@ var (
 	ErrEmailExists        = errors.New("email already exists")
 	ErrCategoryInUse      = errors.New("category is in use and cannot be deleted")
 	ErrInvalidID          = errors.New("invalid ID format")
+	ErrNotImplemented     = errors.New("not implemented")
 )
 
 // WrapError adds context to an error

@@ -2,10 +2,19 @@ package server
 
 import (
 	"POS-kasir/config"
+	"POS-kasir/internal/activitylog"
+	"POS-kasir/internal/auth"
+	"POS-kasir/internal/categories"
+	"POS-kasir/internal/orders"
+	"POS-kasir/internal/products"
+	"POS-kasir/internal/repository"
+	"POS-kasir/internal/user"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/minio"
+	"POS-kasir/pkg/payment"
 	"POS-kasir/pkg/utils"
+	"POS-kasir/pkg/validator"
 	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -26,6 +35,54 @@ type App struct {
 	FiberApp *fiber.App
 	JWT      utils.Manager
 	Minio    *minio.Minio
+}
+
+type AppContainer struct {
+	AuthHandler     auth.AthHandler
+	UserHandler     user.UsrHandler
+	CategoryHandler categories.ICtgHandler
+	ProductHandler  products.IPrdHandler
+	OrderHandler    orders.IOrderHandler
+}
+
+func BuildAppContainer(app *App) *AppContainer {
+	val := validator.NewValidator()
+
+	store := repository.NewStore(app.DB.DB, app.Logger)
+
+	// Activity Log Service
+	activityService := activitylog.NewService(store, app.Logger)
+
+	// Auth Module
+	authRepo := auth.NewAuthRepo(app.Logger, app.Minio)
+	authService := auth.NewAuthService(store, app.Logger, app.JWT, authRepo, activityService)
+	authHandler := auth.NewAuthHandler(authService, app.Logger, val)
+
+	// User Module
+	userService := user.NewUsrService(store, app.Logger, activityService, authRepo)
+	userHandler := user.NewUsrHandler(userService, app.Logger, val)
+
+	// Category Module
+	categoryService := categories.NewCtgService(store, app.Logger, activityService)
+	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
+
+	// Product Module
+	prdRepo := products.NewPrdRepo(app.Minio, app.Logger)
+	prdService := products.NewPrdService(store, app.Logger, prdRepo, activityService)
+	prdHandler := products.NewPrdHandler(prdService, app.Logger, val)
+
+	// Order & Payment Module
+	midtransService := payment.NewMidtransService(app.Config, app.Logger)
+	orderService := orders.NewOrderService(store, midtransService, activityService, app.Logger)
+	orderHandler := orders.NewOrderHandler(orderService, app.Logger, val)
+
+	return &AppContainer{
+		AuthHandler:     *authHandler,
+		UserHandler:     *userHandler,
+		CategoryHandler: categoryHandler,
+		ProductHandler:  prdHandler,
+		OrderHandler:    orderHandler,
+	}
 }
 
 func InitApp() *App {
@@ -72,10 +129,9 @@ func StartServer(app *App) {
 	// Setup middleware
 	SetupMiddleware(app)
 
-	jwt := app.JWT
+	container := BuildAppContainer(app)
 
-	// Setup routes
-	SetupRoutes(app.FiberApp, app.Logger, app.DB, app.Config, jwt, app.Minio)
+	SetupRoutes(app, container, app.JWT)
 
 	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)

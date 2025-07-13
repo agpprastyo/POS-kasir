@@ -23,6 +23,12 @@ type Querier interface {
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
+	// Membuat header pesanan baru dengan status 'open'. Total akan dihitung nanti.
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
+	// Menambahkan satu item ke dalam pesanan.
+	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
+	// Menambahkan satu varian/opsi ke dalam sebuah order item.
+	CreateOrderItemOption(ctx context.Context, arg CreateOrderItemOptionParams) (OrderItemOption, error)
 	// Queries for Products
 	// Creates a new product and returns its full details.
 	// Product options should be created separately in a transaction.
@@ -38,6 +44,13 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
+	// Mengambil pesanan berdasarkan referensi dari payment gateway.
+	GetOrderByGatewayRef(ctx context.Context, paymentGatewayReference *string) (Order, error)
+	// Mengambil satu pesanan dan mengunci barisnya untuk pembaruan (mencegah race condition).
+	// Penting untuk digunakan di dalam transaksi sebelum mengupdate total.
+	GetOrderForUpdate(ctx context.Context, id uuid.UUID) (Order, error)
+	// Mengambil detail lengkap pesanan, termasuk item dan opsinya dalam format JSON.
+	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
 	// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
@@ -60,6 +73,12 @@ type Querier interface {
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
+	// Menyimpan referensi pembayaran dari payment gateway.
+	UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error
+	// Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
+	UpdateOrderStatusByGatewayRef(ctx context.Context, arg UpdateOrderStatusByGatewayRefParams) (Order, error)
+	// Memperbarui total harga, diskon, dan total bersih dari sebuah pesanan.
+	UpdateOrderTotals(ctx context.Context, arg UpdateOrderTotalsParams) (Order, error)
 	// Updates a product's details. Use COALESCE for optional fields.
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	// Updates a specific product option.

@@ -62,3 +62,22 @@ func getInt64(key string, fallback int64) int64 {
 	}
 	return value
 }
+
+// getEnvEnum
+func getEnvEnum(key string, validValues []string, fallback string) string {
+	for _, value := range validValues {
+		if value == fallback {
+			return fallback
+		}
+	}
+	strValue := getEnv(key, "")
+	if strValue == "" {
+		return fallback
+	}
+	for _, value := range validValues {
+		if strValue == value {
+			return strValue
+		}
+	}
+	return fallback
+}

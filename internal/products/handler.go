@@ -40,28 +40,28 @@ type PrdHandler struct {
 }
 
 // DeleteProductOptionHandler menangani penghapusan (soft delete) varian produk.
-func (p *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 	optionIDStr := ctx.Params("option_id")
 	optionID, err := uuid.Parse(optionIDStr)
 	if err != nil {
-		p.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
+		h.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid option ID format"})
 	}
 
 	// 2. Panggil service untuk melakukan soft delete
-	err = p.prdService.DeleteProductOption(ctx.Context(), productID, optionID)
+	err = h.prdService.DeleteProductOption(ctx.Context(), productID, optionID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
 		}
-		p.log.Error("Failed to delete product option", "error", err)
+		h.log.Error("Failed to delete product option", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to delete product option"})
 	}
 
@@ -72,31 +72,31 @@ func (p *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 }
 
 // UpdateProductOptionHandler menangani pembaruan parsial untuk varian produk.
-func (p *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 	optionIDStr := ctx.Params("option_id")
 	optionID, err := uuid.Parse(optionIDStr)
 	if err != nil {
-		p.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
+		h.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid option ID format"})
 	}
 
 	// 2. Parse request body ke DTO
 	var req UpdateProductOptionRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		p.log.Warn("Cannot parse product option update request body", "error", err)
+		h.log.Warn("Cannot parse product option update request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
 	// 3. Validasi DTO
-	if err := p.validate.Validate(req); err != nil {
-		p.log.Warn("Product option update request validation failed", "error", err)
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("Product option update request validation failed", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
@@ -104,12 +104,12 @@ func (p *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 4. Panggil service
-	optionResponse, err := p.prdService.UpdateProductOption(ctx.Context(), productID, optionID, req)
+	optionResponse, err := h.prdService.UpdateProductOption(ctx.Context(), productID, optionID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
 		}
-		p.log.Error("Failed to update product option", "error", err)
+		h.log.Error("Failed to update product option", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update product option"})
 	}
 
@@ -121,49 +121,54 @@ func (p *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 }
 
 // UploadProductOptionImageHandler menangani upload gambar untuk varian produk.
-func (p *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 	optionIDStr := ctx.Params("option_id")
 	optionID, err := uuid.Parse(optionIDStr)
 	if err != nil {
-		p.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
+		h.log.Warn("Invalid option ID format", "error", err, "option_id", optionIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid option ID format"})
 	}
 
 	// 2. Dapatkan file dari form multipart
 	fileHeader, err := ctx.FormFile("image")
 	if err != nil {
-		p.log.Warn("Image file is missing in form", "error", err)
+		h.log.Warn("Image file is missing in form", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Image file is required in 'image' field"})
 	}
 
 	// 3. Baca file ke dalam byte slice
 	file, err := fileHeader.Open()
 	if err != nil {
-		p.log.Error("Failed to open uploaded file", "error", err)
+		h.log.Error("Failed to open uploaded file", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to process file"})
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			h.log.Error("Failed to close file", "error", err)
+		}
+	}(file)
 
 	buf := bytes.NewBuffer(nil)
 	if _, err := io.Copy(buf, file); err != nil {
-		p.log.Error("Failed to read file into buffer", "error", err)
+		h.log.Error("Failed to read file into buffer", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to read file"})
 	}
 
 	// 4. Panggil service
-	optionResponse, err := p.prdService.UploadProductOptionImage(ctx.Context(), productID, optionID, buf.Bytes())
+	optionResponse, err := h.prdService.UploadProductOptionImage(ctx.Context(), productID, optionID, buf.Bytes())
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
 		}
-		p.log.Error("Failed to upload product option image", "error", err)
+		h.log.Error("Failed to upload product option image", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to upload image"})
 	}
 
@@ -175,25 +180,25 @@ func (p *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 }
 
 // CreateProductOptionHandler menangani pembuatan varian baru untuk produk yang sudah ada.
-func (p *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID produk dari parameter URL
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "product_id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
 	// 2. Parse request body ke DTO
 	var req CreateProductOptionRequestStandalone
 	if err := ctx.BodyParser(&req); err != nil {
-		p.log.Warn("Cannot parse product option request body", "error", err)
+		h.log.Warn("Cannot parse product option request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
 	// 3. Validasi DTO
-	if err := p.validate.Validate(req); err != nil {
-		p.log.Warn("Product option request validation failed", "error", err)
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("Product option request validation failed", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
@@ -201,12 +206,12 @@ func (p *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 4. Panggil service
-	optionResponse, err := p.prdService.CreateProductOption(ctx.Context(), productID, req)
+	optionResponse, err := h.prdService.CreateProductOption(ctx.Context(), productID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Parent product not found"})
 		}
-		p.log.Error("Failed to create product option", "error", err, "productID", productID)
+		h.log.Error("Failed to create product option", "error", err, "productID", productID)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to create product option"})
 	}
 
@@ -218,22 +223,22 @@ func (p *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 }
 
 // DeleteProductHandler menangani request untuk menghapus (soft delete) produk.
-func (p *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID produk dari parameter URL
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
 	// 2. Panggil service untuk melakukan soft delete
-	err = p.prdService.DeleteProduct(ctx.Context(), productID)
+	err = h.prdService.DeleteProduct(ctx.Context(), productID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
 		}
-		p.log.Error("Failed to delete product", "error", err, "productID", productID)
+		h.log.Error("Failed to delete product", "error", err, "productID", productID)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to delete product"})
 	}
 
@@ -244,25 +249,25 @@ func (p *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 }
 
 // UpdateProductHandler menangani request untuk memperbarui data produk.
-func (p *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 	// 1. Ambil ID produk dari parameter URL
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		p.log.Warn("Invalid product ID format", "error", err, "id", productIDStr)
+		h.log.Warn("Invalid product ID format", "error", err, "id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
 	// 2. Parse request body ke DTO
 	var req UpdateProductRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		p.log.Warn("Cannot parse request body for update", "error", err)
+		h.log.Warn("Cannot parse request body for update", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
 	// 3. Validasi DTO
-	if err := p.validate.Validate(req); err != nil {
-		p.log.Warn("Update request validation failed", "error", err)
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("Update request validation failed", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
@@ -270,12 +275,12 @@ func (p *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 4. Panggil service untuk melakukan update
-	productResponse, err := p.prdService.UpdateProduct(ctx.Context(), productID, req)
+	productResponse, err := h.prdService.UpdateProduct(ctx.Context(), productID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
 		}
-		p.log.Error("Failed to update product", "error", err, "productID", productID)
+		h.log.Error("Failed to update product", "error", err, "productID", productID)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update product"})
 	}
 

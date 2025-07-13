@@ -574,6 +574,7 @@ type Product struct {
 	Stock      int32              `json:"stock"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type ProductOption struct {
@@ -584,6 +585,7 @@ type ProductOption struct {
 	ImageUrl        *string            `json:"image_url"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type Promotion struct {

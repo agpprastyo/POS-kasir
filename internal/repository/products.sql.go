@@ -43,7 +43,7 @@ INSERT INTO products (
     stock
 ) VALUES (
              $1, $2, $3, $4, $5
-         ) RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at
+         ) RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at
 `
 
 type CreateProductParams struct {
@@ -75,6 +75,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.Stock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -88,7 +89,7 @@ INSERT INTO product_options (
     image_url
 ) VALUES (
              $1, $2, $3, $4
-         ) RETURNING id, product_id, name, additional_price, image_url, created_at, updated_at
+         ) RETURNING id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at
 `
 
 type CreateProductOptionParams struct {
@@ -116,6 +117,7 @@ func (q *Queries) CreateProductOption(ctx context.Context, arg CreateProductOpti
 		&i.ImageUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -131,20 +133,37 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const deleteProductOption = `-- name: DeleteProductOption :exec
-DELETE FROM product_options
-WHERE id = $1
+const getProductOption = `-- name: GetProductOption :one
+SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
+WHERE id = $1 AND product_id = $2
+LIMIT 1
 `
 
-// Deletes a single product option.
-func (q *Queries) DeleteProductOption(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteProductOption, id)
-	return err
+type GetProductOptionParams struct {
+	ID        uuid.UUID `json:"id"`
+	ProductID uuid.UUID `json:"product_id"`
+}
+
+// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
+func (q *Queries) GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error) {
+	row := q.db.QueryRow(ctx, getProductOption, arg.ID, arg.ProductID)
+	var i ProductOption
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.Name,
+		&i.AdditionalPrice,
+		&i.ImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }
 
 const getProductWithOptions = `-- name: GetProductWithOptions :one
 SELECT
-    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at,
+    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
     COALESCE(
             (SELECT json_agg(po.*) FROM product_options po WHERE po.product_id = p.id),
             '[]'::json
@@ -153,6 +172,7 @@ FROM
     products p
 WHERE
     p.id = $1
+    AND p.deleted_at IS NULL
 LIMIT 1
 `
 
@@ -165,6 +185,7 @@ type GetProductWithOptionsRow struct {
 	Stock      int32              `json:"stock"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
 	Options    interface{}        `json:"options"`
 }
 
@@ -182,13 +203,14 @@ func (q *Queries) GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetP
 		&i.Stock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Options,
 	)
 	return i, err
 }
 
 const listOptionsForProduct = `-- name: ListOptionsForProduct :many
-SELECT id, product_id, name, additional_price, image_url, created_at, updated_at FROM product_options
+SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
 WHERE product_id = $1
 ORDER BY name ASC
 `
@@ -211,6 +233,7 @@ func (q *Queries) ListOptionsForProduct(ctx context.Context, productID uuid.UUID
 			&i.ImageUrl,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -238,6 +261,7 @@ WHERE
     ($3::int IS NULL OR p.category_id = $3)
   AND
     ($4::text IS NULL OR p.name ILIKE '%' || $4 || '%')
+  AND p.deleted_at IS NULL
 ORDER BY
     p.name ASC
 LIMIT $1 OFFSET $2
@@ -293,6 +317,29 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]L
 	return items, nil
 }
 
+const softDeleteProduct = `-- name: SoftDeleteProduct :exec
+UPDATE products
+SET deleted_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) SoftDeleteProduct(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, softDeleteProduct, id)
+	return err
+}
+
+const softDeleteProductOption = `-- name: SoftDeleteProductOption :exec
+update product_options
+SET deleted_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
+`
+
+// Deletes a single product option.
+func (q *Queries) SoftDeleteProductOption(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, softDeleteProductOption, id)
+	return err
+}
+
 const updateProduct = `-- name: UpdateProduct :one
 UPDATE products
 SET
@@ -303,7 +350,7 @@ SET
     stock = COALESCE($5, stock)
 WHERE
     id = $6
-RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at
+RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at
 `
 
 type UpdateProductParams struct {
@@ -335,6 +382,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.Stock,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -347,7 +395,7 @@ SET
     image_url = COALESCE($3, image_url)
 WHERE
     id = $4
-RETURNING id, product_id, name, additional_price, image_url, created_at, updated_at
+RETURNING id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at
 `
 
 type UpdateProductOptionParams struct {
@@ -374,6 +422,7 @@ func (q *Queries) UpdateProductOption(ctx context.Context, arg UpdateProductOpti
 		&i.ImageUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

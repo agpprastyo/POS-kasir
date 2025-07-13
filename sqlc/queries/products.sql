@@ -26,6 +26,7 @@ FROM
     products p
 WHERE
     p.id = $1
+    AND p.deleted_at IS NULL
 LIMIT 1;
 
 -- name: ListProducts :many
@@ -46,6 +47,7 @@ WHERE
     (sqlc.narg(category_id)::int IS NULL OR p.category_id = sqlc.narg(category_id))
   AND
     (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND p.deleted_at IS NULL
 ORDER BY
     p.name ASC
 LIMIT $1 OFFSET $2;
@@ -101,13 +103,28 @@ WHERE
     id = sqlc.arg(id)
 RETURNING *;
 
--- name: DeleteProductOption :exec
+-- name: SoftDeleteProductOption :exec
 -- Deletes a single product option.
-DELETE FROM product_options
-WHERE id = $1;
+update product_options
+SET deleted_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL;
+
+
+
+-- name: SoftDeleteProduct :exec
+UPDATE products
+SET deleted_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL;
 
 -- name: ListOptionsForProduct :many
 -- Retrieves all options for a single product.
 SELECT * FROM product_options
 WHERE product_id = $1
 ORDER BY name ASC;
+
+-- name: GetProductOption :one
+-- Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
+SELECT * FROM product_options
+WHERE id = $1 AND product_id = $2
+LIMIT 1;
+

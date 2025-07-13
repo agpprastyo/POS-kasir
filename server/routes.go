@@ -70,23 +70,15 @@ func SetupRoutes(app *fiber.App, logger *logger.Logger, db *database.Postgres, c
 	prdHandler := products.NewPrdHandler(prdService, logger, val)
 
 	api.Post("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.CreateProductHandler)
-
 	api.Post("/products/:id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UploadProductImageHandler)
-
 	api.Get("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), prdHandler.ListProductsHandler)
-
 	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), prdHandler.GetProductHandler)
+	api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductHandler)
+	api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), prdHandler.DeleteProductHandler)
 
-	//api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductHandler)
-	//
-	//api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), prdHandler.DeleteProductHandler)
-	//
-	//api.Post("/products/:product_id/options", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.CreateProductOptionHandler)
-	//
-	//api.Post("/products/:product_id/options/:option_id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UploadProductOptionImageHandler)
-	//
-	//api.Patch("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductOptionHandler)
-	//
-	//api.Delete("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.DeleteProductOptionHandler)
+	api.Post("/products/:product_id/options", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.CreateProductOptionHandler)
+	api.Post("/products/:product_id/options/:option_id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UploadProductOptionImageHandler)
+	api.Patch("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.UpdateProductOptionHandler)
+	api.Delete("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), prdHandler.DeleteProductOptionHandler)
 
 }

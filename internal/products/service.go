@@ -21,6 +21,12 @@ type IPrdService interface {
 	UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error)
 	ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error)
 	GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error)
+	UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error)
+	DeleteProduct(ctx context.Context, productID uuid.UUID) error
+	CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error)
+	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error)
+	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error)
+	DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error
 }
 
 type PrdService struct {
@@ -39,6 +45,256 @@ func NewPrdService(store repository.Store, log *logger.Logger, prdRepo IPrdRepo,
 	}
 }
 
+func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error {
+
+	option, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			return common.ErrNotFound
+		}
+		s.log.Error("Failed to get product option before deletion", "error", err)
+		return err
+	}
+
+	err = s.store.SoftDeleteProductOption(ctx, optionID)
+	if err != nil {
+		s.log.Error("Failed to soft delete product option in repository", "error", err, "optionID", optionID)
+		return err
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"product_id":          productID.String(),
+		"deleted_option_id":   optionID.String(),
+		"deleted_option_name": option.Name,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeDELETE,
+		repository.LogEntityTypePRODUCT,
+		optionID.String(),
+		logDetails,
+	)
+
+	s.log.Info("Product option soft deleted successfully", "optionID", optionID)
+	return nil
+}
+
+func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error) {
+	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get product option before update", "error", err)
+		return nil, err
+	}
+
+	updateParams := repository.UpdateProductOptionParams{
+		ID:   optionID,
+		Name: req.Name,
+	}
+
+	if req.AdditionalPrice != nil {
+		var priceNumeric pgtype.Numeric
+		if err := priceNumeric.Scan(*req.AdditionalPrice); err != nil {
+			return nil, fmt.Errorf("failed to scan additional price for update: %w", err)
+		}
+		updateParams.AdditionalPrice = priceNumeric
+	}
+
+	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
+	if err != nil {
+		s.log.Error("Failed to update product option in repository", "error", err, "optionID", optionID)
+		return nil, err
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"product_id":     productID.String(),
+		"option_id":      optionID.String(),
+		"updated_fields": req,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATE,
+		repository.LogEntityTypePRODUCT,
+		optionID.String(),
+		logDetails,
+	)
+
+	var additionalPrice float64
+	_ = updatedOption.AdditionalPrice.Scan(&additionalPrice)
+
+	return &ProductOptionResponse{
+		ID:              updatedOption.ID,
+		Name:            updatedOption.Name,
+		AdditionalPrice: additionalPrice,
+		ImageURL:        updatedOption.ImageUrl,
+	}, nil
+}
+
+func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error) {
+	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{
+		ID:        optionID,
+		ProductID: productID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get product option before image upload", "error", err)
+		return nil, err
+	}
+
+	const maxFileSize = 2 * 1024 * 1024 // 2MB
+	if len(data) > maxFileSize {
+		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
+	}
+
+	filename := fmt.Sprintf("product_options/%s.jpg", optionID.String())
+
+	imageUrl, err := s.prdRepo.UploadImageToMinio(ctx, filename, data)
+	if err != nil {
+		s.log.Error("Failed to upload option image to Minio", "error", err)
+		return nil, fmt.Errorf("could not upload image to storage")
+	}
+
+	updateParams := repository.UpdateProductOptionParams{
+		ID:       optionID,
+		ImageUrl: &imageUrl,
+	}
+	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
+	if err != nil {
+		s.log.Error("Failed to update product option with image URL", "error", err)
+		return nil, fmt.Errorf("could not update product option in database")
+	}
+
+	// 6. Log aktivitas
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"product_id":    productID.String(),
+		"option_id":     optionID.String(),
+		"new_image_url": imageUrl,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATE,
+		repository.LogEntityTypePRODUCT,
+		optionID.String(),
+		logDetails,
+	)
+
+	var additionalPrice float64
+	_ = updatedOption.AdditionalPrice.Scan(&additionalPrice)
+
+	publicUrl, err := s.prdRepo.PrdImageLink(ctx, updatedOption.ID.String(), *updatedOption.ImageUrl)
+	if err != nil {
+		s.log.Warn("Failed to get public URL for newly uploaded option image", "error", err)
+		publicUrl = *updatedOption.ImageUrl
+	}
+
+	return &ProductOptionResponse{
+		ID:              updatedOption.ID,
+		Name:            updatedOption.Name,
+		AdditionalPrice: additionalPrice,
+		ImageURL:        &publicUrl,
+	}, nil
+}
+func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error) {
+	_, err := s.store.GetProductWithOptions(ctx, productID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Parent product not found for new option", "productID", productID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get parent product for new option", "error", err)
+		return nil, err
+	}
+
+	var additionalPriceNumeric pgtype.Numeric
+	if err := additionalPriceNumeric.Scan(req.AdditionalPrice); err != nil {
+		return nil, fmt.Errorf("failed to scan additional price: %w", err)
+	}
+
+	params := repository.CreateProductOptionParams{
+		ProductID:       productID,
+		Name:            req.Name,
+		AdditionalPrice: additionalPriceNumeric,
+	}
+	newOption, err := s.store.CreateProductOption(ctx, params)
+	if err != nil {
+		s.log.Error("Failed to create product option in repository", "error", err)
+		return nil, err
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"parent_product_id": productID.String(),
+		"option_name":       newOption.Name,
+		"additional_price":  req.AdditionalPrice,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeCREATE,
+		repository.LogEntityTypePRODUCT,
+		newOption.ID.String(),
+		logDetails,
+	)
+
+	var additionalPrice float64
+	_ = newOption.AdditionalPrice.Scan(&additionalPrice)
+
+	return &ProductOptionResponse{
+		ID:              newOption.ID,
+		Name:            newOption.Name,
+		AdditionalPrice: additionalPrice,
+		ImageURL:        newOption.ImageUrl,
+	}, nil
+}
+func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) error {
+
+	product, err := s.store.GetProductWithOptions(ctx, productID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Product not found for deletion", "productID", productID)
+			return common.ErrNotFound
+		}
+		s.log.Error("Failed to get product before deletion", "error", err)
+		return err
+	}
+
+	err = s.store.SoftDeleteProduct(ctx, productID)
+	if err != nil {
+		s.log.Error("Failed to soft delete product in repository", "error", err, "productID", productID)
+		return err
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"deleted_product_id":   product.ID.String(),
+		"deleted_product_name": product.Name,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeDELETE,
+		repository.LogEntityTypePRODUCT,
+		productID.String(),
+		logDetails,
+	)
+
+	s.log.Info("Product soft deleted successfully", "productID", productID)
+	return nil
+}
+
 func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
 	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
@@ -51,6 +307,56 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 	}
 
 	return s.buildProductResponse(ctx, fullProduct)
+}
+
+func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error) {
+
+	_, err := s.store.GetProductWithOptions(ctx, productID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Product not found for update", "productID", productID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get product before update", "error", err)
+		return nil, err
+	}
+
+	updateParams := repository.UpdateProductParams{
+		ID:         productID,
+		Name:       req.Name,
+		CategoryID: req.CategoryID,
+		Stock:      req.Stock,
+	}
+
+	if req.Price != nil {
+		var priceNumeric pgtype.Numeric
+		if err := priceNumeric.Scan(*req.Price); err != nil {
+			return nil, fmt.Errorf("failed to scan price for update: %w", err)
+		}
+		s.log.Warn("Price update is not supported in this partial update due to repository constraints.", "productID", productID)
+	}
+
+	_, err = s.store.UpdateProduct(ctx, updateParams)
+	if err != nil {
+		s.log.Error("Failed to update product in repository", "error", err, "productID", productID)
+		return nil, err
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"product_id":     productID.String(),
+		"updated_fields": req,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATE,
+		repository.LogEntityTypePRODUCT,
+		productID.String(),
+		logDetails,
+	)
+
+	return s.GetProductByID(ctx, productID)
 }
 
 func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*ProductResponse, error) {

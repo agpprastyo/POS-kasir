@@ -61,6 +61,10 @@ type dbConfig struct {
 
 func Load() *AppConfig {
 	return &AppConfig{
+		Midtrans: midtransConfig{
+			ServerKey: getEnv("MIDTRANS_SERVER_KEY", "SB-Mid-server-1234567890"),
+			IsProd:    getBool("MIDTRANS_IS_PROD", false),
+		},
 		DB: dbConfig{
 			Host:        getEnv("DB_HOST", "localhost"),
 			Port:        getEnv("DB_PORT", "5432"),

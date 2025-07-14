@@ -37,3 +37,11 @@ SELECT count(*) FROM categories;
 
 -- name: CountProductsInCategory :one
 SELECT count(*) FROM products WHERE category_id = $1;
+
+-- name: ExistsCategory :one
+-- Memeriksa apakah kategori dengan ID tertentu ada.
+SELECT EXISTS (
+    SELECT 1
+    FROM categories
+    WHERE id = $1
+);

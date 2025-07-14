@@ -35,7 +35,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Post("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.CreateProductHandler)
 	api.Post("/products/:id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UploadProductImageHandler)
-	api.Get("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.ProductHandler.ListProductsHandler)
+	api.Get("/products", authMiddleware, container.ProductHandler.ListProductsHandler)
 	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.ProductHandler.GetProductHandler)
 	api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UpdateProductHandler)
 	api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.DeleteProductHandler)

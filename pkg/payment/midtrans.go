@@ -18,7 +18,15 @@ type MidtransService struct {
 
 func NewMidtransService(cfg *config.AppConfig, log *logger.Logger) IMidtrans {
 	var client coreapi.Client
-	client.New(cfg.Midtrans.ServerKey, midtrans.Sandbox)
+
+	midtransEnv := midtrans.Sandbox
+	if cfg.Midtrans.IsProd {
+		midtransEnv = midtrans.Production
+	} else {
+		midtransEnv = midtrans.Sandbox
+	}
+
+	client.New(cfg.Midtrans.ServerKey, midtransEnv)
 
 	if cfg.Midtrans.IsProd {
 		client.ServerKey = cfg.Midtrans.ServerKey
@@ -42,15 +50,6 @@ func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*corea
 			OrderID:  orderID,
 			GrossAmt: amount,
 		},
-		// Anda bisa menambahkan item_details jika perlu
-		// ItemDetails: &[]midtrans.ItemDetails{
-		// 	{
-		// 		ID:    "ORDER-" + orderID,
-		// 		Price: amount,
-		// 		Qty:   1,
-		// 		Name:  "Total Pembelian",
-		// 	},
-		// },
 	}
 
 	s.log.Infof("Creating QRIS charge for Order ID: %s with amount: %d", orderID, amount)

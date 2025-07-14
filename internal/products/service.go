@@ -6,13 +6,13 @@ import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/pagination"
+	"POS-kasir/pkg/utils"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"sync"
 )
 
@@ -99,9 +99,9 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	}
 
 	if req.AdditionalPrice != nil {
-		var priceNumeric pgtype.Numeric
-		if err := priceNumeric.Scan(*req.AdditionalPrice); err != nil {
-			return nil, fmt.Errorf("failed to scan additional price for update: %w", err)
+		priceNumeric, err := utils.Float64ToNumeric(*req.AdditionalPrice)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert additional price for update: %w", err)
 		}
 		updateParams.AdditionalPrice = priceNumeric
 	}
@@ -127,8 +127,18 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 		logDetails,
 	)
 
-	var additionalPrice float64
-	_ = updatedOption.AdditionalPrice.Scan(&additionalPrice)
+	additionalPrice := utils.NumericToFloat64(updatedOption.AdditionalPrice)
+
+	if updatedOption.ImageUrl != nil {
+		publicUrl, err := s.prdRepo.PrdImageLink(ctx, updatedOption.ID.String(), *updatedOption.ImageUrl)
+		if err != nil {
+			s.log.Warn("Failed to get public URL for updated option image", "error", err)
+			publicUrl = *updatedOption.ImageUrl
+		}
+		updatedOption.ImageUrl = &publicUrl
+	} else {
+		updatedOption.ImageUrl = nil // Set to nil if no image URL is present
+	}
 
 	return &ProductOptionResponse{
 		ID:              updatedOption.ID,
@@ -152,7 +162,7 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 		return nil, err
 	}
 
-	const maxFileSize = 2 * 1024 * 1024 // 2MB
+	const maxFileSize = 2 * 1024 * 1024
 	if len(data) > maxFileSize {
 		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
 	}
@@ -167,7 +177,7 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 
 	updateParams := repository.UpdateProductOptionParams{
 		ID:       optionID,
-		ImageUrl: &imageUrl,
+		ImageUrl: &filename,
 	}
 	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
 	if err != nil {
@@ -175,7 +185,6 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 		return nil, fmt.Errorf("could not update product option in database")
 	}
 
-	// 6. Log aktivitas
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
 	logDetails := map[string]interface{}{
 		"product_id":    productID.String(),
@@ -218,11 +227,11 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 		return nil, err
 	}
 
-	var additionalPriceNumeric pgtype.Numeric
-	if err := additionalPriceNumeric.Scan(req.AdditionalPrice); err != nil {
-		return nil, fmt.Errorf("failed to scan additional price: %w", err)
+	additionalPriceNumeric, err := utils.Float64ToNumeric(req.AdditionalPrice)
+	if err != nil {
+		s.log.Error("Failed to convert additional price to numeric", "error", err)
+		return nil, fmt.Errorf("failed to convert additional price: %w", err)
 	}
-
 	params := repository.CreateProductOptionParams{
 		ProductID:       productID,
 		Name:            req.Name,
@@ -249,8 +258,7 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 		logDetails,
 	)
 
-	var additionalPrice float64
-	_ = newOption.AdditionalPrice.Scan(&additionalPrice)
+	var additionalPrice = utils.NumericToFloat64(newOption.AdditionalPrice)
 
 	return &ProductOptionResponse{
 		ID:              newOption.ID,
@@ -297,6 +305,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 
 func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
 	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
+	s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warn("Product not found by ID", "productID", productID)
@@ -310,7 +319,7 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 }
 
 func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error) {
-
+	// 1. Pastikan produk ada sebelum update
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -329,11 +338,11 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	}
 
 	if req.Price != nil {
-		var priceNumeric pgtype.Numeric
-		if err := priceNumeric.Scan(*req.Price); err != nil {
-			return nil, fmt.Errorf("failed to scan price for update: %w", err)
+		priceNumeric, err := utils.Float64ToNumeric(*req.Price)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert price for update: %w", err)
 		}
-		s.log.Warn("Price update is not supported in this partial update due to repository constraints.", "productID", productID)
+		updateParams.Price = priceNumeric
 	}
 
 	_, err = s.store.UpdateProduct(ctx, updateParams)
@@ -358,32 +367,46 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 
 	return s.GetProductByID(ctx, productID)
 }
-
 func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*ProductResponse, error) {
 	var optionsResponse []ProductOptionResponse
+
+	// --- PERBAIKAN LOGIKA UNMARSHAL ---
 	if fullProduct.Options != nil {
-		if optionsJSON, ok := fullProduct.Options.([]byte); ok {
-			var options []repository.ProductOption
-			if err := json.Unmarshal(optionsJSON, &options); err != nil {
+		// 1. Marshal kembali interface{} menjadi []byte JSON.
+		// Ini adalah cara andal untuk menangani hasil dari json_agg.
+		optionsJSON, err := json.Marshal(fullProduct.Options)
+		if err != nil {
+			s.log.Error("Failed to re-marshal product options interface", "error", err)
+			return nil, fmt.Errorf("could not process product options")
+		}
+
+		// 2. Unmarshal []byte JSON tersebut ke dalam slice struct yang benar.
+		var options []repository.ProductOption
+		if err := json.Unmarshal(optionsJSON, &options); err != nil {
+			// Jika unmarshal gagal, mungkin karena datanya kosong ('[]')
+			if string(optionsJSON) != "[]" {
 				s.log.Error("Failed to unmarshal product options JSON", "error", err)
 				return nil, fmt.Errorf("could not parse product options")
 			}
-			for _, opt := range options {
-				var additionalPrice float64
-				_ = opt.AdditionalPrice.Scan(&additionalPrice)
-				optionsResponse = append(optionsResponse, ProductOptionResponse{
-					ID:              opt.ID,
-					Name:            opt.Name,
-					AdditionalPrice: additionalPrice,
-					ImageURL:        opt.ImageUrl,
-				})
-			}
+		}
+
+		// 3. Lakukan loop pada slice struct yang sudah benar.
+		for _, opt := range options {
+			additionalPrice := utils.NumericToFloat64(opt.AdditionalPrice)
+			optionsResponse = append(optionsResponse, ProductOptionResponse{
+				ID:              opt.ID,
+				Name:            opt.Name,
+				AdditionalPrice: additionalPrice,
+				ImageURL:        opt.ImageUrl,
+			})
 		}
 	}
+	// --- AKHIR PERBAIKAN ---
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(optionsResponse)+1)
 
+	// Ambil URL untuk gambar produk utama
 	if fullProduct.ImageUrl != nil && *fullProduct.ImageUrl != "" {
 		wg.Add(1)
 		go func() {
@@ -397,14 +420,15 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 		}()
 	}
 
+	// Ambil URL untuk setiap gambar varian
 	for i := range optionsResponse {
-
+		// Gunakan variabel lokal di dalam loop untuk goroutine
 		opt := &optionsResponse[i]
 		if opt.ImageURL != nil && *opt.ImageURL != "" {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				url, err := s.prdRepo.PrdImageLink(ctx, opt.ID.String(), *opt.ImageURL)
+				url, err := s.prdRepo.PrdImageLink(ctx, *opt.ImageURL, *opt.ImageURL)
 				if err != nil {
 					errChan <- fmt.Errorf("failed to get option image link for %s: %w", opt.Name, err)
 					return
@@ -417,25 +441,26 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 	wg.Wait()
 	close(errChan)
 
+	// Cek apakah ada error dari goroutine
 	for err := range errChan {
 		if err != nil {
-			return nil, err
+			return nil, err // Kembalikan error pertama yang ditemui
 		}
 	}
 
-	var productPrice float64
-	_ = fullProduct.Price.Scan(&productPrice)
+	productPrice := utils.NumericToFloat64(fullProduct.Price)
 
 	return &ProductResponse{
 		ID:         fullProduct.ID,
 		Name:       fullProduct.Name,
 		CategoryID: fullProduct.CategoryID,
-		ImageURL:   fullProduct.ImageUrl,
-		Price:      productPrice,
-		Stock:      fullProduct.Stock,
-		CreatedAt:  fullProduct.CreatedAt.Time,
-		UpdatedAt:  fullProduct.UpdatedAt.Time,
-		Options:    optionsResponse,
+
+		ImageURL:  fullProduct.ImageUrl,
+		Price:     productPrice,
+		Stock:     fullProduct.Stock,
+		CreatedAt: fullProduct.CreatedAt.Time,
+		UpdatedAt: fullProduct.UpdatedAt.Time,
+		Options:   optionsResponse,
 	}, nil
 }
 
@@ -492,11 +517,11 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 
 	var productsResponse []ProductListResponse
 	for _, p := range products {
-		var price float64
-		_ = p.Price.Scan(&price)
+		price := utils.NumericToFloat64(p.Price)
 		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
+			CategoryID:   p.CategoryID,
 			CategoryName: p.CategoryName,
 			ImageURL:     p.ImageUrl,
 			Price:        price,
@@ -522,8 +547,9 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 
 	txFunc := func(qtx *repository.Queries) error {
 		var err error
-		var priceNumeric pgtype.Numeric
-		if err = priceNumeric.Scan(req.Price); err != nil {
+
+		priceNumeric, err := utils.Float64ToNumeric(req.Price)
+		if err != nil {
 			return fmt.Errorf("failed to scan price: %w", err)
 		}
 
@@ -540,10 +566,11 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		}
 
 		for _, opt := range req.Options {
-			var additionalPriceNumeric pgtype.Numeric
-			if err = additionalPriceNumeric.Scan(opt.AdditionalPrice); err != nil {
+			additionalPriceNumeric, err := utils.Float64ToNumeric(opt.AdditionalPrice)
+			if err != nil {
 				return fmt.Errorf("failed to scan additional price for option %s: %w", opt.Name, err)
 			}
+
 			optionParams := repository.CreateProductOptionParams{
 				ProductID:       newProduct.ID,
 				Name:            opt.Name,
@@ -594,7 +621,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		return nil, err
 	}
 
-	const maxFileSize = 2 * 1024 * 1024 // 2MB
+	const maxFileSize = 5 * 1024 * 1024 // 2MB
 	if len(data) > maxFileSize {
 		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
 	}
@@ -609,7 +636,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 
 	updateParams := repository.UpdateProductParams{
 		ID:       productID,
-		ImageUrl: &imageUrl,
+		ImageUrl: &filename,
 	}
 	_, err = s.store.UpdateProduct(ctx, updateParams)
 	if err != nil {
@@ -643,8 +670,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 func (s *PrdService) buildProductResponseFromData(product repository.Product, options []repository.ProductOption) (*ProductResponse, error) {
 	var optionsResponse []ProductOptionResponse
 	for _, opt := range options {
-		var additionalPrice float64
-		_ = opt.AdditionalPrice.Scan(&additionalPrice)
+		var additionalPrice = utils.NumericToFloat64(opt.AdditionalPrice)
 		optionsResponse = append(optionsResponse, ProductOptionResponse{
 			ID:              opt.ID,
 			Name:            opt.Name,
@@ -653,8 +679,10 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 		})
 	}
 
-	var productPrice float64
-	_ = product.Price.Scan(&productPrice)
+	productPrice := utils.NumericToFloat64(product.Price)
+
+	s.log.Infof("product price before assign: %+v", product.Price)
+	s.log.Infof("product price after assign: %+v", productPrice)
 
 	return &ProductResponse{
 		ID:         product.ID,

@@ -26,6 +26,18 @@ func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
 	}
 
 	catID := int32(categoryID)
+	// check existing category
+	// ExistsCategory
+	exists, err := s.repo.ExistsCategory(ctx, catID)
+	if err != nil {
+		s.log.Error("Failed to check if category exists", "error", err, "categoryID", catID)
+	}
+
+	if !exists {
+		s.log.Warn("Category not found", "categoryID", categoryID)
+		return common.ErrCategoryNotFound
+	}
+
 	productCount, err := s.repo.CountProductsInCategory(ctx, &catID)
 	if err != nil {
 		s.log.Error("Failed to count products in category", "error", err, "categoryID", categoryID)
@@ -172,9 +184,19 @@ func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryReque
 }
 
 func (s *CtgService) GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error) {
+	limit := int32(10)
+	if req.Limit > 0 {
+		limit = req.Limit
+	}
+
+	offset := int32(0)
+	if req.Offset > 0 {
+		offset = req.Offset
+	}
+
 	params := repository.ListCategoriesParams{
-		Limit:  req.Limit,
-		Offset: req.Offset,
+		Limit:  limit,
+		Offset: offset,
 	}
 
 	categories, err := s.repo.ListCategories(ctx, params)

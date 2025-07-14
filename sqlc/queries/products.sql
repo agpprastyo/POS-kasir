@@ -16,18 +16,22 @@ INSERT INTO products (
 -- name: GetProductWithOptions :one
 -- Retrieves a single product and aggregates its options into a JSON array.
 -- This is an efficient way to fetch a product and its variants in one query.
+-- Now filters out soft-deleted options.
 SELECT
     p.*,
     COALESCE(
-            (SELECT json_agg(po.*) FROM product_options po WHERE po.product_id = p.id),
+            (SELECT json_agg(po.*)
+             FROM product_options po
+             WHERE po.product_id = p.id AND po.deleted_at IS NULL), -- <-- TAMBAHAN DI SINI
             '[]'::json
     ) AS options
 FROM
     products p
 WHERE
     p.id = $1
-    AND p.deleted_at IS NULL
+  AND p.deleted_at IS NULL
 LIMIT 1;
+
 
 -- name: ListProducts :many
 -- Lists products with filtering and pagination.
@@ -38,7 +42,8 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
-    c.name as category_name
+    c.name as category_name,
+    c.id as category_id
 FROM
     products p
         LEFT JOIN

@@ -165,14 +165,16 @@ const getProductWithOptions = `-- name: GetProductWithOptions :one
 SELECT
     p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
     COALESCE(
-            (SELECT json_agg(po.*) FROM product_options po WHERE po.product_id = p.id),
+            (SELECT json_agg(po.*)
+             FROM product_options po
+             WHERE po.product_id = p.id AND po.deleted_at IS NULL), -- <-- TAMBAHAN DI SINI
             '[]'::json
     ) AS options
 FROM
     products p
 WHERE
     p.id = $1
-    AND p.deleted_at IS NULL
+  AND p.deleted_at IS NULL
 LIMIT 1
 `
 
@@ -191,6 +193,7 @@ type GetProductWithOptionsRow struct {
 
 // Retrieves a single product and aggregates its options into a JSON array.
 // This is an efficient way to fetch a product and its variants in one query.
+// Now filters out soft-deleted options.
 func (q *Queries) GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error) {
 	row := q.db.QueryRow(ctx, getProductWithOptions, id)
 	var i GetProductWithOptionsRow
@@ -252,7 +255,8 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
-    c.name as category_name
+    c.name as category_name,
+    c.id as category_id
 FROM
     products p
         LEFT JOIN
@@ -281,6 +285,7 @@ type ListProductsRow struct {
 	Stock        int32          `json:"stock"`
 	ImageUrl     *string        `json:"image_url"`
 	CategoryName *string        `json:"category_name"`
+	CategoryID   *int32         `json:"category_id"`
 }
 
 // Lists products with filtering and pagination.
@@ -306,6 +311,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]L
 			&i.Stock,
 			&i.ImageUrl,
 			&i.CategoryName,
+			&i.CategoryID,
 		); err != nil {
 			return nil, err
 		}

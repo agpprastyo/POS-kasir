@@ -16,7 +16,7 @@ type CreateProductRequest struct {
 	CategoryID int32                        `json:"category_id" validate:"required,gt=0"`
 	Price      float64                      `json:"price" validate:"required,gt=0"`
 	Stock      int32                        `json:"stock" validate:"required,gte=0"`
-	Options    []CreateProductOptionRequest `json:"options" validate:"dive"` // 'dive' akan memvalidasi setiap elemen di dalam slice
+	Options    []CreateProductOptionRequest `json:"options" validate:"dive"`
 }
 
 type UpdateProductRequest struct {
@@ -66,6 +66,7 @@ type ProductResponse struct {
 type ProductListResponse struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
+	CategoryID   *int32    `json:"category_id,omitempty"`
 	CategoryName *string   `json:"category_name,omitempty"`
 	ImageURL     *string   `json:"image_url,omitempty"`
 	Price        float64   `json:"price"`

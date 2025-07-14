@@ -63,6 +63,22 @@ func (q *Queries) DeleteCategory(ctx context.Context, id int32) error {
 	return err
 }
 
+const existsCategory = `-- name: ExistsCategory :one
+SELECT EXISTS (
+    SELECT 1
+    FROM categories
+    WHERE id = $1
+)
+`
+
+// Memeriksa apakah kategori dengan ID tertentu ada.
+func (q *Queries) ExistsCategory(ctx context.Context, id int32) (bool, error) {
+	row := q.db.QueryRow(ctx, existsCategory, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getCategory = `-- name: GetCategory :one
 SELECT id, name, created_at, updated_at
 FROM categories

@@ -42,6 +42,8 @@ type Querier interface {
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	// Memeriksa apakah kategori dengan ID tertentu ada.
+	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
 	// Mengambil pesanan berdasarkan referensi dari payment gateway.
@@ -55,6 +57,7 @@ type Querier interface {
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
 	// This is an efficient way to fetch a product and its variants in one query.
+	// Now filters out soft-deleted options.
 	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)

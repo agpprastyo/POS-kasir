@@ -19,6 +19,7 @@ var (
 	ErrCategoryInUse      = errors.New("category is in use and cannot be deleted")
 	ErrInvalidID          = errors.New("invalid ID format")
 	ErrNotImplemented     = errors.New("not implemented")
+	ErrCategoryNotFound   = errors.New("category not found")
 )
 
 // WrapError adds context to an error

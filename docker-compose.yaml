@@ -16,9 +16,11 @@ services:
   minio:
       image: minio/minio:latest
       container_name: kasir-minio
+
       environment:
         MINIO_ROOT_USER: minioadmin
         MINIO_ROOT_PASSWORD: minioadmin123
+        MINIO_STS_DURATION: 24h
       ports:
         - "9000:9000"
         - "9002:9001" # changed host port to 9002

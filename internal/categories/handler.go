@@ -3,6 +3,7 @@ package categories
 import (
 	"POS-kasir/internal/common"
 	"POS-kasir/pkg/logger"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -22,10 +23,21 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 
 	err := h.service.DeleteCategory(ctx, id)
 	if err != nil {
-		h.log.Error("Failed to delete category", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "Failed to delete category",
-		})
+		h.log.Error("Failed to delete category", "error", err, "categoryID", id)
+		switch {
+		case errors.Is(err, common.ErrCategoryNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "Category not found",
+			})
+		case errors.Is(err, common.ErrCategoryInUse):
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{
+				Message: "Category cannot be deleted because it is in use",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to delete category",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{

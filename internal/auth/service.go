@@ -343,11 +343,6 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		}
 	}
 
-	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
-	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
-	}
-
 	logDetails := map[string]interface{}{
 		"login_username": user.Username,
 		"login_email":    user.Email,
@@ -359,7 +354,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		s.log.Errorf("User Service | Failed to find user by email: %v", req.Email)
 		s.activityLogger.Log(
 			ctx,
-			actorID,
+			user.ID,
 			repository.LogActionTypeLOGINFAILED,
 			repository.LogEntityTypeUSER,
 			user.ID.String(),
@@ -373,7 +368,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		s.log.Errorf("User Service | Failed to generate token: %v", err)
 		s.activityLogger.Log(
 			ctx,
-			actorID,
+			user.ID,
 			repository.LogActionTypeLOGINFAILED,
 			repository.LogEntityTypeUSER,
 			user.ID.String(),
@@ -384,7 +379,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	s.activityLogger.Log(
 		ctx,
-		actorID,
+		user.ID,
 		repository.LogActionTypeLOGINSUCCESS,
 		repository.LogEntityTypeUSER,
 		user.ID.String(),

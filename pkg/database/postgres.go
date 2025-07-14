@@ -1,3 +1,4 @@
+// File: pkg/database/postgres.go
 package database
 
 import (
@@ -9,21 +10,26 @@ import (
 	"time"
 )
 
-type Postgres struct {
+type IDatabase interface {
+	GetPool() *pgxpool.Pool
+	Ping(ctx context.Context) error
+	Close()
+}
+
+type postgresService struct {
 	DB     *pgxpool.Pool
 	Config *config.AppConfig
 	Log    *logger.Logger
 }
 
-func NewPostgresPool(cfg *config.AppConfig, log *logger.Logger) (*Postgres, error) {
-	// Build PostgreSQL connection string (pgx format)
+func NewDatabase(cfg *config.AppConfig, log *logger.Logger) (IDatabase, error) {
+
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		cfg.DB.User, cfg.DB.Password, cfg.DB.Host,
 		cfg.DB.Port, cfg.DB.DBName, cfg.DB.SSLMode,
 	)
 
-	// Configure connection pool
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse PostgreSQL connection string: %w", err)
@@ -31,7 +37,6 @@ func NewPostgresPool(cfg *config.AppConfig, log *logger.Logger) (*Postgres, erro
 
 	poolConfig.MaxConns = int32(cfg.DB.MaxOpenConn)
 
-	// Create connection pool
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -40,40 +45,40 @@ func NewPostgresPool(cfg *config.AppConfig, log *logger.Logger) (*Postgres, erro
 		return nil, fmt.Errorf("failed to create PostgreSQL connection pool: %w", err)
 	}
 
-	// Verify the connection
 	if err := pool.Ping(ctx); err != nil {
 		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
 	}
 
 	log.Info("Successfully connected to PostgreSQL database")
 
-	return &Postgres{
+	return &postgresService{
 		DB:     pool,
 		Config: cfg,
 		Log:    log,
 	}, nil
 }
 
-// ClosePostgresPool closes the pgxpool.Pool connection.
-func ClosePostgresPool(p *Postgres) error {
-	defer func() {
-		if r := recover(); r != nil {
-			p.Log.Errorf("Panic while closing database connection: %v", r)
-		}
-	}()
-	p.DB.Close()
-	p.Log.Println("Closed database connection")
-	return nil
+func (s *postgresService) GetPool() *pgxpool.Pool {
+	return s.DB
 }
 
-// PingPostgresPool pings the database to check connectivity.
-func PingPostgresPool(p *Postgres) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func (s *postgresService) Close() {
+	defer func() {
+		if r := recover(); r != nil {
+			s.Log.Errorf("Panic while closing database connection: %v", r)
+		}
+	}()
+	s.DB.Close()
+	s.Log.Println("Closed database connection")
+}
+
+func (s *postgresService) Ping(ctx context.Context) error {
+	pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	if err := p.DB.Ping(ctx); err != nil {
-		p.Log.Errorf("Failed to ping database: %v", err)
+	if err := s.DB.Ping(pingCtx); err != nil {
+		s.Log.Errorf("Failed to ping database: %v", err)
 		return err
 	}
-	p.Log.Println("Successfully pinged database")
+	s.Log.Println("Successfully pinged database")
 	return nil
 }

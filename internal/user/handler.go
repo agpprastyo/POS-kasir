@@ -10,13 +10,21 @@ import (
 	"strconv"
 )
 
+type IUsrHandler interface {
+	GetAllUsersHandler(c *fiber.Ctx) error
+	CreateUserHandler(c *fiber.Ctx) error
+	GetUserByIDHandler(c *fiber.Ctx) error
+	UpdateUserHandler(c *fiber.Ctx) error
+	ToggleUserStatusHandler(c *fiber.Ctx) error
+}
+
 type UsrHandler struct {
 	service   IUsrService
 	log       *logger.Logger
 	validator validator.Validator
 }
 
-func NewUsrHandler(service IUsrService, log *logger.Logger, validator validator.Validator) *UsrHandler {
+func NewUsrHandler(service IUsrService, log *logger.Logger, validator validator.Validator) IUsrHandler {
 	return &UsrHandler{
 		service:   service,
 		log:       log,

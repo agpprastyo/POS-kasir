@@ -15,6 +15,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type IAuthHandler interface {
+	UpdatePasswordHandler(c *fiber.Ctx) error
+	LoginHandler(c *fiber.Ctx) error
+	LogoutHandler(c *fiber.Ctx) error
+	RegisterHandler(c *fiber.Ctx) error
+	ProfileHandler(c *fiber.Ctx) error
+	AddUserHandler(c *fiber.Ctx) error
+	UpdateAvatarHandler(c *fiber.Ctx) error
+}
+
 // AthHandler handles authentication HTTP requests.
 type AthHandler struct {
 	service   IAuthService
@@ -22,7 +32,7 @@ type AthHandler struct {
 	validator validator.Validator
 }
 
-func NewAuthHandler(service IAuthService, log *logger.Logger, validator validator.Validator) *AthHandler {
+func NewAuthHandler(service IAuthService, log *logger.Logger, validator validator.Validator) IAuthHandler {
 	return &AthHandler{
 		service:   service,
 		log:       log,

@@ -30,18 +30,18 @@ import (
 type App struct {
 	Config          *config.AppConfig
 	Logger          *logger.Logger
-	DB              *database.Postgres
+	DB              database.IDatabase
 	FiberApp        *fiber.App
 	JWT             utils.Manager
-	Minio           *minio.Minio
+	Minio           minio.IMinio
 	Store           repository.Store
 	Validator       validator.Validator
 	MidtransService payment.IMidtrans
 }
 
 type AppContainer struct {
-	AuthHandler     auth.AthHandler
-	UserHandler     user.UsrHandler
+	AuthHandler     auth.IAuthHandler
+	UserHandler     user.IUsrHandler
 	CategoryHandler categories.ICtgHandler
 	ProductHandler  products.IPrdHandler
 	OrderHandler    orders.IOrderHandler
@@ -56,7 +56,7 @@ func InitApp() *App {
 	cfg := config.Load()
 	log := logger.New(cfg)
 
-	db, err := database.NewPostgresPool(cfg, log)
+	db, err := database.NewDatabase(cfg, log)
 	if err != nil {
 		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
 	}
@@ -72,7 +72,7 @@ func InitApp() *App {
 		log.Fatalf("Failed to initialize Minio: %v", err)
 	}
 
-	store := repository.NewStore(db.DB, log)
+	store := repository.NewStore(db.GetPool(), log)
 	val := validator.NewValidator()
 	midtransService := payment.NewMidtransService(cfg, log)
 
@@ -116,8 +116,8 @@ func BuildAppContainer(app *App) *AppContainer {
 	orderHandler := orders.NewOrderHandler(orderService, app.Logger, app.Validator)
 
 	return &AppContainer{
-		AuthHandler:     *authHandler,
-		UserHandler:     *userHandler,
+		AuthHandler:     authHandler,
+		UserHandler:     userHandler,
 		CategoryHandler: categoryHandler,
 		ProductHandler:  prdHandler,
 		OrderHandler:    orderHandler,
@@ -145,9 +145,7 @@ func SetupMiddleware(app *App) {
 
 func Cleanup(app *App) {
 	if app.DB != nil {
-		if err := database.ClosePostgresPool(app.DB); err != nil {
-			app.Logger.Errorf("Error closing database connection: %v", err)
-		}
+		app.DB.Close()
 	}
 }
 

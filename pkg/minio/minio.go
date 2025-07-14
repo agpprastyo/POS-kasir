@@ -18,7 +18,7 @@ type Minio struct {
 	Client *minio.Client
 }
 
-func NewMinio(cfg *config.AppConfig, log *logger.Logger) (*Minio, error) {
+func NewMinio(cfg *config.AppConfig, log *logger.Logger) (IMinio, error) {
 	client, err := minio.New(cfg.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: cfg.Minio.UseSSL,
@@ -40,6 +40,26 @@ func NewMinio(cfg *config.AppConfig, log *logger.Logger) (*Minio, error) {
 type IMinio interface {
 	UploadFile(ctx context.Context, objectName string, data []byte, contentType string) (string, error)
 	GetFileShareLink(ctx context.Context, objectName string) (string, error)
+	BucketExists(ctx context.Context) (bool, error)
+}
+
+// BucketExists checks if the specified bucket exists.
+func (m *Minio) BucketExists(ctx context.Context) (bool, error) {
+	if m == nil || m.Client == nil || m.Cfg == nil {
+		if m != nil && m.Log != nil {
+			m.Log.Error("Minio or its dependencies are nil")
+		}
+		return false, fmt.Errorf("minio or its dependencies are nil")
+	}
+
+	exists, err := m.Client.BucketExists(ctx, m.Cfg.Minio.Bucket)
+	if err != nil {
+		m.Log.Error("Failed to check if bucket exists", "error", err)
+		return false, err
+	}
+
+	m.Log.Info("Bucket exists check", "bucket", m.Cfg.Minio.Bucket, "exists", exists)
+	return exists, nil
 }
 
 // GetFileShareLink generates a presigned URL for sharing a file.

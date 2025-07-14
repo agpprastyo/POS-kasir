@@ -51,8 +51,9 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Time,
 		UpdatedAt: user.UpdatedAt.Time,
-		Avatar:    user.Avatar,
-		Role:      user.Role,
+
+		Avatar: user.Avatar,
+		Role:   user.Role,
 	}
 
 	return &response, nil

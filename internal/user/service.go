@@ -12,6 +12,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"time"
 )
 
 type IUsrService interface {
@@ -20,6 +21,7 @@ type IUsrService interface {
 	GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.ProfileResponse, error)
 	UpdateUser(ctx context.Context, userID uuid.UUID, req UpdateUserRequest) (*auth.ProfileResponse, error)
 	ToggleUserStatus(ctx context.Context, userID uuid.UUID) error
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
 
 type UsrService struct {
@@ -27,6 +29,41 @@ type UsrService struct {
 	log            *logger.Logger
 	activityLogger activitylog.Service
 	avatar         auth.IAthRepo
+}
+
+func (s *UsrService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	err := s.repo.DeleteUser(ctx, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			s.log.Warn("User not found for deletion", "userID", userID)
+			return common.ErrNotFound
+		default:
+			s.log.Error("Failed to delete user", "error", err, "userID", userID)
+			return err
+		}
+	}
+
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"deleted_user_id": userID.String(),
+	}
+
+	s.activityLogger.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeDELETE,
+		repository.LogEntityTypeUSER,
+		userID.String(),
+		logDetails,
+	)
+
+	s.log.Info("User deleted successfully", "userID", userID)
+	return nil
 }
 
 func (s *UsrService) ToggleUserStatus(ctx context.Context, userID uuid.UUID) error {
@@ -375,12 +412,20 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 				u.Avatar = &avatarURL
 			}
 		}
+
+		var deletedAtPtr *time.Time
+		if u.DeletedAt.Valid {
+			t := u.DeletedAt.Time.UTC()
+			deletedAtPtr = &t
+		}
+
 		response.Users[i] = auth.ProfileResponse{
 			ID:        u.ID,
 			Username:  u.Username,
 			Email:     u.Email,
 			CreatedAt: u.CreatedAt.Time,
 			UpdatedAt: u.UpdatedAt.Time,
+			DeletedAt: deletedAtPtr,
 			Avatar:    u.Avatar,
 			Role:      u.Role,
 			IsActive:  u.IsActive,

@@ -11,14 +11,18 @@ import (
 )
 
 type Querier interface {
+	// Hanya memeriksa keberadaan pengguna yang aktif.
 	CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error)
+	// Hanya menghitung pengguna yang aktif dan belum dihapus.
 	CountActiveUsers(ctx context.Context) (int64, error)
 	// Menghitung total jumlah kategori, berguna untuk pagination.
 	CountCategories(ctx context.Context) (int64, error)
+	// Hanya menghitung pengguna yang tidak aktif dan belum dihapus.
 	CountInactiveUsers(ctx context.Context) (int64, error)
 	// Counts total products for pagination, respecting filters.
 	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
 	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
+	// Menghitung pengguna dengan filter status.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
@@ -36,11 +40,13 @@ type Querier interface {
 	// Queries for Product Options (Variants)
 	// Creates a new option for a specific product.
 	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
+	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Menghapus satu kategori berdasarkan ID.
 	DeleteCategory(ctx context.Context, id int32) error
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
+	// Mengubah DELETE menjadi UPDATE untuk soft delete.
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	// Memeriksa apakah kategori dengan ID tertentu ada.
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
@@ -59,8 +65,11 @@ type Querier interface {
 	// This is an efficient way to fetch a product and its variants in one query.
 	// Now filters out soft-deleted options.
 	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
+	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	// Mengambil satu pengguna berdasarkan username, hanya jika pengguna tersebut aktif.
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	// Mengambil daftar semua kategori dengan pagination.
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
@@ -69,10 +78,12 @@ type Querier interface {
 	// Lists products with filtering and pagination.
 	// Does not include variants for performance reasons on a list view.
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)
+	// Mengambil daftar pengguna dengan filter, pagination, dan status (aktif/dihapus/semua).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	SoftDeleteProduct(ctx context.Context, id uuid.UUID) error
 	// Deletes a single product option.
 	SoftDeleteProductOption(ctx context.Context, id uuid.UUID) error
+	// Hanya bisa mengubah status pengguna yang belum dihapus.
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
@@ -86,9 +97,13 @@ type Querier interface {
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	// Updates a specific product option.
 	UpdateProductOption(ctx context.Context, arg UpdateProductOptionParams) (ProductOption, error)
+	// Memperbarui pengguna aktif.
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	// Hanya bisa mengubah password pengguna aktif.
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
-	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error
+	// Mengubah :exec menjadi :one dan menambahkan RETURNING untuk konfirmasi.
+	// Hanya bisa mengubah peran pengguna aktif.
+	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

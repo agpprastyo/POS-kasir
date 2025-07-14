@@ -632,4 +632,5 @@ type User struct {
 	Avatar       *string            `json:"avatar"`
 	Role         UserRole           `json:"role"`
 	IsActive     bool               `json:"is_active"`
+	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
 }

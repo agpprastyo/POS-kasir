@@ -16,12 +16,44 @@ type IUsrHandler interface {
 	GetUserByIDHandler(c *fiber.Ctx) error
 	UpdateUserHandler(c *fiber.Ctx) error
 	ToggleUserStatusHandler(c *fiber.Ctx) error
+	DeleteUserHandler(c *fiber.Ctx) error
 }
 
 type UsrHandler struct {
 	service   IUsrService
 	log       *logger.Logger
 	validator validator.Validator
+}
+
+func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
+	ctx := c.Context()
+	id := c.Params("id")
+	if id == "" {
+		h.log.Error("User ID is required")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "User ID is required",
+		})
+	}
+
+	// Parse the ID to UUID
+	idParsed, err := uuid.Parse(id)
+	if err != nil {
+		h.log.Error("Invalid user ID format", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid user ID format",
+		})
+	}
+
+	if err := h.service.DeleteUser(ctx, idParsed); err != nil {
+		h.log.Error("Failed to delete user", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete user",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "User deleted successfully",
+	})
 }
 
 func NewUsrHandler(service IUsrService, log *logger.Logger, validator validator.Validator) IUsrHandler {

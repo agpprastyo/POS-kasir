@@ -14,6 +14,7 @@ type UsersRequest struct {
 	Search    *string                     `form:"search" json:"search"`
 	Role      *repository.UserRole        `form:"role" json:"role,omitempty"`
 	IsActive  *bool                       `form:"is_active" json:"is_active,omitempty"`
+	Status    *string                     `form:"status" json:"status" validate:"omitempty,oneof=active deleted all"`
 }
 
 type UsersResponse struct {

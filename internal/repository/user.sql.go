@@ -14,8 +14,8 @@ import (
 
 const checkUserExistence = `-- name: CheckUserExistence :one
 SELECT
-    EXISTS(SELECT 1 FROM users u WHERE u.email = $1) AS email_exists,
-    EXISTS(SELECT 1 FROM users u WHERE u.username = $2) AS username_exists
+    EXISTS(SELECT 1 FROM users u WHERE u.email = $1 AND u.deleted_at IS NULL) AS email_exists,
+    EXISTS(SELECT 1 FROM users u WHERE u.username = $2 AND u.deleted_at IS NULL) AS username_exists
 `
 
 type CheckUserExistenceParams struct {
@@ -28,6 +28,7 @@ type CheckUserExistenceRow struct {
 	UsernameExists bool `json:"username_exists"`
 }
 
+// Hanya memeriksa keberadaan pengguna yang aktif.
 func (q *Queries) CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error) {
 	row := q.db.QueryRow(ctx, checkUserExistence, arg.Email, arg.Username)
 	var i CheckUserExistenceRow
@@ -36,9 +37,10 @@ func (q *Queries) CheckUserExistence(ctx context.Context, arg CheckUserExistence
 }
 
 const countActiveUsers = `-- name: CountActiveUsers :one
-SELECT COUNT(*) FROM users WHERE is_active = true
+SELECT COUNT(*) FROM users WHERE is_active = true AND deleted_at IS NULL
 `
 
+// Hanya menghitung pengguna yang aktif dan belum dihapus.
 func (q *Queries) CountActiveUsers(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countActiveUsers)
 	var count int64
@@ -47,9 +49,10 @@ func (q *Queries) CountActiveUsers(ctx context.Context) (int64, error) {
 }
 
 const countInactiveUsers = `-- name: CountInactiveUsers :one
-SELECT COUNT(*) FROM users WHERE is_active = false
+SELECT COUNT(*) FROM users WHERE is_active = false AND deleted_at IS NULL
 `
 
+// Hanya menghitung pengguna yang tidak aktif dan belum dihapus.
 func (q *Queries) CountInactiveUsers(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, countInactiveUsers)
 	var count int64
@@ -67,16 +70,30 @@ WHERE
         )
   AND ($2::user_role IS NULL OR role = $2)
   AND ($3::bool IS NULL OR is_active = $3)
+  AND (
+    CASE
+        WHEN $4::text = 'deleted' THEN deleted_at IS NOT NULL
+        WHEN $4::text = 'all' THEN TRUE
+        ELSE deleted_at IS NULL
+        END
+    )
 `
 
 type CountUsersParams struct {
 	SearchText *string      `json:"search_text"`
 	Role       NullUserRole `json:"role"`
 	IsActive   *bool        `json:"is_active"`
+	Status     *string      `json:"status"`
 }
 
+// Menghitung pengguna dengan filter status.
 func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countUsers, arg.SearchText, arg.Role, arg.IsActive)
+	row := q.db.QueryRow(ctx, countUsers,
+		arg.SearchText,
+		arg.Role,
+		arg.IsActive,
+		arg.Status,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -85,7 +102,7 @@ func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id,username, email, password_hash, avatar, role, is_active)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
 `
 
 type CreateUserParams struct {
@@ -98,6 +115,7 @@ type CreateUserParams struct {
 	IsActive     bool      `json:"is_active"`
 }
 
+// Tidak ada perubahan, deleted_at akan NULL secara default.
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
@@ -119,24 +137,31 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Avatar,
 		&i.Role,
 		&i.IsActive,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1
+UPDATE users
+SET deleted_at = NOW()
+WHERE id = $1 AND deleted_at IS NULL
 `
 
+// Mengubah DELETE menjadi UPDATE untuk soft delete.
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
-FROM users WHERE email = $1 LIMIT 1
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+FROM users
+WHERE email = $1 AND deleted_at IS NULL
+LIMIT 1
 `
 
+// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
@@ -150,15 +175,19 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Avatar,
 		&i.Role,
 		&i.IsActive,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
-FROM users WHERE id = $1 LIMIT 1
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+FROM users
+WHERE id = $1 AND deleted_at IS NULL
+LIMIT 1
 `
 
+// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
@@ -172,15 +201,19 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Avatar,
 		&i.Role,
 		&i.IsActive,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
-FROM users WHERE username = $1 LIMIT 1
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+FROM users
+WHERE username = $1 AND deleted_at IS NULL
+LIMIT 1
 `
 
+// Mengambil satu pengguna berdasarkan username, hanya jika pengguna tersebut aktif.
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i User
@@ -194,12 +227,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Avatar,
 		&i.Role,
 		&i.IsActive,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, email, avatar, role, is_active, created_at, updated_at
+SELECT id, username, email, avatar, role, is_active, created_at, updated_at, deleted_at
 FROM users
 WHERE
     (
@@ -209,15 +243,23 @@ WHERE
         )
   AND ($4::user_role IS NULL OR role = $4)
   AND ($5::bool IS NULL OR is_active = $5)
+  -- Klausa WHERE dinamis untuk status soft delete
+  AND (
+    CASE
+        WHEN $6::text = 'deleted' THEN deleted_at IS NOT NULL
+        WHEN $6::text = 'all' THEN TRUE
+        ELSE deleted_at IS NULL
+        END
+    )
 ORDER BY
-  CASE WHEN $6::user_order_column = 'username' AND $7::sort_order = 'asc'  THEN username END ASC,
-  CASE WHEN $6::user_order_column = 'username' AND $7::sort_order = 'desc' THEN username END DESC,
-  CASE WHEN $6::user_order_column = 'email' AND $7::sort_order = 'asc' THEN email END ASC,
-  CASE WHEN $6::user_order_column = 'email' AND $7::sort_order = 'desc' THEN email END DESC,
-  CASE WHEN $6::user_order_column = 'created_at' AND $7::sort_order = 'asc' THEN created_at END ASC,
-  CASE WHEN $6::user_order_column = 'created_at' AND $7::sort_order = 'desc' THEN created_at END DESC,
-  created_at ASC
-
+    -- Klausa ORDER BY tidak berubah
+    CASE WHEN $7::user_order_column = 'username' AND $8::sort_order = 'asc'  THEN username END ASC,
+    CASE WHEN $7::user_order_column = 'username' AND $8::sort_order = 'desc' THEN username END DESC,
+    CASE WHEN $7::user_order_column = 'email' AND $8::sort_order = 'asc' THEN email END ASC,
+    CASE WHEN $7::user_order_column = 'email' AND $8::sort_order = 'desc' THEN email END DESC,
+    CASE WHEN $7::user_order_column = 'created_at' AND $8::sort_order = 'asc' THEN created_at END ASC,
+    CASE WHEN $7::user_order_column = 'created_at' AND $8::sort_order = 'desc' THEN created_at END DESC,
+    created_at ASC
 LIMIT $1 OFFSET $2
 `
 
@@ -227,6 +269,7 @@ type ListUsersParams struct {
 	SearchText *string         `json:"search_text"`
 	Role       NullUserRole    `json:"role"`
 	IsActive   *bool           `json:"is_active"`
+	Status     *string         `json:"status"`
 	OrderBy    UserOrderColumn `json:"order_by"`
 	SortOrder  SortOrder       `json:"sort_order"`
 }
@@ -240,8 +283,10 @@ type ListUsersRow struct {
 	IsActive  bool               `json:"is_active"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }
 
+// Mengambil daftar pengguna dengan filter, pagination, dan status (aktif/dihapus/semua).
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers,
 		arg.Limit,
@@ -249,6 +294,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 		arg.SearchText,
 		arg.Role,
 		arg.IsActive,
+		arg.Status,
 		arg.OrderBy,
 		arg.SortOrder,
 	)
@@ -268,6 +314,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -282,10 +329,11 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 const toggleUserActiveStatus = `-- name: ToggleUserActiveStatus :one
 UPDATE users
 SET is_active = NOT is_active
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 RETURNING id
 `
 
+// Hanya bisa mengubah status pengguna yang belum dihapus.
 func (q *Queries) ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, toggleUserActiveStatus, id)
 	err := row.Scan(&id)
@@ -299,8 +347,8 @@ SET
     email = COALESCE($3, email),
     avatar = COALESCE($4, avatar),
     is_active = COALESCE($5, is_active)
-WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
 `
 
 type UpdateUserParams struct {
@@ -311,6 +359,7 @@ type UpdateUserParams struct {
 	IsActive *bool     `json:"is_active"`
 }
 
+// Memperbarui pengguna aktif.
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.ID,
@@ -330,6 +379,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Avatar,
 		&i.Role,
 		&i.IsActive,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -337,7 +387,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
 SET password_hash = $2
-WHERE id = $1
+WHERE id = $1 AND deleted_at IS NULL
 `
 
 type UpdateUserPasswordParams struct {
@@ -345,16 +395,17 @@ type UpdateUserPasswordParams struct {
 	PasswordHash string    `json:"password_hash"`
 }
 
+// Hanya bisa mengubah password pengguna aktif.
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
 	_, err := q.db.Exec(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
 	return err
 }
 
-const updateUserRole = `-- name: UpdateUserRole :exec
+const updateUserRole = `-- name: UpdateUserRole :one
 UPDATE users
 SET role = $2
-WHERE id = $1
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active
+WHERE id = $1 AND deleted_at IS NULL
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
 `
 
 type UpdateUserRoleParams struct {
@@ -362,7 +413,22 @@ type UpdateUserRoleParams struct {
 	Role UserRole  `json:"role"`
 }
 
-func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) error {
-	_, err := q.db.Exec(ctx, updateUserRole, arg.ID, arg.Role)
-	return err
+// Mengubah :exec menjadi :one dan menambahkan RETURNING untuk konfirmasi.
+// Hanya bisa mengubah peran pengguna aktif.
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserRole, arg.ID, arg.Role)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Avatar,
+		&i.Role,
+		&i.IsActive,
+		&i.DeletedAt,
+	)
+	return i, err
 }

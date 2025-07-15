@@ -32,6 +32,8 @@ type Querier interface {
 	// Menghitung pengguna dengan filter status.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
+	// Membuat alasan pembatalan baru.
+	CreateCancellationReason(ctx context.Context, arg CreateCancellationReasonParams) (CancellationReason, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
 	// Membuat header pesanan baru dengan status 'open'.
@@ -41,6 +43,8 @@ type Querier interface {
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	// Menambahkan satu varian/opsi ke dalam sebuah order item.
 	CreateOrderItemOption(ctx context.Context, arg CreateOrderItemOptionParams) (OrderItemOption, error)
+	// Membuat metode pembayaran baru.
+	CreatePaymentMethod(ctx context.Context, name string) (PaymentMethod, error)
 	// Queries for Products
 	// Creates a new product and returns its full details.
 	// Product options should be created separately in a transaction.
@@ -60,6 +64,8 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	// Memeriksa apakah kategori dengan ID tertentu ada.
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
+	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
+	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
 	// Mengambil semua varian untuk beberapa produk.
@@ -71,6 +77,8 @@ type Querier interface {
 	GetOrderForUpdate(ctx context.Context, id uuid.UUID) (Order, error)
 	// Mengambil detail lengkap pesanan, termasuk item dan opsinya dalam format JSON.
 	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
+	// Mengambil satu metode pembayaran berdasarkan nama untuk pengecekan duplikat.
+	GetPaymentMethodByName(ctx context.Context, name string) (PaymentMethod, error)
 	// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
@@ -85,12 +93,16 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	// Mengambil satu pengguna berdasarkan username, hanya jika pengguna tersebut aktif.
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	// Mengambil daftar semua alasan pembatalan yang aktif.
+	ListCancellationReasons(ctx context.Context) ([]CancellationReason, error)
 	// Mengambil daftar semua kategori dengan pagination.
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	// Retrieves all options for a single product.
 	ListOptionsForProduct(ctx context.Context, productID uuid.UUID) ([]ProductOption, error)
 	// Mengambil daftar pesanan dengan filter dan pagination.
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error)
+	// Mengambil daftar semua metode pembayaran yang aktif.
+	ListPaymentMethods(ctx context.Context) ([]PaymentMethod, error)
 	// Lists products with filtering and pagination.
 	// Does not include variants for performance reasons on a list view.
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)

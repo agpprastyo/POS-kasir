@@ -61,7 +61,7 @@ func SeedUsers(ctx context.Context, q repository.Querier, log *logger.Logger) er
 		_, err = q.CreateUser(ctx, params)
 		if err != nil {
 			log.Printf("Seeder User | failed to seed user %s: %v", data.Email, err)
-			continue // skip error and continue with next user
+			continue
 		}
 	}
 	return nil

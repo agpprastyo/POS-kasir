@@ -1,12 +1,13 @@
-// File: server/server.go
 package server
 
 import (
 	"POS-kasir/config"
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/auth"
+	"POS-kasir/internal/cancellation_reasons"
 	"POS-kasir/internal/categories"
 	"POS-kasir/internal/orders"
+	"POS-kasir/internal/payment_methods"
 	"POS-kasir/internal/products"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/user"
@@ -28,7 +29,6 @@ import (
 	"time"
 )
 
-// App struct sekarang menampung semua komponen inti dan service utama.
 type App struct {
 	Config          *config.AppConfig
 	Logger          *logger.Logger
@@ -41,16 +41,16 @@ type App struct {
 	MidtransService payment.IMidtrans
 }
 
-// AppContainer hanya menampung handler yang akan digunakan oleh router.
 type AppContainer struct {
-	AuthHandler     auth.IAuthHandler
-	UserHandler     user.IUsrHandler
-	CategoryHandler categories.ICtgHandler
-	ProductHandler  products.IPrdHandler
-	OrderHandler    orders.IOrderHandler
+	AuthHandler               auth.IAuthHandler
+	UserHandler               user.IUsrHandler
+	CategoryHandler           categories.ICtgHandler
+	ProductHandler            products.IPrdHandler
+	OrderHandler              orders.IOrderHandler
+	PaymentMethodHandler      payment_methods.IPaymentMethodHandler
+	CancellationReasonHandler cancellation_reasons.ICancellationReasonHandler
 }
 
-// InitApp sekarang menginisialisasi semua komponen inti dan service utama.
 func InitApp() *App {
 	err := godotenv.Load()
 	if err != nil {
@@ -76,8 +76,7 @@ func InitApp() *App {
 		log.Fatalf("Failed to initialize Minio: %v", err)
 	}
 
-	// --- Inisialisasi komponen inti dipusatkan di sini ---
-	store := repository.NewStore(db.GetPool())
+	store := repository.NewStore(db.GetPool(), log)
 	val := validator.NewValidator()
 	midtransService := payment.NewMidtransService(cfg, log)
 
@@ -94,7 +93,6 @@ func InitApp() *App {
 	}
 }
 
-// BuildAppContainer membangun semua handler dari komponen yang ada di App.
 func BuildAppContainer(app *App) *AppContainer {
 	// Activity Log Service
 	activityService := activitylog.NewService(app.Store, app.Logger)
@@ -110,7 +108,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// Category Module
 	categoryService := categories.NewCtgService(app.Store, app.Logger, activityService)
-	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger, app.Validator) // Ditambahkan validator untuk konsistensi
+	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
 
 	// Product Module
 	prdRepo := products.NewPrdRepo(app.Minio, app.Logger)
@@ -121,23 +119,31 @@ func BuildAppContainer(app *App) *AppContainer {
 	orderService := orders.NewOrderService(app.Store, app.MidtransService, activityService, app.Logger)
 	orderHandler := orders.NewOrderHandler(orderService, app.Logger, app.Validator)
 
+	// Payment Method Module
+	paymentMethodService := payment_methods.NewPaymentMethodService(app.Store, app.Logger)
+	paymentMethodHandler := payment_methods.NewPaymentMethodHandler(paymentMethodService, app.Logger)
+
+	// Cancellation Reason Module
+	cancellationReasonService := cancellation_reasons.NewCancellationReasonService(app.Store, app.Logger)
+	cancellationReasonHandler := cancellation_reasons.NewCancellationReasonHandler(cancellationReasonService, app.Logger)
+
 	return &AppContainer{
-		AuthHandler:     authHandler,
-		UserHandler:     userHandler,
-		CategoryHandler: categoryHandler,
-		ProductHandler:  prdHandler,
-		OrderHandler:    orderHandler,
+		AuthHandler:               authHandler,
+		UserHandler:               userHandler,
+		CategoryHandler:           categoryHandler,
+		ProductHandler:            prdHandler,
+		OrderHandler:              orderHandler,
+		PaymentMethodHandler:      paymentMethodHandler,
+		CancellationReasonHandler: cancellationReasonHandler,
 	}
 }
 
 func StartServer(app *App) {
-	// Setup middleware
+
 	SetupMiddleware(app)
 
-	// Bangun container yang berisi semua handler
 	container := BuildAppContainer(app)
 
-	// Setup rute dengan app dan container yang sudah jadi
 	SetupRoutes(app, container)
 
 	// Start app

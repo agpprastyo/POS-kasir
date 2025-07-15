@@ -1,3 +1,4 @@
+// File: server/server.go
 package server
 
 import (
@@ -27,6 +28,7 @@ import (
 	"time"
 )
 
+// App struct sekarang menampung semua komponen inti dan service utama.
 type App struct {
 	Config          *config.AppConfig
 	Logger          *logger.Logger
@@ -39,6 +41,7 @@ type App struct {
 	MidtransService payment.IMidtrans
 }
 
+// AppContainer hanya menampung handler yang akan digunakan oleh router.
 type AppContainer struct {
 	AuthHandler     auth.IAuthHandler
 	UserHandler     user.IUsrHandler
@@ -47,6 +50,7 @@ type AppContainer struct {
 	OrderHandler    orders.IOrderHandler
 }
 
+// InitApp sekarang menginisialisasi semua komponen inti dan service utama.
 func InitApp() *App {
 	err := godotenv.Load()
 	if err != nil {
@@ -72,7 +76,8 @@ func InitApp() *App {
 		log.Fatalf("Failed to initialize Minio: %v", err)
 	}
 
-	store := repository.NewStore(db.GetPool(), log)
+	// --- Inisialisasi komponen inti dipusatkan di sini ---
+	store := repository.NewStore(db.GetPool())
 	val := validator.NewValidator()
 	midtransService := payment.NewMidtransService(cfg, log)
 
@@ -89,6 +94,7 @@ func InitApp() *App {
 	}
 }
 
+// BuildAppContainer membangun semua handler dari komponen yang ada di App.
 func BuildAppContainer(app *App) *AppContainer {
 	// Activity Log Service
 	activityService := activitylog.NewService(app.Store, app.Logger)
@@ -104,7 +110,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// Category Module
 	categoryService := categories.NewCtgService(app.Store, app.Logger, activityService)
-	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
+	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger, app.Validator) // Ditambahkan validator untuk konsistensi
 
 	// Product Module
 	prdRepo := products.NewPrdRepo(app.Minio, app.Logger)
@@ -128,10 +134,13 @@ func StartServer(app *App) {
 	// Setup middleware
 	SetupMiddleware(app)
 
+	// Bangun container yang berisi semua handler
 	container := BuildAppContainer(app)
 
+	// Setup rute dengan app dan container yang sudah jadi
 	SetupRoutes(app, container)
 
+	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)
 	if err := app.FiberApp.Listen(":" + app.Config.Server.Port); err != nil {
 		app.Logger.Fatalf("Error starting app: %v", err)

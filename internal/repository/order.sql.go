@@ -12,6 +12,95 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addProductStock = `-- name: AddProductStock :one
+UPDATE products
+SET stock = stock + $2
+WHERE id = $1
+RETURNING id, stock
+`
+
+type AddProductStockParams struct {
+	ID    uuid.UUID `json:"id"`
+	Stock int32     `json:"stock"`
+}
+
+type AddProductStockRow struct {
+	ID    uuid.UUID `json:"id"`
+	Stock int32     `json:"stock"`
+}
+
+// Menambahkan stok kembali ke sebuah produk (digunakan saat pesanan dibatalkan).
+func (q *Queries) AddProductStock(ctx context.Context, arg AddProductStockParams) (AddProductStockRow, error) {
+	row := q.db.QueryRow(ctx, addProductStock, arg.ID, arg.Stock)
+	var i AddProductStockRow
+	err := row.Scan(&i.ID, &i.Stock)
+	return i, err
+}
+
+const cancelOrder = `-- name: CancelOrder :one
+UPDATE orders
+SET
+    status = 'cancelled',
+    cancellation_reason_id = $2,
+    cancellation_notes = $3
+WHERE
+    id = $1 AND status = 'open'
+RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
+`
+
+type CancelOrderParams struct {
+	ID                   uuid.UUID `json:"id"`
+	CancellationReasonID *int32    `json:"cancellation_reason_id"`
+	CancellationNotes    *string   `json:"cancellation_notes"`
+}
+
+// Mengubah status pesanan menjadi 'cancelled' dan mencatat alasannya.
+// Hanya bisa membatalkan pesanan yang statusnya 'open'.
+func (q *Queries) CancelOrder(ctx context.Context, arg CancelOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, cancelOrder, arg.ID, arg.CancellationReasonID, arg.CancellationNotes)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Type,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GrossTotal,
+		&i.DiscountAmount,
+		&i.NetTotal,
+		&i.AppliedPromotionID,
+		&i.PaymentMethodID,
+		&i.PaymentGatewayReference,
+		&i.CashReceived,
+		&i.ChangeDue,
+		&i.CancellationReasonID,
+		&i.CancellationNotes,
+	)
+	return i, err
+}
+
+const countOrders = `-- name: CountOrders :one
+SELECT count(*) FROM orders
+WHERE
+    ($1::order_status IS NULL OR status = $1)
+  AND
+    ($2::uuid IS NULL OR user_id = $2)
+`
+
+type CountOrdersParams struct {
+	Status NullOrderStatus `json:"status"`
+	UserID pgtype.UUID     `json:"user_id"`
+}
+
+// Menghitung total pesanan dengan filter.
+func (q *Queries) CountOrders(ctx context.Context, arg CountOrdersParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOrders, arg.Status, arg.UserID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO orders (user_id, type)
 VALUES ($1, $2)
@@ -23,7 +112,8 @@ type CreateOrderParams struct {
 	Type   OrderType   `json:"type"`
 }
 
-// Membuat header pesanan baru dengan status 'open'. Total akan dihitung nanti.
+// Membuat header pesanan baru dengan status 'open'.
+// Total akan dihitung dan diperbarui dalam langkah selanjutnya.
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
 	row := q.db.QueryRow(ctx, createOrder, arg.UserID, arg.Type)
 	var i Order
@@ -70,7 +160,7 @@ type CreateOrderItemParams struct {
 	NetSubtotal pgtype.Numeric `json:"net_subtotal"`
 }
 
-// Menambahkan satu item ke dalam pesanan.
+// Menambahkan satu item produk ke dalam pesanan.
 func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error) {
 	row := q.db.QueryRow(ctx, createOrderItem,
 		arg.OrderID,
@@ -121,6 +211,71 @@ func (q *Queries) CreateOrderItemOption(ctx context.Context, arg CreateOrderItem
 		&i.PriceAtSale,
 	)
 	return i, err
+}
+
+const decreaseProductStock = `-- name: DecreaseProductStock :one
+UPDATE products
+SET stock = stock - $2
+WHERE id = $1
+RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at
+`
+
+type DecreaseProductStockParams struct {
+	ID    uuid.UUID `json:"id"`
+	Stock int32     `json:"stock"`
+}
+
+// Mengurangi stok produk.
+func (q *Queries) DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error) {
+	row := q.db.QueryRow(ctx, decreaseProductStock, arg.ID, arg.Stock)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CategoryID,
+		&i.ImageUrl,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getOptionsForProducts = `-- name: GetOptionsForProducts :many
+SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
+WHERE product_id = ANY($1::uuid[])
+`
+
+// Mengambil semua varian untuk beberapa produk.
+func (q *Queries) GetOptionsForProducts(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error) {
+	rows, err := q.db.Query(ctx, getOptionsForProducts, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ProductOption{}
+	for rows.Next() {
+		var i ProductOption
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.Name,
+			&i.AdditionalPrice,
+			&i.ImageUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getOrderByGatewayRef = `-- name: GetOrderByGatewayRef :one
@@ -254,6 +409,103 @@ func (q *Queries) GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrd
 	return i, err
 }
 
+const getProductsByIDs = `-- name: GetProductsByIDs :many
+SELECT id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at FROM products
+WHERE id = ANY($1::uuid[])
+`
+
+// Mengambil beberapa produk berdasarkan array ID. Ini untuk menghindari N+1 query.
+func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CategoryID,
+			&i.ImageUrl,
+			&i.Price,
+			&i.Stock,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOrders = `-- name: ListOrders :many
+SELECT id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes FROM orders
+WHERE
+    ($3::order_status IS NULL OR status = $3)
+  AND
+    ($4::uuid IS NULL OR user_id = $4)
+ORDER BY
+    created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListOrdersParams struct {
+	Limit  int32           `json:"limit"`
+	Offset int32           `json:"offset"`
+	Status NullOrderStatus `json:"status"`
+	UserID pgtype.UUID     `json:"user_id"`
+}
+
+// Mengambil daftar pesanan dengan filter dan pagination.
+func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error) {
+	rows, err := q.db.Query(ctx, listOrders,
+		arg.Limit,
+		arg.Offset,
+		arg.Status,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Order{}
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Type,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.GrossTotal,
+			&i.DiscountAmount,
+			&i.NetTotal,
+			&i.AppliedPromotionID,
+			&i.PaymentMethodID,
+			&i.PaymentGatewayReference,
+			&i.CashReceived,
+			&i.ChangeDue,
+			&i.CancellationReasonID,
+			&i.CancellationNotes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateOrderPaymentInfo = `-- name: UpdateOrderPaymentInfo :exec
 UPDATE orders
 SET
@@ -269,7 +521,7 @@ type UpdateOrderPaymentInfoParams struct {
 	PaymentGatewayReference *string   `json:"payment_gateway_reference"`
 }
 
-// Menyimpan referensi pembayaran dari payment gateway.
+// Menyimpan referensi pembayaran dari payment gateway dan metode pembayaran.
 func (q *Queries) UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error {
 	_, err := q.db.Exec(ctx, updateOrderPaymentInfo, arg.ID, arg.PaymentMethodID, arg.PaymentGatewayReference)
 	return err
@@ -278,7 +530,7 @@ func (q *Queries) UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPay
 const updateOrderStatusByGatewayRef = `-- name: UpdateOrderStatusByGatewayRef :one
 UPDATE orders
 SET status = $2
-WHERE payment_gateway_reference = $1
+WHERE payment_gateway_reference = $1 AND status <> 'paid' -- Mencegah update ganda
 RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
 `
 

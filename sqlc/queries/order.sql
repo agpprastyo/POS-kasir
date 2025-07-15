@@ -1,11 +1,12 @@
 -- name: CreateOrder :one
--- Membuat header pesanan baru dengan status 'open'. Total akan dihitung nanti.
+-- Membuat header pesanan baru dengan status 'open'.
+-- Total akan dihitung dan diperbarui dalam langkah selanjutnya.
 INSERT INTO orders (user_id, type)
 VALUES ($1, $2)
 RETURNING *;
 
 -- name: CreateOrderItem :one
--- Menambahkan satu item ke dalam pesanan.
+-- Menambahkan satu item produk ke dalam pesanan.
 INSERT INTO order_items (
     order_id,
     product_id,
@@ -67,9 +68,8 @@ WHERE
     o.id = $1
 LIMIT 1;
 
-
 -- name: UpdateOrderPaymentInfo :exec
--- Menyimpan referensi pembayaran dari payment gateway.
+-- Menyimpan referensi pembayaran dari payment gateway dan metode pembayaran.
 UPDATE orders
 SET
     payment_method_id = $2,
@@ -81,7 +81,7 @@ WHERE
 -- Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
 UPDATE orders
 SET status = $2
-WHERE payment_gateway_reference = $1
+WHERE payment_gateway_reference = $1 AND status <> 'paid' -- Mencegah update ganda
 RETURNING *;
 
 -- name: GetOrderByGatewayRef :one
@@ -89,3 +89,60 @@ RETURNING *;
 SELECT * FROM orders
 WHERE payment_gateway_reference = $1
 LIMIT 1;
+
+-- name: ListOrders :many
+-- Mengambil daftar pesanan dengan filter dan pagination.
+SELECT * FROM orders
+WHERE
+    (sqlc.narg(status)::order_status IS NULL OR status = sqlc.narg(status))
+  AND
+    (sqlc.narg(user_id)::uuid IS NULL OR user_id = sqlc.narg(user_id))
+ORDER BY
+    created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountOrders :one
+-- Menghitung total pesanan dengan filter.
+SELECT count(*) FROM orders
+WHERE
+    (sqlc.narg(status)::order_status IS NULL OR status = sqlc.narg(status))
+  AND
+    (sqlc.narg(user_id)::uuid IS NULL OR user_id = sqlc.narg(user_id));
+
+
+-- name: CancelOrder :one
+-- Mengubah status pesanan menjadi 'cancelled' dan mencatat alasannya.
+-- Hanya bisa membatalkan pesanan yang statusnya 'open'.
+UPDATE orders
+SET
+    status = 'cancelled',
+    cancellation_reason_id = $2,
+    cancellation_notes = $3
+WHERE
+    id = $1 AND status = 'open'
+RETURNING *;
+
+-- name: AddProductStock :one
+-- Menambahkan stok kembali ke sebuah produk (digunakan saat pesanan dibatalkan).
+UPDATE products
+SET stock = stock + $2
+WHERE id = $1
+RETURNING id, stock;
+
+
+-- Mengambil beberapa produk berdasarkan array ID. Ini untuk menghindari N+1 query.
+-- name: GetProductsByIDs :many
+SELECT * FROM products
+WHERE id = ANY($1::uuid[]);
+
+-- Mengambil semua varian untuk beberapa produk.
+-- name: GetOptionsForProducts :many
+SELECT * FROM product_options
+WHERE product_id = ANY($1::uuid[]);
+
+-- Mengurangi stok produk.
+-- name: DecreaseProductStock :one
+UPDATE products
+SET stock = stock - $2
+WHERE id = $1
+RETURNING *;

@@ -1,7 +1,9 @@
+// File: internal/orders/handler.go
 package orders
 
 import (
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"errors"
@@ -14,6 +16,8 @@ type IOrderHandler interface {
 	GetOrderHandler(c *fiber.Ctx) error
 	ProcessPaymentHandler(c *fiber.Ctx) error
 	MidtransNotificationHandler(c *fiber.Ctx) error
+	ListOrdersHandler(c *fiber.Ctx) error
+	CancelOrderHandler(c *fiber.Ctx) error
 }
 
 type OrderHandler struct {
@@ -30,8 +34,71 @@ func NewOrderHandler(orderService IOrderService, log *logger.Logger, validate va
 	}
 }
 
+func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
+
+	orderIDStr := c.Params("id")
+	orderID, err := uuid.Parse(orderIDStr)
+	if err != nil {
+		h.log.Warn("Invalid order ID format for cancellation", "error", err, "id", orderIDStr)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
+	}
+
+	var req dto.CancelOrderRequest
+	if err := c.BodyParser(&req); err != nil {
+		h.log.Warn("Cannot parse cancel order request body", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
+	}
+
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("Cancel order request validation failed", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
+	}
+
+	err = h.orderService.CancelOrder(c.Context(), orderID, req)
+	if err != nil {
+
+		if errors.Is(err, common.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
+		}
+		if errors.Is(err, common.ErrOrderNotCancellable) {
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{Message: "Order cannot be cancelled", Error: "Order might have been paid or already cancelled."})
+		}
+		h.log.Error("Failed to cancel order in service", "error", err, "orderID", orderID)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to cancel order"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Order cancelled successfully",
+	})
+}
+
+func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
+
+	var req dto.ListOrdersRequest
+	if err := c.QueryParser(&req); err != nil {
+		h.log.Warn("Cannot parse list orders query parameters", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid query parameters"})
+	}
+
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("List orders request validation failed", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
+	}
+
+	pagedResponse, err := h.orderService.ListOrders(c.Context(), req)
+	if err != nil {
+		h.log.Error("Failed to list orders from service", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to retrieve orders"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Orders retrieved successfully",
+		Data:    pagedResponse,
+	})
+}
+
 func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
-	var req CreateOrderRequest
+	var req dto.CreateOrderRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse create order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -39,10 +106,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 
 	if err := h.validate.Validate(req); err != nil {
 		h.log.Warn("Create order request validation failed", "error", err)
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
-			Error:   err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
 	orderResponse, err := h.orderService.CreateOrder(c.Context(), req)
@@ -58,7 +122,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 }
 
 func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
-
+	// 1. Ambil ID dari parameter URL
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
@@ -107,7 +171,8 @@ func (h *OrderHandler) ProcessPaymentHandler(c *fiber.Ctx) error {
 }
 
 func (h *OrderHandler) MidtransNotificationHandler(c *fiber.Ctx) error {
-	var payload MidtransNotificationPayload
+
+	var payload dto.MidtransNotificationPayload
 	if err := c.BodyParser(&payload); err != nil {
 		h.log.Warn("Cannot parse Midtrans notification body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid notification format"})
@@ -116,7 +181,6 @@ func (h *OrderHandler) MidtransNotificationHandler(c *fiber.Ctx) error {
 	err := h.orderService.HandleMidtransNotification(c.Context(), payload)
 	if err != nil {
 		h.log.Error("Error handling Midtrans notification", "error", err, "orderID", payload.OrderID)
-
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to handle notification"})
 	}
 

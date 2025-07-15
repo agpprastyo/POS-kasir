@@ -2,16 +2,22 @@ package payment
 
 import (
 	"POS-kasir/config"
+	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
+	"crypto/sha512"
+	"encoding/hex"
+	"fmt"
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/coreapi"
 )
 
 type IMidtrans interface {
 	CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error)
+	VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error
 }
 
 type MidtransService struct {
+	config *config.AppConfig
 	client coreapi.Client
 	log    *logger.Logger
 }
@@ -39,7 +45,33 @@ func NewMidtransService(cfg *config.AppConfig, log *logger.Logger) IMidtrans {
 	return &MidtransService{
 		client: client,
 		log:    log,
+		config: cfg,
 	}
+}
+
+// VerifyNotificationSignature memvalidasi signature key dari payload notifikasi.
+func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error {
+	// 1. Buat string sumber sesuai dokumentasi Midtrans: order_id + status_code + gross_amount + server_key
+	sourceString := payload.OrderID + payload.StatusCode + payload.GrossAmount + s.config.Midtrans.ServerKey
+
+	// 2. Hitung hash SHA-512 dari string sumber
+	hasher := sha512.New()
+	_, err := hasher.Write([]byte(sourceString))
+	if err != nil {
+		s.log.Error("Failed to write to SHA512 hasher", "error", err)
+		return fmt.Errorf("failed to compute signature")
+	}
+
+	computedSignature := hex.EncodeToString(hasher.Sum(nil))
+
+	// 3. Bandingkan signature yang dihitung dengan yang diterima dari Midtrans
+	if computedSignature != payload.SignatureKey {
+		s.log.Warn("Invalid Midtrans notification signature", "orderID", payload.OrderID, "computed", computedSignature, "received", payload.SignatureKey)
+		return fmt.Errorf("invalid signature for order %s", payload.OrderID)
+	}
+
+	s.log.Info("Midtrans notification signature verified successfully", "orderID", payload.OrderID)
+	return nil
 }
 
 func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error) {

@@ -2,9 +2,20 @@ package utils
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"math"
 )
+
+func NullableUUIDToPointer(nu pgtype.UUID) *uuid.UUID {
+	if !nu.Valid {
+		return nil
+	}
+	// Lakukan casting eksplisit dari tipe dasar [16]byte ke tipe uuid.UUID
+	// sebelum mengambil alamat memorinya.
+	uid := uuid.UUID(nu.Bytes)
+	return &uid
+}
 
 func NumericToFloat64(n pgtype.Numeric) float64 {
 	if !n.Valid {

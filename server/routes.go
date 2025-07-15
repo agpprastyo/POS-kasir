@@ -46,9 +46,39 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Patch("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UpdateProductOptionHandler)
 	api.Delete("/products/:product_id/options/:option_id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.DeleteProductOptionHandler)
 
-	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CreateOrderHandler)
-	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.GetOrderHandler)
-	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
-	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
+	// POST /api/v1/orders
+	api.Post("/orders",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.CreateOrderHandler,
+	)
+
+	api.Get("/orders",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.ListOrdersHandler,
+	)
+
+	api.Get("/orders/:id",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.GetOrderHandler,
+	)
+
+	api.Post("/orders/:id/pay",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.ProcessPaymentHandler,
+	)
+
+	api.Post("/orders/:id/cancel",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.CancelOrderHandler,
+	)
+
+	api.Post("/payments/midtrans-notification",
+		container.OrderHandler.MidtransNotificationHandler,
+	)
 
 }

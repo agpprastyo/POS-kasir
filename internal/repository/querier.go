@@ -11,6 +11,11 @@ import (
 )
 
 type Querier interface {
+	// Menambahkan stok kembali ke sebuah produk (digunakan saat pesanan dibatalkan).
+	AddProductStock(ctx context.Context, arg AddProductStockParams) (AddProductStockRow, error)
+	// Mengubah status pesanan menjadi 'cancelled' dan mencatat alasannya.
+	// Hanya bisa membatalkan pesanan yang statusnya 'open'.
+	CancelOrder(ctx context.Context, arg CancelOrderParams) (Order, error)
 	// Hanya memeriksa keberadaan pengguna yang aktif.
 	CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error)
 	// Hanya menghitung pengguna yang aktif dan belum dihapus.
@@ -19,6 +24,8 @@ type Querier interface {
 	CountCategories(ctx context.Context) (int64, error)
 	// Hanya menghitung pengguna yang tidak aktif dan belum dihapus.
 	CountInactiveUsers(ctx context.Context) (int64, error)
+	// Menghitung total pesanan dengan filter.
+	CountOrders(ctx context.Context, arg CountOrdersParams) (int64, error)
 	// Counts total products for pagination, respecting filters.
 	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
 	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
@@ -27,9 +34,10 @@ type Querier interface {
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
-	// Membuat header pesanan baru dengan status 'open'. Total akan dihitung nanti.
+	// Membuat header pesanan baru dengan status 'open'.
+	// Total akan dihitung dan diperbarui dalam langkah selanjutnya.
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
-	// Menambahkan satu item ke dalam pesanan.
+	// Menambahkan satu item produk ke dalam pesanan.
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	// Menambahkan satu varian/opsi ke dalam sebuah order item.
 	CreateOrderItemOption(ctx context.Context, arg CreateOrderItemOptionParams) (OrderItemOption, error)
@@ -42,6 +50,8 @@ type Querier interface {
 	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
 	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	// Mengurangi stok produk.
+	DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error)
 	// Menghapus satu kategori berdasarkan ID.
 	DeleteCategory(ctx context.Context, id int32) error
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
@@ -52,6 +62,8 @@ type Querier interface {
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
+	// Mengambil semua varian untuk beberapa produk.
+	GetOptionsForProducts(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error)
 	// Mengambil pesanan berdasarkan referensi dari payment gateway.
 	GetOrderByGatewayRef(ctx context.Context, paymentGatewayReference *string) (Order, error)
 	// Mengambil satu pesanan dan mengunci barisnya untuk pembaruan (mencegah race condition).
@@ -65,6 +77,8 @@ type Querier interface {
 	// This is an efficient way to fetch a product and its variants in one query.
 	// Now filters out soft-deleted options.
 	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
+	// Mengambil beberapa produk berdasarkan array ID. Ini untuk menghindari N+1 query.
+	GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.
@@ -75,6 +89,8 @@ type Querier interface {
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	// Retrieves all options for a single product.
 	ListOptionsForProduct(ctx context.Context, productID uuid.UUID) ([]ProductOption, error)
+	// Mengambil daftar pesanan dengan filter dan pagination.
+	ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error)
 	// Lists products with filtering and pagination.
 	// Does not include variants for performance reasons on a list view.
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)
@@ -87,7 +103,7 @@ type Querier interface {
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
-	// Menyimpan referensi pembayaran dari payment gateway.
+	// Menyimpan referensi pembayaran dari payment gateway dan metode pembayaran.
 	UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error
 	// Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
 	UpdateOrderStatusByGatewayRef(ctx context.Context, arg UpdateOrderStatusByGatewayRefParams) (Order, error)

@@ -7,19 +7,20 @@ import (
 
 // Common error variables
 var (
-	ErrNotFound           = errors.New("resource not found")
-	ErrUnauthorized       = errors.New("unauthorized")
-	ErrForbidden          = errors.New("forbidden")
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrInternal           = errors.New("internal server error")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserExists         = errors.New("user already exists")
-	ErrUsernameExists     = errors.New("username already exists")
-	ErrEmailExists        = errors.New("email already exists")
-	ErrCategoryInUse      = errors.New("category is in use and cannot be deleted")
-	ErrInvalidID          = errors.New("invalid ID format")
-	ErrNotImplemented     = errors.New("not implemented")
-	ErrCategoryNotFound   = errors.New("category not found")
+	ErrNotFound            = errors.New("resource not found")
+	ErrUnauthorized        = errors.New("unauthorized")
+	ErrForbidden           = errors.New("forbidden")
+	ErrInvalidInput        = errors.New("invalid input")
+	ErrInternal            = errors.New("internal server error")
+	ErrInvalidCredentials  = errors.New("invalid credentials")
+	ErrUserExists          = errors.New("user already exists")
+	ErrUsernameExists      = errors.New("username already exists")
+	ErrEmailExists         = errors.New("email already exists")
+	ErrCategoryInUse       = errors.New("category is in use and cannot be deleted")
+	ErrInvalidID           = errors.New("invalid ID format")
+	ErrNotImplemented      = errors.New("not implemented")
+	ErrCategoryNotFound    = errors.New("category not found")
+	ErrOrderNotCancellable = errors.New("order cannot be cancelled, it might have been paid or already cancelled")
 )
 
 // WrapError adds context to an error

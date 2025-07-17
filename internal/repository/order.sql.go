@@ -243,6 +243,21 @@ func (q *Queries) DecreaseProductStock(ctx context.Context, arg DecreaseProductS
 	return i, err
 }
 
+const deleteOrderItem = `-- name: DeleteOrderItem :exec
+DELETE FROM order_items WHERE id = $1 AND order_id = $2
+`
+
+type DeleteOrderItemParams struct {
+	ID      uuid.UUID `json:"id"`
+	OrderID uuid.UUID `json:"order_id"`
+}
+
+// Menghapus satu item dari pesanan.
+func (q *Queries) DeleteOrderItem(ctx context.Context, arg DeleteOrderItemParams) error {
+	_, err := q.db.Exec(ctx, deleteOrderItem, arg.ID, arg.OrderID)
+	return err
+}
+
 const getOptionsForProducts = `-- name: GetOptionsForProducts :many
 SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
 WHERE product_id = ANY($1::uuid[])
@@ -340,6 +355,66 @@ func (q *Queries) GetOrderForUpdate(ctx context.Context, id uuid.UUID) (Order, e
 		&i.CancellationNotes,
 	)
 	return i, err
+}
+
+const getOrderItem = `-- name: GetOrderItem :one
+SELECT id, order_id, product_id, quantity, price_at_sale, subtotal, discount_amount, net_subtotal FROM order_items WHERE id = $1 AND order_id = $2
+`
+
+type GetOrderItemParams struct {
+	ID      uuid.UUID `json:"id"`
+	OrderID uuid.UUID `json:"order_id"`
+}
+
+// Mengambil satu item pesanan untuk validasi sebelum update/delete.
+func (q *Queries) GetOrderItem(ctx context.Context, arg GetOrderItemParams) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, getOrderItem, arg.ID, arg.OrderID)
+	var i OrderItem
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.ProductID,
+		&i.Quantity,
+		&i.PriceAtSale,
+		&i.Subtotal,
+		&i.DiscountAmount,
+		&i.NetSubtotal,
+	)
+	return i, err
+}
+
+const getOrderItemsByOrderID = `-- name: GetOrderItemsByOrderID :many
+SELECT id, order_id, product_id, quantity, price_at_sale, subtotal, discount_amount, net_subtotal FROM order_items WHERE order_id = $1
+`
+
+// Mengambil semua item dari sebuah pesanan untuk menghitung ulang total.
+func (q *Queries) GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) ([]OrderItem, error) {
+	rows, err := q.db.Query(ctx, getOrderItemsByOrderID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OrderItem{}
+	for rows.Next() {
+		var i OrderItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.ProductID,
+			&i.Quantity,
+			&i.PriceAtSale,
+			&i.Subtotal,
+			&i.DiscountAmount,
+			&i.NetSubtotal,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getOrderWithDetails = `-- name: GetOrderWithDetails :one
@@ -506,6 +581,98 @@ func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order
 	return items, nil
 }
 
+const updateOrderItemQuantity = `-- name: UpdateOrderItemQuantity :one
+UPDATE order_items
+SET
+    quantity = $3,
+    subtotal = $4,
+    net_subtotal = $5
+WHERE
+    id = $1 AND order_id = $2
+RETURNING id, order_id, product_id, quantity, price_at_sale, subtotal, discount_amount, net_subtotal
+`
+
+type UpdateOrderItemQuantityParams struct {
+	ID          uuid.UUID      `json:"id"`
+	OrderID     uuid.UUID      `json:"order_id"`
+	Quantity    int32          `json:"quantity"`
+	Subtotal    pgtype.Numeric `json:"subtotal"`
+	NetSubtotal pgtype.Numeric `json:"net_subtotal"`
+}
+
+// Memperbarui kuantitas dan subtotal dari satu item pesanan.
+func (q *Queries) UpdateOrderItemQuantity(ctx context.Context, arg UpdateOrderItemQuantityParams) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, updateOrderItemQuantity,
+		arg.ID,
+		arg.OrderID,
+		arg.Quantity,
+		arg.Subtotal,
+		arg.NetSubtotal,
+	)
+	var i OrderItem
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.ProductID,
+		&i.Quantity,
+		&i.PriceAtSale,
+		&i.Subtotal,
+		&i.DiscountAmount,
+		&i.NetSubtotal,
+	)
+	return i, err
+}
+
+const updateOrderManualPayment = `-- name: UpdateOrderManualPayment :one
+UPDATE orders
+SET
+    status = 'paid',
+    payment_method_id = $2,
+    cash_received = $3,
+    change_due = $4
+WHERE
+    id = $1 AND status = 'open'
+RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
+`
+
+type UpdateOrderManualPaymentParams struct {
+	ID              uuid.UUID      `json:"id"`
+	PaymentMethodID *int32         `json:"payment_method_id"`
+	CashReceived    pgtype.Numeric `json:"cash_received"`
+	ChangeDue       pgtype.Numeric `json:"change_due"`
+}
+
+// Memperbarui pesanan untuk pembayaran manual (tunai, dll.) dan mengubah status menjadi 'paid'.
+// Hanya bisa memproses pesanan yang statusnya 'open'.
+func (q *Queries) UpdateOrderManualPayment(ctx context.Context, arg UpdateOrderManualPaymentParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrderManualPayment,
+		arg.ID,
+		arg.PaymentMethodID,
+		arg.CashReceived,
+		arg.ChangeDue,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Type,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GrossTotal,
+		&i.DiscountAmount,
+		&i.NetTotal,
+		&i.AppliedPromotionID,
+		&i.PaymentMethodID,
+		&i.PaymentGatewayReference,
+		&i.CashReceived,
+		&i.ChangeDue,
+		&i.CancellationReasonID,
+		&i.CancellationNotes,
+	)
+	return i, err
+}
+
 const updateOrderPaymentInfo = `-- name: UpdateOrderPaymentInfo :exec
 UPDATE orders
 SET
@@ -525,6 +692,44 @@ type UpdateOrderPaymentInfoParams struct {
 func (q *Queries) UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error {
 	_, err := q.db.Exec(ctx, updateOrderPaymentInfo, arg.ID, arg.PaymentMethodID, arg.PaymentGatewayReference)
 	return err
+}
+
+const updateOrderStatus = `-- name: UpdateOrderStatus :one
+UPDATE orders
+SET status = $2
+WHERE id = $1
+RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
+`
+
+type UpdateOrderStatusParams struct {
+	ID     uuid.UUID   `json:"id"`
+	Status OrderStatus `json:"status"`
+}
+
+// Memperbarui status operasional sebuah pesanan.
+// Validasi transisi status dilakukan di level aplikasi/service.
+func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrderStatus, arg.ID, arg.Status)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Type,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GrossTotal,
+		&i.DiscountAmount,
+		&i.NetTotal,
+		&i.AppliedPromotionID,
+		&i.PaymentMethodID,
+		&i.PaymentGatewayReference,
+		&i.CashReceived,
+		&i.ChangeDue,
+		&i.CancellationReasonID,
+		&i.CancellationNotes,
+	)
+	return i, err
 }
 
 const updateOrderStatusByGatewayRef = `-- name: UpdateOrderStatusByGatewayRef :one

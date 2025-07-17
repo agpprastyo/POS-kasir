@@ -49,7 +49,6 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/payment-methods", authMiddleware, container.PaymentMethodHandler.ListPaymentMethodsHandler)
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 
-	// POST /api/v1/orders
 	api.Post("/orders",
 		authMiddleware,
 		middleware.RoleMiddleware(repository.UserRoleCashier),
@@ -68,18 +67,60 @@ func SetupRoutes(app *App, container *AppContainer) {
 		container.OrderHandler.GetOrderHandler,
 	)
 
+	// Menggantikan 3 rute sebelumnya dengan satu rute yang lebih kuat.
+	api.Patch("/orders/:id/items",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.UpdateOrderItemsHandler,
+	)
+
+	// 5. Menerapkan Promosi
+	// Menerapkan kode promo atau diskon otomatis ke pesanan yang aktif.
+	// Dibutuhkan peran: Cashier / Manager
+	//api.Post("/orders/:id/apply-promotion",
+	//	authMiddleware,
+	//	middleware.RoleMiddleware(repository.UserRoleCashier),
+	//	container.OrderHandler.ApplyPromotionHandler,
+	//)
+
+	// 6. Memulai Pembayaran dengan Payment Gateway
+	// Menghasilkan QRIS dinamis dari Midtrans untuk pesanan tertentu.
+	// Dibutuhkan peran: Cashier / Manager
 	api.Post("/orders/:id/pay",
 		authMiddleware,
 		middleware.RoleMiddleware(repository.UserRoleCashier),
 		container.OrderHandler.ProcessPaymentHandler,
 	)
 
+	// 7. Menyelesaikan Pembayaran Manual (Non-Gateway)
+	// Untuk menandai pesanan sebagai 'paid' jika dibayar dengan Tunai atau metode manual lain.
+	// Dibutuhkan peran: Cashier / Manager
+	api.Post("/orders/:id/complete-payment",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.CompleteManualPaymentHandler,
+	)
+
+	// 8. Membatalkan Pesanan
+	// Membatalkan pesanan yang masih berstatus 'open'.
+	// Dibutuhkan peran: Cashier / Manager
 	api.Post("/orders/:id/cancel",
 		authMiddleware,
 		middleware.RoleMiddleware(repository.UserRoleCashier),
 		container.OrderHandler.CancelOrderHandler,
 	)
 
+	// 9. Mengubah Status Operasional (Opsional, untuk Restoran)
+	// Mengubah status dari 'paid' -> 'in_progress' -> 'served'.
+	// Dibutuhkan peran: Cashier / Manager
+	api.Patch("/orders/:id/status",
+		authMiddleware,
+		middleware.RoleMiddleware(repository.UserRoleCashier),
+		container.OrderHandler.UpdateOperationalStatusHandler,
+	)
+
+	// --- Route untuk Webhook Pembayaran ---
+	// Endpoint ini TIDAK menggunakan authMiddleware. Keamanan ditangani oleh verifikasi signature.
 	api.Post("/payments/midtrans-notification",
 		container.OrderHandler.MidtransNotificationHandler,
 	)

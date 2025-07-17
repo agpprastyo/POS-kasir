@@ -58,6 +58,8 @@ type Querier interface {
 	DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error)
 	// Menghapus satu kategori berdasarkan ID.
 	DeleteCategory(ctx context.Context, id int32) error
+	// Menghapus satu item dari pesanan.
+	DeleteOrderItem(ctx context.Context, arg DeleteOrderItemParams) error
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 	// Mengubah DELETE menjadi UPDATE untuk soft delete.
@@ -75,6 +77,10 @@ type Querier interface {
 	// Mengambil satu pesanan dan mengunci barisnya untuk pembaruan (mencegah race condition).
 	// Penting untuk digunakan di dalam transaksi sebelum mengupdate total.
 	GetOrderForUpdate(ctx context.Context, id uuid.UUID) (Order, error)
+	// Mengambil satu item pesanan untuk validasi sebelum update/delete.
+	GetOrderItem(ctx context.Context, arg GetOrderItemParams) (OrderItem, error)
+	// Mengambil semua item dari sebuah pesanan untuk menghitung ulang total.
+	GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) ([]OrderItem, error)
 	// Mengambil detail lengkap pesanan, termasuk item dan opsinya dalam format JSON.
 	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
 	// Mengambil satu metode pembayaran berdasarkan nama untuk pengecekan duplikat.
@@ -115,8 +121,16 @@ type Querier interface {
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
+	// Memperbarui kuantitas dan subtotal dari satu item pesanan.
+	UpdateOrderItemQuantity(ctx context.Context, arg UpdateOrderItemQuantityParams) (OrderItem, error)
+	// Memperbarui pesanan untuk pembayaran manual (tunai, dll.) dan mengubah status menjadi 'paid'.
+	// Hanya bisa memproses pesanan yang statusnya 'open'.
+	UpdateOrderManualPayment(ctx context.Context, arg UpdateOrderManualPaymentParams) (Order, error)
 	// Menyimpan referensi pembayaran dari payment gateway dan metode pembayaran.
 	UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error
+	// Memperbarui status operasional sebuah pesanan.
+	// Validasi transisi status dilakukan di level aplikasi/service.
+	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
 	// Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
 	UpdateOrderStatusByGatewayRef(ctx context.Context, arg UpdateOrderStatusByGatewayRefParams) (Order, error)
 	// Memperbarui total harga, diskon, dan total bersih dari sebuah pesanan.

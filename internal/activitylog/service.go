@@ -39,7 +39,7 @@ func (s *service) Log(ctx context.Context, userID uuid.UUID, action repository.L
 	}
 
 	go func() {
-		_, err := s.repo.CreateActivityLog(context.Background(), repository.CreateActivityLogParams{
+		_, err := s.repo.CreateActivityLog(ctx, repository.CreateActivityLogParams{
 			UserID:     pgtype.UUID{Bytes: userID, Valid: true},
 			ActionType: action,
 			EntityType: entityType,

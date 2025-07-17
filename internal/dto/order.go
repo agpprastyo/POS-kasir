@@ -99,3 +99,35 @@ type QRISResponse struct {
 	QRString      string `json:"qr_string"`
 	ExpiryTime    string `json:"expiry_time"`
 }
+
+// UpdateOrderItemRequest merepresentasikan satu aksi yang akan dilakukan pada item pesanan.
+type UpdateOrderItemRequest struct {
+	// ID dari order_item yang sudah ada (untuk aksi 'update' atau 'delete').
+	// Dibiarkan kosong/nil untuk aksi 'create'.
+	ID *uuid.UUID `json:"id,omitempty"`
+
+	// Aksi yang akan dilakukan: 'create', 'update', atau 'delete'.
+	Action string `json:"action" validate:"required,oneof=create update delete"`
+
+	// Diperlukan untuk aksi 'create'.
+	ProductID *uuid.UUID                     `json:"product_id,omitempty" validate:"required_if=Action create"`
+	Options   []CreateOrderItemOptionRequest `json:"options,omitempty" validate:"dive"`
+
+	// Diperlukan untuk aksi 'create' dan 'update'.
+	Quantity *int32 `json:"quantity,omitempty" validate:"required_if=Action create,required_if=Action update,gt=0"`
+}
+
+// CompleteManualPaymentRequest adalah DTO untuk menyelesaikan pembayaran manual.
+type CompleteManualPaymentRequest struct {
+	// ID dari metode pembayaran (misal: 1 untuk Cash, 3 untuk QRIS Statis).
+	PaymentMethodID int32 `json:"payment_method_id" validate:"required,gt=0"`
+
+	// Jumlah uang tunai yang diterima, hanya wajib jika metode pembayaran adalah tunai.
+	CashReceived float64 `json:"cash_received" validate:"omitempty,gte=0"`
+}
+
+// UpdateOrderStatusRequest adalah DTO untuk mengubah status operasional pesanan.
+// Digunakan pada endpoint `PATCH /orders/{id}/status`.
+type UpdateOrderStatusRequest struct {
+	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served"`
+}

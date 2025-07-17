@@ -146,3 +146,47 @@ UPDATE products
 SET stock = stock - $2
 WHERE id = $1
 RETURNING *;
+
+-- name: GetOrderItem :one
+-- Mengambil satu item pesanan untuk validasi sebelum update/delete.
+SELECT * FROM order_items WHERE id = $1 AND order_id = $2;
+
+-- name: UpdateOrderItemQuantity :one
+-- Memperbarui kuantitas dan subtotal dari satu item pesanan.
+UPDATE order_items
+SET
+    quantity = $3,
+    subtotal = $4,
+    net_subtotal = $5
+WHERE
+    id = $1 AND order_id = $2
+RETURNING *;
+
+-- name: DeleteOrderItem :exec
+-- Menghapus satu item dari pesanan.
+DELETE FROM order_items WHERE id = $1 AND order_id = $2;
+
+-- name: GetOrderItemsByOrderID :many
+-- Mengambil semua item dari sebuah pesanan untuk menghitung ulang total.
+SELECT * FROM order_items WHERE order_id = $1;
+
+-- name: UpdateOrderManualPayment :one
+-- Memperbarui pesanan untuk pembayaran manual (tunai, dll.) dan mengubah status menjadi 'paid'.
+-- Hanya bisa memproses pesanan yang statusnya 'open'.
+UPDATE orders
+SET
+    status = 'paid',
+    payment_method_id = $2,
+    cash_received = $3,
+    change_due = $4
+WHERE
+    id = $1 AND status = 'open'
+RETURNING *;
+
+-- name: UpdateOrderStatus :one
+-- Memperbarui status operasional sebuah pesanan.
+-- Validasi transisi status dilakukan di level aplikasi/service.
+UPDATE orders
+SET status = $2
+WHERE id = $1
+RETURNING *;

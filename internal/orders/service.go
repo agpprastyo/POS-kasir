@@ -26,6 +26,9 @@ type IOrderService interface {
 	HandleMidtransNotification(ctx context.Context, payload dto.MidtransNotificationPayload) error
 	ListOrders(ctx context.Context, req dto.ListOrdersRequest) (*dto.PagedOrderResponse, error)
 	CancelOrder(ctx context.Context, orderID uuid.UUID, req dto.CancelOrderRequest) error
+	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error)
+	CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error)
+	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error)
 }
 
 type OrderService struct {
@@ -42,6 +45,251 @@ func NewOrderService(store repository.Store, midtransService payment.IMidtrans, 
 		activityService: activityService,
 		log:             log,
 	}
+}
+
+// Definisikan state machine untuk transisi status yang valid.
+var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderStatus]bool{
+	repository.OrderStatusPaid: {
+		repository.OrderStatusInProgress: true,
+	},
+	repository.OrderStatusInProgress: {
+		repository.OrderStatusServed: true,
+	},
+}
+
+func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error) {
+	// 1. Ambil pesanan saat ini untuk validasi
+	order, err := s.store.GetOrderWithDetails(ctx, orderID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Order not found for status update", "orderID", orderID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get order for status update", "error", err)
+		return nil, err
+	}
+
+	// 2. Validasi transisi status menggunakan state machine
+	currentStatus := order.Status
+	newStatus := req.Status
+
+	allowed, ok := allowedStatusTransitions[currentStatus][newStatus]
+	if !ok || !allowed {
+		errMsg := fmt.Sprintf("invalid status transition from '%s' to '%s'", currentStatus, newStatus)
+		s.log.Warn(errMsg, "orderID", orderID)
+		return nil, fmt.Errorf("%w: %s", common.ErrInvalidStatusTransition, errMsg)
+	}
+
+	// 3. Lakukan update status di database
+	_, err = s.store.UpdateOrderStatus(ctx, repository.UpdateOrderStatusParams{
+		ID:     orderID,
+		Status: newStatus,
+	})
+	if err != nil {
+		s.log.Error("Failed to update order status in repository", "error", err, "orderID", orderID)
+		return nil, err
+	}
+
+	// 4. Log aktivitas
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"order_id":    orderID.String(),
+		"status_from": currentStatus,
+		"status_to":   newStatus,
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypeUPDATE,
+		repository.LogEntityTypeORDER,
+		orderID.String(),
+		logDetails,
+	)
+
+	// 5. Ambil kembali data lengkap untuk dikembalikan sebagai respons
+	return s.GetOrder(ctx, orderID)
+}
+func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error) {
+	var updatedOrder repository.Order
+
+	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+		// 1. Ambil dan kunci pesanan untuk update
+		order, err := qtx.GetOrderForUpdate(ctx, orderID)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return common.ErrNotFound
+			}
+			return err
+		}
+
+		// 2. Validasi status pesanan
+		if order.Status != repository.OrderStatusOpen {
+			s.log.Warn("Attempted to complete payment for an order with invalid status", "orderID", orderID, "status", order.Status)
+			return common.ErrOrderNotModifiable
+		}
+
+		// 3. Siapkan parameter untuk update
+		netTotal := utils.NumericToFloat64(order.NetTotal)
+		var changeDue float64 = 0
+
+		// Asumsi ID 1 adalah untuk 'Cash'
+		isCashPayment := req.PaymentMethodID == 1
+
+		if isCashPayment {
+			if req.CashReceived < netTotal {
+				return fmt.Errorf("cash received (%.2f) is less than the net total (%.2f)", req.CashReceived, netTotal)
+			}
+			changeDue = req.CashReceived - netTotal
+		}
+
+		cashReceivedNumeric, _ := utils.Float64ToNumeric(req.CashReceived)
+		changeDueNumeric, _ := utils.Float64ToNumeric(changeDue)
+
+		updateParams := repository.UpdateOrderManualPaymentParams{
+			ID:              orderID,
+			PaymentMethodID: &req.PaymentMethodID,
+			CashReceived:    cashReceivedNumeric,
+			ChangeDue:       changeDueNumeric,
+		}
+
+		// 4. Lakukan update
+		updatedOrder, err = qtx.UpdateOrderManualPayment(ctx, updateParams)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				// Ini terjadi jika status pesanan berubah setelah GetOrderForUpdate (sangat jarang, tapi mungkin)
+				return common.ErrOrderNotModifiable
+			}
+			return err
+		}
+		return nil
+	})
+
+	if txErr != nil {
+		s.log.Error("Failed to complete manual payment transaction", "error", txErr, "orderID", orderID)
+		return nil, txErr
+	}
+
+	// 5. Log aktivitas
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"order_id":          orderID.String(),
+		"payment_method_id": req.PaymentMethodID,
+		"amount":            utils.NumericToFloat64(updatedOrder.NetTotal),
+	}
+	s.activityService.Log(
+		ctx,
+		actorID,
+		//repository.LogActionTypePROCESS_PAYMENT,
+		repository.LogActionTypePROCESSPAYMENT,
+		repository.LogEntityTypeORDER,
+		orderID.String(),
+		logDetails,
+	)
+
+	// 6. Ambil data lengkap dan kembalikan
+	fullOrderDetails, err := s.store.GetOrderWithDetails(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.buildOrderDetailResponseFromQueryResult(fullOrderDetails)
+}
+
+func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+		// 1. Ambil dan kunci pesanan
+		order, err := qtx.GetOrderForUpdate(ctx, orderID)
+		if err != nil {
+			// ... handle not found
+			return err
+		}
+		if order.Status != repository.OrderStatusOpen {
+			return common.ErrOrderNotModifiable
+		}
+
+		// 2. Lakukan iterasi pada setiap aksi
+		for _, req := range reqs {
+			switch req.Action {
+			case "delete":
+				if req.ID == nil {
+					return fmt.Errorf("item id is required for delete action")
+				}
+				// Ambil item untuk tahu kuantitasnya
+				itemToDelete, err := qtx.GetOrderItem(ctx, repository.GetOrderItemParams{ID: *req.ID, OrderID: orderID})
+				if err != nil {
+					return err
+				}
+				// Hapus item
+				if err := qtx.DeleteOrderItem(ctx, repository.DeleteOrderItemParams{ID: *req.ID, OrderID: orderID}); err != nil {
+					return err
+				}
+				// Kembalikan stok
+				if _, err := qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: itemToDelete.ProductID, Stock: itemToDelete.Quantity}); err != nil {
+					return err
+				}
+
+			case "update":
+				if req.ID == nil || req.Quantity == nil {
+					return fmt.Errorf("item id and quantity are required for update action")
+				}
+				// Ambil item lama
+				itemToUpdate, err := qtx.GetOrderItem(ctx, repository.GetOrderItemParams{ID: *req.ID, OrderID: orderID})
+				if err != nil {
+					return err
+				}
+				// Hitung selisih stok
+				stockDifference := itemToUpdate.Quantity - *req.Quantity
+				// Update kuantitas dan subtotal
+				newPrice := utils.NumericToFloat64(itemToUpdate.PriceAtSale)
+				newSubtotal, _ := utils.Float64ToNumeric(newPrice * float64(*req.Quantity))
+				if _, err := qtx.UpdateOrderItemQuantity(ctx, repository.UpdateOrderItemQuantityParams{
+					ID: *req.ID, OrderID: orderID, Quantity: *req.Quantity, Subtotal: newSubtotal, NetSubtotal: newSubtotal,
+				}); err != nil {
+					return err
+				}
+				// Sesuaikan stok (bisa positif atau negatif)
+				if _, err := qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: itemToUpdate.ProductID, Stock: stockDifference}); err != nil {
+					return err
+				}
+
+			case "create":
+				if req.ProductID == nil || req.Quantity == nil {
+					return fmt.Errorf("product_id and quantity are required for create action")
+				}
+				// Logika ini mirip dengan yang ada di CreateOrder
+				// Ambil produk, validasi stok, buat order_item, kurangi stok
+				// ...
+			}
+		}
+
+		// 3. Hitung ulang total keseluruhan pesanan
+		// Ambil semua item yang ada sekarang
+		finalItems, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
+		if err != nil {
+			return err
+		}
+		// Lakukan loop dan jumlahkan semua `net_subtotal`
+		var newGrossTotal float64 = 0
+		for _, item := range finalItems {
+			newGrossTotal += utils.NumericToFloat64(item.NetSubtotal)
+		}
+		// Update header pesanan
+		grossTotalNumeric, _ := utils.Float64ToNumeric(newGrossTotal)
+		if _, err := qtx.UpdateOrderTotals(ctx, repository.UpdateOrderTotalsParams{
+			ID: orderID, GrossTotal: grossTotalNumeric, NetTotal: grossTotalNumeric,
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return nil, txErr
+	}
+
+	// 4. Ambil data pesanan yang sudah final dan kembalikan
+	return s.GetOrder(ctx, orderID)
 }
 
 func (s *OrderService) buildOrderDetailResponse(order repository.Order, items []repository.OrderItem, itemOptions map[uuid.UUID][]repository.OrderItemOption) *dto.OrderDetailResponse {

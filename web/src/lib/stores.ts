@@ -1,5 +1,6 @@
-// src/lib/stores.ts
 import { writable } from 'svelte/store';
+import type { Profile } from '$lib/types';
 
-// Definisikan store di sini agar bisa diimpor di mana saja
-export const userProfile = writable<any>(null);
+
+export const userProfile = writable<Profile | any >(null);
+

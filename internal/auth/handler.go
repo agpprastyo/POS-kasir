@@ -113,7 +113,7 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		Expires:  resp.ExpiredAt,
 		HTTPOnly: true,
 		Secure:   true,
-		SameSite: "Lax",
+		SameSite: fiber.CookieSameSiteNoneMode,
 	})
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{

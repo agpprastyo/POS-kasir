@@ -23,6 +23,7 @@ var (
 	ErrOrderNotCancellable     = errors.New("order cannot be cancelled, it might have been paid or already cancelled")
 	ErrOrderNotModifiable      = errors.New("order cannot be modified, it might have been paid or already cancelled")
 	ErrInvalidStatusTransition = errors.New("invalid status transition for the order")
+	ErrPromotionNotApplicable  = errors.New("promotion is not applicable to the order items")
 )
 
 // WrapError adds context to an error

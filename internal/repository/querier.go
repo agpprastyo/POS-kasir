@@ -93,6 +93,12 @@ type Querier interface {
 	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
 	// Mengambil beberapa produk berdasarkan array ID. Ini untuk menghindari N+1 query.
 	GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
+	// Mengambil detail promosi berdasarkan ID.
+	GetPromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
+	// Mengambil semua aturan untuk sebuah promosi.
+	GetPromotionRules(ctx context.Context, promotionID uuid.UUID) ([]PromotionRule, error)
+	// Mengambil semua target untuk sebuah promosi.
+	GetPromotionTargets(ctx context.Context, promotionID uuid.UUID) ([]PromotionTarget, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.

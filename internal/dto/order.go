@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+// ApplyPromotionRequest adalah DTO untuk menerapkan promosi ke pesanan.
+type ApplyPromotionRequest struct {
+	PromotionID uuid.UUID `json:"promotion_id" validate:"required"`
+}
+
 type CreateOrderItemOptionRequest struct {
 	ProductOptionID uuid.UUID `json:"product_option_id" validate:"required"`
 }

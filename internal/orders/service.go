@@ -29,6 +29,7 @@ type IOrderService interface {
 	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error)
 	CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error)
 	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error)
+	ApplyPromotion(ctx context.Context, orderID uuid.UUID, req dto.ApplyPromotionRequest) (*dto.OrderDetailResponse, error)
 }
 
 type OrderService struct {
@@ -55,6 +56,87 @@ var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderSt
 	repository.OrderStatusInProgress: {
 		repository.OrderStatusServed: true,
 	},
+}
+
+func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, req dto.ApplyPromotionRequest) (*dto.OrderDetailResponse, error) {
+	return nil, common.ErrNotImplemented
+	//var finalOrder repository.Order
+	//
+	//txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+	//	// 1. Ambil data pesanan dan promosi yang relevan
+	//	order, err := qtx.GetOrderForUpdate(ctx, orderID)
+	//	if err != nil {
+	//		return common.ErrNotFound
+	//	}
+	//	if order.Status != repository.OrderStatusOpen {
+	//		return common.ErrOrderNotModifiable
+	//	}
+	//	if order.AppliedPromotionID.Valid {
+	//		return fmt.Errorf("an order can only have one promotion")
+	//	}
+	//
+	//	promo, err := qtx.GetPromotionByID(ctx, req.PromotionID)
+	//	if err != nil {
+	//		return common.ErrNotFound
+	//	}
+	//	rules, _ := qtx.GetPromotionRules(ctx, req.PromotionID)
+	//
+	//	// 2. Validasi Aturan Promosi (Rule Engine Sederhana)
+	//	grossTotal := utils.NumericToFloat64(order.GrossTotal)
+	//	for _, rule := range rules {
+	//		switch rule.RuleType {
+	//		case repository.PromotionRuleTypeMINIMUMORDERAMOUNT:
+	//			minAmount, _ := strconv.ParseFloat(rule.RuleValue, 64)
+	//			if grossTotal < minAmount {
+	//				return fmt.Errorf("%w: minimum order amount is %.2f", common.ErrPromotionNotApplicable, minAmount)
+	//			}
+	//			// TODO: Tambahkan validasi untuk aturan lain (REQUIRED_PRODUCT, dll.)
+	//		}
+	//	}
+	//
+	//	// 3. Hitung Diskon
+	//	var discountAmount float64
+	//	if promo.DiscountType == repository.DiscountTypePercentage {
+	//		discountValue := utils.NumericToFloat64(promo.DiscountValue)
+	//		discountAmount = grossTotal * (discountValue / 100)
+	//		if promo.MaxDiscountAmount.Valid {
+	//			maxDiscount := utils.NumericToFloat64(promo.MaxDiscountAmount)
+	//			discountAmount = math.Min(discountAmount, maxDiscount)
+	//		}
+	//	} else { // Fixed Amount
+	//		discountAmount = utils.NumericToFloat64(promo.DiscountValue)
+	//	}
+	//
+	//	netTotal := grossTotal - discountAmount
+	//	if netTotal < 0 {
+	//		netTotal = 0
+	//	}
+	//
+	//	// 4. Update pesanan dengan diskon dan ID promosi
+	//	discountNumeric, _ := utils.Float64ToNumeric(discountAmount)
+	//	netTotalNumeric, _ := utils.Float64ToNumeric(netTotal)
+	//
+	//	finalOrder, err = qtx.UpdateOrderTotals(ctx, repository.UpdateOrderTotalsParams{
+	//		ID:                orderID,
+	//		GrossTotal:        order.GrossTotal, // Gross total tidak berubah
+	//		DiscountAmount:    discountNumeric,
+	//		NetTotal:          netTotalNumeric,
+	//		AppliedPromotionID: pgtype.UUID{Bytes: promo.ID, Valid: true},
+	//	})
+	//	return err
+	//})
+	//
+	//if txErr != nil {
+	//	s.log.Error("Failed to apply promotion transaction", "error", txErr, "orderID", orderID)
+	//	return nil, txErr
+	//}
+	//
+	//// 5. Log aktivitas
+	//actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	//s.activityService.Log(ctx, actorID, repository.LogActionTypeAPPLY_PROMOTION, repository.LogEntityTypeORDER, orderID.String(), map[string]interface{}{"promotion_id": req.PromotionID})
+	//
+	//// 6. Ambil data lengkap dan kembalikan
+	//return s.GetOrder(ctx, orderID)
 }
 
 func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error) {

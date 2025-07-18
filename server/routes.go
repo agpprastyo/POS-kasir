@@ -49,80 +49,26 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/payment-methods", authMiddleware, container.PaymentMethodHandler.ListPaymentMethodsHandler)
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 
-	api.Post("/orders",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.CreateOrderHandler,
-	)
+	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CreateOrderHandler)
+	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
+	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.GetOrderHandler)
+	api.Patch("/orders/:id/items", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOrderItemsHandler)
 
-	api.Get("/orders",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.ListOrdersHandler,
-	)
+	api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
 
-	api.Get("/orders/:id",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.GetOrderHandler,
-	)
+	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
 
-	// Menggantikan 3 rute sebelumnya dengan satu rute yang lebih kuat.
-	api.Patch("/orders/:id/items",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.UpdateOrderItemsHandler,
-	)
+	api.Post("/orders/:id/complete-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
 
-	// 5. Menerapkan Promosi
-	// Menerapkan kode promo atau diskon otomatis ke pesanan yang aktif.
-	// Dibutuhkan peran: Cashier / Manager
-	//api.Post("/orders/:id/apply-promotion",
-	//	authMiddleware,
-	//	middleware.RoleMiddleware(repository.UserRoleCashier),
-	//	container.OrderHandler.ApplyPromotionHandler,
-	//)
+	api.Post("/orders/:id/cancel", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CancelOrderHandler)
 
-	// 6. Memulai Pembayaran dengan Payment Gateway
-	// Menghasilkan QRIS dinamis dari Midtrans untuk pesanan tertentu.
-	// Dibutuhkan peran: Cashier / Manager
-	api.Post("/orders/:id/pay",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.ProcessPaymentHandler,
-	)
+	api.Patch("/orders/:id/status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 
-	// 7. Menyelesaikan Pembayaran Manual (Non-Gateway)
-	// Untuk menandai pesanan sebagai 'paid' jika dibayar dengan Tunai atau metode manual lain.
-	// Dibutuhkan peran: Cashier / Manager
-	api.Post("/orders/:id/complete-payment",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.CompleteManualPaymentHandler,
-	)
+	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
-	// 8. Membatalkan Pesanan
-	// Membatalkan pesanan yang masih berstatus 'open'.
-	// Dibutuhkan peran: Cashier / Manager
-	api.Post("/orders/:id/cancel",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.CancelOrderHandler,
-	)
-
-	// 9. Mengubah Status Operasional (Opsional, untuk Restoran)
-	// Mengubah status dari 'paid' -> 'in_progress' -> 'served'.
-	// Dibutuhkan peran: Cashier / Manager
-	api.Patch("/orders/:id/status",
-		authMiddleware,
-		middleware.RoleMiddleware(repository.UserRoleCashier),
-		container.OrderHandler.UpdateOperationalStatusHandler,
-	)
-
-	// --- Route untuk Webhook Pembayaran ---
-	// Endpoint ini TIDAK menggunakan authMiddleware. Keamanan ditangani oleh verifikasi signature.
-	api.Post("/payments/midtrans-notification",
-		container.OrderHandler.MidtransNotificationHandler,
-	)
+	// Report
+	//api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
+	//api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesSummaryHandler)
+	//api.Get("/reports/products", authMiddleware, container.ReportHandler.GetSalesDetailHandler)
 
 }

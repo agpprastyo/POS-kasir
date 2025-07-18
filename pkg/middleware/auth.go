@@ -11,12 +11,14 @@ func AuthMiddleware(tokenManager utils.Manager, log *logger.Logger) fiber.Handle
 	return func(c *fiber.Ctx) error {
 		token := c.Cookies("access_token")
 		if token == "" {
+			log.Warn("unauthorized access attempt: no token provided")
 			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
 				Message: "unauthorized",
 			})
 		}
 		claims, err := tokenManager.VerifyToken(token)
 		if err != nil {
+			log.Warnf("unauthorized access attempt: invalid token - %v", err)
 			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
 				Message: "unauthorized",
 			})

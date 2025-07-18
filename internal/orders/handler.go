@@ -20,6 +20,7 @@ type IOrderHandler interface {
 	UpdateOrderItemsHandler(c *fiber.Ctx) error
 	CompleteManualPaymentHandler(c *fiber.Ctx) error
 	UpdateOperationalStatusHandler(c *fiber.Ctx) error
+	ApplyPromotionHandler(c *fiber.Ctx) error
 }
 
 type OrderHandler struct {
@@ -36,8 +37,48 @@ func NewOrderHandler(orderService IOrderService, log *logger.Logger, validate va
 	}
 }
 
-func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 	// 1. Ambil ID pesanan dari parameter URL
+	orderIDStr := c.Params("id")
+	orderID, err := uuid.Parse(orderIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
+	}
+
+	// 2. Parse request body
+	var req dto.ApplyPromotionRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
+	}
+
+	// 3. Validasi DTO
+	if err := h.validate.Validate(req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
+	}
+
+	// 4. Panggil service untuk menerapkan promosi
+	orderResponse, err := h.orderService.ApplyPromotion(c.Context(), orderID, req)
+	if err != nil {
+		// Tangani error spesifik dari service, seperti promosi tidak valid atau pesanan tidak memenuhi syarat
+		if errors.Is(err, common.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order or Promotion not found"})
+		}
+		if errors.Is(err, common.ErrPromotionNotApplicable) {
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{Message: "Promotion cannot be applied", Error: err.Error()})
+		}
+		h.log.Error("Failed to apply promotion in service", "error", err, "orderID", orderID)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to apply promotion"})
+	}
+
+	// 5. Kirim respons sukses
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Promotion applied successfully",
+		Data:    orderResponse,
+	})
+}
+
+func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
+
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
@@ -45,20 +86,17 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	// 2. Parse request body
 	var req dto.UpdateOrderStatusRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse update status request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
-	// 3. Validasi DTO
 	if err := h.validate.Validate(req); err != nil {
 		h.log.Warn("Update status request validation failed", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	// 4. Panggil service
 	orderResponse, err := h.orderService.UpdateOperationalStatus(c.Context(), orderID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
@@ -71,14 +109,13 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update order status"})
 	}
 
-	// 5. Kirim respons sukses
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Order status updated successfully",
 		Data:    orderResponse,
 	})
 }
 func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
-	// 1. Ambil ID pesanan dari parameter URL
+
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
@@ -86,20 +123,17 @@ func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	// 2. Parse request body
 	var req dto.CompleteManualPaymentRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse complete manual payment request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
-	// 3. Validasi DTO
 	if err := h.validate.Validate(req); err != nil {
 		h.log.Warn("Complete manual payment request validation failed", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	// 4. Panggil service
 	orderResponse, err := h.orderService.CompleteManualPayment(c.Context(), orderID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
@@ -112,7 +146,6 @@ func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to complete payment"})
 	}
 
-	// 5. Kirim respons sukses
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Payment completed successfully",
 		Data:    orderResponse,
@@ -126,7 +159,6 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	// Body request sekarang adalah sebuah array/slice
 	var req []dto.UpdateOrderItemRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body, expected an array of actions"})
@@ -138,7 +170,6 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 
 	updatedOrder, err := h.orderService.UpdateOrderItems(c.Context(), orderID, req)
 	if err != nil {
-		// ... (handle error dari service, seperti not found, conflict, dll.)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update order items"})
 	}
 

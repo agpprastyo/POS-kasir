@@ -31,7 +31,6 @@ WHERE
         )
   AND (sqlc.narg(role)::user_role IS NULL OR role = sqlc.narg(role))
   AND (sqlc.narg(is_active)::bool IS NULL OR is_active = sqlc.narg(is_active))
-  -- Klausa WHERE dinamis untuk status soft delete
   AND (
     CASE
         WHEN sqlc.narg(status)::text = 'deleted' THEN deleted_at IS NOT NULL
@@ -40,7 +39,6 @@ WHERE
         END
     )
 ORDER BY
-    -- Klausa ORDER BY tidak berubah
     CASE WHEN @order_by::user_order_column = 'username' AND @sort_order::sort_order = 'asc'  THEN username END ASC,
     CASE WHEN @order_by::user_order_column = 'username' AND @sort_order::sort_order = 'desc' THEN username END DESC,
     CASE WHEN @order_by::user_order_column = 'email' AND @sort_order::sort_order = 'asc' THEN email END ASC,

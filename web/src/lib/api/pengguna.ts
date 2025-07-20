@@ -19,6 +19,8 @@ export async function getUsers(params: UserQueryParams, customFetch: typeof fetc
 	if (params.sortBy) query.append('sortBy', params.sortBy);
 	if (params.sortOrder) query.append('sortOrder', params.sortOrder);
 
+	console.log("Fetching users with query:", query.toString());
+
 	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/users?${query.toString()}`, {
 		method: 'GET',
 		headers: { 'Content-Type': 'application/json' },

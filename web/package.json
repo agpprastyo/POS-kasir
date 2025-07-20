@@ -36,5 +36,8 @@
 		"typescript-eslint": "^8.20.0",
 		"vite": "^7.0.4",
 		"vite-plugin-devtools-json": "^0.2.0"
+	},
+	"dependencies": {
+		"cropperjs": "^2.0.0"
 	}
 }

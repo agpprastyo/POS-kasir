@@ -1,4 +1,7 @@
-
+export type ErrorResponse = {
+	message: string;
+	errors?: Record<string, string[]>;
+}
 export type Profile = {
 	id: string;
 	username: string;
@@ -24,7 +27,7 @@ export type UserQueryParams = {
 	search?: string;
 	role?: 'admin' | 'manager' | 'cashier' | '';
 	is_active?: boolean | string;
-	sortBy?: 'username' | 'email' | 'createdAt';
+	sortBy?: 'username' | 'email' | 'created_at';
 	sortOrder?: 'asc' | 'desc';
 };
 

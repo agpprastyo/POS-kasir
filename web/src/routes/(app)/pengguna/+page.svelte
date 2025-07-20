@@ -7,13 +7,16 @@
 
 	export let data: PageData;
 
-	// --- State untuk Filter ---
+
 	let search = data.queryParams?.search || '';
 	let role = data.queryParams?.role || '';
 	let isActive = data.queryParams?.is_active === undefined ? '' : String(data.queryParams.is_active);
+	let sortBy = data.queryParams?.sortBy || 'created_at';
+	let sortOrder = data.queryParams?.sortOrder || 'desc';
 
-	// --- State untuk Modal Tambah Pengguna ---
-	let createModalDialog: HTMLDialogElement;
+
+
+
 	let newUser: CreateUserRequest = {
 		username: '',
 		email: '',
@@ -48,7 +51,9 @@
 		const queryString = createQueryString({
 			search,
 			role,
-			is_active: isActive
+			is_active: isActive,
+			sortBy,
+			sortOrder,
 		});
 		goto(`?${queryString}`, { keepFocus: true, noScroll: true });
 	}
@@ -92,7 +97,7 @@
 
 	<!-- Filter dan Pencarian -->
 	<div class="rounded-lg bg-white p-4 shadow-md">
-		<form on:submit|preventDefault={handleFilterSubmit} class="grid grid-cols-1 gap-4 md:grid-cols-4">
+		<form on:submit|preventDefault={handleFilterSubmit} class="grid grid-cols-1 gap-4 md:grid-cols-6">
 			<input type="search" name="search" placeholder="Cari username atau email..." bind:value={search} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
 			<select name="role" bind:value={role} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
 				<option value="">Semua Peran</option>
@@ -105,12 +110,21 @@
 				<option value="true">Aktif</option>
 				<option value="false">Tidak Aktif</option>
 			</select>
+			<select name="sortBy" bind:value={sortBy} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+				<option value="created_at">Tanggal Dibuat</option>
+				<option value="username">Username</option>
+				<option value="email">Email</option>
+
+			</select>
+			<select name="sortOrder" bind:value={sortOrder} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+				<option value="desc">Menurun</option>
+				<option value="asc">Menaik</option>
+			</select>
 			<button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700">
 				Terapkan Filter
 			</button>
 		</form>
 	</div>
-
 	<!-- Tabel Pengguna -->
 	<div class="overflow-x-auto rounded-lg bg-white shadow-md">
 		<table class="min-w-full divide-y divide-gray-200">
@@ -179,7 +193,7 @@
 
 	<!-- Paginasi -->
 	{#if data.pagination && data.pagination.total_page > 1}
-		<div class="flex items-center justify-between rounded-lg bg-white px-4 py-3 shadow-md sm:px-6">
+		<div class="flex items-center justify-between rounded-lg bg-white px-4 py-3 shadow-sm sm:px-6">
 			<div class="text-sm text-gray-700">
 				Menampilkan <span class="font-medium">{(data.pagination.current_page - 1) * data.pagination.per_page + 1}</span>
 				- <span class="font-medium">{Math.min(data.pagination.current_page * data.pagination.per_page, data.pagination.total_data)}</span>
@@ -253,18 +267,7 @@
 {/if}
 
 <style>
-    dialog[max-w-lg] {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        margin: 0;
-        padding: 0;
-        border: none;
-        max-width: 32rem;
-        width: 100%;
-        z-index: 50;
-    }
+
     .disabled {
         pointer-events: none;
         opacity: 0.6;

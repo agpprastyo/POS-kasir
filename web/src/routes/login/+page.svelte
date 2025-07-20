@@ -1,247 +1,105 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { userProfile } from '$lib/stores';
-	import { createUser } from '$lib/api/pengguna';
-	import type { CreateUserRequest } from '$lib/types';
+	import '../../app.css'
 
-	export let data: PageData;
 
-	// --- State untuk Filter ---
-	let search = data.queryParams?.search || '';
-	let role = data.queryParams?.role || '';
-	let isActive = data.queryParams?.is_active === undefined ? '' : String(data.queryParams.is_active);
+	let email = '';
+	let password = '';
 
-	// --- State untuk Modal Tambah Pengguna ---
-	let createModalDialog: HTMLDialogElement;
-	let newUser: CreateUserRequest = {
-		username: '',
-		email: '',
-		password: '',
-		role: 'cashier',
-		is_active: true,
-	};
-	let isCreating = false;
-	let createError = '';
 
-	// --- Fungsi-fungsi ---
-	function formatDate(dateString: string) {
-		if (!dateString) return '-';
-		return new Date(dateString).toLocaleDateString('id-ID', {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric',
-		});
-	}
+	let isLoading = false;
+	let errorMessage = '';
 
-	function createQueryString(params: Record<string, any>): string {
-		const cleanedParams: Record<string, string> = {};
-		for (const key in params) {
-			if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
-				cleanedParams[key] = String(params[key]);
-			}
-		}
-		return new URLSearchParams(cleanedParams).toString();
-	}
+	async function handleLogin() {
+		isLoading = true;
+		errorMessage = '';
 
-	function handleFilterSubmit() {
-		const queryString = createQueryString({
-			search,
-			role,
-			is_active: isActive
-		});
-		goto(`?${queryString}`, { keepFocus: true, noScroll: true });
-	}
-
-	async function handleCreateUser() {
-		isCreating = true;
-		createError = '';
 		try {
-			await createUser(newUser);
-			createModalDialog.close(); // Tutup modal
-			await invalidateAll(); // Muat ulang data
-		} catch (error: any) {
-			createError = error.message;
-		} finally {
-			isCreating = false;
-		}
-	}
+			const response = await fetch('http://127.0.0.1:8000/api/v1/auth/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				credentials: 'include',
+				body: JSON.stringify({
+					email,
+					password
+				})
+			});
 
-	function openCreateModal() {
-		newUser = { username: '', email: '', password: '', role: 'cashier', is_active: true };
-		createError = '';
-		createModalDialog.showModal();
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.message || 'Terjadi kesalahan saat login.');
+			}
+
+			userProfile.set(result.data);
+			await goto('/');
+
+		} catch (error: any) {
+			errorMessage = error.message;
+		} finally {
+			isLoading = false;
+		}
 	}
 </script>
 
-<div class="container mx-auto space-y-6">
-	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
-		{#if $userProfile?.role === 'admin'}
-			<button on:click={openCreateModal} class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700">
-				+ Tambah Pengguna
-			</button>
-		{/if}
-	</div>
+<div class="flex min-h-screen items-center justify-center bg-gray-100">
+	<div class="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+		<h2 class="mb-6 text-center text-3xl font-bold text-gray-800">Selamat Datang!</h2>
+		<p class="mb-6 text-center text-gray-500">Silakan masuk untuk melanjutkan</p>
 
-	<!-- Filter dan Pencarian -->
-	<div class="rounded-lg bg-white p-4 shadow-md">
-		<form on:submit|preventDefault={handleFilterSubmit} class="grid grid-cols-1 gap-4 md:grid-cols-4">
-			<input type="search" name="search" placeholder="Cari username atau email..." bind:value={search} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" />
-			<select name="role" bind:value={role} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-				<option value="">Semua Peran</option>
-				<option value="admin">Admin</option>
-				<option value="manager">Manager</option>
-				<option value="cashier">Cashier</option>
-			</select>
-			<select name="is_active" bind:value={isActive} class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-				<option value="">Semua Status</option>
-				<option value="true">Aktif</option>
-				<option value="false">Tidak Aktif</option>
-			</select>
-			<button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700">
-				Terapkan Filter
-			</button>
-		</form>
-	</div>
-
-	<!-- Tabel Pengguna -->
-	<div class="overflow-x-auto rounded-lg bg-white shadow-md">
-		<table class="min-w-full divide-y divide-gray-200">
-			<thead class="bg-gray-50">
-			<tr>
-				<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Pengguna</th>
-				<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Peran</th>
-				<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-				<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Tanggal Dibuat</th>
-				<th class="relative px-6 py-3"><span class="sr-only">Aksi</span></th>
-			</tr>
-			</thead>
-			<tbody class="divide-y divide-gray-200 bg-white">
-			{#if data.users && data.users.length > 0}
-				{#each data.users as user (user.id)}
-					<tr>
-						<td class="px-6 py-4 whitespace-nowrap">
-							<div class="flex items-center">
-								<div class="h-10 w-10 flex-shrink-0">
-									<img class="h-10 w-10 rounded-full object-cover" src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`} alt={user.username} />
-								</div>
-								<div class="ml-4">
-									<div class="text-sm font-medium text-gray-900">{user.username}</div>
-									<div class="text-sm text-gray-500">{user.email}</div>
-								</div>
-							</div>
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap">
-                <span class="rounded-full px-2 py-1 text-xs font-semibold capitalize leading-5"
-											class:bg-red-100={user.role === 'admin'} class:text-red-800={user.role === 'admin'}
-											class:bg-yellow-100={user.role === 'manager'} class:text-yellow-800={user.role === 'manager'}
-											class:bg-blue-100={user.role === 'cashier'} class:text-blue-800={user.role === 'cashier'}
-								>
-                  {user.role}
-                </span>
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap">
-							{#if user.is_active}
-								<span class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Aktif</span>
-							{:else}
-								<span class="inline-flex rounded-full bg-red-100 px-2 text-xs font-semibold leading-5 text-red-800">Tidak Aktif</span>
-							{/if}
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-							{formatDate(user.created_at)}
-						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-							<a href="/pengguna/{user.id}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
-						</td>
-					</tr>
-				{/each}
-			{:else}
-				<tr>
-					<td colspan="5" class="px-6 py-12 text-center text-gray-500">
-						{#if data.error}
-							<p class="text-red-500">Error: {data.error}</p>
-						{:else}
-							<p>Tidak ada data pengguna yang ditemukan.</p>
-						{/if}
-					</td>
-				</tr>
+		<form on:submit|preventDefault={handleLogin}>
+			{#if errorMessage}
+				<div class="mb-4 rounded-md bg-red-100 p-3 text-center text-sm text-red-700">
+					{errorMessage}
+				</div>
 			{/if}
-			</tbody>
-		</table>
-	</div>
 
-	<!-- Paginasi -->
-	{#if data.pagination && data.pagination.total_page > 1}
-		<div class="flex items-center justify-between rounded-lg bg-white px-4 py-3 shadow-md sm:px-6">
-			<div class="text-sm text-gray-700">
-				Menampilkan <span class="font-medium">{(data.pagination.current_page - 1) * data.pagination.per_page + 1}</span>
-				- <span class="font-medium">{Math.min(data.pagination.current_page * data.pagination.per_page, data.pagination.total_data)}</span>
-				dari <span class="font-medium">{data.pagination.total_data}</span> hasil
+			<div class="mb-4">
+				<label for="email" class="mb-2 block text-sm font-medium text-gray-700">Email</label>
+				<input
+					type="email"
+					id="email"
+					class="w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+					placeholder="anda@email.com"
+					bind:value={email}
+					required
+					disabled={isLoading}
+				/>
 			</div>
-			<div class="flex items-center space-x-2">
-				<a href="?{createQueryString({ ...data.queryParams, page: data.pagination.current_page - 1 })}"
-					 class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 {data.pagination.current_page <= 1 ? 'disabled' : ''}"
-					 aria-disabled={data.pagination.current_page <= 1}
-				>
-					Sebelumnya
-				</a>
-				<a href="?{createQueryString({ ...data.queryParams, page: data.pagination.current_page + 1 })}"
-					 class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 {data.pagination.current_page >= data.pagination.total_page ? 'disabled' : ''}"
-					 aria-disabled={data.pagination.current_page >= data.pagination.total_page}
-				>
-					Berikutnya
-				</a>
-			</div>
-		</div>
-	{/if}
-</div>
 
-<!-- Modal Tambah Pengguna (Menggunakan <dialog>) -->
-<dialog bind:this={createModalDialog} class="w-full max-w-lg rounded-lg p-0 shadow-xl backdrop:bg-black backdrop:bg-opacity-50">
-	<div class="p-6">
-		<h2 class="mb-4 text-2xl font-bold">Tambah Pengguna Baru</h2>
-		<form on:submit|preventDefault={handleCreateUser} class="space-y-4">
-			{#if createError}
-				<div class="rounded-md bg-red-100 p-3 text-center text-sm text-red-700">{createError}</div>
-			{/if}
+			<div class="mb-6">
+				<label for="password" class="mb-2 block text-sm font-medium text-gray-700">Password</label>
+				<input
+					type="password"
+					id="password"
+					class="w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+					placeholder="••••••••"
+					bind:value={password}
+					required
+					disabled={isLoading}
+				/>
+			</div>
+
 			<div>
-				<label for="username" class="mb-1 block text-sm font-medium text-gray-700">Username</label>
-				<input type="text" id="username" bind:value={newUser.username} class="w-full rounded-md border-gray-300" required />
-			</div>
-			<div>
-				<label for="email" class="mb-1 block text-sm font-medium text-gray-700">Email</label>
-				<input type="email" id="email" bind:value={newUser.email} class="w-full rounded-md border-gray-300" required />
-			</div>
-			<div>
-				<label for="password" class="mb-1 block text-sm font-medium text-gray-700">Password</label>
-				<input type="password" id="password" bind:value={newUser.password} class="w-full rounded-md border-gray-300" required />
-			</div>
-			<div>
-				<label for="role-modal" class="mb-1 block text-sm font-medium text-gray-700">Peran</label>
-				<select id="role-modal" bind:value={newUser.role} class="w-full rounded-md border-gray-300">
-					<option value="cashier">Cashier</option>
-					<option value="manager">Manager</option>
-					<option value="admin">Admin</option>
-				</select>
-			</div>
-			<div class="flex items-center">
-				<input type="checkbox" id="is_active-modal" bind:checked={newUser.is_active} class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-				<label for="is_active-modal" class="ml-2 block text-sm text-gray-900">Akun Aktif</label>
-			</div>
-			<div class="flex justify-end space-x-4 border-t border-gray-200 pt-4 mt-4 -mx-6 px-6">
-				<button type="button" on:click={() => createModalDialog.close()} class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300">Batal</button>
-				<button type="submit" disabled={isCreating} class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400">
-					{isCreating ? 'Menyimpan...' : 'Simpan Pengguna'}
+				<button
+					type="submit"
+					class="flex w-full justify-center rounded-md bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400"
+					disabled={isLoading}
+				>
+					{#if isLoading}
+						<svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						<span class="ml-2">Memproses...</span>
+					{:else}
+						Masuk
+					{/if}
 				</button>
 			</div>
 		</form>
 	</div>
-</dialog>
-
-<style>
-    .disabled {
-        pointer-events: none;
-        opacity: 0.6;
-    }
-</style>
+</div>

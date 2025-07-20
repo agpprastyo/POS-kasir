@@ -1,21 +1,17 @@
 <script lang="ts">
 	import { userProfile } from '$lib/stores';
 	import { updateAvatar, updatePassword } from '$lib/api/pengaturan';
-	import type { Profile } from '$lib/types';
 
-	// State untuk form ubah avatar
-	let avatarFile: FileList | null = null;
-	let avatarPreview: string | null = null;
-	let isAvatarLoading = false;
-	let avatarMessage = { type: '', text: '' };
-
-	// State untuk form ubah password
 	let oldPassword = '';
 	let newPassword = '';
 	let isPasswordLoading = false;
 	let passwordMessage = { type: '', text: '' };
 
-	// Fungsi untuk menampilkan preview gambar saat dipilih
+	let avatarFile: FileList | null = null;
+	let avatarPreview: string | null = null;
+	let isAvatarLoading = false;
+	let avatarMessage = { type: '', text: '' };
+
 	function handleFileSelect(event: Event) {
 		const input = event.target as HTMLInputElement;
 		if (input.files && input.files[0]) {
@@ -24,31 +20,32 @@
 		}
 	}
 
-	// Fungsi untuk menangani submit form avatar
 	async function handleAvatarUpdate() {
-		if (!avatarFile || avatarFile.length === 0) {
-			avatarMessage = { type: 'error', text: 'Silakan pilih file gambar terlebih dahulu.' };
+		const cropperCanvas = document.querySelector('cropper-canvas') as any;
+		if (!cropperCanvas) {
+			avatarMessage = { type: 'error', text: 'Silakan pilih dan crop gambar terlebih dahulu.' };
 			return;
 		}
-
 		isAvatarLoading = true;
 		avatarMessage = { type: '', text: '' };
 
 		try {
-			const result = await updateAvatar(avatarFile[0]);
-			// Perbarui userProfile store dengan data baru dari API
+			// Get cropped image as Blob
+			const blob: Blob = await cropperCanvas.$toBlob({ type: 'image/png', quality: 1 });
+			const file = new File([blob], 'avatar.png', { type: 'image/png' });
+			const result = await updateAvatar(file);
+
 			userProfile.set(result.data);
 			avatarMessage = { type: 'success', text: 'Avatar berhasil diperbarui!' };
-			avatarPreview = null; // Hapus preview setelah berhasil
+			avatarPreview = null;
 			(document.getElementById('avatar-form') as HTMLFormElement).reset();
-		} catch (error: any) {
-			avatarMessage = { type: 'error', text: error.message };
+		} catch (error) {
+			avatarMessage = { type: 'error', text: error instanceof Error ? error.message : 'Terjadi kesalahan.' };
 		} finally {
 			isAvatarLoading = false;
 		}
 	}
 
-	// Fungsi untuk menangani submit form password
 	async function handlePasswordUpdate() {
 		if (!oldPassword || !newPassword) {
 			passwordMessage = { type: 'error', text: 'Semua kolom wajib diisi.' };
@@ -63,8 +60,8 @@
 			(document.getElementById('password-form') as HTMLFormElement).reset();
 			oldPassword = '';
 			newPassword = '';
-		} catch (error: any) {
-			passwordMessage = { type: 'error', text: error.message };
+		} catch (error) {
+			passwordMessage = { type: 'error', text: error instanceof Error ? error.message : 'Terjadi kesalahan.' };
 		} finally {
 			isPasswordLoading = false;
 		}
@@ -100,7 +97,7 @@
 		<h2 class="mb-4 text-xl font-semibold">Ubah Foto Profil</h2>
 		<form id="avatar-form" on:submit|preventDefault={handleAvatarUpdate}>
 			{#if avatarMessage.text}
-				<div class="mb-4 rounded-md p-3 text-center text-sm" class:bg-green-100={avatarMessage.type === 'success'} class:text-green-700={avatarMessage.type === 'success'} class:bg-red-100={avatarMessage.type === 'error'} class:text-red-700={avatarMessage.type === 'error'} >
+				<div class="mb-4 rounded-md p-3 text-center text-sm" class:bg-green-100={avatarMessage.type === 'success'} class:text-green-700={avatarMessage.type === 'success'} class:bg-red-100={avatarMessage.type === 'error'} class:text-red-700={avatarMessage.type === 'error'}>
 					{avatarMessage.text}
 				</div>
 			{/if}
@@ -116,7 +113,12 @@
 					class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-600 hover:file:bg-indigo-100"
 				/>
 			</div>
-			<button type="submit" disabled={isAvatarLoading || !avatarFile} class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400">
+			{#if avatarPreview}
+				<div class="mb-4">
+					<img id="avatar-cropper" src={avatarPreview} alt="Preview" style="max-width: 100%; max-height: 300px;" />
+				</div>
+			{/if}
+			<button type="submit" disabled={isAvatarLoading || !avatarPreview} class="rounded-md bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-400">
 				{isAvatarLoading ? 'Mengunggah...' : 'Simpan Avatar'}
 			</button>
 		</form>

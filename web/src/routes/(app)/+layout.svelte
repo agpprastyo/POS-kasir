@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { userProfile } from '$lib/stores';
 	import { PUBLIC_API_BASE_URL } from '$env/static/public';
+	import type { PageData } from './$types';
 
-
+	// Data 'profile' sekarang datang dari fungsi load di +layout.ts
+	export let data: PageData;
 
 	const menuItems = [
 		{ href: '/', label: 'Dashboard', icon: 'M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.25 4.5h13.5c.828 0 1.5.672 1.5 1.5v10.5c0 .828-.672 1.5-1.5 1.5H5.25c-.828 0-1.5-.672-1.5-1.5V6c0-.828.672-1.5 1.5-1.5z', roles: ['admin', 'manager'] },
@@ -16,29 +17,6 @@
 	];
 
 	let isProfileMenuOpen = false;
-
-	onMount(async () => {
-		try {
-			const response = await fetch(`${PUBLIC_API_BASE_URL}/api/v1/auth/me`, {
-				method: 'GET',
-				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include'
-			});
-
-			if (!response.ok) {
-				throw new Error('Sesi tidak valid');
-			}
-
-			const result = await response.json();
-
-			// **FIX:** Mengakses objek data secara langsung
-			userProfile.set(result.data);
-
-		} catch (error) {
-			console.error("Authentication check failed:", error);
-			await goto('/login');
-		}
-	});
 
 	async function handleLogout() {
 		try {
@@ -55,62 +33,51 @@
 	}
 </script>
 
-{#if $userProfile}
-	<div class="flex h-screen bg-gray-100 font-sans">
-		<aside class="w-64 flex-shrink-0 bg-gray-800 text-white">
-			<div class="flex h-16 items-center justify-center px-4 text-2xl font-bold">
-				UMKM POS
+<!-- UI ini hanya akan dirender jika fungsi load di +layout.ts berhasil -->
+<div class="flex h-screen bg-gray-100 font-sans">
+	<aside class="w-64 flex-shrink-0 bg-gray-800 text-white">
+		<div class="flex h-16 items-center justify-center px-4 text-2xl font-bold">
+			UMKM POS
+		</div>
+		<nav class="mt-4">
+			{#each menuItems as item}
+				{#if data.profile && item.roles.includes(data.profile.role)}
+					<a
+						href={item.href}
+						class="flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700"
+						class:bg-gray-900={$page.url.pathname === item.href}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+							<path stroke-linecap="round" stroke-linejoin="round" d={item.icon} />
+						</svg>
+						<span class="ml-4">{item.label}</span>
+					</a>
+				{/if}
+			{/each}
+		</nav>
+	</aside>
+
+	<div class="flex flex-1 flex-col overflow-hidden">
+		<header class="flex items-center justify-end bg-white px-6 py-3 shadow-md">
+			<div class="relative">
+				<button on:click={() => isProfileMenuOpen = !isProfileMenuOpen} class="flex items-center space-x-2">
+					<img class="h-10 w-10 rounded-full object-cover" src={data.profile.avatar || `https://ui-avatars.com/api/?name=${data.profile.username}&background=random`} alt="Avatar" />
+					<span class="font-medium text-gray-700">{data.profile.username}</span>
+				</button>
+
+				{#if isProfileMenuOpen}
+					<div class="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+						<a href="/pengaturan" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan</a>
+						<button on:click={handleLogout} class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+							Logout
+						</button>
+					</div>
+				{/if}
 			</div>
-			<nav class="mt-4">
-				{#each menuItems as item}
-					{#if item.roles.includes($userProfile.role)}
-						<a
-							href={item.href}
-							class="flex items-center px-6 py-3 transition-colors duration-200 hover:bg-gray-700"
-							class:bg-gray-900={$page.url.pathname === item.href}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
-								<path stroke-linecap="round" stroke-linejoin="round" d={item.icon} />
-							</svg>
-							<span class="ml-4">{item.label}</span>
-						</a>
-					{/if}
-				{/each}
-			</nav>
-		</aside>
+		</header>
 
-		<div class="flex flex-1 flex-col overflow-hidden">
-			<header class="flex items-center justify-end bg-white px-6 py-3 shadow-md">
-				<div class="relative">
-					<button on:click={() => isProfileMenuOpen = !isProfileMenuOpen} class="flex items-center space-x-2">
-						<img class="h-10 w-10 rounded-full object-cover" src={$userProfile.avatar || `https://ui-avatars.com/api/?name=${$userProfile.username}&background=random`} alt="Avatar" />
-						<span class="font-medium text-gray-700">{$userProfile.username}</span>
-					</button>
-
-					{#if isProfileMenuOpen}
-						<div class="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-							<a href="/pengaturan" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pengaturan</a>
-							<button on:click={handleLogout} class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
-								Logout
-							</button>
-						</div>
-					{/if}
-				</div>
-			</header>
-
-			<main class="flex-1 overflow-y-auto p-6">
-				<slot />
-			</main>
-		</div>
+		<main class="flex-1 overflow-y-auto p-6">
+			<slot />
+		</main>
 	</div>
-{:else}
-	<div class="flex h-screen items-center justify-center bg-gray-100">
-		<div class="text-center">
-			<svg class="mx-auto h-12 w-12 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-				<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-				<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-			</svg>
-			<p class="mt-4 text-gray-600">Memuat sesi...</p>
-		</div>
-	</div>
-{/if}
+</div>

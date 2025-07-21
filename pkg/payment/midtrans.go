@@ -19,10 +19,10 @@ type IMidtrans interface {
 type MidtransService struct {
 	config *config.AppConfig
 	client coreapi.Client
-	log    *logger.Logger
+	log    logger.ILogger
 }
 
-func NewMidtransService(cfg *config.AppConfig, log *logger.Logger) IMidtrans {
+func NewMidtransService(cfg *config.AppConfig, log logger.ILogger) IMidtrans {
 	var client coreapi.Client
 
 	midtransEnv := midtrans.Sandbox
@@ -40,7 +40,7 @@ func NewMidtransService(cfg *config.AppConfig, log *logger.Logger) IMidtrans {
 		client.Options.SetPaymentOverrideNotification("https://example.com/notification")
 	}
 
-	log.Info("Midtrans client initialized successfully")
+	log.Infof("Midtrans client initialized successfully")
 
 	return &MidtransService{
 		client: client,
@@ -58,7 +58,7 @@ func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotifi
 	hasher := sha512.New()
 	_, err := hasher.Write([]byte(sourceString))
 	if err != nil {
-		s.log.Error("Failed to write to SHA512 hasher", "error", err)
+		s.log.Errorf("Failed to write to SHA512 hasher", "error", err)
 		return fmt.Errorf("failed to compute signature")
 	}
 
@@ -66,11 +66,11 @@ func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotifi
 
 	// 3. Bandingkan signature yang dihitung dengan yang diterima dari Midtrans
 	if computedSignature != payload.SignatureKey {
-		s.log.Warn("Invalid Midtrans notification signature", "orderID", payload.OrderID, "computed", computedSignature, "received", payload.SignatureKey)
+		s.log.Warnf("Invalid Midtrans notification signature", "orderID", payload.OrderID, "computed", computedSignature, "received", payload.SignatureKey)
 		return fmt.Errorf("invalid signature for order %s", payload.OrderID)
 	}
 
-	s.log.Info("Midtrans notification signature verified successfully", "orderID", payload.OrderID)
+	s.log.Infof("Midtrans notification signature verified successfully", "orderID", payload.OrderID)
 	return nil
 }
 

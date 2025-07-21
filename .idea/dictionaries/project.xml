@@ -3,6 +3,7 @@
     <words>
       <w>agprastyo</w>
       <w>agprastyowsl</w>
+      <w>fatalln</w>
       <w>healthz</w>
       <w>kasir</w>
       <w>kategori</w>
@@ -12,6 +13,7 @@
       <w>oneof</w>
       <w>postgre</w>
       <w>qris</w>
+      <w>querier</w>
       <w>sslmode</w>
     </words>
   </dictionary>

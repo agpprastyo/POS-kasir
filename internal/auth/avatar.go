@@ -10,7 +10,7 @@ import (
 )
 
 type AthRepo struct {
-	log   *logger.Logger
+	log   logger.ILogger
 	minio minio.IMinio
 }
 
@@ -36,12 +36,7 @@ func (r *AthRepo) AvatarLink(ctx context.Context, userID uuid.UUID, avatar strin
 	return url, nil
 }
 
-func (r *AthRepo) DeleteAvatar(ctx context.Context, userID uuid.UUID, avatar string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func NewAuthRepo(log *logger.Logger, minio minio.IMinio) IAthRepo {
+func NewAuthRepo(log logger.ILogger, minio minio.IMinio) IAthRepo {
 	return &AthRepo{
 		log:   log,
 		minio: minio,
@@ -51,5 +46,4 @@ func NewAuthRepo(log *logger.Logger, minio minio.IMinio) IAthRepo {
 type IAthRepo interface {
 	UploadAvatar(ctx context.Context, filename string, data []byte) (string, error)
 	AvatarLink(ctx context.Context, userID uuid.UUID, avatar string) (string, error)
-	DeleteAvatar(ctx context.Context, userID uuid.UUID, avatar string) error
 }

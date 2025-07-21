@@ -17,10 +17,10 @@ type Service interface {
 
 type service struct {
 	repo repository.Querier
-	log  *logger.Logger
+	log  logger.ILogger
 }
 
-func NewService(repo repository.Querier, log *logger.Logger) Service {
+func NewService(repo repository.Querier, log logger.ILogger) Service {
 	return &service{
 		repo: repo,
 		log:  log,
@@ -34,7 +34,7 @@ func (s *service) Log(ctx context.Context, userID uuid.UUID, action repository.L
 	if details != nil {
 		detailsJSON, err = json.Marshal(details)
 		if err != nil {
-			s.log.Error("Failed to marshal activity log details", "error", err)
+			s.log.Errorf("Failed to marshal activity log details", "error", err)
 		}
 	}
 
@@ -47,7 +47,7 @@ func (s *service) Log(ctx context.Context, userID uuid.UUID, action repository.L
 			Details:    detailsJSON,
 		})
 		if err != nil {
-			s.log.Error("Failed to create activity log", "error", err)
+			s.log.Errorf("Failed to create activity log", "error", err)
 		}
 	}()
 }

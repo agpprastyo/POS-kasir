@@ -3,16 +3,14 @@ package auth
 import (
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/repository"
-	"POS-kasir/pkg/middleware"
-	"fmt"
-	"mime/multipart"
-
-	"io"
-
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/middleware"
 	"POS-kasir/pkg/validator"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"io"
+	"mime/multipart"
 )
 
 type IAuthHandler interface {
@@ -27,16 +25,16 @@ type IAuthHandler interface {
 
 // AthHandler handles authentication HTTP requests.
 type AthHandler struct {
-	service   IAuthService
-	log       *logger.Logger
-	validator validator.Validator
+	Service   IAuthService
+	Log       logger.ILogger
+	Validator validator.Validator
 }
 
-func NewAuthHandler(service IAuthService, log *logger.Logger, validator validator.Validator) IAuthHandler {
+func NewAuthHandler(service IAuthService, log logger.ILogger, validator validator.Validator) IAuthHandler {
 	return &AthHandler{
-		service:   service,
-		log:       log,
-		validator: validator,
+		Service:   service,
+		Log:       log,
+		Validator: validator,
 	}
 }
 
@@ -52,7 +50,7 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.validator.Validate(&req); err != nil {
+	if err := h.Validator.Validate(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
@@ -61,13 +59,13 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.log.Errorf("Failed to get userID from context")
+		h.Log.Errorf("Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
 		})
 	}
 
-	err := h.service.UpdatePassword(ctx, userUUID, req)
+	err := h.Service.UpdatePassword(ctx, userUUID, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to update password",
@@ -91,14 +89,14 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.validator.Validate(&req); err != nil {
+	if err := h.Validator.Validate(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
 
-	resp, err := h.service.Login(ctx, req)
+	resp, err := h.Service.Login(ctx, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Error:   err.Error(),
@@ -127,8 +125,6 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 }
 
 func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
-
-	// Clear the access token cookie
 	c.Cookie(&fiber.Cookie{
 		Name:  "access_token",
 		Value: "",
@@ -147,14 +143,14 @@ func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.validator.Validate(&req); err != nil {
+	if err := h.Validator.Validate(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
 
-	resp, err := h.service.Register(ctx, req)
+	resp, err := h.Service.Register(ctx, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to register",
@@ -171,14 +167,14 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.log.Errorf("Failed to get userID from context, userId : %v", userUUID)
+		h.Log.Errorf("Failed to get userID from context, userId : %v", userUUID)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Error:   "No user id in context",
 			Message: "Failed to get user ID",
 		})
 	}
 
-	response, err := h.service.Profile(ctx, userUUID)
+	response, err := h.Service.Profile(ctx, userUUID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to fetch profile",
@@ -215,14 +211,14 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.validator.Validate(&req); err != nil {
+	if err := h.Validator.Validate(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
 
-	resp, err := h.service.Register(ctx, req)
+	resp, err := h.Service.Register(ctx, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to register user",
@@ -241,7 +237,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.log.Errorf("Failed to get userID from context")
+		h.Log.Errorf("Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
 		})
@@ -251,7 +247,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		h.log.Errorf("Failed to get avatar file: %v", err)
+		h.Log.Errorf("Failed to get avatar file: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to upload avatar",
 		})
@@ -261,7 +257,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 
 	fileData, err := file.Open()
 	if err != nil {
-		h.log.Errorf("Failed to open avatar file: %v", err)
+		h.Log.Errorf("Failed to open avatar file: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to process avatar file",
 		})
@@ -272,7 +268,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 	defer func(fileData multipart.File) {
 		err := fileData.Close()
 		if err != nil {
-			h.log.Errorf("Failed to close avatar file: %v", err)
+			h.Log.Errorf("Failed to close avatar file: %v", err)
 		}
 	}(fileData)
 
@@ -280,7 +276,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 
 	data, err := io.ReadAll(fileData)
 	if err != nil {
-		h.log.Errorf("Failed to read avatar file: %v", err)
+		h.Log.Errorf("Failed to read avatar file: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to read avatar file",
 		})
@@ -288,9 +284,9 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 
 	fmt.Println("UpdateAvatarHandler called 6")
 
-	response, err := h.service.UploadAvatar(ctx, userUUID, data)
+	response, err := h.Service.UploadAvatar(ctx, userUUID, data)
 	if err != nil {
-		h.log.Errorf("Failed to upload avatar: %v", err)
+		h.Log.Errorf("Failed to upload avatar: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: err.Error(),
 		})

@@ -12,10 +12,10 @@ type ICancellationReasonService interface {
 
 type CancellationReasonService struct {
 	store repository.Store
-	log   *logger.Logger
+	log   logger.ILogger
 }
 
-func NewCancellationReasonService(store repository.Store, log *logger.Logger) ICancellationReasonService {
+func NewCancellationReasonService(store repository.Store, log logger.ILogger) ICancellationReasonService {
 	return &CancellationReasonService{store: store, log: log}
 }
 

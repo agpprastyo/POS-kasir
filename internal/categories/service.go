@@ -14,14 +14,14 @@ import (
 
 type CtgService struct {
 	repo            repository.Querier
-	log             *logger.Logger
+	log             logger.ILogger
 	activityService activitylog.Service
 }
 
 func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
 	categoryID, err := strconv.Atoi(id)
 	if err != nil {
-		s.log.Error("Invalid category ID format", "error", err, "id", id)
+		s.log.Errorf("Invalid category ID format", "error", err, "id", id)
 		return common.ErrInvalidID
 	}
 
@@ -30,22 +30,22 @@ func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
 	// ExistsCategory
 	exists, err := s.repo.ExistsCategory(ctx, catID)
 	if err != nil {
-		s.log.Error("Failed to check if category exists", "error", err, "categoryID", catID)
+		s.log.Errorf("Failed to check if category exists", "error", err, "categoryID", catID)
 	}
 
 	if !exists {
-		s.log.Warn("Category not found", "categoryID", categoryID)
+		s.log.Warnf("Category not found", "categoryID", categoryID)
 		return common.ErrCategoryNotFound
 	}
 
 	productCount, err := s.repo.CountProductsInCategory(ctx, &catID)
 	if err != nil {
-		s.log.Error("Failed to count products in category", "error", err, "categoryID", categoryID)
+		s.log.Errorf("Failed to count products in category", "error", err, "categoryID", categoryID)
 		return err
 	}
 
 	if productCount > 0 {
-		s.log.Warn(
+		s.log.Warnf(
 			"Attempted to delete a category that is still in use",
 			"categoryID", categoryID,
 			"productCount", productCount,
@@ -56,13 +56,13 @@ func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
 	err = s.repo.DeleteCategory(ctx, int32(categoryID))
 	if err != nil {
 
-		s.log.Error("Failed to delete category", "error", err, "categoryID", categoryID)
+		s.log.Errorf("Failed to delete category", "error", err, "categoryID", categoryID)
 		return err
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -78,14 +78,14 @@ func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
 		logDetails,
 	)
 
-	s.log.Info("Category deleted successfully", "categoryID", categoryID)
+	s.log.Infof("Category deleted successfully", "categoryID", categoryID)
 	return nil
 }
 
 func (s *CtgService) UpdateCategory(ctx context.Context, id string, req CreateCategoryRequest) (*CategoryResponse, error) {
 	categoryID, err := strconv.Atoi(id)
 	if err != nil {
-		s.log.Error("Invalid category ID", "error", err)
+		s.log.Errorf("Invalid category ID", "error", err)
 		return nil, err
 	}
 
@@ -98,10 +98,10 @@ func (s *CtgService) UpdateCategory(ctx context.Context, id string, req CreateCa
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.log.Warn("Category not found", "id", id)
+			s.log.Warnf("Category not found", "id", id)
 			return nil, nil
 		default:
-			s.log.Error("Failed to update category", "error", err)
+			s.log.Errorf("Failed to update category", "error", err)
 			return nil, err
 		}
 	}
@@ -119,7 +119,7 @@ func (s *CtgService) UpdateCategory(ctx context.Context, id string, req CreateCa
 func (s *CtgService) GetCategoryByID(ctx context.Context, id string) (*CategoryResponse, error) {
 	categoryID, err := strconv.Atoi(id)
 	if err != nil {
-		s.log.Error("Invalid category ID", "error", err)
+		s.log.Errorf("Invalid category ID", "error", err)
 		return nil, err
 	}
 
@@ -127,10 +127,10 @@ func (s *CtgService) GetCategoryByID(ctx context.Context, id string) (*CategoryR
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.log.Warn("Category not found", "id", id)
+			s.log.Warnf("Category not found", "id", id)
 			return nil, nil
 		default:
-			s.log.Error("Failed to get category by ID", "error", err)
+			s.log.Errorf("Failed to get category by ID", "error", err)
 			return nil, err
 		}
 	}
@@ -149,7 +149,7 @@ func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryReque
 
 	category, err := s.repo.CreateCategory(ctx, req.Name)
 	if err != nil {
-		s.log.Error("Failed to create category", "error", err)
+		s.log.Errorf("Failed to create category", "error", err)
 		return CategoryResponse{}, err
 	}
 
@@ -163,7 +163,7 @@ func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryReque
 	// Log the activity of creating a category
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -201,7 +201,7 @@ func (s *CtgService) GetAllCategories(ctx context.Context, req ListCategoryReque
 
 	categories, err := s.repo.ListCategories(ctx, params)
 	if err != nil {
-		s.log.Error("Failed to get all categories", "error", err)
+		s.log.Errorf("Failed to get all categories", "error", err)
 		return nil, err
 	}
 
@@ -226,7 +226,7 @@ type ICtgService interface {
 	DeleteCategory(ctx context.Context, id string) error
 }
 
-func NewCtgService(repo repository.Querier, log *logger.Logger, activityService activitylog.Service) ICtgService {
+func NewCtgService(repo repository.Querier, log logger.ILogger, activityService activitylog.Service) ICtgService {
 	return &CtgService{
 		repo:            repo,
 		log:             log,

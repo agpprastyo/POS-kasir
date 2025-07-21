@@ -8,7 +8,7 @@ import (
 
 type PrdRepo struct {
 	minio minio.IMinio
-	log   *logger.Logger
+	log   logger.ILogger
 }
 
 func (p PrdRepo) UploadImageToMinio(ctx context.Context, filename string, data []byte) (string, error) {
@@ -39,7 +39,7 @@ type IPrdRepo interface {
 	PrdImageLink(ctx context.Context, prdID string, image string) (string, error)
 }
 
-func NewPrdRepo(minio minio.IMinio, log *logger.Logger) IPrdRepo {
+func NewPrdRepo(minio minio.IMinio, log logger.ILogger) IPrdRepo {
 	return &PrdRepo{
 		minio: minio,
 		log:   log,

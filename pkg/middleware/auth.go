@@ -3,15 +3,16 @@ package middleware
 import (
 	"POS-kasir/internal/common"
 	"POS-kasir/pkg/logger"
+
 	"POS-kasir/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthMiddleware(tokenManager utils.Manager, log *logger.Logger) fiber.Handler {
+func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token := c.Cookies("access_token")
 		if token == "" {
-			log.Warn("unauthorized access attempt: no token provided")
+			log.Warnf("unauthorized access attempt: no token provided")
 			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
 				Message: "unauthorized",
 			})

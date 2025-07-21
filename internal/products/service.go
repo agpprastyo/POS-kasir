@@ -30,13 +30,13 @@ type IPrdService interface {
 }
 
 type PrdService struct {
-	log             *logger.Logger
+	log             logger.ILogger
 	store           repository.Store
 	prdRepo         IPrdRepo
 	activityService activitylog.Service
 }
 
-func NewPrdService(store repository.Store, log *logger.Logger, prdRepo IPrdRepo, activityService activitylog.Service) IPrdService {
+func NewPrdService(store repository.Store, log logger.ILogger, prdRepo IPrdRepo, activityService activitylog.Service) IPrdService {
 	return &PrdService{
 		store:           store,
 		log:             log,
@@ -50,16 +50,16 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 	option, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			s.log.Warnf("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
 			return common.ErrNotFound
 		}
-		s.log.Error("Failed to get product option before deletion", "error", err)
+		s.log.Errorf("Failed to get product option before deletion", "error", err)
 		return err
 	}
 
 	err = s.store.SoftDeleteProductOption(ctx, optionID)
 	if err != nil {
-		s.log.Error("Failed to soft delete product option in repository", "error", err, "optionID", optionID)
+		s.log.Errorf("Failed to soft delete product option in repository", "error", err, "optionID", optionID)
 		return err
 	}
 
@@ -78,7 +78,7 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 		logDetails,
 	)
 
-	s.log.Info("Product option soft deleted successfully", "optionID", optionID)
+	s.log.Infof("Product option soft deleted successfully", "optionID", optionID)
 	return nil
 }
 
@@ -86,10 +86,10 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			s.log.Warnf("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get product option before update", "error", err)
+		s.log.Errorf("Failed to get product option before update", "error", err)
 		return nil, err
 	}
 
@@ -108,7 +108,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 
 	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
 	if err != nil {
-		s.log.Error("Failed to update product option in repository", "error", err, "optionID", optionID)
+		s.log.Errorf("Failed to update product option in repository", "error", err, "optionID", optionID)
 		return nil, err
 	}
 
@@ -132,12 +132,12 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	if updatedOption.ImageUrl != nil {
 		publicUrl, err := s.prdRepo.PrdImageLink(ctx, updatedOption.ID.String(), *updatedOption.ImageUrl)
 		if err != nil {
-			s.log.Warn("Failed to get public URL for updated option image", "error", err)
+			s.log.Warnf("Failed to get public URL for updated option image", "error", err)
 			publicUrl = *updatedOption.ImageUrl
 		}
 		updatedOption.ImageUrl = &publicUrl
 	} else {
-		updatedOption.ImageUrl = nil // Set to nil if no image URL is present
+		updatedOption.ImageUrl = nil
 	}
 
 	return &ProductOptionResponse{
@@ -155,10 +155,10 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
+			s.log.Warnf("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get product option before image upload", "error", err)
+		s.log.Errorf("Failed to get product option before image upload", "error", err)
 		return nil, err
 	}
 
@@ -171,7 +171,7 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 
 	imageUrl, err := s.prdRepo.UploadImageToMinio(ctx, filename, data)
 	if err != nil {
-		s.log.Error("Failed to upload option image to Minio", "error", err)
+		s.log.Errorf("Failed to upload option image to Minio", "error", err)
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 
@@ -181,7 +181,7 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 	}
 	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
 	if err != nil {
-		s.log.Error("Failed to update product option with image URL", "error", err)
+		s.log.Errorf("Failed to update product option with image URL", "error", err)
 		return nil, fmt.Errorf("could not update product option in database")
 	}
 
@@ -205,7 +205,7 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 
 	publicUrl, err := s.prdRepo.PrdImageLink(ctx, updatedOption.ID.String(), *updatedOption.ImageUrl)
 	if err != nil {
-		s.log.Warn("Failed to get public URL for newly uploaded option image", "error", err)
+		s.log.Warnf("Failed to get public URL for newly uploaded option image", "error", err)
 		publicUrl = *updatedOption.ImageUrl
 	}
 
@@ -220,16 +220,16 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Parent product not found for new option", "productID", productID)
+			s.log.Warnf("Parent product not found for new option", "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get parent product for new option", "error", err)
+		s.log.Errorf("Failed to get parent product for new option", "error", err)
 		return nil, err
 	}
 
 	additionalPriceNumeric, err := utils.Float64ToNumeric(req.AdditionalPrice)
 	if err != nil {
-		s.log.Error("Failed to convert additional price to numeric", "error", err)
+		s.log.Errorf("Failed to convert additional price to numeric", "error", err)
 		return nil, fmt.Errorf("failed to convert additional price: %w", err)
 	}
 	params := repository.CreateProductOptionParams{
@@ -239,7 +239,7 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 	}
 	newOption, err := s.store.CreateProductOption(ctx, params)
 	if err != nil {
-		s.log.Error("Failed to create product option in repository", "error", err)
+		s.log.Errorf("Failed to create product option in repository", "error", err)
 		return nil, err
 	}
 
@@ -272,16 +272,16 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 	product, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product not found for deletion", "productID", productID)
+			s.log.Warnf("Product not found for deletion", "productID", productID)
 			return common.ErrNotFound
 		}
-		s.log.Error("Failed to get product before deletion", "error", err)
+		s.log.Errorf("Failed to get product before deletion", "error", err)
 		return err
 	}
 
 	err = s.store.SoftDeleteProduct(ctx, productID)
 	if err != nil {
-		s.log.Error("Failed to soft delete product in repository", "error", err, "productID", productID)
+		s.log.Errorf("Failed to soft delete product in repository", "error", err, "productID", productID)
 		return err
 	}
 
@@ -299,7 +299,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 		logDetails,
 	)
 
-	s.log.Info("Product soft deleted successfully", "productID", productID)
+	s.log.Infof("Product soft deleted successfully", "productID", productID)
 	return nil
 }
 
@@ -308,10 +308,10 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 	s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product not found by ID", "productID", productID)
+			s.log.Warnf("Product not found by ID", "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get product from repository", "error", err, "productID", productID)
+		s.log.Errorf("Failed to get product from repository", "error", err, "productID", productID)
 		return nil, err
 	}
 
@@ -323,10 +323,10 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product not found for update", "productID", productID)
+			s.log.Warnf("Product not found for update", "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get product before update", "error", err)
+		s.log.Errorf("Failed to get product before update", "error", err)
 		return nil, err
 	}
 
@@ -347,7 +347,7 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 
 	_, err = s.store.UpdateProduct(ctx, updateParams)
 	if err != nil {
-		s.log.Error("Failed to update product in repository", "error", err, "productID", productID)
+		s.log.Errorf("Failed to update product in repository", "error", err, "productID", productID)
 		return nil, err
 	}
 
@@ -370,27 +370,23 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*ProductResponse, error) {
 	var optionsResponse []ProductOptionResponse
 
-	// --- PERBAIKAN LOGIKA UNMARSHAL ---
 	if fullProduct.Options != nil {
-		// 1. Marshal kembali interface{} menjadi []byte JSON.
-		// Ini adalah cara andal untuk menangani hasil dari json_agg.
+
 		optionsJSON, err := json.Marshal(fullProduct.Options)
 		if err != nil {
-			s.log.Error("Failed to re-marshal product options interface", "error", err)
+			s.log.Errorf("Failed to re-marshal product options interface", "error", err)
 			return nil, fmt.Errorf("could not process product options")
 		}
 
-		// 2. Unmarshal []byte JSON tersebut ke dalam slice struct yang benar.
 		var options []repository.ProductOption
 		if err := json.Unmarshal(optionsJSON, &options); err != nil {
-			// Jika unmarshal gagal, mungkin karena datanya kosong ('[]')
+
 			if string(optionsJSON) != "[]" {
-				s.log.Error("Failed to unmarshal product options JSON", "error", err)
+				s.log.Errorf("Failed to unmarshal product options JSON", "error", err)
 				return nil, fmt.Errorf("could not parse product options")
 			}
 		}
 
-		// 3. Lakukan loop pada slice struct yang sudah benar.
 		for _, opt := range options {
 			additionalPrice := utils.NumericToFloat64(opt.AdditionalPrice)
 			optionsResponse = append(optionsResponse, ProductOptionResponse{
@@ -401,12 +397,10 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 			})
 		}
 	}
-	// --- AKHIR PERBAIKAN ---
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(optionsResponse)+1)
 
-	// Ambil URL untuk gambar produk utama
 	if fullProduct.ImageUrl != nil && *fullProduct.ImageUrl != "" {
 		wg.Add(1)
 		go func() {
@@ -420,9 +414,8 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 		}()
 	}
 
-	// Ambil URL untuk setiap gambar varian
 	for i := range optionsResponse {
-		// Gunakan variabel lokal di dalam loop untuk goroutine
+
 		opt := &optionsResponse[i]
 		if opt.ImageURL != nil && *opt.ImageURL != "" {
 			wg.Add(1)
@@ -507,11 +500,11 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 	wg.Wait()
 
 	if listErr != nil {
-		s.log.Error("Failed to list products from repository", "error", listErr)
+		s.log.Errorf("Failed to list products from repository", "error", listErr)
 		return nil, listErr
 	}
 	if countErr != nil {
-		s.log.Error("Failed to count products from repository", "error", countErr)
+		s.log.Errorf("Failed to count products from repository", "error", countErr)
 		return nil, countErr
 	}
 
@@ -561,7 +554,7 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		}
 		newProduct, err = qtx.CreateProduct(ctx, productParams)
 		if err != nil {
-			s.log.Error("Failed to create product in transaction", "error", err)
+			s.log.Errorf("Failed to create product in transaction", "error", err)
 			return err
 		}
 
@@ -578,7 +571,7 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 			}
 			createdOpt, err := qtx.CreateProductOption(ctx, optionParams)
 			if err != nil {
-				s.log.Error("Failed to create product option in transaction", "error", err)
+				s.log.Errorf("Failed to create product option in transaction", "error", err)
 				return err
 			}
 			createdOptions = append(createdOptions, createdOpt)
@@ -614,10 +607,10 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Product not found for image upload", "productID", productID)
+			s.log.Warnf("Product not found for image upload", "productID", productID)
 			return nil, common.ErrNotFound
 		}
-		s.log.Error("Failed to get product for image upload", "error", err)
+		s.log.Errorf("Failed to get product for image upload", "error", err)
 		return nil, err
 	}
 
@@ -630,7 +623,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 
 	imageUrl, err := s.prdRepo.UploadImageToMinio(ctx, filename, data)
 	if err != nil {
-		s.log.Error("Failed to upload image to Minio", "error", err)
+		s.log.Errorf("Failed to upload image to Minio", "error", err)
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 
@@ -640,7 +633,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	}
 	_, err = s.store.UpdateProduct(ctx, updateParams)
 	if err != nil {
-		s.log.Error("Failed to update product with image URL", "error", err)
+		s.log.Errorf("Failed to update product with image URL", "error", err)
 		return nil, fmt.Errorf("could not update product in database")
 	}
 
@@ -660,7 +653,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 
 	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
-		s.log.Error("Failed to fetch full product after image upload", "error", err)
+		s.log.Errorf("Failed to fetch full product after image upload", "error", err)
 		return nil, err
 	}
 

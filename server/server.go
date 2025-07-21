@@ -32,7 +32,7 @@ import (
 
 type App struct {
 	Config          *config.AppConfig
-	Logger          *logger.Logger
+	Logger          logger.ILogger
 	DB              database.IDatabase
 	FiberApp        *fiber.App
 	JWT             utils.Manager
@@ -188,7 +188,7 @@ func WaitForShutdown(app *App) {
 	}
 }
 
-func CustomErrorHandler(logger *logger.Logger) fiber.ErrorHandler {
+func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
 	return func(c *fiber.Ctx, err error) error {
 		logger.Errorf("Error 1: %v", err)
 

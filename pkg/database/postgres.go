@@ -19,10 +19,10 @@ type IDatabase interface {
 type postgresService struct {
 	DB     *pgxpool.Pool
 	Config *config.AppConfig
-	Log    *logger.Logger
+	Log    logger.ILogger
 }
 
-func NewDatabase(cfg *config.AppConfig, log *logger.Logger) (IDatabase, error) {
+func NewDatabase(cfg *config.AppConfig, log logger.ILogger) (IDatabase, error) {
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
@@ -49,7 +49,7 @@ func NewDatabase(cfg *config.AppConfig, log *logger.Logger) (IDatabase, error) {
 		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
 	}
 
-	log.Info("Successfully connected to PostgreSQL database")
+	log.Infof("Successfully connected to PostgreSQL database")
 
 	return &postgresService{
 		DB:     pool,

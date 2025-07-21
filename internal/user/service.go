@@ -26,7 +26,7 @@ type IUsrService interface {
 
 type UsrService struct {
 	repo           repository.Querier
-	log            *logger.Logger
+	log            logger.ILogger
 	activityLogger activitylog.Service
 	avatar         auth.IAthRepo
 }
@@ -36,17 +36,17 @@ func (s *UsrService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.log.Warn("User not found for deletion", "userID", userID)
+			s.log.Warnf("User not found for deletion", "userID", userID)
 			return common.ErrNotFound
 		default:
-			s.log.Error("Failed to delete user", "error", err, "userID", userID)
+			s.log.Errorf("Failed to delete user", "error", err, "userID", userID)
 			return err
 		}
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -62,7 +62,7 @@ func (s *UsrService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 		logDetails,
 	)
 
-	s.log.Info("User deleted successfully", "userID", userID)
+	s.log.Infof("User deleted successfully", "userID", userID)
 	return nil
 }
 
@@ -71,17 +71,17 @@ func (s *UsrService) ToggleUserStatus(ctx context.Context, userID uuid.UUID) err
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.log.Warn("User not found for status toggle", "userID", userID)
+			s.log.Warnf("User not found for status toggle", "userID", userID)
 			return common.ErrNotFound
 		default:
-			s.log.Error("Failed to toggle user status", "error", err, "userID", userID)
+			s.log.Errorf("Failed to toggle user status", "error", err, "userID", userID)
 			return err
 		}
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -97,14 +97,14 @@ func (s *UsrService) ToggleUserStatus(ctx context.Context, userID uuid.UUID) err
 		logDetails,
 	)
 
-	s.log.Info("User status toggled successfully", "userID", userID)
+	s.log.Infof("User status toggled successfully", "userID", userID)
 	return nil
 }
 
 func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req UpdateUserRequest) (*auth.ProfileResponse, error) {
 	existingUser, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		s.log.Error("Failed to get user by ID", "error", err, "userID", userID)
+		s.log.Errorf("Failed to get user by ID", "error", err, "userID", userID)
 		return nil, common.ErrNotFound
 	}
 
@@ -114,11 +114,11 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 			Username: *req.Username,
 		})
 		if err != nil {
-			s.log.Error("Failed to check username existence", "error", err)
+			s.log.Errorf("Failed to check username existence", "error", err)
 			return nil, err
 		}
 		if exists.UsernameExists {
-			s.log.Warn("Username already exists", "username", *req.Username)
+			s.log.Warnf("Username already exists", "username", *req.Username)
 			return nil, common.ErrUsernameExists
 		}
 		existingUser.Username = *req.Username
@@ -130,11 +130,11 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 			Username: existingUser.Username,
 		})
 		if err != nil {
-			s.log.Error("Failed to check email existence", "error", err)
+			s.log.Errorf("Failed to check email existence", "error", err)
 			return nil, err
 		}
 		if exists.EmailExists {
-			s.log.Warn("Email already exists", "email", *req.Email)
+			s.log.Warnf("Email already exists", "email", *req.Email)
 			return nil, common.ErrEmailExists
 		}
 		existingUser.Email = *req.Email
@@ -155,13 +155,13 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 		IsActive: &existingUser.IsActive,
 	})
 	if err != nil {
-		s.log.Error("Failed to update user", "error", err)
+		s.log.Errorf("Failed to update user", "error", err)
 		return nil, err
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -197,14 +197,14 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.ProfileResponse, error) {
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		s.log.Error("Failed to get user by ID", "error", err, "userID", userID)
+		s.log.Errorf("Failed to get user by ID", "error", err, "userID", userID)
 		return nil, common.ErrNotFound
 	}
 
 	if user.Avatar != nil && *user.Avatar != "" {
 		avatarURL, err := s.avatar.AvatarLink(ctx, user.ID, *user.Avatar)
 		if err != nil {
-			s.log.Error("Failed to get avatar link", "error", err, "userID", user.ID)
+			s.log.Errorf("Failed to get avatar link", "error", err, "userID", user.ID)
 			return nil, err
 		}
 		user.Avatar = &avatarURL
@@ -234,16 +234,16 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 	})
 	if err != nil {
 
-		s.log.Error("Failed to check user existence", "error", err)
+		s.log.Errorf("Failed to check user existence", "error", err)
 		return nil, err
 	}
 
 	if existence.EmailExists {
-		s.log.Warn("User with this email already exists", "email", req.Email)
+		s.log.Warnf("User with this email already exists", "email", req.Email)
 		return nil, common.ErrEmailExists
 	}
 	if existence.UsernameExists {
-		s.log.Warn("User with this username already exists", "username", req.Username)
+		s.log.Warnf("User with this username already exists", "username", req.Username)
 		return nil, common.ErrUsernameExists
 	}
 
@@ -259,13 +259,13 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 
 	userUUID, err := uuid.NewV7()
 	if err != nil {
-		s.log.Error("Failed to generate UUID for new user", "error", err)
+		s.log.Errorf("Failed to generate UUID for new user", "error", err)
 		return nil, err
 	}
 
 	passHash, err := utils.HashPassword(req.Password)
 	if err != nil {
-		s.log.Error("Failed to hash password", "error", err)
+		s.log.Errorf("Failed to hash password", "error", err)
 		return nil, err
 	}
 
@@ -278,13 +278,13 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 		IsActive:     isActive,
 	})
 	if err != nil {
-		s.log.Error("Failed to create user", "error", err)
+		s.log.Errorf("Failed to create user", "error", err)
 		return nil, err
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.log.Warn("Actor user ID not found in context for activity logging")
+		s.log.Warnf("Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -316,7 +316,7 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 	return &response, nil
 }
 
-func NewUsrService(repo repository.Querier, log *logger.Logger, actLog activitylog.Service, avatar auth.IAthRepo) IUsrService {
+func NewUsrService(repo repository.Querier, log logger.ILogger, actLog activitylog.Service, avatar auth.IAthRepo) IUsrService {
 	return &UsrService{
 		repo:           repo,
 		log:            log,
@@ -327,7 +327,7 @@ func NewUsrService(repo repository.Querier, log *logger.Logger, actLog activityl
 }
 
 func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersResponse, error) {
-	s.log.Info("Get all users 1", "req", req)
+	s.log.Infof("Get all users 1", "req", req)
 
 	orderBy := repository.UserOrderColumn("created_at")
 	if req.SortBy != nil {
@@ -346,7 +346,7 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		sortOrder = *req.SortOrder
 	}
 
-	s.log.Info("Get all users 2", "req", req)
+	s.log.Infof("Get all users 2", "req", req)
 
 	listParams := repository.ListUsersParams{
 		OrderBy:   orderBy,
@@ -365,15 +365,15 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 	}
 	listParams.IsActive = req.IsActive
 
-	s.log.Info("Get all users 3", "listParams", listParams)
+	s.log.Infof("Get all users 3", "listParams", listParams)
 
 	users, err := s.repo.ListUsers(ctx, listParams)
 	if err != nil {
-		s.log.Error("Failed to list users", "error", err)
+		s.log.Errorf("Failed to list users", "error", err)
 		return nil, err
 	}
 
-	s.log.Info("Get all users 4", "users", users)
+	s.log.Infof("Get all users 4", "users", users)
 
 	countParams := repository.CountUsersParams{
 		SearchText: listParams.SearchText,
@@ -381,15 +381,15 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		IsActive:   listParams.IsActive,
 	}
 
-	s.log.Info("Get all users 5", "countParams", countParams)
+	s.log.Infof("Get all users 5", "countParams", countParams)
 
 	totalFilteredUsers, err := s.repo.CountUsers(ctx, countParams)
 	if err != nil {
-		s.log.Error("Failed to count users", "error", err)
+		s.log.Errorf("Failed to count users", "error", err)
 		return nil, err
 	}
 
-	s.log.Info("Get all users 6", "totalFilteredUsers: ", totalFilteredUsers)
+	s.log.Infof("Get all users 6", "totalFilteredUsers: ", totalFilteredUsers)
 
 	response := UsersResponse{
 		Users: make([]auth.ProfileResponse, len(users)),
@@ -403,10 +403,10 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 
 	for i, u := range users {
 		if u.Avatar != nil && *u.Avatar != "" {
-			s.log.Info("Get all users 7", "userID", u.ID, "avatar", *u.Avatar)
+			s.log.Infof("Get all users 7", "userID", u.ID, "avatar", *u.Avatar)
 			avatarURL, err := s.avatar.AvatarLink(ctx, u.ID, *u.Avatar)
 			if err != nil {
-				s.log.Error("Failed to get avatar link", "error", err, "userID", u.ID)
+				s.log.Errorf("Failed to get avatar link", "error", err, "userID", u.ID)
 				// Biarkan u.Avatar sebagai nil jika terjadi error
 			} else {
 				u.Avatar = &avatarURL

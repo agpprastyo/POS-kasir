@@ -36,10 +36,10 @@ type OrderService struct {
 	store           repository.Store
 	midtransService payment.IMidtrans
 	activityService activitylog.Service
-	log             *logger.Logger
+	log             logger.ILogger
 }
 
-func NewOrderService(store repository.Store, midtransService payment.IMidtrans, activityService activitylog.Service, log *logger.Logger) IOrderService {
+func NewOrderService(store repository.Store, midtransService payment.IMidtrans, activityService activitylog.Service, log logger.ILogger) IOrderService {
 	return &OrderService{
 		store:           store,
 		midtransService: midtransService,

@@ -15,10 +15,10 @@ type Store interface {
 type SQLStore struct {
 	*Queries
 	db  *pgxpool.Pool
-	log *logger.Logger
+	log logger.ILogger
 }
 
-func NewStore(db *pgxpool.Pool, log *logger.Logger) Store {
+func NewStore(db *pgxpool.Pool, log logger.ILogger) Store {
 	return &SQLStore{
 		Queries: New(db),
 		db:      db,
@@ -34,7 +34,7 @@ func (store *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) erro
 	defer func(tx pgx.Tx, ctx context.Context) {
 		err := tx.Rollback(ctx)
 		if err != nil {
-			store.log.Error("Failed to rollback transaction", "error", err)
+			store.log.Errorf("Failed to rollback transaction", "error", err)
 		}
 	}(tx, ctx)
 

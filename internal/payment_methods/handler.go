@@ -12,10 +12,10 @@ type IPaymentMethodHandler interface {
 
 type PaymentMethodHandler struct {
 	service IPaymentMethodService
-	log     *logger.Logger
+	log     logger.ILogger
 }
 
-func NewPaymentMethodHandler(service IPaymentMethodService, log *logger.Logger) IPaymentMethodHandler {
+func NewPaymentMethodHandler(service IPaymentMethodService, log logger.ILogger) IPaymentMethodHandler {
 	return &PaymentMethodHandler{service: service, log: log}
 }
 

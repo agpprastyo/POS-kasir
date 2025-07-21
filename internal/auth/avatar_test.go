@@ -15,6 +15,7 @@ func TestUploadAvatar_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockMinio := mocks.NewMockIMinio(ctrl)
+
 	mockMinio.EXPECT().
 		UploadFile(gomock.Any(), "avatar.jpg", gomock.Any(), "image/jpeg").
 		Return("http://example.com/avatar.jpg", nil)

@@ -42,6 +42,16 @@ func NewAuthHandler(service IAuthService, log logger.ILogger, validator validato
 func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
+	// 1. MOVED TO TOP: Check for user_id from context first.
+	userUUID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		h.Log.Errorf("Failed to get userID from context")
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "No user ID in context",
+		})
+	}
+
+	// 2. Now it's safe to parse and validate the request.
 	var req UpdatePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -57,14 +67,7 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	userUUID, ok := c.Locals("user_id").(uuid.UUID)
-	if !ok {
-		h.Log.Errorf("Failed to get userID from context")
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "No user ID in context",
-		})
-	}
-
+	// 3. Call the service with the now-verified user ID.
 	err := h.Service.UpdatePassword(ctx, userUUID, req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{

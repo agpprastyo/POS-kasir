@@ -3,18 +3,17 @@ package auth
 import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/mocks"
-	mocksauth "POS-kasir/mocks/auth"
 	"POS-kasir/pkg/middleware"
 	"bytes"
-	"context"
 	"errors"
+	"go.uber.org/mock/gomock"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
 	"mime/multipart"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 type errorFile struct {
@@ -40,77 +39,93 @@ func (fh *errorFileHeader) Open() (multipart.File, error) {
 
 func TestUpdatePasswordHandler(t *testing.T) {
 	tests := []struct {
-		name       string
-		handler    *auth.AthHandler
-		setUserID  bool
-		body       []byte
+		name      string
+		setUserID bool
+		body      []byte
+		// Updated to accept the mocks for setup
+		setupMocks func(mockValidator *mocks.MockValidator, mockService *MockIAuthService)
 		wantStatus int
 	}{
 		{
-			name: "Success",
-			handler: &auth.AthHandler{
-				Service:   MockIAuthService{},
-				Log:       &mocks.MockILogger{},
-				Validator: &mocks.MockValidator{},
+			name:      "Success",
+			setUserID: true,
+			body:      []byte(`{"old_password":"old","new_password":"new"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				mockService.EXPECT().UpdatePassword(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
-			setUserID:  true,
-			body:       []byte(`{"old_password":"old","new_password":"new"}`),
 			wantStatus: fiber.StatusOK,
 		},
 		{
-			name: "BodyParseError",
-			handler: &auth.AthHandler{
-				Service:   mocksauth.MockIAuthService{},
-				Log:       &mocks.MockILogger{},
-				Validator: &mocks.MockValidator{},
+			name:      "BodyParseError",
+			setUserID: true,
+			body:      []byte(`{invalid json}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				// No calls expected, so the function is empty.
 			},
-			setUserID:  true,
-			body:       []byte(`{invalid json}`),
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name: "ValidationError",
-			handler: &auth.AthHandler{
-				Service:   mocksauth.MockIAuthService{},
-				Log:       &mocks.MockILogger{},
-				Validator: &mockValidator{validateErr: errors.New("validation failed")},
+			name:      "ValidationError",
+			setUserID: true,
+			body:      []byte(`{"old_password":"old","new_password":"new"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(errors.New("validation error"))
 			},
-			setUserID:  true,
-			body:       []byte(`{"old_password":"old","new_password":"new"}`),
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name: "UserIDMissing",
-			handler: &auth.AthHandler{
-				service:   mocksauth.MockIAuthService{},
-				log:       &mocks.MockILogger{},
-				validator: &mocks.MockValidator{},
+			name:      "UserIDMissing",
+			setUserID: false,
+			body:      []byte(`{"old_password":"old","new_password":"new"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				// No calls expected. The handler panics/errors before reaching validation or service.
 			},
-			setUserID:  false,
-			body:       []byte(`{"old_password":"old","new_password":"new"}`),
 			wantStatus: fiber.StatusInternalServerError,
 		},
 		{
-			name: "ServiceError",
-			handler: &auth.AthHandler{
-				service:   &mockAuthService{uploadErr: errors.New("update failed")},
-				log:       &mocks.MockILogger{},
-				validator: &mocks.MockValidator{},
+			name:      "ServiceError",
+			setUserID: true,
+			body:      []byte(`{"old_password":"old","new_password":"new"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				mockService.EXPECT().UpdatePassword(gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("service error"))
 			},
-			setUserID:  true,
-			body:       []byte(`{"old_password":"old","new_password":"new"}`),
 			wantStatus: fiber.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// **CORRECTION**: Mocks are now created inside the loop for isolation.
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockValidator := mocks.NewMockValidator(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			// Allow both Info and Errorf to be called any number of times
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			// Run the setup function for this specific test case.
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockValidator, mockService)
+			}
+
 			app := fiber.New()
+			handler := &AthHandler{
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: mockValidator,
+			}
+
 			app.Post("/update-password", func(c *fiber.Ctx) error {
 				if tt.setUserID {
 					c.Locals("user_id", uuid.New())
 				}
-				return tt.handler.UpdatePasswordHandler(c)
+				return handler.UpdatePasswordHandler(c)
 			})
 
 			req := httptest.NewRequest("POST", "/update-password", bytes.NewReader(tt.body))
@@ -127,48 +142,69 @@ func TestUpdatePasswordHandler(t *testing.T) {
 func TestLoginHandler(t *testing.T) {
 	tests := []struct {
 		name       string
-		service    *mockAuthService
-		validator  *mockValidator
 		body       []byte
+		setupMocks func(mockValidator *mocks.MockValidator, mockService *MockIAuthService)
 		wantStatus int
 	}{
 		{
-			name:       "Success",
-			service:    &mockAuthService{uploadResult: &LoginResponse{Token: "token123", ExpiredAt: time.Now().Add(time.Hour), Profile: ProfileResponse{}}},
-			validator:  &mocks.MockValidator{},
-			body:       []byte(`{"username":"user","password":"pass"}`),
+			name: "Success",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Return a nil pointer for the struct and a nil error.
+				mockService.EXPECT().Login(gomock.Any(), gomock.Any()).Return(&LoginResponse{}, nil)
+			},
 			wantStatus: fiber.StatusOK,
 		},
 		{
-			name:       "BodyParseError",
-			service:    mocksauth.MockIAuthService{},
-			validator:  &mocks.MockValidator{},
-			body:       []byte(`{invalid json}`),
+			name: "BodyParseError",
+			body: []byte(`{invalid json}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				// No calls expected
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name:       "ValidationError",
-			service:    mocksauth.MockIAuthService{},
-			validator:  &mockValidator{validateErr: errors.New("validation failed")},
-			body:       []byte(`{"username":"user","password":"pass"}`),
+			name: "ValidationError",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(errors.New("validation error"))
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name:       "ServiceError",
-			service:    &mockAuthService{uploadErr: errors.New("login failed")},
-			validator:  &mocks.MockValidator{},
-			body:       []byte(`{"username":"user","password":"pass"}`),
+			name: "ServiceError",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Return a nil pointer for the struct and the error.
+				mockService.EXPECT().Login(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockValidator := mocks.NewMockValidator(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockValidator, mockService)
+			}
+
 			app := fiber.New()
 			handler := &AthHandler{
-				service:   tt.service,
-				log:       &mocks.MockILogger{},
-				validator: tt.validator,
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: mockValidator,
 			}
 			app.Post("/login", handler.LoginHandler)
 
@@ -186,36 +222,54 @@ func TestProfileHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		setUserID  bool
-		service    *mockAuthService
+		setupMocks func(mockService *MockIAuthService)
 		wantStatus int
 	}{
 		{
-			name:       "Success",
-			setUserID:  true,
-			service:    &mockAuthService{uploadResult: new(string)},
+			name:      "Success",
+			setUserID: true,
+			setupMocks: func(mockService *MockIAuthService) {
+				// Assuming Profile returns a response struct and nil error
+				mockService.EXPECT().Profile(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+			},
 			wantStatus: fiber.StatusOK,
 		},
 		{
 			name:       "UserIDMissing",
 			setUserID:  false,
-			service:    &mockAuthService{uploadResult: new(string)},
+			setupMocks: nil, // No service call expected
 			wantStatus: fiber.StatusInternalServerError,
 		},
 		{
-			name:       "ServiceError",
-			setUserID:  true,
-			service:    &mockAuthService{uploadErr: errors.New("profile error")},
+			name:      "ServiceError",
+			setUserID: true,
+			setupMocks: func(mockService *MockIAuthService) {
+				mockService.EXPECT().Profile(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockService)
+			}
+
 			app := fiber.New()
 			handler := &AthHandler{
-				service:   tt.service,
-				log:       &mocks.MockILogger{},
-				validator: &mocks.MockValidator{},
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: nil, // Validator is not used in ProfileHandler
 			}
 			app.Get("/profile", func(c *fiber.Ctx) error {
 				if tt.setUserID {
@@ -249,8 +303,8 @@ func TestLogoutHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := fiber.New()
 			handler := &AthHandler{
-				log:       &mocks.MockILogger{},
-				validator: &mocks.MockValidator{},
+				Log:       &mocks.MockILogger{},
+				Validator: &mocks.MockValidator{},
 			}
 			app.Post("/logout", handler.LogoutHandler)
 
@@ -281,47 +335,68 @@ func TestRegisterHandler(t *testing.T) {
 	tests := []struct {
 		name       string
 		body       []byte
-		validator  *mockValidator
-		service    *mockAuthService
+		setupMocks func(mockValidator *mocks.MockValidator, mockService *MockIAuthService)
 		wantStatus int
 	}{
 		{
-			name:       "Success",
-			body:       []byte(`{"username":"user","password":"pass"}`),
-			validator:  &mocks.MockValidator{},
-			service:    mocksauth.MockIAuthService{},
+			name: "Success",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Return a *ProfileResponse as indicated by the error message.
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+			},
 			wantStatus: fiber.StatusOK,
 		},
 		{
-			name:       "BodyParseError",
-			body:       []byte(`{invalid json}`),
-			validator:  &mocks.MockValidator{},
-			service:    mocksauth.MockIAuthService{},
+			name: "BodyParseError",
+			body: []byte(`{invalid json}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				// No calls to mocks are expected
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name:       "ValidationError",
-			body:       []byte(`{"username":"user","password":"pass"}`),
-			validator:  &mockValidator{validateErr: errors.New("validation failed")},
-			service:    mocksauth.MockIAuthService{},
+			name: "ValidationError",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(errors.New("validation error"))
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			name:       "ServiceError",
-			body:       []byte(`{"username":"user","password":"pass"}`),
-			validator:  &mocks.MockValidator{},
-			service:    &mockAuthService{uploadErr: errors.New("register failed")},
+			name: "ServiceError",
+			body: []byte(`{"username":"user","password":"pass"}`),
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Return a nil *ProfileResponse and the error.
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
 			wantStatus: fiber.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockValidator := mocks.NewMockValidator(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockValidator, mockService)
+			}
+
 			app := fiber.New()
 			handler := &AthHandler{
-				service:   tt.service,
-				log:       &mocks.MockILogger{},
-				validator: tt.validator,
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: mockValidator,
 			}
 			app.Post("/register", handler.RegisterHandler)
 
@@ -337,84 +412,93 @@ func TestRegisterHandler(t *testing.T) {
 }
 
 func TestAddUserHandler(t *testing.T) {
+	middleware.RoleLevel = map[repository.UserRole]int{
+		repository.UserRole("admin"):   2,
+		repository.UserRole("cashier"): 1,
+	}
+
 	tests := []struct {
 		name        string
 		body        []byte
 		currentRole interface{}
-		reqRole     string
-		validator   *mockValidator
-		service     *mockAuthService
+		setupMocks  func(mockValidator *mocks.MockValidator, mockService *MockIAuthService)
 		wantStatus  int
 	}{
 		{
 			name:        "Success",
 			body:        []byte(`{"username":"user","password":"pass","role":"cashier"}`),
 			currentRole: repository.UserRole("admin"),
-			reqRole:     "cashier",
-			validator:   &mocks.MockValidator{},
-			service:     mocksauth.MockIAuthService{},
-			wantStatus:  fiber.StatusOK,
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Assuming AddUser also returns a *ProfileResponse.
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+			},
+			wantStatus: fiber.StatusOK,
 		},
 		{
 			name:        "BodyParseError",
 			body:        []byte(`{invalid json}`),
 			currentRole: repository.UserRole("admin"),
-			reqRole:     "cashier",
-			validator:   &mocks.MockValidator{},
-			service:     mocksauth.MockIAuthService{},
+			setupMocks:  nil,
 			wantStatus:  fiber.StatusBadRequest,
 		},
 		{
 			name:        "InvalidCurrentUserRole",
 			body:        []byte(`{"username":"user","password":"pass","role":"cashier"}`),
 			currentRole: "not_a_role",
-			reqRole:     "cashier",
-			validator:   &mocks.MockValidator{},
-			service:     mocksauth.MockIAuthService{},
+			setupMocks:  nil,
 			wantStatus:  fiber.StatusForbidden,
 		},
 		{
 			name:        "AssignEqualOrHigherRole",
 			body:        []byte(`{"username":"user","password":"pass","role":"admin"}`),
 			currentRole: repository.UserRole("admin"),
-			reqRole:     "admin",
-			validator:   &mocks.MockValidator{},
-			service:     mocksauth.MockIAuthService{},
+			setupMocks:  nil,
 			wantStatus:  fiber.StatusForbidden,
 		},
 		{
 			name:        "ValidationError",
 			body:        []byte(`{"username":"user","password":"pass","role":"cashier"}`),
 			currentRole: repository.UserRole("admin"),
-			reqRole:     "cashier",
-			validator:   &mockValidator{validateErr: errors.New("validation failed")},
-			service:     mocksauth.MockIAuthService{},
-			wantStatus:  fiber.StatusBadRequest,
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(errors.New("validation error"))
+			},
+			wantStatus: fiber.StatusBadRequest,
 		},
 		{
 			name:        "ServiceError",
 			body:        []byte(`{"username":"user","password":"pass","role":"cashier"}`),
 			currentRole: repository.UserRole("admin"),
-			reqRole:     "cashier",
-			validator:   &mocks.MockValidator{},
-			service:     &mockAuthService{uploadErr: errors.New("register failed")},
-			wantStatus:  fiber.StatusBadRequest,
+			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
+				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
+				// CORRECTED: Return a nil *ProfileResponse and the error.
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
+			wantStatus: fiber.StatusBadRequest,
 		},
-	}
-
-	// Setup role levels for test
-	middleware.RoleLevel = map[repository.UserRole]int{
-		repository.UserRole("admin"):   2,
-		repository.UserRole("cashier"): 1,
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockValidator := mocks.NewMockValidator(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockValidator, mockService)
+			}
+
 			app := fiber.New()
 			handler := &AthHandler{
-				service:   tt.service,
-				log:       &mocks.MockILogger{},
-				validator: tt.validator,
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: mockValidator,
 			}
 			app.Post("/add-user", func(c *fiber.Ctx) error {
 				c.Locals("role", tt.currentRole)
@@ -437,7 +521,7 @@ func TestUpdateAvatarHandler(t *testing.T) {
 		name       string
 		setUserID  bool
 		createForm func() (*bytes.Buffer, string)
-		service    *mockAuthService
+		setupMocks func(mockService *MockIAuthService)
 		wantStatus int
 	}{
 		{
@@ -451,7 +535,10 @@ func TestUpdateAvatarHandler(t *testing.T) {
 				writer.Close()
 				return body, writer.FormDataContentType()
 			},
-			service:    &mockAuthService{uploadResult: "avatar_url"},
+			setupMocks: func(mockService *MockIAuthService) {
+				// CORRECTED: Return a *ProfileResponse and a nil error.
+				mockService.EXPECT().UploadAvatar(gomock.Any(), gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+			},
 			wantStatus: fiber.StatusOK,
 		},
 		{
@@ -460,32 +547,25 @@ func TestUpdateAvatarHandler(t *testing.T) {
 			createForm: func() (*bytes.Buffer, string) {
 				body := &bytes.Buffer{}
 				writer := multipart.NewWriter(body)
-				part, _ := writer.CreateFormFile("avatar", "avatar.jpg")
-				part.Write([]byte("avatar data"))
 				writer.Close()
 				return body, writer.FormDataContentType()
 			},
-			service:    mocksauth.MockIAuthService{},
+			setupMocks: nil, // No service call expected
 			wantStatus: fiber.StatusInternalServerError,
 		},
 		{
 			name:      "NoAvatarFile",
 			setUserID: true,
 			createForm: func() (*bytes.Buffer, string) {
-				// Create a multipart form but without the "avatar" file part
 				body := &bytes.Buffer{}
 				writer := multipart.NewWriter(body)
-				writer.Close() // Close it immediately
+				writer.Close()
 				return body, writer.FormDataContentType()
 			},
-			service:    mocksauth.MockIAuthService{},
+			setupMocks: nil, // No service call expected
 			wantStatus: fiber.StatusBadRequest,
 		},
 		{
-			// Note: Testing for file open/read errors is complex with httptest
-			// as it requires a malformed request at a very low level.
-			// The handler's error handling for `c.FormFile` already covers this.
-			// A simple "NoAvatarFile" test is often sufficient to check the error path.
 			name:      "ServiceError",
 			setUserID: true,
 			createForm: func() (*bytes.Buffer, string) {
@@ -496,18 +576,34 @@ func TestUpdateAvatarHandler(t *testing.T) {
 				writer.Close()
 				return body, writer.FormDataContentType()
 			},
-			service:    &mockAuthService{uploadErr: errors.New("upload failed")},
+			setupMocks: func(mockService *MockIAuthService) {
+				// CORRECTED: Return a nil *ProfileResponse and the error.
+				mockService.EXPECT().UploadAvatar(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
 			wantStatus: fiber.StatusInternalServerError,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := NewMockIAuthService(ctrl)
+			mockLogger := mocks.NewMockILogger(ctrl)
+			mockLogger.EXPECT().Info(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).AnyTimes()
+			mockLogger.EXPECT().Error(gomock.Any(), gomock.Any()).AnyTimes()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockService)
+			}
+
 			app := fiber.New()
 			handler := &AthHandler{
-				service:   tt.service,
-				log:       &mocks.MockILogger{},
-				validator: &mocks.MockValidator{},
+				Service:   mockService,
+				Log:       mockLogger,
+				Validator: nil,
 			}
 			app.Post("/avatar", func(c *fiber.Ctx) error {
 				if tt.setUserID {

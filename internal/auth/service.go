@@ -23,10 +23,10 @@ type AthService struct {
 	Log            logger.ILogger
 	Token          utils.Manager
 	AvatarRepo     IAthRepo
-	ActivityLogger activitylog.Service
+	ActivityLogger activitylog.IActivityService
 }
 
-func NewAuthService(repo repository.Store, log logger.ILogger, tokenManager utils.Manager, avaRepo IAthRepo, actLog activitylog.Service) IAuthService {
+func NewAuthService(repo repository.Store, log logger.ILogger, tokenManager utils.Manager, avaRepo IAthRepo, actLog activitylog.IActivityService) IAuthService {
 	return &AthService{
 		Repo:           repo,
 		Log:            log,
@@ -36,7 +36,7 @@ func NewAuthService(repo repository.Store, log logger.ILogger, tokenManager util
 	}
 }
 
-// IAuthService defines authentication Service methods.
+// IAuthService defines authentication IActivityService methods.
 type IAuthService interface {
 	Login(ctx context.Context, req LoginRequest) (*LoginResponse, error)
 	Register(ctx context.Context, req RegisterRequest) (*ProfileResponse, error)
@@ -55,7 +55,7 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 		// Fetch avatar URL if it exists
 		avatarURL, err := s.AvatarRepo.AvatarLink(ctx, user.ID, *user.Avatar)
 		if err != nil {
-			s.Log.Errorf("User Service | Failed to get avatar link: %v", err)
+			s.Log.Errorf("User IActivityService | Failed to get avatar link: %v", err)
 			return nil, fmt.Errorf("failed to get avatar link: %w", err)
 		}
 		user.Avatar = &avatarURL
@@ -82,18 +82,18 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error {
 	user, err := s.Repo.GetUserByID(ctx, userID)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to find user by ID: %v", userID)
+		s.Log.Errorf("User IActivityService | Failed to find user by ID: %v", userID)
 		return common.ErrNotFound
 	}
 
 	if !utils.CheckPassword(user.PasswordHash, req.OldPassword) {
-		s.Log.Errorf("User Service | Incorrect old password for user: %v", userID)
+		s.Log.Errorf("User IActivityService | Incorrect old password for user: %v", userID)
 		return common.ErrInvalidCredentials
 	}
 
 	newPassHash, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to hash new password: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to hash new password: %v", err)
 		return err
 	}
 
@@ -103,7 +103,7 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 	}
 
 	if err := s.Repo.UpdateUserPassword(ctx, params); err != nil {
-		s.Log.Errorf("User Service | Failed to update user password: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to update user password: %v", err)
 		return fmt.Errorf("failed to update password in database")
 	}
 
@@ -128,7 +128,7 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 		logDetails,
 	)
 
-	s.Log.Infof("User Service | Password updated successfully for user: %v", user.Username)
+	s.Log.Infof("User IActivityService | Password updated successfully for user: %v", user.Username)
 	return nil
 }
 
@@ -183,11 +183,11 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 	}
 	profile, err := s.Repo.UpdateUser(ctx, params)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to update user avatar: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to update user avatar: %v", err)
 		return nil, fmt.Errorf("failed to update avatar in database")
 	}
 
-	s.Log.Infof("User Service | profile updated successfully: %v", profile.Username)
+	s.Log.Infof("User IActivityService | profile updated successfully: %v", profile.Username)
 
 	// Log activity
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
@@ -273,13 +273,13 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 
 	userUUID, err := uuid.NewV7()
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to create user UUID: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to create user UUID: %v", err)
 		return nil, err
 	}
 
 	passHash, err := utils.HashPassword(req.Password)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to hash password: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to hash password: %v", err)
 		return nil, err
 	}
 
@@ -294,7 +294,7 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 
 	user, err := s.Repo.CreateUser(ctx, params)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to create user: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to create user: %v", err)
 		return nil, err
 	}
 
@@ -336,10 +336,10 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.Log.Errorf("User Service | Failed to find user by email 1: %v", req.Email)
+			s.Log.Errorf("User IActivityService | Failed to find user by email 1: %v", req.Email)
 			return nil, common.ErrNotFound
 		default:
-			s.Log.Errorf("User Service | Failed to find user by email 2: %v", req.Email)
+			s.Log.Errorf("User IActivityService | Failed to find user by email 2: %v", req.Email)
 			return nil, common.ErrInvalidCredentials
 		}
 	}
@@ -352,7 +352,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	pass := utils.CheckPassword(user.PasswordHash, req.Password)
 	if !pass {
-		s.Log.Errorf("User Service | Failed to find user by email: %v", req.Email)
+		s.Log.Errorf("User IActivityService | Failed to find user by email: %v", req.Email)
 		s.ActivityLogger.Log(
 			ctx,
 			user.ID,
@@ -366,7 +366,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	token, expiredAt, err := s.Token.GenerateToken(user.Username, user.Email, user.ID, user.Role)
 	if err != nil {
-		s.Log.Errorf("User Service | Failed to generate Token: %v", err)
+		s.Log.Errorf("User IActivityService | Failed to generate Token: %v", err)
 		s.ActivityLogger.Log(
 			ctx,
 			user.ID,

@@ -35,11 +35,11 @@ type IOrderService interface {
 type OrderService struct {
 	store           repository.Store
 	midtransService payment.IMidtrans
-	activityService activitylog.Service
+	activityService activitylog.IActivityService
 	log             logger.ILogger
 }
 
-func NewOrderService(store repository.Store, midtransService payment.IMidtrans, activityService activitylog.Service, log logger.ILogger) IOrderService {
+func NewOrderService(store repository.Store, midtransService payment.IMidtrans, activityService activitylog.IActivityService, log logger.ILogger) IOrderService {
 	return &OrderService{
 		store:           store,
 		midtransService: midtransService,

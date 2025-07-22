@@ -27,7 +27,7 @@ type IUsrService interface {
 type UsrService struct {
 	repo           repository.Querier
 	log            logger.ILogger
-	activityLogger activitylog.Service
+	activityLogger activitylog.IActivityService
 	avatar         auth.IAthRepo
 }
 
@@ -316,7 +316,7 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 	return &response, nil
 }
 
-func NewUsrService(repo repository.Querier, log logger.ILogger, actLog activitylog.Service, avatar auth.IAthRepo) IUsrService {
+func NewUsrService(repo repository.Querier, log logger.ILogger, actLog activitylog.IActivityService, avatar auth.IAthRepo) IUsrService {
 	return &UsrService{
 		repo:           repo,
 		log:            log,

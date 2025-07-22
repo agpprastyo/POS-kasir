@@ -14,6 +14,18 @@ type AthRepo struct {
 	minio minio.IMinio
 }
 
+func NewAuthRepo(log logger.ILogger, minio minio.IMinio) IAthRepo {
+	return &AthRepo{
+		log:   log,
+		minio: minio,
+	}
+}
+
+type IAthRepo interface {
+	UploadAvatar(ctx context.Context, filename string, data []byte) (string, error)
+	AvatarLink(ctx context.Context, userID uuid.UUID, avatar string) (string, error)
+}
+
 func (r *AthRepo) UploadAvatar(ctx context.Context, filename string, data []byte) (string, error) {
 	url, err := r.minio.UploadFile(ctx, filename, data, "image/jpeg")
 	if err != nil {
@@ -34,16 +46,4 @@ func (r *AthRepo) AvatarLink(ctx context.Context, userID uuid.UUID, avatar strin
 		return "", fmt.Errorf("failed to get avatar link: %w", err)
 	}
 	return url, nil
-}
-
-func NewAuthRepo(log logger.ILogger, minio minio.IMinio) IAthRepo {
-	return &AthRepo{
-		log:   log,
-		minio: minio,
-	}
-}
-
-type IAthRepo interface {
-	UploadAvatar(ctx context.Context, filename string, data []byte) (string, error)
-	AvatarLink(ctx context.Context, userID uuid.UUID, avatar string) (string, error)
 }

@@ -33,10 +33,10 @@ type PrdService struct {
 	log             logger.ILogger
 	store           repository.Store
 	prdRepo         IPrdRepo
-	activityService activitylog.Service
+	activityService activitylog.IActivityService
 }
 
-func NewPrdService(store repository.Store, log logger.ILogger, prdRepo IPrdRepo, activityService activitylog.Service) IPrdService {
+func NewPrdService(store repository.Store, log logger.ILogger, prdRepo IPrdRepo, activityService activitylog.IActivityService) IPrdService {
 	return &PrdService{
 		store:           store,
 		log:             log,

@@ -95,8 +95,8 @@ func InitApp() *App {
 }
 
 func BuildAppContainer(app *App) *AppContainer {
-	// Activity Log Service
-	activityService := activitylog.NewService(app.Store, app.Logger)
+	// Activity Log IActivityService
+	activityService := activitylog.NewActivityService(app.Store, app.Logger)
 
 	// Auth Module
 	authRepo := auth.NewAuthRepo(app.Logger, app.Minio)

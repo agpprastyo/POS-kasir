@@ -1,5 +1,3 @@
-// file: internal/activitylog/service.go
-
 package activitylog
 
 import (
@@ -11,23 +9,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Service interface {
+type IActivityService interface {
 	Log(ctx context.Context, userID uuid.UUID, action repository.LogActionType, entityType repository.LogEntityType, entityID string, details map[string]interface{})
 }
 
-type service struct {
-	repo repository.Querier
+type ActivityService struct {
+	repo repository.Store
 	log  logger.ILogger
 }
 
-func NewService(repo repository.Querier, log logger.ILogger) Service {
-	return &service{
+func NewActivityService(repo repository.Store, log logger.ILogger) IActivityService {
+	return &ActivityService{
 		repo: repo,
 		log:  log,
 	}
 }
 
-func (s *service) Log(ctx context.Context, userID uuid.UUID, action repository.LogActionType, entityType repository.LogEntityType, entityID string, details map[string]interface{}) {
+func (s *ActivityService) Log(ctx context.Context, userID uuid.UUID, action repository.LogActionType, entityType repository.LogEntityType, entityID string, details map[string]interface{}) {
 	var detailsJSON []byte
 	var err error
 

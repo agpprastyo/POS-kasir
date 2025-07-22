@@ -15,7 +15,23 @@ import (
 type CtgService struct {
 	repo            repository.Querier
 	log             logger.ILogger
-	activityService activitylog.Service
+	activityService activitylog.IActivityService
+}
+
+type ICtgService interface {
+	GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error)
+	CreateCategory(ctx context.Context, req CreateCategoryRequest) (CategoryResponse, error)
+	GetCategoryByID(ctx context.Context, id string) (*CategoryResponse, error)
+	UpdateCategory(ctx context.Context, id string, req CreateCategoryRequest) (*CategoryResponse, error)
+	DeleteCategory(ctx context.Context, id string) error
+}
+
+func NewCtgService(repo repository.Querier, log logger.ILogger, activityService activitylog.IActivityService) ICtgService {
+	return &CtgService{
+		repo:            repo,
+		log:             log,
+		activityService: activityService,
+	}
 }
 
 func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {
@@ -216,20 +232,4 @@ func (s *CtgService) GetAllCategories(ctx context.Context, req ListCategoryReque
 	}
 
 	return response, nil
-}
-
-type ICtgService interface {
-	GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error)
-	CreateCategory(ctx context.Context, req CreateCategoryRequest) (CategoryResponse, error)
-	GetCategoryByID(ctx context.Context, id string) (*CategoryResponse, error)
-	UpdateCategory(ctx context.Context, id string, req CreateCategoryRequest) (*CategoryResponse, error)
-	DeleteCategory(ctx context.Context, id string) error
-}
-
-func NewCtgService(repo repository.Querier, log logger.ILogger, activityService activitylog.Service) ICtgService {
-	return &CtgService{
-		repo:            repo,
-		log:             log,
-		activityService: activityService,
-	}
 }

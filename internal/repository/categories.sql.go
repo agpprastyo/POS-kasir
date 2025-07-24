@@ -7,6 +7,8 @@ package repository
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countCategories = `-- name: CountCategories :one
@@ -126,6 +128,55 @@ func (q *Queries) ListCategories(ctx context.Context, arg ListCategoriesParams) 
 			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCategoriesWithProducts = `-- name: ListCategoriesWithProducts :many
+SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(p.id) AS product_count
+FROM categories c
+LEFT JOIN products p ON c.id = p.category_id
+GROUP BY c.id
+ORDER BY c.name ASC
+LIMIT $1 OFFSET $2
+`
+
+type ListCategoriesWithProductsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ListCategoriesWithProductsRow struct {
+	ID           int32              `json:"id"`
+	Name         string             `json:"name"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ProductCount int64              `json:"product_count"`
+}
+
+// Mengambil daftar kategori beserta jumlah produk yang ada di setiap kategori.
+func (q *Queries) ListCategoriesWithProducts(ctx context.Context, arg ListCategoriesWithProductsParams) ([]ListCategoriesWithProductsRow, error) {
+	rows, err := q.db.Query(ctx, listCategoriesWithProducts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCategoriesWithProductsRow{}
+	for rows.Next() {
+		var i ListCategoriesWithProductsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ProductCount,
 		); err != nil {
 			return nil, err
 		}

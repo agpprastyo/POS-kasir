@@ -27,10 +27,10 @@ type UpdateProductRequest struct {
 }
 
 type ListProductsRequest struct {
-	Page       *int    `form:"page"`
-	Limit      *int    `form:"limit"`
-	CategoryID *int32  `form:"category_id"`
-	Search     *string `form:"search"`
+	Page       *int    `form:"page" validate:"omitempty,gte=1"`
+	Limit      *int    `form:"limit" validate:"omitempty,gte=1,lte=100"`
+	CategoryID *int32  `form:"category_id" json:"category_id" query:"category_id"  validate:"omitempty,gt=0"`
+	Search     *string `form:"search" validate:"omitempty,min=1,max=100"`
 }
 
 type CreateProductOptionRequestStandalone struct {

@@ -480,6 +480,8 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		SearchText: req.Search,
 	}
 
+	s.log.Infof("list params list product: %+v", listParams)
+
 	var wg sync.WaitGroup
 	var products []repository.ListProductsRow
 	var totalData int64
@@ -511,6 +513,16 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 	var productsResponse []ProductListResponse
 	for _, p := range products {
 		price := utils.NumericToFloat64(p.Price)
+		if p.ImageUrl != nil && *p.ImageUrl != "" {
+			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
+			if err != nil {
+				s.log.Warnf("Failed to get public URL for product image", "error", err)
+				imageUrl = *p.ImageUrl // Tetap gunakan URL asli jika gagal
+			}
+			p.ImageUrl = &imageUrl
+		} else {
+			p.ImageUrl = nil // Setel ke nil jika tidak ada URL
+		}
 		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,

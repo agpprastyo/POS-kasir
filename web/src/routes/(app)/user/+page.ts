@@ -1,4 +1,4 @@
-import { getUsers } from '$lib/api/pengguna';
+import { getUsers } from '$lib/api/user';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ url, fetch: eventFetch, parent }) => {

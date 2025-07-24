@@ -18,6 +18,16 @@ FROM categories
 ORDER BY name ASC
 LIMIT $1 OFFSET $2;
 
+-- name: ListCategoriesWithProducts :many
+-- Mengambil daftar kategori beserta jumlah produk yang ada di setiap kategori.
+SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(p.id) AS product_count
+FROM categories c
+LEFT JOIN products p ON c.id = p.category_id
+GROUP BY c.id
+ORDER BY c.name ASC
+LIMIT $1 OFFSET $2;
+
+
 -- name: UpdateCategory :one
 -- Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
 UPDATE categories

@@ -243,7 +243,6 @@ WHERE
         )
   AND ($4::user_role IS NULL OR role = $4)
   AND ($5::bool IS NULL OR is_active = $5)
-  -- Klausa WHERE dinamis untuk status soft delete
   AND (
     CASE
         WHEN $6::text = 'deleted' THEN deleted_at IS NOT NULL
@@ -252,7 +251,6 @@ WHERE
         END
     )
 ORDER BY
-    -- Klausa ORDER BY tidak berubah
     CASE WHEN $7::user_order_column = 'username' AND $8::sort_order = 'asc'  THEN username END ASC,
     CASE WHEN $7::user_order_column = 'username' AND $8::sort_order = 'desc' THEN username END DESC,
     CASE WHEN $7::user_order_column = 'email' AND $8::sort_order = 'asc' THEN email END ASC,

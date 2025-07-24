@@ -29,6 +29,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Delete("/users/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.UserHandler.DeleteUserHandler)
 
 	api.Get("/categories", authMiddleware, container.CategoryHandler.GetAllCategoriesHandler)
+	// want get al categories with count of products in each category
+	api.Get("/categories/count", authMiddleware, container.CategoryHandler.GetCategoryCountHandler)
 	api.Post("/categories", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.CategoryHandler.CreateCategoryHandler)
 	api.Get("/categories/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.CategoryHandler.GetCategoryByIDHandler)
 	api.Put("/categories/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.CategoryHandler.UpdateCategoryHandler)

@@ -24,6 +24,7 @@ type ICtgService interface {
 	GetCategoryByID(ctx context.Context, id string) (*CategoryResponse, error)
 	UpdateCategory(ctx context.Context, id string, req CreateCategoryRequest) (*CategoryResponse, error)
 	DeleteCategory(ctx context.Context, id string) error
+	GetCategoryWithProductCount(ctx context.Context) (*[]CategoryWithCountResponse, error)
 }
 
 func NewCtgService(repo repository.Querier, log logger.ILogger, activityService activitylog.IActivityService) ICtgService {
@@ -32,6 +33,36 @@ func NewCtgService(repo repository.Querier, log logger.ILogger, activityService 
 		log:             log,
 		activityService: activityService,
 	}
+}
+
+func (s *CtgService) GetCategoryWithProductCount(ctx context.Context) (*[]CategoryWithCountResponse, error) {
+	params := repository.ListCategoriesWithProductsParams{
+		Limit:  10,
+		Offset: 0,
+	}
+
+	categories, err := s.repo.ListCategoriesWithProducts(ctx, params)
+	if err != nil {
+		s.log.Errorf("Failed to get categories", "error", err)
+		return nil, err
+	}
+	var response []CategoryWithCountResponse
+	for _, category := range categories {
+		response = append(response, CategoryWithCountResponse{
+			ID:           category.ID,
+			Name:         category.Name,
+			ProductCount: int32(category.ProductCount),
+			CreatedAt:    category.CreatedAt.Time,
+			UpdatedAt:    category.UpdatedAt.Time,
+		})
+	}
+
+	if len(response) == 0 {
+		s.log.Warnf("No categories found")
+		return nil, common.ErrCategoryNotFound
+	}
+
+	return &response, nil
 }
 
 func (s *CtgService) DeleteCategory(ctx context.Context, id string) error {

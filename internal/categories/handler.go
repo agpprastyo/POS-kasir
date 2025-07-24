@@ -171,8 +171,26 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	})
 }
 
+func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
+	ctx := c.Context()
+	count, err := h.service.GetCategoryWithProductCount(ctx)
+	if err != nil {
+		h.log.Errorf("Failed to get category count", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to retrieve category count",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Category count retrieved successfully",
+		Data:    count,
+	})
+
+}
+
 type ICtgHandler interface {
 	GetAllCategoriesHandler(c *fiber.Ctx) error
+	GetCategoryCountHandler(c *fiber.Ctx) error
 	CreateCategoryHandler(c *fiber.Ctx) error
 	GetCategoryByIDHandler(c *fiber.Ctx) error
 	UpdateCategoryHandler(c *fiber.Ctx) error

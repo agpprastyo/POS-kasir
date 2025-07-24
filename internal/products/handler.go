@@ -45,7 +45,7 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
-		h.log.Warnf("Invalid product ID format", "error", err, "product_id", productIDStr)
+		h.log.Warnf("invalid product ID format", "error", err, "product_id", productIDStr)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 	optionIDStr := ctx.Params("option_id")
@@ -308,6 +308,16 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 			Message: "Invalid query parameters",
 		})
 	}
+
+	if err := h.validate.Validate(req); err != nil {
+		h.log.Warn("List products request validation failed", "error", err)
+		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Validation failed",
+			Error:   err.Error(),
+		})
+	}
+
+	// parse manual
 
 	listResponse, err := h.prdService.ListProducts(ctx.Context(), req)
 	if err != nil {

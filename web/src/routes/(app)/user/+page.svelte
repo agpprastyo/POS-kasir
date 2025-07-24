@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { userProfile } from '$lib/stores';
-	import { createUser } from '$lib/api/pengguna';
+	import { createUser } from '$lib/api/user';
 	import type { CreateUserRequest } from '$lib/types';
 
 	export let data: PageData;
@@ -172,7 +172,7 @@
 							{formatDate(user.created_at)}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-							<a href="/pengguna/{user.id}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+							<a href="/user/{user.id}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
 						</td>
 					</tr>
 				{/each}

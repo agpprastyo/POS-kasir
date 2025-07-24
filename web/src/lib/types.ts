@@ -1,7 +1,4 @@
-export type ErrorResponse = {
-	message: string;
-	errors?: Record<string, string[]>;
-}
+
 export type Profile = {
 	id: string;
 	username: string;
@@ -53,4 +50,91 @@ export type CreateUserRequest = {
 	password: string;
 	role: 'admin' | 'manager' | 'cashier';
 	is_active: boolean;
+};
+
+// Tipe untuk data yang dikirim saat memperbarui pengguna
+export type UpdateUserRequest = {
+	username: string;
+	email: string;
+	role: 'admin' | 'manager' | 'cashier';
+};
+
+
+// Tipe untuk data kategori (tetap berguna untuk filter)
+export type Category = {
+	id: number;
+	name: string;
+};
+
+// Tipe untuk opsi produk
+export type ProductOption = {
+	id?: string; // Opsional saat membuat
+	name: string;
+	additional_price: number;
+	image_url?: string; // Opsional
+};
+
+// **DIPERBARUI:** Tipe untuk data produk
+export type Product = {
+	id: string;
+	name: string;
+	category_id: number;
+	category_name: string;
+	price: number;
+	stock: number;
+	sku?: string;
+	image?: string | null;
+	image_url?: string | null; // Dari respons upload
+	created_at?: string;
+	updated_at?: string;
+	options?: ProductOption[];
+};
+
+// Tipe untuk query parameter saat mengambil daftar produk
+export type ProductQueryParams = {
+	page?: number;
+	limit?: number;
+	search?: string;
+	category_id?: number | string;
+};
+
+// Tipe untuk respons lengkap dari API produk
+export type ProductsApiResponse = {
+	products: Product[];
+	pagination: PaginationInfo;
+};
+
+// Tipe untuk data yang dikirim saat membuat opsi produk
+export type CreateProductOption = {
+	name: string;
+	additional_price: number;
+};
+
+// Tipe untuk data yang dikirim saat membuat produk baru
+export type CreateProductRequest = {
+	name: string;
+	category_id: number;
+	price: number;
+	stock: number;
+	options?: CreateProductOption[];
+};
+
+export type ErrorResponse = {
+	message: string;
+	error:   null | string;
+}
+
+
+// Tipe untuk data yang dikirim saat memperbarui produk utama
+export type UpdateProductRequest = {
+	name: string;
+	category_id: number;
+	price: number;
+	stock: number;
+};
+
+// Tipe untuk data yang dikirim saat memperbarui opsi produk
+export type UpdateProductOptionRequest = {
+	name: string;
+	additional_price: number;
 };

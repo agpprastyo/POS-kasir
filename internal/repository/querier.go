@@ -109,6 +109,8 @@ type Querier interface {
 	ListCancellationReasons(ctx context.Context) ([]CancellationReason, error)
 	// Mengambil daftar semua kategori dengan pagination.
 	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
+	// Mengambil daftar kategori beserta jumlah produk yang ada di setiap kategori.
+	ListCategoriesWithProducts(ctx context.Context, arg ListCategoriesWithProductsParams) ([]ListCategoriesWithProductsRow, error)
 	// Retrieves all options for a single product.
 	ListOptionsForProduct(ctx context.Context, productID uuid.UUID) ([]ProductOption, error)
 	// Mengambil daftar pesanan dengan filter dan pagination.

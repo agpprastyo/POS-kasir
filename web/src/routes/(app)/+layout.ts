@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import type { LayoutLoad } from '../../.svelte-kit/types/src/routes';
+import type {  LayoutLoad } from './$types';
 import { userProfile } from '$lib/stores';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 

@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from '../../../../.svelte-kit/types/src/routes';
+import type { Actions, PageServerLoad } from './$types';
+
 import type { CookieSerializeOptions } from 'cookie';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 

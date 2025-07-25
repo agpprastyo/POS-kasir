@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { userProfile } from '$lib/stores';
 	import { updateAvatar, updatePassword } from '$lib/api/pengaturan';
+	import CropperCanvas from '$lib/components/CropperCanvas.svelte';
+
+
+	let cropperRef: any;
+
+
 
 	let oldPassword = '';
 	let newPassword = '';
@@ -21,26 +27,24 @@
 	}
 
 	async function handleAvatarUpdate() {
-		const cropperCanvas = document.querySelector('cropper-canvas') as any;
-		if (!cropperCanvas) {
-			avatarMessage = { type: 'error', text: 'Silakan pilih dan crop gambar terlebih dahulu.' };
+		if (!cropperRef || typeof cropperRef.toBlob !== 'function') {
+			avatarMessage = { type: 'error', text: 'Please select and crop an image first.' };
 			return;
 		}
 		isAvatarLoading = true;
 		avatarMessage = { type: '', text: '' };
 
 		try {
-			// Get cropped image as Blob
-			const blob: Blob = await cropperCanvas.$toBlob({ type: 'image/png', quality: 1 });
+			const blob = await cropperRef.toBlob();
 			const file = new File([blob], 'avatar.png', { type: 'image/png' });
 			const result = await updateAvatar(file);
 
 			userProfile.set(result.data);
-			avatarMessage = { type: 'success', text: 'Avatar berhasil diperbarui!' };
+			avatarMessage = { type: 'success', text: 'Avatar updated successfully!' };
 			avatarPreview = null;
 			(document.getElementById('avatar-form') as HTMLFormElement).reset();
 		} catch (error) {
-			avatarMessage = { type: 'error', text: error instanceof Error ? error.message : 'Terjadi kesalahan.' };
+			avatarMessage = { type: 'error', text: error instanceof Error ? error.message : 'An error occurred.' };
 		} finally {
 			isAvatarLoading = false;
 		}
@@ -67,6 +71,7 @@
 		}
 	}
 </script>
+
 
 <div class="container mx-auto max-w-4xl space-y-8">
 	<h1 class="text-3xl font-bold text-gray-800">Pengaturan Akun</h1>
@@ -101,6 +106,7 @@
 					{avatarMessage.text}
 				</div>
 			{/if}
+			<CropperCanvas bind:this={cropperRef} src={avatarPreview} />
 			<div class="mb-4">
 				<label for="avatar" class="mb-2 block text-sm font-medium text-gray-700">Pilih Gambar Baru (JPG/PNG)</label>
 				<input

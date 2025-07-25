@@ -138,3 +138,18 @@ export type UpdateProductOptionRequest = {
 	name: string;
 	additional_price: number;
 };
+
+// Tipe untuk data kategori dengan jumlah produk
+export type CategoryWithCount = {
+	id: number;
+	name: string;
+	product_count: number;
+	created_at: string;
+	updated_at: string;
+};
+
+// Tipe untuk data yang dikirim saat membuat atau memperbarui kategori
+export type CategoryRequest = {
+	name: string;
+};
+

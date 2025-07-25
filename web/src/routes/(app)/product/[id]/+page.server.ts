@@ -1,6 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { getProductById, getCategories, updateProduct, updateProductOption, uploadProductImage, uploadProductOptionImage } from '$lib/api/product';
+import {
+	getProductById,
+	getCategories,
+	updateProduct,
+	updateProductOption,
+	uploadProductImage,
+	uploadProductOptionImage,
+	createProductOption, deleteProductOption
+} from '$lib/api/product';
 
 export const load: PageServerLoad = async (event) => {
 	const { params, fetch: eventFetch, parent } = event;
@@ -56,17 +64,17 @@ export const actions: Actions = {
 		}
 	},
 
-	updateMainImage: async ({ request, params, fetch: eventFetch }) => {
+	updateMainImage: async ({ request, params, fetch }) => {
 		const formData = await request.formData();
 		const image = formData.get('image') as File;
 
 		if (!image || image.size === 0) {
-			return fail(400, { type: 'mainImage', error: 'Silakan pilih file gambar.' });
+			return fail(400, { type: 'mainImage', error: 'Silakan pilih gambar.' });
 		}
 
 		try {
-			await uploadProductImage(params.id, image, eventFetch);
-			return { success: true, message: 'Gambar produk utama berhasil diunggah.' };
+			await uploadProductImage(params.id, image, fetch);
+			return { success: true, message: 'Gambar berhasil diunggah.' };
 		} catch (error: any) {
 			return fail(400, { type: 'mainImage', error: error.message });
 		}
@@ -87,5 +95,36 @@ export const actions: Actions = {
 		} catch (error: any) {
 			return fail(400, { type: 'optionImage', optionId, error: error.message });
 		}
-	}
+	},
+
+	createOption: async ({ request, params, fetch: eventFetch }) => {
+		const formData = await request.formData();
+		const optionData = {
+			name: formData.get('name') as string,
+			additional_price: Number(formData.get('additional_price')),
+		};
+
+		if (!optionData.name) {
+			return fail(400, { type: 'createOption', error: 'Nama opsi harus diisi.' });
+		}
+
+		try {
+			await createProductOption(params.id, optionData, eventFetch);
+			return { success: true, message: 'Opsi baru berhasil ditambahkan.' };
+		} catch (error: any) {
+			return fail(400, { type: 'createOption', error: error.message });
+		}
+	},
+
+	deleteOption: async ({ request, params, fetch: eventFetch }) => {
+		const formData = await request.formData();
+		const optionId = formData.get('optionId') as string;
+
+		try {
+			await deleteProductOption(params.id, optionId, eventFetch);
+			return { success: true, message: 'Opsi berhasil dihapus.' };
+		} catch (error: any) {
+			return fail(400, { type: 'deleteOption', optionId, error: error.message });
+		}
+	},
 };

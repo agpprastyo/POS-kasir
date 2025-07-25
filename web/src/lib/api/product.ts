@@ -76,15 +76,15 @@ export async function createProduct(productData: CreateProductRequest): Promise<
  * Mengunggah gambar untuk produk utama.
  * @param {string} productId - ID produk.
  * @param {File} imageFile - File gambar.
- * @returns {Promise<{ data: Product }>} - Data produk yang sudah diperbarui dengan URL gambar.
+ * @param {typeof fetch} [customFetch=fetch] - Instance fetch opsional.
+ * @returns {Promise<{ data: Product }>} - Data produk yang sudah diperbarui.
  */
-export async function uploadProductImage(productId: string, imageFile: File): Promise<{ data: Product }> {
+export async function uploadProductImage(productId: string, imageFile: File, customFetch: typeof fetch = fetch): Promise<{ data: Product }> {
 	const formData = new FormData();
 	formData.append('image', imageFile);
 
-	const response = await fetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/image`, {
+	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/image`, {
 		method: 'POST',
-		credentials: 'include',
 		body: formData,
 	});
 	return handleResponse(response);
@@ -95,15 +95,15 @@ export async function uploadProductImage(productId: string, imageFile: File): Pr
  * @param {string} productId - ID produk.
  * @param {string} optionId - ID opsi produk.
  * @param {File} imageFile - File gambar.
+ * @param {typeof fetch} [customFetch=fetch] - Instance fetch opsional.
  * @returns {Promise<{ data: ProductOption }>} - Data opsi produk yang sudah diperbarui.
  */
-export async function uploadProductOptionImage(productId: string, optionId: string, imageFile: File): Promise<{ data: ProductOption }> {
+export async function uploadProductOptionImage(productId: string, optionId: string, imageFile: File, customFetch: typeof fetch = fetch): Promise<{ data: ProductOption }> {
 	const formData = new FormData();
 	formData.append('image', imageFile);
 
-	const response = await fetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/options/${optionId}/image`, {
+	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/options/${optionId}/image`, {
 		method: 'POST',
-		credentials: 'include',
 		body: formData,
 	});
 	return handleResponse(response);
@@ -149,6 +149,40 @@ export async function updateProductOption(productId: string, optionId: string, o
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(optionData),
+	});
+	return handleResponse(response);
+}
+
+
+
+
+
+
+/**
+ * Membuat opsi produk baru.
+ * @param {string} productId - ID produk.
+ * @param {UpdateProductOptionRequest} optionData - Data opsi baru.
+ * @param {typeof fetch} customFetch - Instance fetch dari SvelteKit.
+ * @returns {Promise<{ data: ProductOption }>} - Data opsi yang baru dibuat.
+ */
+export async function createProductOption(productId: string, optionData: UpdateProductOptionRequest, customFetch: typeof fetch): Promise<{ data: ProductOption }> {
+	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/options`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(optionData),
+	});
+	return handleResponse(response);
+}
+
+/**
+ * Menghapus opsi produk.
+ * @param {string} productId - ID produk.
+ * @param {string} optionId - ID opsi yang akan dihapus.
+ * @param {typeof fetch} customFetch - Instance fetch dari SvelteKit.
+ */
+export async function deleteProductOption(productId: string, optionId: string, customFetch: typeof fetch): Promise<any> {
+	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/products/${productId}/options/${optionId}`, {
+		method: 'DELETE',
 	});
 	return handleResponse(response);
 }

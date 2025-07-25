@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { createProduct, uploadProductImage, uploadProductOptionImage } from '$lib/api/product';
-	import type { CreateProductRequest, Product } from '$lib/types';
+	import type { CreateProductRequest } from '$lib/types';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	export let data: PageData;

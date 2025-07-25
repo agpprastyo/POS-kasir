@@ -38,6 +38,14 @@
 		"vite-plugin-devtools-json": "^0.2.0"
 	},
 	"dependencies": {
-		"cropperjs": "^2.0.0"
+		"@svelteuidev/composables": "^0.15.7",
+		"@svelteuidev/core": "^0.15.7",
+		"@svelteuidev/dates": "^0.15.7",
+		"@svelteuidev/motion": "^0.15.7",
+		"@svelteuidev/preprocessors": "^0.15.7",
+		"@svelteuidev/prism": "^0.15.7",
+		"cropperjs": "^1.6.2",
+		"dayjs": "^1.11.13",
+		"svelte-easy-crop": "^4.0.1"
 	}
 }

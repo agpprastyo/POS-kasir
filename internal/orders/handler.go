@@ -37,6 +37,8 @@ func NewOrderHandler(orderService IOrderService, log logger.ILogger, validate va
 	}
 }
 
+// ListProductOptionsHandler is a placeholder for listing product options
+
 func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 	// 1. Ambil ID pesanan dari parameter URL
 	orderIDStr := c.Params("id")

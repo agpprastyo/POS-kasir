@@ -36,8 +36,6 @@ type Querier interface {
 	CreateCancellationReason(ctx context.Context, arg CreateCancellationReasonParams) (CancellationReason, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
-	// Membuat header pesanan baru dengan status 'open'.
-	// Total akan dihitung dan diperbarui dalam langkah selanjutnya.
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	// Menambahkan satu item produk ke dalam pesanan.
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
@@ -60,6 +58,8 @@ type Querier interface {
 	DeleteCategory(ctx context.Context, id int32) error
 	// Menghapus satu item dari pesanan.
 	DeleteOrderItem(ctx context.Context, arg DeleteOrderItemParams) error
+	DeleteOrderItemOptionsByOrderItemID(ctx context.Context, orderItemID uuid.UUID) error
+	DeleteOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) error
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 	// Mengubah DELETE menjadi UPDATE untuk soft delete.
@@ -85,8 +85,12 @@ type Querier interface {
 	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
 	// Mengambil satu metode pembayaran berdasarkan nama untuk pengecekan duplikat.
 	GetPaymentMethodByName(ctx context.Context, name string) (PaymentMethod, error)
+	// Retrieves a product by its ID, including its options.
+	GetProductByID(ctx context.Context, id uuid.UUID) (GetProductByIDRow, error)
 	// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
+	// Retrieves a product option by its ID, including its product details.
+	GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
 	// This is an efficient way to fetch a product and its variants in one query.
 	// Now filters out soft-deleted options.

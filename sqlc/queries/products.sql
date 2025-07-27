@@ -133,3 +133,42 @@ SELECT * FROM product_options
 WHERE id = $1 AND product_id = $2
 LIMIT 1;
 
+-- name: GetProductOptionByID :one
+-- Retrieves a product option by its ID, including its product details.
+SELECT
+    po.*,
+    p.name AS product_name,
+    p.category_id AS product_category_id,
+    p.image_url AS product_image_url,
+    p.price AS product_price,
+    p.stock AS product_stock
+FROM
+    product_options po
+        JOIN
+    products p ON po.product_id = p.id
+WHERE
+    po.id = $1
+  AND po.deleted_at IS NULL -- <-- TAMBAHAN DI SINI
+  AND p.deleted_at IS NULL -- <-- TAMBAHAN DI SINI
+ORDER BY
+    po.name ASC
+LIMIT 1;
+
+
+-- name: GetProductByID :one
+-- Retrieves a product by its ID, including its options.
+SELECT
+    p.*,
+    COALESCE(
+            (SELECT json_agg(po.*)
+             FROM product_options po
+             WHERE po.product_id = p.id AND po.deleted_at IS NULL), -- <-- TAMBAHAN DI SINI
+            '[]'::json
+    ) AS options
+FROM
+    products p
+WHERE
+    p.id = $1
+  AND p.deleted_at IS NULL
+LIMIT 1;
+

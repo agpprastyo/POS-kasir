@@ -102,8 +102,8 @@ func (q *Queries) CountOrders(ctx context.Context, arg CountOrdersParams) (int64
 }
 
 const createOrder = `-- name: CreateOrder :one
-INSERT INTO orders (user_id, type)
-VALUES ($1, $2)
+INSERT INTO orders (user_id, type )
+VALUES ($1, $2 )
 RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
 `
 
@@ -112,8 +112,6 @@ type CreateOrderParams struct {
 	Type   OrderType   `json:"type"`
 }
 
-// Membuat header pesanan baru dengan status 'open'.
-// Total akan dihitung dan diperbarui dalam langkah selanjutnya.
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
 	row := q.db.QueryRow(ctx, createOrder, arg.UserID, arg.Type)
 	var i Order
@@ -255,6 +253,24 @@ type DeleteOrderItemParams struct {
 // Menghapus satu item dari pesanan.
 func (q *Queries) DeleteOrderItem(ctx context.Context, arg DeleteOrderItemParams) error {
 	_, err := q.db.Exec(ctx, deleteOrderItem, arg.ID, arg.OrderID)
+	return err
+}
+
+const deleteOrderItemOptionsByOrderItemID = `-- name: DeleteOrderItemOptionsByOrderItemID :exec
+DELETE FROM order_item_options WHERE order_item_id = $1
+`
+
+func (q *Queries) DeleteOrderItemOptionsByOrderItemID(ctx context.Context, orderItemID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOrderItemOptionsByOrderItemID, orderItemID)
+	return err
+}
+
+const deleteOrderItemsByOrderID = `-- name: DeleteOrderItemsByOrderID :exec
+DELETE FROM order_items WHERE order_id = $1
+`
+
+func (q *Queries) DeleteOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOrderItemsByOrderID, orderID)
 	return err
 }
 

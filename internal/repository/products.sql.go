@@ -133,6 +133,55 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getProductByID = `-- name: GetProductByID :one
+SELECT
+    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
+    COALESCE(
+            (SELECT json_agg(po.*)
+             FROM product_options po
+             WHERE po.product_id = p.id AND po.deleted_at IS NULL), -- <-- TAMBAHAN DI SINI
+            '[]'::json
+    ) AS options
+FROM
+    products p
+WHERE
+    p.id = $1
+  AND p.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetProductByIDRow struct {
+	ID         uuid.UUID          `json:"id"`
+	Name       string             `json:"name"`
+	CategoryID *int32             `json:"category_id"`
+	ImageUrl   *string            `json:"image_url"`
+	Price      pgtype.Numeric     `json:"price"`
+	Stock      int32              `json:"stock"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	Options    interface{}        `json:"options"`
+}
+
+// Retrieves a product by its ID, including its options.
+func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (GetProductByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProductByID, id)
+	var i GetProductByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CategoryID,
+		&i.ImageUrl,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Options,
+	)
+	return i, err
+}
+
 const getProductOption = `-- name: GetProductOption :one
 SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
 WHERE id = $1 AND product_id = $2
@@ -157,6 +206,65 @@ func (q *Queries) GetProductOption(ctx context.Context, arg GetProductOptionPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getProductOptionByID = `-- name: GetProductOptionByID :one
+SELECT
+    po.id, po.product_id, po.name, po.additional_price, po.image_url, po.created_at, po.updated_at, po.deleted_at,
+    p.name AS product_name,
+    p.category_id AS product_category_id,
+    p.image_url AS product_image_url,
+    p.price AS product_price,
+    p.stock AS product_stock
+FROM
+    product_options po
+        JOIN
+    products p ON po.product_id = p.id
+WHERE
+    po.id = $1
+  AND po.deleted_at IS NULL -- <-- TAMBAHAN DI SINI
+  AND p.deleted_at IS NULL -- <-- TAMBAHAN DI SINI
+ORDER BY
+    po.name ASC
+LIMIT 1
+`
+
+type GetProductOptionByIDRow struct {
+	ID                uuid.UUID          `json:"id"`
+	ProductID         uuid.UUID          `json:"product_id"`
+	Name              string             `json:"name"`
+	AdditionalPrice   pgtype.Numeric     `json:"additional_price"`
+	ImageUrl          *string            `json:"image_url"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
+	ProductName       string             `json:"product_name"`
+	ProductCategoryID *int32             `json:"product_category_id"`
+	ProductImageUrl   *string            `json:"product_image_url"`
+	ProductPrice      pgtype.Numeric     `json:"product_price"`
+	ProductStock      int32              `json:"product_stock"`
+}
+
+// Retrieves a product option by its ID, including its product details.
+func (q *Queries) GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProductOptionByID, id)
+	var i GetProductOptionByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.Name,
+		&i.AdditionalPrice,
+		&i.ImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ProductName,
+		&i.ProductCategoryID,
+		&i.ProductImageUrl,
+		&i.ProductPrice,
+		&i.ProductStock,
 	)
 	return i, err
 }

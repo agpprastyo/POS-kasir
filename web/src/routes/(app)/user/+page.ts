@@ -1,8 +1,14 @@
 import { getUsers } from '$lib/api/user';
 import type { PageLoad } from './$types';
+import { error } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ url, fetch: eventFetch, parent }) => {
-	await parent();
+	const { profile } = await parent();
+
+
+	if (profile.role !== 'admin') {
+		throw error(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+	}
 
 	const page = Number(url.searchParams.get('page')) || 1;
 	const limit = Number(url.searchParams.get('limit')) || 10;

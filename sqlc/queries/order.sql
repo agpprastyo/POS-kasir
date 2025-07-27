@@ -1,9 +1,11 @@
 -- name: CreateOrder :one
--- Membuat header pesanan baru dengan status 'open'.
--- Total akan dihitung dan diperbarui dalam langkah selanjutnya.
-INSERT INTO orders (user_id, type)
-VALUES ($1, $2)
+INSERT INTO orders (user_id, type )
+VALUES ($1, $2 )
 RETURNING *;
+
+-- name: DeleteOrderItemsByOrderID :exec
+DELETE FROM order_items WHERE order_id = $1;
+
 
 -- name: CreateOrderItem :one
 -- Menambahkan satu item produk ke dalam pesanan.
@@ -190,3 +192,7 @@ UPDATE orders
 SET status = $2
 WHERE id = $1
 RETURNING *;
+
+-- name: DeleteOrderItemOptionsByOrderItemID :exec
+DELETE FROM order_item_options WHERE order_item_id = $1;
+

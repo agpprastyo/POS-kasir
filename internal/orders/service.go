@@ -48,7 +48,6 @@ func NewOrderService(store repository.Store, midtransService payment.IMidtrans, 
 	}
 }
 
-// Definisikan state machine untuk transisi status yang valid.
 var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderStatus]bool{
 	repository.OrderStatusPaid: {
 		repository.OrderStatusInProgress: true,
@@ -279,88 +278,104 @@ func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.U
 
 func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error) {
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
-		// 1. Ambil dan kunci pesanan
 		order, err := qtx.GetOrderForUpdate(ctx, orderID)
 		if err != nil {
-			// ... handle not found
+			if errors.Is(err, pgx.ErrNoRows) {
+				return common.ErrNotFound
+			}
 			return err
 		}
 		if order.Status != repository.OrderStatusOpen {
+			s.log.Warn("Attempted to update items for an order with invalid status", "orderID", orderID, "status", order.Status)
 			return common.ErrOrderNotModifiable
 		}
 
-		// 2. Lakukan iterasi pada setiap aksi
-		for _, req := range reqs {
-			switch req.Action {
-			case "delete":
-				if req.ID == nil {
-					return fmt.Errorf("item id is required for delete action")
-				}
-				// Ambil item untuk tahu kuantitasnya
-				itemToDelete, err := qtx.GetOrderItem(ctx, repository.GetOrderItemParams{ID: *req.ID, OrderID: orderID})
-				if err != nil {
-					return err
-				}
-				// Hapus item
-				if err := qtx.DeleteOrderItem(ctx, repository.DeleteOrderItemParams{ID: *req.ID, OrderID: orderID}); err != nil {
-					return err
-				}
-				// Kembalikan stok
-				if _, err := qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: itemToDelete.ProductID, Stock: itemToDelete.Quantity}); err != nil {
-					return err
-				}
-
-			case "update":
-				if req.ID == nil || req.Quantity == nil {
-					return fmt.Errorf("item id and quantity are required for update action")
-				}
-				// Ambil item lama
-				itemToUpdate, err := qtx.GetOrderItem(ctx, repository.GetOrderItemParams{ID: *req.ID, OrderID: orderID})
-				if err != nil {
-					return err
-				}
-				// Hitung selisih stok
-				stockDifference := itemToUpdate.Quantity - *req.Quantity
-				// Update kuantitas dan subtotal
-				newPrice := utils.NumericToFloat64(itemToUpdate.PriceAtSale)
-				newSubtotal, _ := utils.Float64ToNumeric(newPrice * float64(*req.Quantity))
-				if _, err := qtx.UpdateOrderItemQuantity(ctx, repository.UpdateOrderItemQuantityParams{
-					ID: *req.ID, OrderID: orderID, Quantity: *req.Quantity, Subtotal: newSubtotal, NetSubtotal: newSubtotal,
-				}); err != nil {
-					return err
-				}
-				// Sesuaikan stok (bisa positif atau negatif)
-				if _, err := qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: itemToUpdate.ProductID, Stock: stockDifference}); err != nil {
-					return err
-				}
-
-			case "create":
-				if req.ProductID == nil || req.Quantity == nil {
-					return fmt.Errorf("product_id and quantity are required for create action")
-				}
-				// Logika ini mirip dengan yang ada di CreateOrder
-				// Ambil produk, validasi stok, buat order_item, kurangi stok
-				// ...
+		existingItems, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			s.log.Error("Failed to get existing order items", "error", err, "orderID", orderID)
+			return err
+		}
+		for _, item := range existingItems {
+			_ = qtx.DeleteOrderItemOptionsByOrderItemID(ctx, item.ID)
+			_, _ = qtx.AddProductStock(ctx, repository.AddProductStockParams{
+				ID:    item.ProductID,
+				Stock: item.Quantity,
+			})
+			if err := qtx.DeleteOrderItem(ctx, repository.DeleteOrderItemParams{
+				ID:      item.ID,
+				OrderID: orderID,
+			}); err != nil {
+				s.log.Error("Failed to delete existing order item", "error", err, "itemID", item.ID)
+				return fmt.Errorf("failed to delete existing item %s: %w", item.ID, err)
 			}
 		}
 
-		// 3. Hitung ulang total keseluruhan pesanan
-		// Ambil semua item yang ada sekarang
-		finalItems, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
+		var grossTotal float64
+		for _, req := range reqs {
+			// Assuming UpdateOrderItemRequest has: ID, ProductID, Quantity, PriceAtSale, Options
+			if req.Quantity <= 0 {
+				return fmt.Errorf("quantity must be greater than zero for product %s", req.ProductID)
+			}
+			product, err := qtx.GetProductByID(ctx, req.ProductID)
+			if err != nil {
+				return fmt.Errorf("product not found: %w", err)
+			}
+			itemPrice := utils.NumericToFloat64(product.Price)
+			for _, opt := range req.Options {
+				option, err := qtx.GetProductOptionByID(ctx, opt.ProductOptionID)
+				if err != nil {
+					return fmt.Errorf("option not found: %w", err)
+				}
+				itemPrice += utils.NumericToFloat64(option.AdditionalPrice)
+			}
+			subtotal := itemPrice * float64(req.Quantity)
+			grossTotal += subtotal
+
+			priceAtSale, _ := utils.Float64ToNumeric(itemPrice)
+			subtotalNumeric, _ := utils.Float64ToNumeric(subtotal)
+			item, err := qtx.CreateOrderItem(ctx, repository.CreateOrderItemParams{
+				OrderID:     orderID,
+				ProductID:   req.ProductID,
+				Quantity:    req.Quantity,
+				PriceAtSale: priceAtSale,
+				Subtotal:    subtotalNumeric,
+				NetSubtotal: subtotalNumeric,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to create item: %w", err)
+			}
+			for _, opt := range req.Options {
+				option, err := qtx.GetProductOptionByID(ctx, opt.ProductOptionID)
+				if err != nil {
+					return fmt.Errorf("option not found: %w", err)
+				}
+				priceAtSaleOpt, _ := utils.Float64ToNumeric(utils.NumericToFloat64(option.AdditionalPrice))
+				_, err = qtx.CreateOrderItemOption(ctx, repository.CreateOrderItemOptionParams{
+					OrderItemID:     item.ID,
+					ProductOptionID: opt.ProductOptionID,
+					PriceAtSale:     priceAtSaleOpt,
+				})
+				if err != nil {
+					return fmt.Errorf("failed to create item option: %w", err)
+				}
+			}
+			_, err = qtx.DecreaseProductStock(ctx, repository.DecreaseProductStockParams{
+				ID:    req.ProductID,
+				Stock: req.Quantity,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to decrease stock: %w", err)
+			}
+		}
+
+		grossTotalNumeric, _ := utils.Float64ToNumeric(grossTotal)
+		_, err = qtx.UpdateOrderTotals(ctx, repository.UpdateOrderTotalsParams{
+			ID:         orderID,
+			GrossTotal: grossTotalNumeric,
+			NetTotal:   grossTotalNumeric,
+		})
 		if err != nil {
-			return err
-		}
-		// Lakukan loop dan jumlahkan semua `net_subtotal`
-		var newGrossTotal float64 = 0
-		for _, item := range finalItems {
-			newGrossTotal += utils.NumericToFloat64(item.NetSubtotal)
-		}
-		// Update header pesanan
-		grossTotalNumeric, _ := utils.Float64ToNumeric(newGrossTotal)
-		if _, err := qtx.UpdateOrderTotals(ctx, repository.UpdateOrderTotalsParams{
-			ID: orderID, GrossTotal: grossTotalNumeric, NetTotal: grossTotalNumeric,
-		}); err != nil {
-			return err
+			return fmt.Errorf("failed to update order totals: %w", err)
 		}
 
 		return nil
@@ -370,10 +385,8 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 		return nil, txErr
 	}
 
-	// 4. Ambil data pesanan yang sudah final dan kembalikan
 	return s.GetOrder(ctx, orderID)
 }
-
 func (s *OrderService) buildOrderDetailResponse(order repository.Order, items []repository.OrderItem, itemOptions map[uuid.UUID][]repository.OrderItemOption) *dto.OrderDetailResponse {
 	var itemResponses []dto.OrderItemResponse
 	for _, item := range items {
@@ -631,7 +644,6 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
 		s.log.Warn("Actor user ID not found in context for order creation")
-
 	}
 
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
@@ -698,7 +710,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 			grossTotal += subtotal
 
 			priceAtSale, _ := utils.Float64ToNumeric(itemPrice)
+			s.log.Infof("priceAtSale for product %s: %.2f", product.Name, itemPrice)
 			subtotalNumeric, _ := utils.Float64ToNumeric(subtotal)
+			s.log.Infof("subtotal for product %s: %.2f", product.Name, subtotalNumeric)
 
 			createdItem, err := qtx.CreateOrderItem(ctx, repository.CreateOrderItemParams{
 				OrderID:     newOrder.ID,
@@ -762,7 +776,13 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 		map[string]interface{}{"total": newOrder.NetTotal, "items_count": len(createdItems)},
 	)
 
-	return s.buildOrderDetailResponse(newOrder, createdItems, createdItemOptions), nil
+	fullOrder, err := s.store.GetOrderWithDetails(ctx, newOrder.ID)
+	if err != nil {
+		s.log.Error("Failed to retrieve full order details after creation", "error", err, "orderID", newOrder.ID)
+		return nil, fmt.Errorf("failed to retrieve full order details after creation: %w", err)
+	}
+
+	return s.buildOrderDetailResponseFromQueryResult(fullOrder)
 }
 func (s *OrderService) GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.OrderDetailResponse, error) {
 

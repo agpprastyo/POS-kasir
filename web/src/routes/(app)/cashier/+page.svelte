@@ -1,0 +1,3 @@
+<div>
+	cashier page
+</div>

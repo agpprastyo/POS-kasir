@@ -6,7 +6,7 @@ import (
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/middleware"
 	"POS-kasir/pkg/validator"
-	"fmt"
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"io"
@@ -42,16 +42,14 @@ func NewAuthHandler(service IAuthService, log logger.ILogger, validator validato
 func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	// 1. MOVED TO TOP: Check for user_id from context first.
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.Log.Errorf("Failed to get userID from context")
+		h.Log.Errorf("UpdatePasswordHandler | Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
 		})
 	}
 
-	// 2. Now it's safe to parse and validate the request.
 	var req UpdatePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -67,13 +65,23 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	// 3. Call the service with the now-verified user ID.
 	err := h.Service.UpdatePassword(ctx, userUUID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Failed to update password",
-			Error:   err.Error(),
-		})
+		switch {
+		case errors.Is(err, common.ErrInvalidCredentials):
+			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
+				Message: "Invalid current password",
+			})
+		case errors.Is(err, common.ErrNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "User not found",
+			})
+		default:
+			h.Log.Errorf("Auth Handler | Failed to update password: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to update password",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -101,10 +109,21 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 
 	resp, err := h.Service.Login(ctx, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Error:   err.Error(),
-			Message: "Failed to login",
-		})
+		switch {
+		case errors.Is(err, common.ErrNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "User not found",
+			})
+		case errors.Is(err, common.ErrInvalidCredentials):
+			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
+				Message: "Invalid username or password",
+			})
+		default:
+			h.Log.Errorf("LoginHandler | Failed to login: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to login",
+			})
+		}
 	}
 
 	c.Cookie(&fiber.Cookie{
@@ -124,7 +143,6 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 			"profile": resp.Profile,
 		},
 	})
-
 }
 
 func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
@@ -155,9 +173,25 @@ func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 
 	resp, err := h.Service.Register(ctx, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Failed to register",
-		})
+		switch err {
+		case common.ErrUserExists:
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "User already exists",
+			})
+		case common.ErrUsernameExists:
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Username already exists",
+			})
+		case common.ErrEmailExists:
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Email already exists",
+			})
+		default:
+			h.Log.Errorf("RegisterHandler | Failed to register user: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to register user",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -170,7 +204,7 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.Log.Errorf("Failed to get userID from context, userId : %v", userUUID)
+		h.Log.Errorf("ProfileHandler | Failed to get userID from context, userId : %v", userUUID)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Error:   "No user id in context",
 			Message: "Failed to get user ID",
@@ -179,9 +213,21 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 
 	response, err := h.Service.Profile(ctx, userUUID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Failed to fetch profile",
-		})
+		switch {
+		case errors.Is(err, common.ErrNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "User not found",
+			})
+		case errors.Is(err, common.ErrAvatarNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "Avatar not found",
+			})
+		default:
+			h.Log.Errorf("ProfileHandler | Failed to get user profile: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to get user profile",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -223,10 +269,25 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 
 	resp, err := h.Service.Register(ctx, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Failed to register user",
-			Error:   err.Error(),
-		})
+		switch {
+		case errors.Is(err, common.ErrUserExists):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "User already exists",
+			})
+		case errors.Is(err, common.ErrUsernameExists):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Username already exists",
+			})
+		case errors.Is(err, common.ErrEmailExists):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Email already exists",
+			})
+		default:
+			h.Log.Errorf("AddUserHandler | Failed to register user: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to register user",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -236,66 +297,82 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 }
 
 func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
-	fmt.Println("UpdateAvatarHandler called")
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
-		h.Log.Errorf("Failed to get userID from context")
+		h.Log.Errorf("UpdateAvatarHandler | Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
 		})
 	}
 
-	fmt.Println("UpdateAvatarHandler called 2")
-
 	file, err := c.FormFile("avatar")
 	if err != nil {
-		h.Log.Errorf("Failed to get avatar file: %v", err)
+		h.Log.Errorf("UpdateAvatarHandler | Failed to get avatar file: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to upload avatar",
 		})
 	}
 
-	fmt.Println("UpdateAvatarHandler called 3")
-
 	fileData, err := file.Open()
 	if err != nil {
-		h.Log.Errorf("Failed to open avatar file: %v", err)
+		h.Log.Errorf("UpdateAvatarHandler | Failed to open avatar file: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to process avatar file",
 		})
 	}
 
-	fmt.Println("UpdateAvatarHandler called 4")
-
 	defer func(fileData multipart.File) {
 		err := fileData.Close()
 		if err != nil {
-			h.Log.Errorf("Failed to close avatar file: %v", err)
+			h.Log.Errorf("UpdateAvatarHandler | Failed to close avatar file: %v", err)
 		}
 	}(fileData)
 
-	fmt.Println("UpdateAvatarHandler called 5")
-
 	data, err := io.ReadAll(fileData)
 	if err != nil {
-		h.Log.Errorf("Failed to read avatar file: %v", err)
+		h.Log.Errorf("UpdateAvatarHandler | Failed to read avatar file: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to read avatar file",
 		})
 	}
 
-	fmt.Println("UpdateAvatarHandler called 6")
-
 	response, err := h.Service.UploadAvatar(ctx, userUUID, data)
 	if err != nil {
-		h.Log.Errorf("Failed to upload avatar: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: err.Error(),
-		})
-	}
+		switch {
+		case errors.Is(err, common.ErrFileTooLarge):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "File size exceeds the maximum limit",
+			})
+		case errors.Is(err, common.ErrFileTypeNotSupported):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "File type is not supported",
+			})
+		case errors.Is(err, common.ErrImageNotSquare):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Image must be square",
+			})
+		case errors.Is(err, common.ErrImageTooSmall):
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Image dimensions are too small, must be at least 300x300 pixels",
+			})
+		case errors.Is(err, common.ErrImageProcessingFailed):
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Image processing failed",
+			})
+		case errors.Is(err, common.ErrUploadFailed):
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "File upload failed",
+			})
 
-	fmt.Println("UpdateAvatarHandler called 7")
+		default:
+			h.Log.Errorf("UpdateAvatarHandler | Failed to upload avatar: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to upload avatar",
+			})
+		}
+
+	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Avatar updated successfully",

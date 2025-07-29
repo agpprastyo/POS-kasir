@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
+
 	"image"
 	"image/jpeg"
 
@@ -52,11 +52,18 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 	}
 
 	if user.Avatar != nil {
-		// Fetch avatar URL if it exists
 		avatarURL, err := s.AvatarRepo.AvatarLink(ctx, user.ID, *user.Avatar)
 		if err != nil {
-			s.Log.Errorf("User IActivityService | Failed to get avatar link: %v", err)
-			return nil, fmt.Errorf("failed to get avatar link: %w", err)
+			switch err {
+			case common.ErrAvatarNotFound:
+				s.Log.Errorf("Profile | Avatar not found for user: %v", userID)
+				avatarURL = ""
+			case common.ErrAvatarLink:
+				s.Log.Errorf("Profile | Failed to generate avatar link for user: %v", userID)
+				return nil, common.ErrAvatarLink
+			default:
+				s.Log.Errorf("Profile | Unexpected error while generating avatar link for user: %v: %v", userID, err)
+			}
 		}
 		user.Avatar = &avatarURL
 	} else {
@@ -70,9 +77,8 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Time,
 		UpdatedAt: user.UpdatedAt.Time,
-
-		Avatar: user.Avatar,
-		Role:   user.Role,
+		Avatar:    user.Avatar,
+		Role:      user.Role,
 	}
 
 	return &response, nil
@@ -82,19 +88,19 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error {
 	user, err := s.Repo.GetUserByID(ctx, userID)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to find user by ID: %v", userID)
+		s.Log.Errorf("UpdatePassword | Failed to find user by ID: %v", userID)
 		return common.ErrNotFound
 	}
 
 	if !utils.CheckPassword(user.PasswordHash, req.OldPassword) {
-		s.Log.Errorf("User IActivityService | Incorrect old password for user: %v", userID)
+		s.Log.Errorf("UpdatePassword | Incorrect old password for user: %v", userID)
 		return common.ErrInvalidCredentials
 	}
 
 	newPassHash, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to hash new password: %v", err)
-		return err
+		s.Log.Errorf("UpdatePassword | Failed to hash new password: %v", err)
+		return common.ErrInvalidCredentials
 	}
 
 	params := repository.UpdateUserPasswordParams{
@@ -103,14 +109,13 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 	}
 
 	if err := s.Repo.UpdateUserPassword(ctx, params); err != nil {
-		s.Log.Errorf("User IActivityService | Failed to update user password: %v", err)
-		return fmt.Errorf("failed to update password in database")
+		s.Log.Errorf("UpdatePassword | Failed to update user password: %v", err)
+		return common.ErrInternal
 	}
 
-	// Log activity
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.Log.Warnf("Actor user ID not found in context for activity logging")
+		s.Log.Warnf("UpdatePassword | Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -128,71 +133,58 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 		logDetails,
 	)
 
-	s.Log.Infof("User IActivityService | Password updated successfully for user: %v", user.Username)
 	return nil
 }
 
 func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error) {
-	fmt.Println("UploadAvatar 1")
-	// Validate file size
-	const maxSize = 3 * 1024 * 1024 // 3MB
+
+	const maxSize = 3 * 1024 * 1024
 	if len(data) > maxSize {
-		return nil, fmt.Errorf("avatar file too large, max 3MB allowed")
+		s.Log.Errorf("UploadAvatar | File size exceeds limit: %d bytes", len(data))
+		return nil, common.ErrFileTooLarge
 	}
 
-	fmt.Println("UploadAvatar 2")
-
-	// Validate image format and aspect ratio
 	img, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("invalid image format: %w", err)
+		s.Log.Errorf("UploadAvatar | Failed to decode image: %v", err)
+		return nil, common.ErrFileTypeNotSupported
 	}
 	bounds := img.Bounds()
 	if bounds.Dx() != bounds.Dy() {
-		return nil, fmt.Errorf("avatar image must have a 1:1 aspect ratio")
+		s.Log.Errorf("UploadAvatar | Image is not square: %dx%d", bounds.Dx(), bounds.Dy())
+		return nil, common.ErrImageNotSquare
 	}
 
-	fmt.Println("UploadAvatar 3")
-
-	// Compress image
 	var buf bytes.Buffer
 	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 75})
 	if err != nil {
-		return nil, fmt.Errorf("failed to process image: %w", err)
+		s.Log.Errorf("UploadAvatar | Failed to encode image: %v", err)
+		return nil, common.ErrImageProcessingFailed
 	}
 
-	fmt.Println("UploadAvatar 4")
-
-	// Generate filename
 	filename := "avatars/" + userID.String() + ".jpg"
 
-	fmt.Println("UploadAvatar 5")
-
-	// Upload file via repository
 	url, err := s.AvatarRepo.UploadAvatar(ctx, filename, buf.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("failed to upload avatar: %w", err)
+		s.Log.Errorf("UploadAvatar | Failed to upload avatar: %v", err)
+		return nil, common.ErrUploadFailed
 	}
 
-	fmt.Println("UploadAvatar 6")
-
-	// Update database
 	params := repository.UpdateUserParams{
 		ID:     userID,
 		Avatar: &filename,
 	}
 	profile, err := s.Repo.UpdateUser(ctx, params)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to update user avatar: %v", err)
-		return nil, fmt.Errorf("failed to update avatar in database")
+		s.Log.Errorf("UploadAvatar | Failed to update user avatar: %v", err)
+		return nil, common.ErrUploadFailed
 	}
 
-	s.Log.Infof("User IActivityService | profile updated successfully: %v", profile.Username)
+	s.Log.Infof("UploadAvatar | profile updated successfully: %v", profile.Username)
 
-	// Log activity
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.Log.Warnf("Actor user ID not found in context for activity logging")
+		s.Log.Warnf("UploadAvatar | Actor user ID not found in context for activity logging")
 	}
 	logDetails := map[string]interface{}{
 		"updated_username": profile.Username,
@@ -209,7 +201,6 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 		logDetails,
 	)
 
-	// Prepare response
 	return &ProfileResponse{
 		ID:        profile.ID,
 		IsActive:  profile.IsActive,
@@ -273,14 +264,14 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 
 	userUUID, err := uuid.NewV7()
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to create user UUID: %v", err)
+		s.Log.Errorf("Register | Failed to create user UUID: %v", err)
 		return nil, err
 	}
 
 	passHash, err := utils.HashPassword(req.Password)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to hash password: %v", err)
-		return nil, err
+		s.Log.Errorf("Register | Failed to hash password: %v", err)
+		return nil, common.ErrInvalidInput
 	}
 
 	params := repository.CreateUserParams{
@@ -294,13 +285,20 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 
 	user, err := s.Repo.CreateUser(ctx, params)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to create user: %v", err)
-		return nil, err
+		s.Log.Errorf("Register | Failed to create user: %v", err)
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, common.ErrNotFound
+		case errors.Is(err, common.ErrUserExists):
+			return nil, common.ErrUserExists
+		default:
+			return nil, common.ErrInternal
+		}
 	}
 
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
-		s.Log.Warnf("Actor user ID not found in context for activity logging")
+		s.Log.Warnf("Register | Actor user ID not found in context for activity logging")
 	}
 
 	logDetails := map[string]interface{}{
@@ -331,15 +329,14 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 }
 
 func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
-
 	user, err := s.Repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.Log.Errorf("User IActivityService | Failed to find user by email 1: %v", req.Email)
+			s.Log.Errorf("Login | Failed to find user by email 1: %v", req.Email)
 			return nil, common.ErrNotFound
 		default:
-			s.Log.Errorf("User IActivityService | Failed to find user by email 2: %v", req.Email)
+			s.Log.Errorf("Login | Failed to find user by email 2: %v", req.Email)
 			return nil, common.ErrInvalidCredentials
 		}
 	}
@@ -352,7 +349,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	pass := utils.CheckPassword(user.PasswordHash, req.Password)
 	if !pass {
-		s.Log.Errorf("User IActivityService | Failed to find user by email: %v", req.Email)
+		s.Log.Errorf("Login | Failed to find user by email: %v", req.Email)
 		s.ActivityLogger.Log(
 			ctx,
 			user.ID,
@@ -366,7 +363,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	token, expiredAt, err := s.Token.GenerateToken(user.Username, user.Email, user.ID, user.Role)
 	if err != nil {
-		s.Log.Errorf("User IActivityService | Failed to generate Token: %v", err)
+		s.Log.Errorf("Login | Failed to generate Token: %v", err)
 		s.ActivityLogger.Log(
 			ctx,
 			user.ID,
@@ -400,5 +397,4 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 			Role:      user.Role,
 		},
 	}, nil
-
 }

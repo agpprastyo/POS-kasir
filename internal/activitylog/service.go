@@ -32,7 +32,7 @@ func (s *ActivityService) Log(ctx context.Context, userID uuid.UUID, action repo
 	if details != nil {
 		detailsJSON, err = json.Marshal(details)
 		if err != nil {
-			s.log.Errorf("Failed to marshal activity log details", "error", err)
+			s.log.Errorf("Log | Failed to marshal activity log details: %v", err)
 		}
 	}
 
@@ -45,7 +45,7 @@ func (s *ActivityService) Log(ctx context.Context, userID uuid.UUID, action repo
 			Details:    detailsJSON,
 		})
 		if err != nil {
-			s.log.Errorf("Failed to create activity log", "error", err)
+			s.log.Errorf("Log | Failed to create activity log: %v", err)
 		}
 	}()
 }

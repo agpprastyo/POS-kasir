@@ -34,7 +34,7 @@ func (store *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) erro
 	defer func(tx pgx.Tx, ctx context.Context) {
 		err := tx.Rollback(ctx)
 		if err != nil {
-			store.log.Errorf("Failed to rollback transaction", "error", err)
+			store.log.Errorf("ExecTx | Failed to rollback transaction: %v", err)
 		}
 	}(tx, ctx)
 

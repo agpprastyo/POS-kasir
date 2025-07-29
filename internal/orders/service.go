@@ -800,72 +800,70 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.Or
 }
 
 func (s *OrderService) ProcessPayment(ctx context.Context, orderID uuid.UUID) (*dto.QRISResponse, error) {
-	//TODO implement payment processing logic
+
 	s.log.Info("Processing payment for order", "orderID", orderID)
 
-	return nil, fmt.Errorf("payment processing is not implemented yet")
+	order, err := s.store.GetOrderWithDetails(ctx, orderID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.log.Warn("Order not found for payment processing", "orderID", orderID)
+			return nil, common.ErrNotFound
+		}
+		s.log.Error("Failed to get order for payment processing", "error", err)
+		return nil, err
+	}
 
-	//
-	//order, err := s.store.GetOrderWithDetails(ctx, orderID)
-	//if err != nil {
-	//	if errors.Is(err, pgx.ErrNoRows) {
-	//		s.log.Warn("Order not found for payment processing", "orderID", orderID)
-	//		return nil, common.ErrNotFound
-	//	}
-	//	s.log.Error("Failed to get order for payment processing", "error", err)
-	//	return nil, err
-	//}
-	//
-	//if order.Status != repository.OrderStatusOpen {
-	//	s.log.Warn("Attempted to process payment for an order with invalid status", "orderID", orderID, "status", order.Status)
-	//	return nil, fmt.Errorf("payment cannot be processed for order with status: %s", order.Status)
-	//}
-	//
-	//netTotal := utils.NumericToFloat64(order.NetTotal)
-	//chargeResp, err := s.midtransService.CreateQRISCharge(order.ID.String(), int64(netTotal))
-	//if err != nil {
-	//	s.log.Error("Failed to create Midtrans charge", "error", err, "orderID", orderID)
-	//	return nil, fmt.Errorf("failed to initiate payment gateway transaction")
-	//}
-	//
-	//txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
-	//	updateParams := repository.UpdateOrderPaymentInfoParams{
-	//		ID:                      order.ID,
-	//		PaymentMethodID:         1,
-	//		PaymentGatewayReference: "aa",
-	//	}
-	//	return qtx.UpdateOrderPaymentInfo(ctx, updateParams)
-	//})
-	//
-	//if txErr != nil {
-	//	s.log.Error("Failed to update order with payment info", "error", txErr, "orderID", orderID)
-	//	// TODO: handle payment gateway transaction rollback if needed
-	//	return nil, txErr
-	//}
-	//
-	//actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
-	//s.activityService.Log(
-	//	ctx,
-	//	actorID,
-	//	repository.LogActionTypePROCESSPAYMENT,
-	//	repository.LogEntityTypeORDER,
-	//	order.ID.String(),
-	//	map[string]interface{}{
-	//		"payment_gateway": "midtrans",
-	//		"transaction_id":  chargeResp.TransactionID,
-	//		"amount":          netTotal,
-	//	},
-	//)
-	//
-	//response := &dto.QRISResponse{
-	//	OrderID:       chargeResp.OrderID,
-	//	TransactionID: chargeResp.TransactionID,
-	//	GrossAmount:   chargeResp.GrossAmount,
-	//	QRString:      chargeResp.QRString,
-	//	ExpiryTime:    chargeResp.ExpiryTime,
-	//}
-	//
-	//return response, nil
+	if order.Status != repository.OrderStatusOpen {
+		s.log.Warn("Attempted to process payment for an order with invalid status", "orderID", orderID, "status", order.Status)
+		return nil, fmt.Errorf("payment cannot be processed for order with status: %s", order.Status)
+	}
+
+	netTotal := utils.NumericToFloat64(order.NetTotal)
+	chargeResp, err := s.midtransService.CreateQRISCharge(order.ID.String(), int64(netTotal))
+	if err != nil {
+
+		s.log.Error("Failed to create Midtrans charge", "error", err, "orderID", orderID)
+		return nil, fmt.Errorf("failed to initiate payment gateway transaction")
+	}
+
+	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+		updateParams := repository.UpdateOrderPaymentInfoParams{
+			ID:                      order.ID,
+			PaymentMethodID:         utils.Int32Ptr(2),
+			PaymentGatewayReference: &chargeResp.TransactionID,
+		}
+		return qtx.UpdateOrderPaymentInfo(ctx, updateParams)
+	})
+
+	if txErr != nil {
+		s.log.Error("Failed to update order with payment info", "error", txErr, "orderID", orderID)
+		// TODO: handle payment gateway transaction rollback if needed
+		return nil, txErr
+	}
+
+	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
+	s.activityService.Log(
+		ctx,
+		actorID,
+		repository.LogActionTypePROCESSPAYMENT,
+		repository.LogEntityTypeORDER,
+		order.ID.String(),
+		map[string]interface{}{
+			"payment_gateway": "midtrans",
+			"transaction_id":  chargeResp.TransactionID,
+			"amount":          netTotal,
+		},
+	)
+
+	response := &dto.QRISResponse{
+		OrderID:       chargeResp.OrderID,
+		TransactionID: chargeResp.TransactionID,
+		GrossAmount:   chargeResp.GrossAmount,
+		QRString:      chargeResp.QRString,
+		ExpiryTime:    chargeResp.ExpiryTime,
+	}
+
+	return response, nil
 }
 
 func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload dto.MidtransNotificationPayload) error {

@@ -5,6 +5,7 @@ import (
 	"POS-kasir/pkg/logger"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type CtgHandler struct {
@@ -14,16 +15,19 @@ type CtgHandler struct {
 
 func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
-	if id == "" {
+	idStr := c.Params("id")
+
+	categoryID, err := strconv.Atoi(idStr)
+	if err != nil {
+		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", idStr)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category ID is required",
+			Message: "Invalid category ID format. ID must be a number.",
 		})
 	}
 
-	err := h.service.DeleteCategory(ctx, id)
+	err = h.service.DeleteCategory(ctx, int32(categoryID))
 	if err != nil {
-		h.log.Errorf("Failed to delete category", "error", err, "categoryID", id)
+		h.log.Warnf("DeleteCategoryHandler | Failed to delete category", "error", err, "categoryID", categoryID)
 		switch {
 		case errors.Is(err, common.ErrCategoryNotFound):
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
@@ -54,9 +58,17 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	categoryID, err := strconv.Atoi(id)
+	if err != nil {
+		h.log.Errorf("UpdateCategoryHandler | Invalid category ID format", "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid category ID format. ID must be a number.",
+		})
+	}
+
 	req := new(CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
-		h.log.Errorf("Failed to parse request body", "error", err)
+		h.log.Warnf("UpdateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 		})
@@ -68,12 +80,23 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	category, err := h.service.UpdateCategory(ctx, id, *req)
+	category, err := h.service.UpdateCategory(ctx, int32(categoryID), *req)
 	if err != nil {
-		h.log.Errorf("Failed to update category", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "Failed to update category",
-		})
+		switch err {
+		case common.ErrCategoryNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "Category not found",
+			})
+		case common.ErrCategoryExists:
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{
+				Message: "Category with this name already exists",
+			})
+		default:
+
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to update category",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -91,9 +114,17 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	category, err := h.service.GetCategoryByID(ctx, id)
+	categoryID, err := strconv.Atoi(id)
 	if err != nil {
-		h.log.Errorf("Failed to get category by ID", "error", err)
+		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", id)
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid category ID format. ID must be a number.",
+		})
+	}
+
+	category, err := h.service.GetCategoryByID(ctx, int32(categoryID))
+	if err != nil {
+		h.log.Warnf("GetCategoryByIDHandler | Failed to get category by ID: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to retrieve category",
 		})
@@ -115,7 +146,7 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
-		h.log.Errorf("Failed to parse request body", "error", err)
+		h.log.Warnf("CreateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 		})
@@ -129,10 +160,17 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 
 	category, err := h.service.CreateCategory(ctx, *req)
 	if err != nil {
-		h.log.Errorf("Failed to create category", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "Failed to create category",
-		})
+		h.log.Warnf("CreateCategoryHandler | Failed to create category: %v", err)
+		switch {
+		case errors.Is(err, common.ErrCategoryExists):
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{
+				Message: "Category with this name already exists",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to create category",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(common.SuccessResponse{
@@ -145,7 +183,7 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(ListCategoryRequest)
 	if err := c.QueryParser(req); err != nil {
-		h.log.Errorf("Failed to parse query parameters", "error", err)
+		h.log.Warnf("GetAllCategoriesHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
 		})
@@ -153,10 +191,16 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 
 	categories, err := h.service.GetAllCategories(ctx, *req)
 	if err != nil {
-		h.log.Errorf("Failed to get all categories", "error", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "Failed to retrieve categories",
-		})
+		switch {
+		case errors.Is(err, common.ErrCategoryNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "No categories found",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to retrieve categories",
+			})
+		}
 	}
 
 	if len(categories) == 0 {
@@ -175,7 +219,7 @@ func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	count, err := h.service.GetCategoryWithProductCount(ctx)
 	if err != nil {
-		h.log.Errorf("Failed to get category count", "error", err)
+		h.log.Warnf("GetCategoryCountHandler | Failed to get category count: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to retrieve category count",
 		})

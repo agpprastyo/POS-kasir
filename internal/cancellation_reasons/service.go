@@ -22,7 +22,7 @@ func NewCancellationReasonService(store repository.Store, log logger.ILogger) IC
 func (s *CancellationReasonService) ListCancellationReasons(ctx context.Context) ([]CancellationReasonResponse, error) {
 	reasons, err := s.store.ListCancellationReasons(ctx)
 	if err != nil {
-		s.log.Error("Failed to list cancellation reasons from repository", "error", err)
+		s.log.Error("ListCancellationReasons | Failed to list cancellation reasons from repository", "error", err)
 		return nil, err
 	}
 

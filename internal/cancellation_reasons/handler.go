@@ -22,7 +22,7 @@ func NewCancellationReasonHandler(service ICancellationReasonService, log logger
 func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c *fiber.Ctx) error {
 	reasons, err := h.service.ListCancellationReasons(c.Context())
 	if err != nil {
-		h.log.Error("Failed to get cancellation reasons from service", "error", err)
+		h.log.Error("ListCancellationReasonsHandler | Failed to get cancellation reasons from service", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to retrieve cancellation reasons"})
 	}
 

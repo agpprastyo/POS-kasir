@@ -77,6 +77,7 @@ func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotifi
 func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error) {
 
 	chargeReq := &coreapi.ChargeReq{
+
 		PaymentType: coreapi.PaymentTypeQris,
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  orderID,
@@ -88,9 +89,12 @@ func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*corea
 
 	chargeResp, err := s.client.ChargeTransaction(chargeReq)
 	if err != nil {
-		s.log.Errorf("Failed to create Midtrans charge: %v", err)
+
+		s.log.Errorf("Failed to create QRIS charge for Order ID: %s. Error: %v", orderID, err)
 		return nil, err
 	}
+
+	s.log.Infof("Charge response: %+v", chargeResp)
 
 	s.log.Infof("Successfully created QRIS charge for Order ID: %s. Transaction ID: %s", orderID, chargeResp.TransactionID)
 

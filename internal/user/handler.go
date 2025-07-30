@@ -184,10 +184,18 @@ func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 
 	user, err := h.service.GetUserByID(ctx, idParsed)
 	if err != nil {
-		h.log.Errorf("GetUserByIDHandler | Failed to get user by ID: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-			Message: "Failed to get user by ID",
-		})
+		switch {
+		case errors.Is(err, common.ErrNotFound):
+
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "User not found",
+			})
+		default:
+
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to get user",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{

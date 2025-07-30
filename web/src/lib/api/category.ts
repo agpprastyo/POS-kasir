@@ -21,7 +21,12 @@ async function handleResponse(response: Response) {
  * @returns {Promise<{ data: CategoryWithCount[] }>} - Daftar kategori.
  */
 export async function getCategoriesWithCount(customFetch: typeof fetch): Promise<{ data: CategoryWithCount[] }> {
-	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/categories/count`);
+	const response = await customFetch(`${PUBLIC_API_BASE_URL}/api/v1/categories/count`,
+		{
+			method: 'GET',
+			headers: { 'Content-Type': 'application/json' },
+			credentials : 'include',
+		});
 	return handleResponse(response);
 }
 

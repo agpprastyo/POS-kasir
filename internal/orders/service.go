@@ -139,7 +139,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 }
 
 func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error) {
-	// 1. Ambil pesanan saat ini untuk validasi
+
 	order, err := s.store.GetOrderWithDetails(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -150,7 +150,6 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 		return nil, err
 	}
 
-	// 2. Validasi transisi status menggunakan state machine
 	currentStatus := order.Status
 	newStatus := req.Status
 
@@ -161,7 +160,6 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 		return nil, fmt.Errorf("%w: %s", common.ErrInvalidStatusTransition, errMsg)
 	}
 
-	// 3. Lakukan update status di database
 	_, err = s.store.UpdateOrderStatus(ctx, repository.UpdateOrderStatusParams{
 		ID:     orderID,
 		Status: newStatus,
@@ -171,7 +169,6 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 		return nil, err
 	}
 
-	// 4. Log aktivitas
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
 	logDetails := map[string]interface{}{
 		"order_id":    orderID.String(),
@@ -187,14 +184,13 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 		logDetails,
 	)
 
-	// 5. Ambil kembali data lengkap untuk dikembalikan sebagai respons
 	return s.GetOrder(ctx, orderID)
 }
 func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error) {
 	var updatedOrder repository.Order
 
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
-		// 1. Ambil dan kunci pesanan untuk update
+
 		order, err := qtx.GetOrderForUpdate(ctx, orderID)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -203,17 +199,14 @@ func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.U
 			return err
 		}
 
-		// 2. Validasi status pesanan
 		if order.Status != repository.OrderStatusOpen {
 			s.log.Warn("Attempted to complete payment for an order with invalid status", "orderID", orderID, "status", order.Status)
 			return common.ErrOrderNotModifiable
 		}
 
-		// 3. Siapkan parameter untuk update
 		netTotal := utils.NumericToFloat64(order.NetTotal)
 		var changeDue float64 = 0
 
-		// Asumsi ID 1 adalah untuk 'Cash'
 		isCashPayment := req.PaymentMethodID == 1
 
 		if isCashPayment {

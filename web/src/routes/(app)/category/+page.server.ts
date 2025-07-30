@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { getCategoriesWithCount, createCategory, updateCategory, deleteCategory } from '$lib/api/category';
 
 export const load: PageServerLoad = async (event) => {
-	await event.parent(); // Memastikan otentikasi
+	await event.parent();
 
 	try {
 		const response = await getCategoriesWithCount(event.fetch);

@@ -10,7 +10,7 @@ export const load: LayoutLoad = async ({ fetch: eventFetch }) => {
 		const response = await eventFetch(`${PUBLIC_API_BASE_URL}/api/v1/auth/me`, {
 			method: 'GET',
 			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include', // Pastikan cookie dikirim
+			credentials: 'include',
 		});
 
 		console.log("Checking auth session...");

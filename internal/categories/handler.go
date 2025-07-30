@@ -8,6 +8,22 @@ import (
 	"strconv"
 )
 
+type ICtgHandler interface {
+	GetAllCategoriesHandler(c *fiber.Ctx) error
+	GetCategoryCountHandler(c *fiber.Ctx) error
+	CreateCategoryHandler(c *fiber.Ctx) error
+	GetCategoryByIDHandler(c *fiber.Ctx) error
+	UpdateCategoryHandler(c *fiber.Ctx) error
+	DeleteCategoryHandler(c *fiber.Ctx) error
+}
+
+func NewCtgHandler(service ICtgService, log logger.ILogger) ICtgHandler {
+	return &CtgHandler{
+		service: service,
+		log:     log,
+	}
+}
+
 type CtgHandler struct {
 	service ICtgService
 	log     logger.ILogger
@@ -27,7 +43,7 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 
 	err = h.service.DeleteCategory(ctx, int32(categoryID))
 	if err != nil {
-		h.log.Warnf("DeleteCategoryHandler | Failed to delete category", "error", err, "categoryID", categoryID)
+		h.log.Warnf("DeleteCategoryHandler | Failed to delete category: %v, categoryID: %d", err, categoryID)
 		switch {
 		case errors.Is(err, common.ErrCategoryNotFound):
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
@@ -60,7 +76,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 
 	categoryID, err := strconv.Atoi(id)
 	if err != nil {
-		h.log.Errorf("UpdateCategoryHandler | Invalid category ID format", "error", err)
+		h.log.Warnf("UpdateCategoryHandler | Invalid category ID format: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
@@ -82,12 +98,12 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 
 	category, err := h.service.UpdateCategory(ctx, int32(categoryID), *req)
 	if err != nil {
-		switch err {
-		case common.ErrCategoryNotFound:
+		switch {
+		case errors.Is(err, common.ErrCategoryNotFound):
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
 				Message: "Category not found",
 			})
-		case common.ErrCategoryExists:
+		case errors.Is(err, common.ErrCategoryExists):
 			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{
 				Message: "Category with this name already exists",
 			})
@@ -230,20 +246,4 @@ func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
 		Data:    count,
 	})
 
-}
-
-type ICtgHandler interface {
-	GetAllCategoriesHandler(c *fiber.Ctx) error
-	GetCategoryCountHandler(c *fiber.Ctx) error
-	CreateCategoryHandler(c *fiber.Ctx) error
-	GetCategoryByIDHandler(c *fiber.Ctx) error
-	UpdateCategoryHandler(c *fiber.Ctx) error
-	DeleteCategoryHandler(c *fiber.Ctx) error
-}
-
-func NewCtgHandler(service ICtgService, log logger.ILogger) ICtgHandler {
-	return &CtgHandler{
-		service: service,
-		log:     log,
-	}
 }

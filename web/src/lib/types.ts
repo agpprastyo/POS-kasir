@@ -153,3 +153,52 @@ export type CategoryRequest = {
 	name: string;
 };
 
+// Tipe untuk opsi yang dipilih dalam satu item pesanan
+export type OrderItemOptionRequest = {
+	product_option_id: string;
+};
+
+// Tipe untuk satu item dalam permintaan pembuatan pesanan
+export type OrderItemRequest = {
+	product_id: string;
+	quantity: number;
+	options: OrderItemOptionRequest[];
+};
+
+// Tipe untuk permintaan pembuatan pesanan baru
+export type CreateOrderRequest = {
+	type: 'dine-in' | 'takeaway';
+	items: OrderItemRequest[];
+};
+
+// Tipe untuk opsi dalam item pesanan yang diterima dari API
+export type OrderItemOption = {
+	product_option_id: string;
+	price_at_sale: number;
+};
+
+// Tipe untuk satu item dalam pesanan yang diterima dari API
+export type OrderItem = {
+	id: string;
+	product_id: string;
+	quantity: number;
+	price_at_sale: number;
+	subtotal: number;
+	options: OrderItemOption[];
+};
+
+// Tipe untuk data pesanan lengkap yang diterima dari API
+export type Order = {
+	id: string;
+	user_id: string;
+	type: 'dine-in' | 'takeaway';
+	status: 'open' | 'paid' | 'cancelled';
+	gross_total: number;
+	discount_amount: number;
+	net_total: number;
+	created_at: string;
+	updated_at: string;
+	items: OrderItem[];
+};
+
+

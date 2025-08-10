@@ -1,5 +1,11 @@
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
-import type { UserQueryParams, UsersApiResponse, CreateUserRequest, Profile } from '$lib/types';
+import type {
+	UserQueryParams,
+	UsersApiResponse,
+	CreateUserRequest,
+	Profile,
+	UpdateUserRequest
+} from '$lib/types';
 
 /**
  * Mengambil daftar pengguna dari API dengan filter dan paginasi.

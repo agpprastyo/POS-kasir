@@ -68,8 +68,12 @@ type Querier interface {
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
 	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
+	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)
+	GetCashierPerformance(ctx context.Context, arg GetCashierPerformanceParams) ([]GetCashierPerformanceRow, error)
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
+	GetCategorySales(ctx context.Context, arg GetCategorySalesParams) ([]GetCategorySalesRow, error)
+	GetDashboardSummary(ctx context.Context) (GetDashboardSummaryRow, error)
 	// Mengambil semua varian untuk beberapa produk.
 	GetOptionsForProducts(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error)
 	// Mengambil pesanan berdasarkan referensi dari payment gateway.
@@ -85,12 +89,14 @@ type Querier interface {
 	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
 	// Mengambil satu metode pembayaran berdasarkan nama untuk pengecekan duplikat.
 	GetPaymentMethodByName(ctx context.Context, name string) (PaymentMethod, error)
+	GetPaymentMethodSales(ctx context.Context, arg GetPaymentMethodSalesParams) ([]GetPaymentMethodSalesRow, error)
 	// Retrieves a product by its ID, including its options.
 	GetProductByID(ctx context.Context, id uuid.UUID) (GetProductByIDRow, error)
 	// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
 	// Retrieves a product option by its ID, including its product details.
 	GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error)
+	GetProductSalesPerformance(ctx context.Context, arg GetProductSalesPerformanceParams) ([]GetProductSalesPerformanceRow, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
 	// This is an efficient way to fetch a product and its variants in one query.
 	// Now filters out soft-deleted options.
@@ -103,6 +109,7 @@ type Querier interface {
 	GetPromotionRules(ctx context.Context, promotionID uuid.UUID) ([]PromotionRule, error)
 	// Mengambil semua target untuk sebuah promosi.
 	GetPromotionTargets(ctx context.Context, promotionID uuid.UUID) ([]PromotionTarget, error)
+	GetSalesSummary(ctx context.Context, arg GetSalesSummaryParams) ([]GetSalesSummaryRow, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.

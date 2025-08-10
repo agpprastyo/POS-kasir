@@ -9,6 +9,7 @@ import (
 	"POS-kasir/internal/orders"
 	"POS-kasir/internal/payment_methods"
 	"POS-kasir/internal/products"
+	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/user"
 	"POS-kasir/pkg/database"
@@ -19,15 +20,16 @@ import (
 	"POS-kasir/pkg/validator"
 	"context"
 	"errors"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 type App struct {
@@ -50,6 +52,7 @@ type AppContainer struct {
 	OrderHandler              orders.IOrderHandler
 	PaymentMethodHandler      payment_methods.IPaymentMethodHandler
 	CancellationReasonHandler cancellation_reasons.ICancellationReasonHandler
+	ReportHandler             report.IRptHandler
 }
 
 func InitApp() *App {
@@ -128,6 +131,10 @@ func BuildAppContainer(app *App) *AppContainer {
 	cancellationReasonService := cancellation_reasons.NewCancellationReasonService(app.Store, app.Logger)
 	cancellationReasonHandler := cancellation_reasons.NewCancellationReasonHandler(cancellationReasonService, app.Logger)
 
+	// report module
+	reportService := report.NewRptService(app.Store, activityService, app.Logger)
+	reportHandler := report.NewRptHandler(reportService, app.Logger)
+
 	return &AppContainer{
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
@@ -136,6 +143,7 @@ func BuildAppContainer(app *App) *AppContainer {
 		OrderHandler:              orderHandler,
 		PaymentMethodHandler:      paymentMethodHandler,
 		CancellationReasonHandler: cancellationReasonHandler,
+		ReportHandler:             reportHandler,
 	}
 }
 
@@ -161,7 +169,7 @@ func SetupMiddleware(app *App) {
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		ExposeHeaders:    "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods",
 		AllowCredentials: true,
-		MaxAge:           300, // Cache preflight response for 5 minutes
+		MaxAge:           300,
 	}))
 	app.FiberApp.Use(fiberlog.New())
 	app.FiberApp.Use(recover.New())

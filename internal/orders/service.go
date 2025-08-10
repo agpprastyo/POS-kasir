@@ -500,16 +500,44 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 		}
 
 		if orderWithDetails.Items != nil {
-			var items []repository.OrderItem
-			if err := json.Unmarshal(orderWithDetails.Items.([]byte), &items); err == nil {
-				for _, item := range items {
-					_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
-						ID:    item.ProductID,
-						Stock: item.Quantity,
-					})
-					if stockErr != nil {
-						s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", item.ProductID)
-						return stockErr
+			switch v := orderWithDetails.Items.(type) {
+			case []byte:
+				var items []repository.OrderItem
+				if err := json.Unmarshal(v, &items); err != nil {
+					for _, item := range items {
+						_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
+							ID:    item.ProductID,
+							Stock: item.Quantity,
+						})
+						if stockErr != nil {
+							s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", item.ProductID)
+							return stockErr
+						}
+					}
+				}
+			case []interface{}:
+				for _, item := range v {
+					if itemMap, ok := item.(map[string]interface{}); ok {
+						productID, ok := itemMap["product_id"].(uuid.UUID)
+						if !ok {
+							s.log.Error("Invalid product ID in order items", "item", item)
+							continue
+						}
+						quantity, ok := itemMap["quantity"].(float64) // Assuming quantity is a float64
+						if !ok {
+							s.log.Error("Invalid quantity in order items", "item", item)
+							continue
+						}
+						_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
+							ID:    productID,
+							Stock: int32(quantity),
+						})
+						if stockErr != nil {
+							s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", productID)
+							return stockErr
+						}
+					} else {
+						s.log.Error("Unexpected item type in order items", "item", item)
 					}
 				}
 			}

@@ -64,8 +64,13 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Patch("/orders/:id/status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
-	//// Report
-	////api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
+	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
+	api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesReportsHandler)
+	api.Get("/reports/products?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetProductPerformanceHandler)
+	api.Get("/reports/payment-methods?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetPaymentMethodPerformanceHandler)
+	api.Get("/reports/cashier-performance?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetCashierPerformanceHandler)
+	api.Get("/reports/cancellations?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
+
 	////api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesSummaryHandler)
 	////api.Get("/reports/products", authMiddleware, container.ReportHandler.GetSalesDetailHandler)
 	//

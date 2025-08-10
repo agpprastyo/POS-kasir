@@ -3,11 +3,11 @@ package dto
 import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/pagination"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-// ApplyPromotionRequest adalah DTO untuk menerapkan promosi ke pesanan.
 type ApplyPromotionRequest struct {
 	PromotionID uuid.UUID `json:"promotion_id" validate:"required"`
 }

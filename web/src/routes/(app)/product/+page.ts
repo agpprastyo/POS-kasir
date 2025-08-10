@@ -7,7 +7,7 @@ export const load: PageLoad = async ({ url, fetch: eventFetch, parent }) => {
 
 	// Ambil parameter dari URL untuk filter dan paginasi
 	const page = Number(url.searchParams.get('page')) || 1;
-	const limit = Number(url.searchParams.get('limit')) || 12; // Default limit untuk tampilan grid
+	const limit = Number(url.searchParams.get('limit')) || 10; // Default limit untuk tampilan grid
 	const search = url.searchParams.get('search') || '';
 	const category_id = url.searchParams.get('category_id') || '';
 	const view = url.searchParams.get('view') || 'grid'; // Parameter untuk mode tampilan

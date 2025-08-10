@@ -185,13 +185,13 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
-		h.log.Warnf("Invalid order ID format for cancellation", "error", err, "id", orderIDStr)
+		h.log.Warnf("CancelOrderHandler | Invalid order ID format for cancellation", "error", err, "id", orderIDStr)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
 	var req dto.CancelOrderRequest
 	if err := c.BodyParser(&req); err != nil {
-		h.log.Warnf("Cannot parse cancel order request body", "error", err)
+		h.log.Warnf("CancelOrderHandler | Cannot parse cancel order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 

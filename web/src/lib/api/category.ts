@@ -5,6 +5,7 @@ import type { Category, CategoryRequest, CategoryWithCount } from '$lib/types';
  * Fungsi pembantu untuk menangani respons dari API.
  */
 async function handleResponse(response: Response) {
+
 	if (response.status === 204 || response.status === 200 && response.headers.get('content-length') === '0') {
 		return; // Handle No Content response for delete/update
 	}
@@ -27,6 +28,8 @@ export async function getCategoriesWithCount(customFetch: typeof fetch): Promise
 			headers: { 'Content-Type': 'application/json' },
 			credentials : 'include',
 		});
+
+	console.log('Response from getCategoriesWithCount:', response);
 	return handleResponse(response);
 }
 

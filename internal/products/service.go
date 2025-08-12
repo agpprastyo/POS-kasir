@@ -3,6 +3,7 @@ package products
 import (
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/pagination"
@@ -11,21 +12,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"sync"
 )
 
 type IPrdService interface {
-	CreateProduct(ctx context.Context, req CreateProductRequest) (*ProductResponse, error)
-	UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error)
-	ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error)
-	GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error)
-	UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error)
+	CreateProduct(ctx context.Context, req dto.CreateProductRequest) (*dto.ProductResponse, error)
+	UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*dto.ProductResponse, error)
+	ListProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error)
+	GetProductByID(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error)
+	UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error)
 	DeleteProduct(ctx context.Context, productID uuid.UUID) error
-	CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error)
-	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error)
-	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error)
+	CreateProductOption(ctx context.Context, productID uuid.UUID, req dto.CreateProductOptionRequestStandalone) (*dto.ProductOptionResponse, error)
+	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*dto.ProductOptionResponse, error)
+	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req dto.UpdateProductOptionRequest) (*dto.ProductOptionResponse, error)
 	DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error
 }
 
@@ -82,7 +84,7 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 	return nil
 }
 
-func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error) {
+func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req dto.UpdateProductOptionRequest) (*dto.ProductOptionResponse, error) {
 	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -140,7 +142,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 		updatedOption.ImageUrl = nil
 	}
 
-	return &ProductOptionResponse{
+	return &dto.ProductOptionResponse{
 		ID:              updatedOption.ID,
 		Name:            updatedOption.Name,
 		AdditionalPrice: additionalPrice,
@@ -148,7 +150,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	}, nil
 }
 
-func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error) {
+func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*dto.ProductOptionResponse, error) {
 	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{
 		ID:        optionID,
 		ProductID: productID,
@@ -209,14 +211,14 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 		publicUrl = *updatedOption.ImageUrl
 	}
 
-	return &ProductOptionResponse{
+	return &dto.ProductOptionResponse{
 		ID:              updatedOption.ID,
 		Name:            updatedOption.Name,
 		AdditionalPrice: additionalPrice,
 		ImageURL:        &publicUrl,
 	}, nil
 }
-func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error) {
+func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUID, req dto.CreateProductOptionRequestStandalone) (*dto.ProductOptionResponse, error) {
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -260,7 +262,7 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 
 	var additionalPrice = utils.NumericToFloat64(newOption.AdditionalPrice)
 
-	return &ProductOptionResponse{
+	return &dto.ProductOptionResponse{
 		ID:              newOption.ID,
 		Name:            newOption.Name,
 		AdditionalPrice: additionalPrice,
@@ -303,7 +305,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 	return nil
 }
 
-func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
+func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error) {
 	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
 	s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
@@ -318,7 +320,7 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 	return s.buildProductResponse(ctx, fullProduct)
 }
 
-func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error) {
+func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error) {
 	// 1. Pastikan produk ada sebelum update
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
@@ -367,8 +369,8 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 
 	return s.GetProductByID(ctx, productID)
 }
-func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*ProductResponse, error) {
-	var optionsResponse []ProductOptionResponse
+func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*dto.ProductResponse, error) {
+	var optionsResponse []dto.ProductOptionResponse
 
 	if fullProduct.Options != nil {
 
@@ -389,7 +391,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 
 		for _, opt := range options {
 			additionalPrice := utils.NumericToFloat64(opt.AdditionalPrice)
-			optionsResponse = append(optionsResponse, ProductOptionResponse{
+			optionsResponse = append(optionsResponse, dto.ProductOptionResponse{
 				ID:              opt.ID,
 				Name:            opt.Name,
 				AdditionalPrice: additionalPrice,
@@ -443,7 +445,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 
 	productPrice := utils.NumericToFloat64(fullProduct.Price)
 
-	return &ProductResponse{
+	return &dto.ProductResponse{
 		ID:         fullProduct.ID,
 		Name:       fullProduct.Name,
 		CategoryID: fullProduct.CategoryID,
@@ -457,7 +459,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 	}, nil
 }
 
-func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error) {
+func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error) {
 
 	page := 1
 	if req.Page != nil {
@@ -510,7 +512,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		return nil, countErr
 	}
 
-	var productsResponse []ProductListResponse
+	var productsResponse []dto.ProductListResponse
 	for _, p := range products {
 		price := utils.NumericToFloat64(p.Price)
 		if p.ImageUrl != nil && *p.ImageUrl != "" {
@@ -523,7 +525,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		} else {
 			p.ImageUrl = nil // Setel ke nil jika tidak ada URL
 		}
-		productsResponse = append(productsResponse, ProductListResponse{
+		productsResponse = append(productsResponse, dto.ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
 			CategoryID:   p.CategoryID,
@@ -534,7 +536,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		})
 	}
 
-	response := &ListProductsResponse{
+	response := &dto.ListProductsResponse{
 		Products: productsResponse,
 		Pagination: pagination.BuildPagination(
 			page,
@@ -546,7 +548,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 	return response, nil
 }
 
-func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest) (*ProductResponse, error) {
+func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductRequest) (*dto.ProductResponse, error) {
 	var newProduct repository.Product
 	var createdOptions []repository.ProductOption
 
@@ -615,7 +617,7 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 	return s.buildProductResponseFromData(newProduct, createdOptions)
 }
 
-func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error) {
+func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*dto.ProductResponse, error) {
 	_, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -672,11 +674,11 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	return s.buildProductResponse(ctx, fullProduct)
 }
 
-func (s *PrdService) buildProductResponseFromData(product repository.Product, options []repository.ProductOption) (*ProductResponse, error) {
-	var optionsResponse []ProductOptionResponse
+func (s *PrdService) buildProductResponseFromData(product repository.Product, options []repository.ProductOption) (*dto.ProductResponse, error) {
+	var optionsResponse []dto.ProductOptionResponse
 	for _, opt := range options {
 		var additionalPrice = utils.NumericToFloat64(opt.AdditionalPrice)
-		optionsResponse = append(optionsResponse, ProductOptionResponse{
+		optionsResponse = append(optionsResponse, dto.ProductOptionResponse{
 			ID:              opt.ID,
 			Name:            opt.Name,
 			AdditionalPrice: additionalPrice,
@@ -689,7 +691,7 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 	s.log.Infof("product price before assign: %+v", product.Price)
 	s.log.Infof("product price after assign: %+v", productPrice)
 
-	return &ProductResponse{
+	return &dto.ProductResponse{
 		ID:         product.ID,
 		Name:       product.Name,
 		CategoryID: product.CategoryID,

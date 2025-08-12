@@ -2,10 +2,12 @@ package categories
 
 import (
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 	"errors"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type ICtgHandler interface {
@@ -82,7 +84,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	req := new(CreateCategoryRequest)
+	req := new(dto.CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -160,7 +162,7 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 
 func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(CreateCategoryRequest)
+	req := new(dto.CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Warnf("CreateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -197,7 +199,7 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 
 func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(ListCategoryRequest)
+	req := new(dto.ListCategoryRequest)
 	if err := c.QueryParser(req); err != nil {
 		h.log.Warnf("GetAllCategoriesHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{

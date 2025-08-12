@@ -4,22 +4,24 @@ import (
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/auth"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/pagination"
 	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"time"
 )
 
 type IUsrService interface {
-	GetAllUsers(ctx context.Context, req UsersRequest) (*UsersResponse, error)
-	CreateUser(ctx context.Context, req CreateUserRequest) (*auth.ProfileResponse, error)
-	GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.ProfileResponse, error)
-	UpdateUser(ctx context.Context, userID uuid.UUID, req UpdateUserRequest) (*auth.ProfileResponse, error)
+	GetAllUsers(ctx context.Context, req dto.UsersRequest) (*dto.UsersResponse, error)
+	CreateUser(ctx context.Context, req dto.CreateUserRequest) (*dto.ProfileResponse, error)
+	GetUserByID(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error)
+	UpdateUser(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*dto.ProfileResponse, error)
 	ToggleUserStatus(ctx context.Context, userID uuid.UUID) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
@@ -98,7 +100,7 @@ func (s *UsrService) ToggleUserStatus(ctx context.Context, userID uuid.UUID) err
 	return nil
 }
 
-func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req UpdateUserRequest) (*auth.ProfileResponse, error) {
+func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*dto.ProfileResponse, error) {
 	existingUser, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		s.log.Errorf("UpdateUser | Failed to get user by ID: %v, userID=%v", err, userID)
@@ -177,7 +179,7 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 		logDetails,
 	)
 
-	response := auth.ProfileResponse{
+	response := dto.ProfileResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
@@ -191,7 +193,7 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req Updat
 	return &response, nil
 }
 
-func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.ProfileResponse, error) {
+func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error) {
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		s.log.Errorf("GetUserByID | Failed to get user by ID: %v, userID=%v", err, userID)
@@ -209,7 +211,7 @@ func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.P
 		user.Avatar = nil
 	}
 
-	response := auth.ProfileResponse{
+	response := dto.ProfileResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		Email:     user.Email,
@@ -223,7 +225,7 @@ func (s *UsrService) GetUserByID(ctx context.Context, userID uuid.UUID) (*auth.P
 	return &response, nil
 }
 
-func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*auth.ProfileResponse, error) {
+func (s *UsrService) CreateUser(ctx context.Context, req dto.CreateUserRequest) (*dto.ProfileResponse, error) {
 
 	existence, err := s.repo.CheckUserExistence(ctx, repository.CheckUserExistenceParams{
 		Email:    req.Email,
@@ -298,7 +300,7 @@ func (s *UsrService) CreateUser(ctx context.Context, req CreateUserRequest) (*au
 		logDetails,
 	)
 
-	response := auth.ProfileResponse{
+	response := dto.ProfileResponse{
 		ID:        newUser.ID,
 		Username:  newUser.Username,
 		Email:     newUser.Email,
@@ -322,7 +324,7 @@ func NewUsrService(repo repository.Querier, log logger.ILogger, actLog activityl
 
 }
 
-func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersResponse, error) {
+func (s *UsrService) GetAllUsers(ctx context.Context, req dto.UsersRequest) (*dto.UsersResponse, error) {
 	orderBy := repository.UserOrderColumn("created_at")
 	if req.SortBy != nil {
 		orderBy = *req.SortBy
@@ -362,8 +364,8 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
 			s.log.Warnf("GetAllUsers | No users found for the given parameters: %v", listParams)
-			return &UsersResponse{
-				Users: []auth.ProfileResponse{},
+			return &dto.UsersResponse{
+				Users: []dto.ProfileResponse{},
 				Pagination: pagination.Pagination{
 					CurrentPage: int(page),
 					TotalPage:   0,
@@ -389,8 +391,8 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		return nil, err
 	}
 
-	response := UsersResponse{
-		Users: make([]auth.ProfileResponse, len(users)),
+	response := dto.UsersResponse{
+		Users: make([]dto.ProfileResponse, len(users)),
 		Pagination: pagination.Pagination{
 			CurrentPage: int(page),
 			TotalPage:   pagination.CalculateTotalPages(totalFilteredUsers, int(limit)),
@@ -415,7 +417,7 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 			deletedAtPtr = &t
 		}
 
-		response.Users[i] = auth.ProfileResponse{
+		response.Users[i] = dto.ProfileResponse{
 			ID:        u.ID,
 			Username:  u.Username,
 			Email:     u.Email,

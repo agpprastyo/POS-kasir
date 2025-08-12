@@ -2,14 +2,16 @@ package products
 
 import (
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"bytes"
 	"errors"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"io"
 	"mime/multipart"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type IPrdHandler interface {
@@ -85,7 +87,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 2. Parse request body ke DTO
-	var req UpdateProductOptionRequest
+	var req dto.UpdateProductOptionRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warnf("Cannot parse product option update request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -179,7 +181,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	var req CreateProductOptionRequestStandalone
+	var req dto.CreateProductOptionRequestStandalone
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warnf("Cannot parse product option request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -245,7 +247,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 2. Parse request body ke DTO
-	var req UpdateProductRequest
+	var req dto.UpdateProductRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse request body for update", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -301,7 +303,7 @@ func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 }
 
 func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
-	var req ListProductsRequest
+	var req dto.ListProductsRequest
 	if err := ctx.QueryParser(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -333,7 +335,7 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 	})
 }
 func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
-	var req CreateProductRequest
+	var req dto.CreateProductRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{

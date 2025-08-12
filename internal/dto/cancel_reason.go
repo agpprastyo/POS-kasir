@@ -1,4 +1,4 @@
-package cancellation_reasons
+package dto
 
 import "time"
 

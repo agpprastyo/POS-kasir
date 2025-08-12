@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
@@ -24,7 +25,7 @@ func NewMinio(cfg *config.AppConfig, log logger.ILogger) (IMinio, error) {
 		Secure: cfg.Minio.UseSSL,
 	})
 	if err != nil {
-		log.Errorf("Failed to create Minio client", "error", err)
+		log.Errorf("Failed to create Minio client: %v", err)
 		return nil, err
 	}
 
@@ -43,7 +44,7 @@ type IMinio interface {
 	BucketExists(ctx context.Context) (bool, error)
 }
 
-// BucketExists checks if the specified bucket exists.
+// BucketExists checks if the configured Minio bucket exists.
 func (m *Minio) BucketExists(ctx context.Context) (bool, error) {
 	if m == nil || m.Client == nil || m.Cfg == nil {
 		if m != nil && m.Log != nil {
@@ -54,18 +55,18 @@ func (m *Minio) BucketExists(ctx context.Context) (bool, error) {
 
 	exists, err := m.Client.BucketExists(ctx, m.Cfg.Minio.Bucket)
 	if err != nil {
-		m.Log.Errorf("Failed to check if bucket exists", "error", err)
+		m.Log.Errorf("Failed to check if bucket exists: %v", err)
 		return false, err
 	}
 
-	m.Log.Infof("Bucket exists check", "bucket", m.Cfg.Minio.Bucket, "exists", exists)
+	m.Log.Infof("Bucket exists check: bucket=%s, exists=%v", m.Cfg.Minio.Bucket, exists)
 	return exists, nil
 }
 
-// GetFileShareLink generates a presigned URL for sharing a file.
+// GetFileShareLink generates a presigned URL for accessing a file stored in the configured Minio bucket.
 func (m *Minio) GetFileShareLink(ctx context.Context, objectName string) (string, error) {
 
-	m.Log.Infof("GetFileShareLink", "objectName", objectName)
+	m.Log.Infof("GetFileShareLink: objectName=%s", objectName)
 	presignedURL, err := m.Client.PresignedGetObject(
 		ctx,
 		m.Cfg.Minio.Bucket,
@@ -74,12 +75,13 @@ func (m *Minio) GetFileShareLink(ctx context.Context, objectName string) (string
 		nil,
 	)
 	if err != nil {
-		m.Log.Errorf("Failed to generate presigned URL", "error", err, "objectName", objectName)
+		m.Log.Errorf("Failed to generate presigned URL: %v, objectName=%s", err, objectName)
 		return "", err
 	}
 	return presignedURL.String(), nil
 }
 
+// UploadFile uploads a file to the configured Minio bucket and returns a presigned URL for accessing the uploaded file.
 func (m *Minio) UploadFile(ctx context.Context, objectName string, data []byte, contentType string) (string, error) {
 	if m == nil || m.Client == nil || m.Cfg == nil {
 		if m != nil && m.Log != nil {
@@ -96,7 +98,7 @@ func (m *Minio) UploadFile(ctx context.Context, objectName string, data []byte, 
 
 	fmt.Println("UploadFile repo 3")
 	if err != nil {
-		m.Log.Errorf("Failed to upload file to Minio", "error", err, "objectName", objectName)
+		m.Log.Errorf("Failed to upload file to Minio: %v, objectName=%s", err, objectName)
 		return "", err
 	}
 
@@ -112,10 +114,10 @@ func (m *Minio) UploadFile(ctx context.Context, objectName string, data []byte, 
 
 	fmt.Println("UploadFile repo 5")
 	if err != nil {
-		m.Log.Errorf("Failed to generate presigned URL after upload", "error", err, "objectName", objectName)
+		m.Log.Errorf("Failed to generate presigned URL after upload: %v, objectName=%s", err, objectName)
 		return "", err
 	}
 
-	m.Log.Infof("File uploaded successfully", "objectName", objectName, "url", presignedURL.String())
+	m.Log.Infof("File uploaded successfully: objectName=%s, url=%s", objectName, presignedURL.String())
 	return presignedURL.String(), nil
 }

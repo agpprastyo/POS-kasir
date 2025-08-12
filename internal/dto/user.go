@@ -1,7 +1,6 @@
-package user
+package dto
 
 import (
-	"POS-kasir/internal/auth"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/pagination"
 )
@@ -18,8 +17,8 @@ type UsersRequest struct {
 }
 
 type UsersResponse struct {
-	Users      []auth.ProfileResponse `json:"users"`
-	Pagination pagination.Pagination  `json:"pagination"`
+	Users      []ProfileResponse     `json:"users"`
+	Pagination pagination.Pagination `json:"pagination"`
 }
 
 type CreateUserRequest struct {

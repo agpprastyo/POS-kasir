@@ -2,15 +2,17 @@ package auth
 
 import (
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/middleware"
 	"POS-kasir/pkg/validator"
 	"errors"
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"io"
 	"mime/multipart"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type IAuthHandler interface {
@@ -50,7 +52,7 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	var req UpdatePasswordRequest
+	var req dto.UpdatePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
@@ -92,7 +94,7 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	var req LoginRequest
+	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
@@ -157,7 +159,7 @@ func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
 
 func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	var req RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
@@ -239,7 +241,7 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 
 func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	var req RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",

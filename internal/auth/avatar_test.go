@@ -4,8 +4,9 @@ import (
 	"POS-kasir/mocks"
 	"context"
 	"fmt"
-	"go.uber.org/mock/gomock"
 	"testing"
+
+	"go.uber.org/mock/gomock"
 
 	"github.com/google/uuid"
 )

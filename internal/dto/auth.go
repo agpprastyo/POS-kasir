@@ -1,9 +1,10 @@
-package auth
+package dto
 
 import (
 	"POS-kasir/internal/repository"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type LoginRequest struct {

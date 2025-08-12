@@ -3,6 +3,7 @@ package auth
 import (
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/utils"
@@ -38,14 +39,14 @@ func NewAuthService(repo repository.Store, log logger.ILogger, tokenManager util
 
 // IAuthService defines authentication IActivityService methods.
 type IAuthService interface {
-	Login(ctx context.Context, req LoginRequest) (*LoginResponse, error)
-	Register(ctx context.Context, req RegisterRequest) (*ProfileResponse, error)
-	Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error)
-	UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error)
-	UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error
+	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error)
+	Register(ctx context.Context, req dto.RegisterRequest) (*dto.ProfileResponse, error)
+	Profile(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error)
+	UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*dto.ProfileResponse, error)
+	UpdatePassword(ctx context.Context, userID uuid.UUID, req dto.UpdatePasswordRequest) error
 }
 
-func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileResponse, error) {
+func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error) {
 	user, err := s.Repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, common.ErrNotFound
@@ -70,7 +71,7 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 		user.Avatar = nil
 	}
 
-	response := ProfileResponse{
+	response := dto.ProfileResponse{
 		ID:        user.ID,
 		IsActive:  user.IsActive,
 		Username:  user.Username,
@@ -85,7 +86,7 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*ProfileRes
 
 }
 
-func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req UpdatePasswordRequest) error {
+func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req dto.UpdatePasswordRequest) error {
 	user, err := s.Repo.GetUserByID(ctx, userID)
 	if err != nil {
 		s.Log.Errorf("UpdatePassword | Failed to find user by ID: %v", userID)
@@ -136,7 +137,7 @@ func (s *AthService) UpdatePassword(ctx context.Context, userID uuid.UUID, req U
 	return nil
 }
 
-func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*ProfileResponse, error) {
+func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*dto.ProfileResponse, error) {
 
 	const maxSize = 3 * 1024 * 1024
 	if len(data) > maxSize {
@@ -201,7 +202,7 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 		logDetails,
 	)
 
-	return &ProfileResponse{
+	return &dto.ProfileResponse{
 		ID:        profile.ID,
 		IsActive:  profile.IsActive,
 		Username:  profile.Username,
@@ -218,7 +219,7 @@ type checkResult struct {
 	err    error
 }
 
-func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*ProfileResponse, error) {
+func (s *AthService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.ProfileResponse, error) {
 
 	emailCh := make(chan checkResult, 1)
 	usernameCh := make(chan checkResult, 1)
@@ -316,7 +317,7 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 		logDetails,
 	)
 
-	return &ProfileResponse{
+	return &dto.ProfileResponse{
 		ID:        user.ID,
 		IsActive:  user.IsActive,
 		Username:  user.Username,
@@ -328,7 +329,7 @@ func (s *AthService) Register(ctx context.Context, req RegisterRequest) (*Profil
 	}, nil
 }
 
-func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+func (s *AthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
 	user, err := s.Repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		switch {
@@ -384,10 +385,10 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 		logDetails,
 	)
 
-	return &LoginResponse{
+	return &dto.LoginResponse{
 		ExpiredAt: expiredAt,
 		Token:     token,
-		Profile: ProfileResponse{
+		Profile: dto.ProfileResponse{
 			ID:        user.ID,
 			IsActive:  user.IsActive,
 			Username:  user.Username,

@@ -1,4 +1,4 @@
-package payment_methods
+package dto
 
 import "time"
 

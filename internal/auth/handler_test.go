@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/mocks"
 	"POS-kasir/pkg/middleware"
 	"bytes"
 	"errors"
+
 	"go.uber.org/mock/gomock"
 
 	"github.com/gofiber/fiber/v2"
@@ -43,7 +45,7 @@ func TestUpdatePasswordHandler(t *testing.T) {
 		setUserID bool
 		body      []byte
 		// Updated to accept the mocks for setup
-		setupMocks func(mockValidator *mocks.MockValidator, mockService *MockIAuthService)
+		setupMocks func(mockValidator *mocks.MockValidator, mockService *mocks.MockIAuthService)
 		wantStatus int
 	}{
 		{
@@ -152,7 +154,7 @@ func TestLoginHandler(t *testing.T) {
 			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
 				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
 				// CORRECTED: Return a nil pointer for the struct and a nil error.
-				mockService.EXPECT().Login(gomock.Any(), gomock.Any()).Return(&LoginResponse{}, nil)
+				mockService.EXPECT().Login(gomock.Any(), gomock.Any()).Return(&dto.LoginResponse{}, nil)
 			},
 			wantStatus: fiber.StatusOK,
 		},
@@ -230,7 +232,7 @@ func TestProfileHandler(t *testing.T) {
 			setUserID: true,
 			setupMocks: func(mockService *MockIAuthService) {
 				// Assuming Profile returns a response struct and nil error
-				mockService.EXPECT().Profile(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+				mockService.EXPECT().Profile(gomock.Any(), gomock.Any()).Return(&dto.ProfileResponse{}, nil)
 			},
 			wantStatus: fiber.StatusOK,
 		},
@@ -344,7 +346,7 @@ func TestRegisterHandler(t *testing.T) {
 			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
 				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
 				// CORRECTED: Return a *ProfileResponse as indicated by the error message.
-				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&dto.ProfileResponse{}, nil)
 			},
 			wantStatus: fiber.StatusOK,
 		},
@@ -431,7 +433,7 @@ func TestAddUserHandler(t *testing.T) {
 			setupMocks: func(mockValidator *mocks.MockValidator, mockService *MockIAuthService) {
 				mockValidator.EXPECT().Validate(gomock.Any()).Return(nil)
 				// CORRECTED: Assuming AddUser also returns a *ProfileResponse.
-				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+				mockService.EXPECT().Register(gomock.Any(), gomock.Any()).Return(&dto.ProfileResponse{}, nil)
 			},
 			wantStatus: fiber.StatusOK,
 		},
@@ -537,7 +539,7 @@ func TestUpdateAvatarHandler(t *testing.T) {
 			},
 			setupMocks: func(mockService *MockIAuthService) {
 				// CORRECTED: Return a *ProfileResponse and a nil error.
-				mockService.EXPECT().UploadAvatar(gomock.Any(), gomock.Any(), gomock.Any()).Return(&ProfileResponse{}, nil)
+				mockService.EXPECT().UploadAvatar(gomock.Any(), gomock.Any(), gomock.Any()).Return(&dto.ProfileResponse{}, nil)
 			},
 			wantStatus: fiber.StatusOK,
 		},

@@ -2,13 +2,15 @@ package user
 
 import (
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"errors"
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"strconv"
 )
 
 func NewUsrHandler(service IUsrService, log logger.ILogger, validator validator.Validator) IUsrHandler {
@@ -67,7 +69,7 @@ func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 // GetAllUsersHandler handles the request to get all users
 func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(UsersRequest)
+	req := new(dto.UsersRequest)
 	if err := c.QueryParser(req); err != nil {
 		h.log.Errorf("GetAllUsersHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -117,7 +119,7 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 // CreateUserHandler handles the request to create a new user
 func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(CreateUserRequest)
+	req := new(dto.CreateUserRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Errorf("CreateUserHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -224,7 +226,7 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	req := new(UpdateUserRequest)
+	req := new(dto.UpdateUserRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Errorf("UpdateUserHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{

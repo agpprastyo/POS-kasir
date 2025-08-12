@@ -1,13 +1,14 @@
 package cancellation_reasons
 
 import (
+	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 )
 
 type ICancellationReasonService interface {
-	ListCancellationReasons(ctx context.Context) ([]CancellationReasonResponse, error)
+	ListCancellationReasons(ctx context.Context) ([]dto.CancellationReasonResponse, error)
 }
 
 type CancellationReasonService struct {
@@ -19,16 +20,16 @@ func NewCancellationReasonService(store repository.Store, log logger.ILogger) IC
 	return &CancellationReasonService{store: store, log: log}
 }
 
-func (s *CancellationReasonService) ListCancellationReasons(ctx context.Context) ([]CancellationReasonResponse, error) {
+func (s *CancellationReasonService) ListCancellationReasons(ctx context.Context) ([]dto.CancellationReasonResponse, error) {
 	reasons, err := s.store.ListCancellationReasons(ctx)
 	if err != nil {
 		s.log.Error("ListCancellationReasons | Failed to list cancellation reasons from repository", "error", err)
 		return nil, err
 	}
 
-	var response []CancellationReasonResponse
+	var response []dto.CancellationReasonResponse
 	for _, reason := range reasons {
-		response = append(response, CancellationReasonResponse{
+		response = append(response, dto.CancellationReasonResponse{
 			ID:          reason.ID,
 			Reason:      reason.Reason,
 			Description: reason.Description,

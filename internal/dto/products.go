@@ -1,9 +1,10 @@
-package products
+package dto
 
 import (
 	"POS-kasir/pkg/pagination"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type CreateProductOptionRequest struct {

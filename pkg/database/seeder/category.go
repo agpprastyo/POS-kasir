@@ -6,7 +6,7 @@ import (
 	"context"
 )
 
-func SeedCategory(ctx context.Context, q repository.Querier, log *logger.Logger) error {
+func SeedCategory(ctx context.Context, q repository.Querier, log logger.ILogger) error {
 	kategori := []string{
 		"Makanan",
 		"Minuman",

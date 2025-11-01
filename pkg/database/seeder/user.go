@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func SeedUsers(ctx context.Context, q repository.Querier, log *logger.Logger) error {
+func SeedUsers(ctx context.Context, q repository.Querier, log logger.ILogger) error {
 	userData := []struct {
 		Username string
 		Email    string
@@ -60,7 +60,7 @@ func SeedUsers(ctx context.Context, q repository.Querier, log *logger.Logger) er
 		}
 		_, err = q.CreateUser(ctx, params)
 		if err != nil {
-			log.Printf("Seeder User | failed to seed user %s: %v", data.Email, err)
+			log.Infof("Seeder User | failed to seed user %s: %v", data.Email, err)
 			continue
 		}
 	}

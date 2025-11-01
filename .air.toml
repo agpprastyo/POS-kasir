@@ -1,0 +1,21 @@
+# File: .air.toml
+# Konfigurasi untuk hot-reloading Go
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Perintah untuk meng-compile aplikasi Anda
+cmd = "go build -o ./tmp/main ./cmd/app/main.go"
+# Binary yang akan dijalankan
+bin = "./tmp/main"
+# Ekstensi file yang akan dipantau
+include_ext = ["go", "tpl", "tmpl", "html"]
+# Direktori yang akan diabaikan
+exclude_dir = ["tmp", "web", "mocks", "vendor", "sqlc"]
+# Beri jeda 1 detik sebelum me-rebuild
+delay = 1000 # ms
+
+[log]
+# Tampilkan log berwarna
+color = true

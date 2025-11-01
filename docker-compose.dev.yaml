@@ -1,0 +1,71 @@
+services:
+  backend:
+    container_name: kasir-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/web/node_modules
+    env_file: .env
+    environment:
+      # Koneksi ke infra
+      DB_HOST: kasir-postgres
+      DB_PORT: 5432
+      MINIO_ENDPOINT: kasir-minio:9000
+      # Set GIN_MODE ke debug (jika Anda pakai Gin)
+      GIN_MODE: debug
+      # Beri tahu backend asal request frontend (PENTING UNTUK CORS)
+      CORS_ORIGIN: http://localhost:5173
+    networks:
+      - kasir-net
+    command: >
+      sh -c "
+        echo 'Waiting for database and Minio...' &&
+        dockerize -wait tcp://kasir-postgres:5432 -wait tcp://kasir-minio:9000 -timeout 60s &&
+        echo 'Starting Go server with air hot-reload...' &&
+        air
+      "
+#    depends_on:
+#      - postgres
+#      - minio
+
+  frontend:
+    container_name: kasir-frontend-dev
+    image: node:20-alpine
+    working_dir: /app/web
+    ports:
+      # Port default Vite/SvelteKit. Ganti jika beda.
+      - "5173:5173"
+    volumes:
+      # Mount hanya kode frontend
+      - ./web:/app/web
+      # Gunakan named volume untuk node_modules agar persisten
+      - web_node_modules:/app/web/node_modules
+    networks:
+      - kasir-net
+    command: sh -c "npm install && npm run dev -- --host"
+
+  # Referensi ke layanan infra yang berjalan di file lain
+  # (Docker Compose v3.4+ akan menggabungkan file)
+#  postgres:
+#    container_name: kasir-postgres
+#    image: postgres:16
+#    networks:
+#      - kasir-net
+#
+#  minio:
+#    container_name: kasir-minio
+#    image: minio/minio:latest
+#    networks:
+#      - kasir-net
+
+volumes:
+  web_node_modules:
+
+networks:
+  kasir-net:
+    external: true

@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kasir-app
+    env_file: .env
+    environment:
+      DB_HOST: kasir-postgres
+      DB_PORT: 5432
+      MINIO_ENDPOINT: kasir-minio:9000
+      GIN_MODE: release
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - kasir-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: kasir-tunnel
+    restart: always
+
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    env_file: .env
+    networks:
+      - kasir-net
+    depends_on:
+      - app
+
+networks:
+  kasir-net:
+    external: true

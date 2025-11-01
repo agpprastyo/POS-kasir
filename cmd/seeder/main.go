@@ -7,8 +7,9 @@ import (
 	"POS-kasir/pkg/database/seeder"
 	"POS-kasir/pkg/logger"
 	"context"
-	"github.com/joho/godotenv"
 	"log"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {

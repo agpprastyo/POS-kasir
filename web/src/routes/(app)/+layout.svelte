@@ -35,7 +35,7 @@
 	}
 </script>
 
-<!-- UI ini hanya akan dirender jika fungsi load di +layout.ts berhasil -->
+
 <div class="flex h-screen bg-white font-sans">
 	<aside class="flex w-64 flex-col border-r border-gray-200 bg-white">
 		<div class="flex h-16 shrink-0 items-center px-6">

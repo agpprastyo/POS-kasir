@@ -1,0 +1,23 @@
+# Git & IDE
+.git
+.vscode
+.idea
+
+# File environment lokal
+.env
+*.env
+*.env.local
+
+# Artifak build Go
+bin/
+*.exe
+*.test
+
+# Artifak build Frontend
+web/node_modules
+web/build
+web/.svelte-kit
+
+# File OS
+.DS_Store
+Thumbs.db

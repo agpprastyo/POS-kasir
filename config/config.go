@@ -89,7 +89,7 @@ func Load() *AppConfig {
 		JWT: jwtConfig{
 			Secret:   getEnv("JWT_SECRET", "secret"),
 			Duration: time.Duration(getInt("JWT_DURATION_HOURS", 24)) * time.Hour,
-			Issuer:   getEnv("JWT_ISSUER", "agprastyo"),
+			Issuer:   getEnv("JWT_ISSUER", "poskasir"),
 		},
 		Minio: minioConfig{
 			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),

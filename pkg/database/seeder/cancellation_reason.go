@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func SeedCancellationReasons(ctx context.Context, q repository.Querier, log *logger.Logger) error {
+func SeedCancellationReasons(ctx context.Context, q repository.Querier, log logger.ILogger) error {
 	log.Info("Seeding cancellation reasons...")
 
 	defaultReasons := []struct {

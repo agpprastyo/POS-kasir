@@ -2,16 +2,15 @@ package logger
 
 import (
 	"POS-kasir/config"
-	"github.com/sirupsen/logrus"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
-// Logger extends logrus.Logger
 type Logger struct {
 	*logrus.Logger
 }
 
-// In pkg/logger/logger.go
 type ILogger interface {
 	Errorf(format string, args ...interface{})
 	Error(args ...interface{})

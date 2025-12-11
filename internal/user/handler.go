@@ -36,29 +36,48 @@ type UsrHandler struct {
 	validator validator.Validator
 }
 
+// DeleteUserHandler handles the request to delete a user by ID
+// @Summary Delete user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} common.SuccessResponse
+// @failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 404 {object} common.ErrorResponse "User not found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /api/v1/users/{id} [delete]
 func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
 	if id == "" {
 		h.log.Errorf("DeleteUserHandler | User ID is required")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "User ID is required",
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "User ID is required",
 		})
 	}
 
 	idParsed, err := uuid.Parse(id)
 	if err != nil {
 		h.log.Errorf("DeleteUserHandler | Invalid user ID format: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID format",
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid user ID format",
 		})
 	}
 
 	if err := h.service.DeleteUser(ctx, idParsed); err != nil {
-		h.log.Errorf("DeleteUserHandler | Failed to delete user: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete user",
-		})
+		switch {
+		case errors.Is(err, common.ErrNotFound):
+			h.log.Warnf("DeleteUserHandler | User not found: %v", id)
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
+				Message: "User not found",
+			})
+		default:
+			h.log.Errorf("DeleteUserHandler | Failed to delete user: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to delete user",
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
@@ -67,6 +86,24 @@ func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 }
 
 // GetAllUsersHandler handles the request to get all users
+// @Summary Get all users
+// @Description Retrieve a list of users with pagination, filtering, and sorting
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number (default 1)" default(1)
+// @Param limit query int false "Items per page (default 10)" default(10)
+// @Param search query string false "Search by username or email"
+// @Param role query string false "Filter by User Role" Enums(admin, cashier, manager)
+// @Param is_active query boolean false "Filter by Active Status"
+// @Param status query string false "Filter by Account Status" Enums(active, deleted, all)
+// @Param sortBy query string false "Sort by column" Enums(created_at, username)
+// @Param sortOrder query string false "Sort direction" Enums(asc, desc)
+// @Success 200 {object} common.SuccessResponse{data=dto.UsersResponse}
+// @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
+// @Failure 404 {object} common.ErrorResponse "No users found"
+// @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @Router /api/v1/users [get]
 func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.UsersRequest)
@@ -99,8 +136,9 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 		switch {
 		case errors.Is(err, common.ErrNotFound):
 			h.log.Warnf("GetAllUsersHandler | No users found")
-			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{
-				Message: "No users found",
+			return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+				Message: "Users retrieved successfully",
+				Data:    response,
 			})
 		default:
 			h.log.Errorf("GetAllUsersHandler | Failed to get users: %v", err)
@@ -117,6 +155,16 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 }
 
 // CreateUserHandler handles the request to create a new user
+// @Summary Create user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body dto.CreateUserRequest true "User details"
+// @Success 201 {object} common.SuccessResponse{data=dto.ProfileResponse}
+// @Failure 400 {object} common.ErrorResponse "Invalid request body"
+// @Failure 409 {object} common.ErrorResponse "User already exists"
+// @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @Router /api/v1/users [post]
 func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.CreateUserRequest)
@@ -166,6 +214,16 @@ func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 }
 
 // GetUserByIDHandler handles the request to get a user by ID
+// @Summary Get user by ID
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse}
+// @Failure 400 {object} common.ErrorResponse "User ID is required"
+// @Failure 404 {object} common.ErrorResponse "User not found"
+// @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [get]
 func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -207,6 +265,20 @@ func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 }
 
 // UpdateUserHandler handles the request to update a user by ID
+// @Summary Update user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Param user body dto.UpdateUserRequest true "User details"
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse}
+// @Failure 400 {object} common.ErrorResponse "Invalid request body"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 403 {object} common.ErrorResponse "You are not authorized to change user roles"
+// @Failure 404 {object} common.ErrorResponse "User not found"
+// @Failure 409 {object} common.ErrorResponse "Username already exists"
+// @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id} [put]
 func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -284,6 +356,16 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 }
 
 // ToggleUserStatusHandler handles the request to toggle a user's active status
+// @Summary Toggle user status
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse "User ID is required"
+// @Failure 404 {object} common.ErrorResponse "User not found"
+// @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @Router /api/v1/users/{id}/toggle [put]
 func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")

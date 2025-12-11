@@ -150,3 +150,10 @@ migrate-create:
 
 sqlc-generate:
 	sqlc generate -f sqlc/sqlc.yaml
+
+
+swag:
+	@echo "Generating Swagger docs to ./docs and web/apid-docs..."
+	@swag init -g ./cmd/app/main.go -o ./docs --parseDependency --parseInternal
+	@swag init -g ./cmd/app/main.go -o web/api-docs --parseDependency --parseInternal --outputTypes json
+	@cd web && bun run api:gen

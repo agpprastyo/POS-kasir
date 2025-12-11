@@ -1,18 +1,21 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"time"
 )
 
 type AppConfig struct {
-	Server   serverConfig
-	DB       dbConfig
-	Logger   loggerConfig
-	JWT      jwtConfig
-	Minio    minioConfig
-	Midtrans midtransConfig
+	Server         serverConfig
+	DB             dbConfig
+	Logger         loggerConfig
+	JWT            jwtConfig
+	Minio          minioConfig
+	Midtrans       midtransConfig
+	AutoMigrate    bool
+	MigrationsPath string
 }
 
 type midtransConfig struct {
@@ -36,9 +39,11 @@ type jwtConfig struct {
 }
 
 type serverConfig struct {
-	AppName string
-	Env     string
-	Port    string
+	AppName                string
+	Env                    string
+	Port                   string
+	CookieDomain           string
+	WebFrontendCrossOrigin bool
 }
 
 type loggerConfig struct {
@@ -59,7 +64,16 @@ type dbConfig struct {
 	MaxLifetime time.Duration
 }
 
+// BuildDSN builds a postgres connection string usable by database/sql or migrator
+func (d dbConfig) BuildDSN() string {
+	// example: postgres://user:pass@host:port/dbname?sslmode=disable
+	// prefer explicit format for migrate and pq driver
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		d.User, d.Password, d.Host, d.Port, d.DBName, d.SSLMode)
+}
+
 func Load() *AppConfig {
+	maxLifetimeMinutes := getInt("DB_MAX_LIFETIME_MINUTES", 10)
 	return &AppConfig{
 		Midtrans: midtransConfig{
 			ServerKey: getEnv("MIDTRANS_SERVER_KEY", "SB-Mid-server-1234567890"),
@@ -74,7 +88,7 @@ func Load() *AppConfig {
 			SSLMode:     getEnv("DB_SSLMODE", "disable"),
 			MaxOpenConn: getInt("DB_MAX_OPEN_CONNECTIONS", 10),
 			MaxIdleConn: getInt("DB_MAX_IDLE_CONNECTIONS", 2),
-			MaxLifetime: time.Duration(getInt("DB_MAX_LIFETIME", 10)),
+			MaxLifetime: time.Duration(maxLifetimeMinutes) * time.Minute,
 		},
 		Logger: loggerConfig{
 			Level:      getEnv("LOG_LEVEL", "info"),
@@ -82,9 +96,11 @@ func Load() *AppConfig {
 			Output:     os.Stdout,
 		},
 		Server: serverConfig{
-			AppName: getEnv("APP_NAME", "hmm"),
-			Env:     getEnvEnum("APP_ENV", []string{"production", "development"}, "production"),
-			Port:    getEnv("APP_PORT", "8080"),
+			AppName:                getEnv("APP_NAME", "hmm"),
+			Env:                    getEnvEnum("APP_ENV", []string{"production", "development"}, "production"),
+			Port:                   getEnv("APP_PORT", "8080"),
+			CookieDomain:           getEnv("COOKIE_DOMAIN", ""),
+			WebFrontendCrossOrigin: getBool("WEB_FRONTEND_CROSS_ORIGIN", false),
 		},
 		JWT: jwtConfig{
 			Secret:   getEnv("JWT_SECRET", "secret"),
@@ -99,5 +115,7 @@ func Load() *AppConfig {
 			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
 			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400),
 		},
+		AutoMigrate:    getBool("AUTO_MIGRATE", false),
+		MigrationsPath: getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),
 	}
 }

@@ -7,96 +7,51 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Logger struct {
-	*logrus.Logger
-}
+type ILogger = logrus.FieldLogger
 
-type ILogger interface {
-	Errorf(format string, args ...interface{})
-	Error(args ...interface{})
-	Infof(format string, args ...interface{})
-	Info(args ...interface{})
+type Fields = logrus.Fields
 
-	Warnf(format string, args ...interface{})
-	Warn(args ...interface{})
-	Println(args ...interface{})
-	Fatal(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Fatalln(args ...interface{})
-}
-
-func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.Logger.Errorf(format, args...)
-}
-
-func (l *Logger) Error(args ...interface{}) {
-	l.Logger.Error(args...)
-}
-func (l *Logger) Infof(format string, args ...interface{}) {
-	l.Logger.Infof(format, args...)
-}
-func (l *Logger) Info(args ...interface{}) {
-	l.Logger.Info(args...)
-}
-
-func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.Logger.Warnf(format, args...)
-}
-
-func (l *Logger) Warn(args ...interface{}) {
-	l.Logger.Warn(args...)
-}
-
-func (l *Logger) Println(args ...interface{}) {
-	l.Logger.Println(args...)
-}
-
-func (l *Logger) Fatalln(args ...interface{}) {
-	l.Logger.Fatalln(args...)
-}
-
-func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.Logger.Fatalf(format, args...)
-}
-
-func (l *Logger) Fatal(args ...interface{}) {
-	l.Logger.Fatal(args...)
-}
-
-// New creates a new configured logger
 func New(cfg *config.AppConfig) ILogger {
-	logger := &Logger{Logger: logrus.New()}
+	base := logrus.New()
 
-	// Set output
-	if cfg.Logger.Output != nil {
-		logger.SetOutput(cfg.Logger.Output)
+	if cfg != nil && cfg.Logger.Output != nil {
+		base.SetOutput(cfg.Logger.Output)
 	} else {
-		logger.SetOutput(os.Stdout)
+		base.SetOutput(os.Stdout)
 	}
 
-	// Set formatter
-	if cfg.Logger.JSONFormat {
-		logger.SetFormatter(&logrus.JSONFormatter{
+	if cfg != nil && cfg.Logger.JSONFormat {
+		base.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat: "2006-01-02T15:04:05.000Z07:00",
 		})
 	} else {
-		logger.SetFormatter(&logrus.TextFormatter{
-			FullTimestamp:    true,
-			TimestampFormat:  "2006-01-02T15:04:05.000Z07:00",
-			DisableColors:    false,
-			DisableTimestamp: false,
+		base.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp:   true,
+			TimestampFormat: "2006-01-02 15:04:05",
+			ForceColors:     true,
+			DisableQuote:    true,
 		})
 	}
 
-	// Set level
-	level, err := logrus.ParseLevel(cfg.Logger.Level)
-	if err != nil {
-		level = logrus.InfoLevel
+	// Level
+	var lvl logrus.Level
+	if cfg != nil {
+		if parsed, err := logrus.ParseLevel(cfg.Logger.Level); err == nil {
+			lvl = parsed
+		} else {
+			lvl = logrus.InfoLevel
+		}
+	} else {
+		lvl = logrus.InfoLevel
 	}
-	logger.SetLevel(level)
+	base.SetLevel(lvl)
 
-	return logger
+	if cfg != nil {
+		return base.WithFields(logrus.Fields{
+			"app": cfg.Server.AppName,
+			"env": cfg.Server.Env,
+		})
+	}
+
+	return base.WithFields(logrus.Fields{})
 }
-
-// Fields type to define log fields
-type Fields logrus.Fields

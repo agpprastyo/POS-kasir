@@ -30,6 +30,8 @@ import (
 	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+
+	"github.com/gofiber/swagger"
 )
 
 type App struct {
@@ -104,7 +106,7 @@ func BuildAppContainer(app *App) *AppContainer {
 	// Auth Module
 	authRepo := auth.NewAuthRepo(app.Logger, app.Minio)
 	authService := auth.NewAuthService(app.Store, app.Logger, app.JWT, authRepo, activityService)
-	authHandler := auth.NewAuthHandler(authService, app.Logger, app.Validator)
+	authHandler := auth.NewAuthHandler(authService, app.Logger, app.Validator, app.Config)
 
 	// User Module
 	userService := user.NewUsrService(app.Store, app.Logger, activityService, authRepo)
@@ -150,12 +152,10 @@ func BuildAppContainer(app *App) *AppContainer {
 func StartServer(app *App) {
 
 	SetupMiddleware(app)
-
 	container := BuildAppContainer(app)
 
 	SetupRoutes(app, container)
 
-	// Start app
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)
 	if err := app.FiberApp.Listen(":" + app.Config.Server.Port); err != nil {
 		app.Logger.Fatalf("Error starting app: %v", err)
@@ -164,7 +164,7 @@ func StartServer(app *App) {
 
 func SetupMiddleware(app *App) {
 	app.FiberApp.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173, http://127.0.0.1:5173",
+		AllowOrigins:     "http://localhost:3000, http://127.0.0.1:3000",
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		ExposeHeaders:    "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods",
@@ -173,6 +173,13 @@ func SetupMiddleware(app *App) {
 	}))
 	app.FiberApp.Use(fiberlog.New())
 	app.FiberApp.Use(recover.New())
+
+	app.FiberApp.Get("/swagger/*", swagger.New(
+		swagger.Config{
+			URL: "/swagger/doc.json",
+		}))
+
+	app.Logger.Infof("Swagger UI available at http://localhost:%s/swagger/index.html", app.Config.Server.Port)
 }
 
 func Cleanup(app *App) {

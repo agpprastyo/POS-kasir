@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-
+	"fmt"
 	"image"
 	"image/jpeg"
 
@@ -55,11 +55,11 @@ func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*dto.Profil
 	if user.Avatar != nil {
 		avatarURL, err := s.AvatarRepo.AvatarLink(ctx, user.ID, *user.Avatar)
 		if err != nil {
-			switch err {
-			case common.ErrAvatarNotFound:
+			switch {
+			case errors.Is(err, common.ErrAvatarNotFound):
 				s.Log.Errorf("Profile | Avatar not found for user: %v", userID)
 				avatarURL = ""
-			case common.ErrAvatarLink:
+			case errors.Is(err, common.ErrAvatarLink):
 				s.Log.Errorf("Profile | Failed to generate avatar link for user: %v", userID)
 				return nil, common.ErrAvatarLink
 			default:
@@ -214,54 +214,22 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 	}, nil
 }
 
-type checkResult struct {
-	exists bool
-	err    error
-}
-
 func (s *AthService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.ProfileResponse, error) {
 
-	emailCh := make(chan checkResult, 1)
-	usernameCh := make(chan checkResult, 1)
-
-	go func() {
-		_, err := s.Repo.GetUserByEmail(ctx, req.Email)
-		if err == nil {
-			emailCh <- checkResult{exists: true}
-		} else if !errors.Is(err, pgx.ErrNoRows) {
-			emailCh <- checkResult{err: err}
-		} else {
-			emailCh <- checkResult{}
-		}
-	}()
-
-	go func() {
-		_, err := s.Repo.GetUserByUsername(ctx, req.Username)
-		if err == nil {
-			usernameCh <- checkResult{exists: true}
-		} else if !errors.Is(err, pgx.ErrNoRows) {
-			usernameCh <- checkResult{err: err}
-		} else {
-			usernameCh <- checkResult{}
-		}
-	}()
-
-	select {
-	case res := <-emailCh:
-		if res.err != nil {
-			return nil, res.err
-		}
-		if res.exists {
-			return nil, common.ErrUserExists
-		}
-	case res := <-usernameCh:
-		if res.err != nil {
-			return nil, res.err
-		}
-		if res.exists {
-			return nil, common.ErrUserExists
-		}
+	// --- start replace block ---
+	// validate unique email and username (sequential & robust)
+	if _, err := s.Repo.GetUserByEmail(ctx, req.Email); err == nil {
+		return nil, common.ErrEmailExists
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("failed check email existence: %w", err)
 	}
+
+	if _, err := s.Repo.GetUserByUsername(ctx, req.Username); err == nil {
+		return nil, common.ErrUsernameExists
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("failed check username existence: %w", err)
+	}
+	// --- end replace block ---
 
 	userUUID, err := uuid.NewV7()
 	if err != nil {

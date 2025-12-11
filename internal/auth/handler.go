@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"POS-kasir/config"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
@@ -10,6 +11,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -25,22 +27,35 @@ type IAuthHandler interface {
 	UpdateAvatarHandler(c *fiber.Ctx) error
 }
 
-// AthHandler handles authentication HTTP requests.
 type AthHandler struct {
+	cfg       *config.AppConfig
 	Service   IAuthService
 	Log       logger.ILogger
 	Validator validator.Validator
 }
 
-func NewAuthHandler(service IAuthService, log logger.ILogger, validator validator.Validator) IAuthHandler {
+func NewAuthHandler(service IAuthService, log logger.ILogger, validator validator.Validator, cfg *config.AppConfig) IAuthHandler {
 	return &AthHandler{
 		Service:   service,
 		Log:       log,
 		Validator: validator,
+		cfg:       cfg,
 	}
 }
 
 // UpdatePasswordHandler handles password update requests.
+// @Summary Update password
+// @Description Update password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.UpdatePasswordRequest true "Update password request"
+// @Success 200 {object} common.SuccessResponse{data=string} "Success"
+// @Failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 404 {object} common.ErrorResponse "Not Found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/update-password [post]
 func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
@@ -60,11 +75,8 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.Validator.Validate(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
-			Error:   err.Error(),
-		})
+	if done, err := common.ValidateAndRespond(c, h.Validator, h.Log, &req); done {
+		return err
 	}
 
 	err := h.Service.UpdatePassword(ctx, userUUID, req)
@@ -91,6 +103,19 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	})
 }
 
+// LoginHandler handles login requests.
+// @Summary Login
+// @Description Login
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login request"
+// @Success 200 {object} common.SuccessResponse{data=dto.LoginResponse} "Success"
+// @Failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 404 {object} common.ErrorResponse "Not Found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/login [post]
 func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
@@ -102,11 +127,8 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.Validator.Validate(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
-			Error:   err.Error(),
-		})
+	if done, err := common.ValidateAndRespond(c, h.Validator, h.Log, &req); done {
+		return err
 	}
 
 	resp, err := h.Service.Login(ctx, req)
@@ -128,15 +150,23 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	c.Cookie(&fiber.Cookie{
+	cookie := &fiber.Cookie{
 		Name:     "access_token",
 		Value:    resp.Token,
 		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
 		Expires:  resp.ExpiredAt,
+		MaxAge:   int(time.Until(resp.ExpiredAt).Seconds()),
 		HTTPOnly: true,
-		Secure:   true,
-		SameSite: fiber.CookieSameSiteNoneMode,
-	})
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
+	}
+	if h.cfg.Server.WebFrontendCrossOrigin {
+		cookie.SameSite = fiber.CookieSameSiteNoneMode
+
+		cookie.Secure = true
+	}
+	c.Cookie(cookie)
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Success",
@@ -147,16 +177,46 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 	})
 }
 
+// LogoutHandler handles logout requests.
+// @Summary Logout
+// @Description Logout
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} common.SuccessResponse{data=string} "Success"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 404 {object} common.ErrorResponse "Not Found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/logout [post]
 func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
-		Name:  "access_token",
-		Value: "",
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
 	})
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Successfully logged out",
 	})
 }
 
+// RegisterHandler handles the user registration process, including request parsing, validation, and service interaction.
+// @Summary Register
+// @Description Register
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "Register request"
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
+// @Failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 409 {object} common.ErrorResponse "Conflict"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/register [post]
 func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var req dto.RegisterRequest
@@ -166,25 +226,22 @@ func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.Validator.Validate(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
-			Error:   err.Error(),
-		})
+	if done, err := common.ValidateAndRespond(c, h.Validator, h.Log, &req); done {
+		return err
 	}
 
 	resp, err := h.Service.Register(ctx, req)
 	if err != nil {
-		switch err {
-		case common.ErrUserExists:
+		switch {
+		case errors.Is(err, common.ErrUserExists):
 			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 				Message: "User already exists",
 			})
-		case common.ErrUsernameExists:
+		case errors.Is(err, common.ErrUsernameExists):
 			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 				Message: "Username already exists",
 			})
-		case common.ErrEmailExists:
+		case errors.Is(err, common.ErrEmailExists):
 			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 				Message: "Email already exists",
 			})
@@ -202,6 +259,17 @@ func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
 	})
 }
 
+// ProfileHandler handles requests to retrieve the profile of the currently authenticated user.
+// @Summary Get profile
+// @Description Get profile
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 404 {object} common.ErrorResponse "Not Found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/me [get]
 func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
@@ -239,6 +307,18 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 
 }
 
+// AddUserHandler handles requests to add a new user to the system.
+// @Summary Add user
+// @Description Add user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body dto.RegisterRequest true "Register request"
+// @Success 200 {object} common.SuccessResponse{data=dto.RegisterResponse} "Success"
+// @Failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 409 {object} common.ErrorResponse "Conflict"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+
 func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var req dto.RegisterRequest
@@ -262,11 +342,8 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.Validator.Validate(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
-			Error:   err.Error(),
-		})
+	if done, err := common.ValidateAndRespond(c, h.Validator, h.Log, &req); done {
+		return err
 	}
 
 	resp, err := h.Service.Register(ctx, req)
@@ -298,6 +375,19 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateAvatarHandler handles requests to update the avatar of the currently authenticated user.
+// @Summary Update avatar
+// @Description Update avatar
+// @Tags Auth
+// @Accept multipart/form-data
+// @Produce json
+// @Param avatar formData file true "Avatar file"
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
+// @Failure 400 {object} common.ErrorResponse "Bad Request"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 404 {object} common.ErrorResponse "Not Found"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/me/avatar [put]
 func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)

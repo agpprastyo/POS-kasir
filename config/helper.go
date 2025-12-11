@@ -38,6 +38,7 @@ func getInt(key string, fallback int) int {
 	return value
 }
 
+// getDuration (kept for convenience; prefer explicit getInt + unit in config)
 func getDuration(key string, fallback time.Duration) time.Duration {
 	strValue := getEnv(key, "")
 	if strValue == "" {
@@ -63,13 +64,21 @@ func getInt64(key string, fallback int64) int64 {
 	return value
 }
 
-// getEnvEnum
+// getEnvEnum returns env value only if it's in validValues; otherwise returns fallback.
+// It also ensures fallback is valid (if not, the first validValues entry will be used).
 func getEnvEnum(key string, validValues []string, fallback string) string {
-	for _, value := range validValues {
-		if value == fallback {
-			return fallback
+	// ensure fallback is valid
+	validFallback := false
+	for _, v := range validValues {
+		if v == fallback {
+			validFallback = true
+			break
 		}
 	}
+	if !validFallback && len(validValues) > 0 {
+		fallback = validValues[0]
+	}
+
 	strValue := getEnv(key, "")
 	if strValue == "" {
 		return fallback

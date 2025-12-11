@@ -24,9 +24,24 @@ func NewMinio(cfg *config.AppConfig, log logger.ILogger) (IMinio, error) {
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: cfg.Minio.UseSSL,
 	})
+
 	if err != nil {
 		log.Errorf("Failed to create Minio client: %v", err)
 		return nil, err
+	}
+
+	exists, err := client.BucketExists(context.Background(), cfg.Minio.Bucket)
+	if err != nil {
+		log.Errorf("Failed to check if bucket exists: %v", err)
+		return nil, err
+	}
+	if !exists {
+		log.Infof("Bucket %s does not exist, creating...", cfg.Minio.Bucket)
+		if err := client.MakeBucket(context.Background(), cfg.Minio.Bucket, minio.MakeBucketOptions{}); err != nil {
+			log.Errorf("Failed to create bucket %s: %v", cfg.Minio.Bucket, err)
+			return nil, err
+		}
+		log.Infof("Created bucket: %s", cfg.Minio.Bucket)
 	}
 
 	log.Println("Created Minio client")

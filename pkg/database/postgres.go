@@ -1,13 +1,22 @@
-// File: pkg/database/postgres.go
 package database
 
 import (
 	"POS-kasir/config"
 	"POS-kasir/pkg/logger"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/golang-migrate/migrate/v4"
+	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type IDatabase interface {
@@ -51,6 +60,14 @@ func NewDatabase(cfg *config.AppConfig, log logger.ILogger) (IDatabase, error) {
 
 	log.Infof("Successfully connected to PostgreSQL database")
 
+	if cfg.AutoMigrate {
+		if err := runMigrations(cfg, dsn, log); err != nil {
+
+			pool.Close()
+			return nil, fmt.Errorf("failed to run migrations: %w", err)
+		}
+	}
+
 	return &postgresService{
 		DB:     pool,
 		Config: cfg,
@@ -80,5 +97,52 @@ func (s *postgresService) Ping(ctx context.Context) error {
 		return err
 	}
 	s.Log.Println("Successfully pinged database")
+	return nil
+}
+
+func runMigrations(cfg *config.AppConfig, dsn string, log logger.ILogger) error {
+	log.Infof("AutoMigrate enabled — running migrations from: %s", cfg.MigrationsPath)
+
+	if cfg.MigrationsPath == "" {
+		return fmt.Errorf("migrations path is empty")
+	}
+	if !strings.HasPrefix(cfg.MigrationsPath, "file://") {
+
+		log.Warnf("MigrationsPath does not start with file:// — make sure you intend this. Current: %s", cfg.MigrationsPath)
+	}
+
+	sqlDB, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to open database/sql connection for migrations: %w", err)
+	}
+	defer func(sqlDB *sql.DB) {
+		err := sqlDB.Close()
+		if err != nil {
+			log.Errorf("Failed to close database/sql connection for migrations: %v", err)
+		}
+	}(sqlDB)
+
+	sqlDB.SetMaxOpenConns(cfg.DB.MaxOpenConn)
+	sqlDB.SetMaxIdleConns(cfg.DB.MaxIdleConn)
+	sqlDB.SetConnMaxLifetime(cfg.DB.MaxLifetime)
+
+	driver, err := migratepg.WithInstance(sqlDB, &migratepg.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to create migrate driver instance: %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		cfg.MigrationsPath,
+		"postgres", driver,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("migrations up failed: %w", err)
+	}
+
+	log.Infof("Database migrations applied (or no change).")
 	return nil
 }

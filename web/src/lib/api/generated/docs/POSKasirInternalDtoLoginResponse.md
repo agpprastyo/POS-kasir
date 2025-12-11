@@ -1,0 +1,24 @@
+# POSKasirInternalDtoLoginResponse
+
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**Token** | **string** |  | [optional] [default to undefined]
+**expired_at** | **string** |  | [optional] [default to undefined]
+**profile** | [**POSKasirInternalDtoProfileResponse**](POSKasirInternalDtoProfileResponse.md) |  | [optional] [default to undefined]
+
+## Example
+
+```typescript
+import { POSKasirInternalDtoLoginResponse } from 'restClient';
+
+const instance: POSKasirInternalDtoLoginResponse = {
+    Token,
+    expired_at,
+    profile,
+};
+```
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

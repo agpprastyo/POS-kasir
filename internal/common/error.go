@@ -54,4 +54,5 @@ func WrapError(err error, message string) error {
 type ErrorResponse struct {
 	Message string      `json:"message"`
 	Error   interface{} `json:"error,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
 }

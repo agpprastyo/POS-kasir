@@ -4,15 +4,15 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1UsersGet**](#apiv1usersget) | **GET** /api/v1/users | Get all users|
-|[**apiV1UsersIdDelete**](#apiv1usersiddelete) | **DELETE** /api/v1/users/{id} | Delete user|
-|[**apiV1UsersIdGet**](#apiv1usersidget) | **GET** /api/v1/users/{id} | Get user by ID|
-|[**apiV1UsersIdPut**](#apiv1usersidput) | **PUT** /api/v1/users/{id} | Update user|
-|[**apiV1UsersIdTogglePut**](#apiv1usersidtoggleput) | **PUT** /api/v1/users/{id}/toggle | Toggle user status|
-|[**apiV1UsersPost**](#apiv1userspost) | **POST** /api/v1/users | Create user|
+|[**usersGet**](#usersget) | **GET** /users | Get all users|
+|[**usersIdDelete**](#usersiddelete) | **DELETE** /users/{id} | Delete user|
+|[**usersIdGet**](#usersidget) | **GET** /users/{id} | Get user by ID|
+|[**usersIdPut**](#usersidput) | **PUT** /users/{id} | Update user|
+|[**usersIdTogglePut**](#usersidtoggleput) | **PUT** /users/{id}/toggle | Toggle user status|
+|[**usersPost**](#userspost) | **POST** /users | Create user|
 
-# **apiV1UsersGet**
-> ApiV1UsersGet200Response apiV1UsersGet()
+# **usersGet**
+> UsersGet200Response usersGet()
 
 Retrieve a list of users with pagination, filtering, and sorting
 
@@ -36,7 +36,7 @@ let status: 'active' | 'deleted' | 'all'; //Filter by Account Status (optional) 
 let sortBy: 'created_at' | 'username'; //Sort by column (optional) (default to undefined)
 let sortOrder: 'asc' | 'desc'; //Sort direction (optional) (default to undefined)
 
-const { status, data } = await apiInstance.apiV1UsersGet(
+const { status, data } = await apiInstance.usersGet(
     page,
     limit,
     search,
@@ -64,7 +64,7 @@ const { status, data } = await apiInstance.apiV1UsersGet(
 
 ### Return type
 
-**ApiV1UsersGet200Response**
+**UsersGet200Response**
 
 ### Authorization
 
@@ -86,8 +86,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1UsersIdDelete**
-> POSKasirInternalCommonSuccessResponse apiV1UsersIdDelete()
+# **usersIdDelete**
+> POSKasirInternalCommonSuccessResponse usersIdDelete()
 
 
 ### Example
@@ -103,7 +103,7 @@ const apiInstance = new UsersApi(configuration);
 
 let id: string; //User ID (default to undefined)
 
-const { status, data } = await apiInstance.apiV1UsersIdDelete(
+const { status, data } = await apiInstance.usersIdDelete(
     id
 );
 ```
@@ -139,8 +139,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1UsersIdGet**
-> ApiV1UsersPost201Response apiV1UsersIdGet()
+# **usersIdGet**
+> AuthMeGet200Response usersIdGet()
 
 
 ### Example
@@ -156,7 +156,7 @@ const apiInstance = new UsersApi(configuration);
 
 let id: string; //User ID (default to undefined)
 
-const { status, data } = await apiInstance.apiV1UsersIdGet(
+const { status, data } = await apiInstance.usersIdGet(
     id
 );
 ```
@@ -170,7 +170,7 @@ const { status, data } = await apiInstance.apiV1UsersIdGet(
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 
@@ -192,8 +192,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1UsersIdPut**
-> ApiV1UsersPost201Response apiV1UsersIdPut(user)
+# **usersIdPut**
+> AuthMeGet200Response usersIdPut(user)
 
 
 ### Example
@@ -211,7 +211,7 @@ const apiInstance = new UsersApi(configuration);
 let id: string; //User ID (default to undefined)
 let user: POSKasirInternalDtoUpdateUserRequest; //User details
 
-const { status, data } = await apiInstance.apiV1UsersIdPut(
+const { status, data } = await apiInstance.usersIdPut(
     id,
     user
 );
@@ -227,7 +227,7 @@ const { status, data } = await apiInstance.apiV1UsersIdPut(
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 
@@ -252,8 +252,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1UsersIdTogglePut**
-> POSKasirInternalCommonSuccessResponse apiV1UsersIdTogglePut()
+# **usersIdTogglePut**
+> POSKasirInternalCommonSuccessResponse usersIdTogglePut()
 
 
 ### Example
@@ -269,7 +269,7 @@ const apiInstance = new UsersApi(configuration);
 
 let id: string; //User ID (default to undefined)
 
-const { status, data } = await apiInstance.apiV1UsersIdTogglePut(
+const { status, data } = await apiInstance.usersIdTogglePut(
     id
 );
 ```
@@ -305,8 +305,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1UsersPost**
-> ApiV1UsersPost201Response apiV1UsersPost(user)
+# **usersPost**
+> AuthMeGet200Response usersPost(user)
 
 
 ### Example
@@ -323,7 +323,7 @@ const apiInstance = new UsersApi(configuration);
 
 let user: POSKasirInternalDtoCreateUserRequest; //User details
 
-const { status, data } = await apiInstance.apiV1UsersPost(
+const { status, data } = await apiInstance.usersPost(
     user
 );
 ```
@@ -337,7 +337,7 @@ const { status, data } = await apiInstance.apiV1UsersPost(
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 

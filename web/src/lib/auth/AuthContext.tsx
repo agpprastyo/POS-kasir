@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logoutMutation = useLogoutMutation()
 
     const value: AuthContextValue = useMemo(() => {
-        // Normalisasi data user dari response API
         const profile = (data as any)?.data?.profile ?? (data as any)?.data ?? null
         const isAuthenticated = !!profile && !isMeError
 
@@ -57,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             logout,
         }
     }, [
-        data, // Ketika data berubah (karena refetch), context akan update otomatis
+        data,
         isMeLoading,
         isMeError,
         loginMutation,

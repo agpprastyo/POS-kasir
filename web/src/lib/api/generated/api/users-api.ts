@@ -22,9 +22,7 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1UsersGet200Response } from '../models';
-// @ts-ignore
-import type { ApiV1UsersPost201Response } from '../models';
+import type { AuthMeGet200Response } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
@@ -33,6 +31,8 @@ import type { POSKasirInternalCommonSuccessResponse } from '../models';
 import type { POSKasirInternalDtoCreateUserRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalDtoUpdateUserRequest } from '../models';
+// @ts-ignore
+import type { UsersGet200Response } from '../models';
 /**
  * UsersApi - axios parameter creator
  */
@@ -44,16 +44,16 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
          * @param {string} [search] Search by username or email
-         * @param {ApiV1UsersGetRoleEnum} [role] Filter by User Role
+         * @param {UsersGetRoleEnum} [role] Filter by User Role
          * @param {boolean} [isActive] Filter by Active Status
-         * @param {ApiV1UsersGetStatusEnum} [status] Filter by Account Status
-         * @param {ApiV1UsersGetSortByEnum} [sortBy] Sort by column
-         * @param {ApiV1UsersGetSortOrderEnum} [sortOrder] Sort direction
+         * @param {UsersGetStatusEnum} [status] Filter by Account Status
+         * @param {UsersGetSortByEnum} [sortBy] Sort by column
+         * @param {UsersGetSortOrderEnum} [sortOrder] Sort direction
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersGet: async (page?: number, limit?: number, search?: string, role?: ApiV1UsersGetRoleEnum, isActive?: boolean, status?: ApiV1UsersGetStatusEnum, sortBy?: ApiV1UsersGetSortByEnum, sortOrder?: ApiV1UsersGetSortOrderEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/users`;
+        usersGet: async (page?: number, limit?: number, search?: string, role?: UsersGetRoleEnum, isActive?: boolean, status?: UsersGetStatusEnum, sortBy?: UsersGetSortByEnum, sortOrder?: UsersGetSortOrderEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -115,10 +115,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdDelete: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdDelete: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('apiV1UsersIdDelete', 'id', id)
-            const localVarPath = `/api/v1/users/{id}`
+            assertParamExists('usersIdDelete', 'id', id)
+            const localVarPath = `/users/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -149,10 +149,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('apiV1UsersIdGet', 'id', id)
-            const localVarPath = `/api/v1/users/{id}`
+            assertParamExists('usersIdGet', 'id', id)
+            const localVarPath = `/users/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -184,12 +184,12 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdPut: async (id: string, user: POSKasirInternalDtoUpdateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdPut: async (id: string, user: POSKasirInternalDtoUpdateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('apiV1UsersIdPut', 'id', id)
+            assertParamExists('usersIdPut', 'id', id)
             // verify required parameter 'user' is not null or undefined
-            assertParamExists('apiV1UsersIdPut', 'user', user)
-            const localVarPath = `/api/v1/users/{id}`
+            assertParamExists('usersIdPut', 'user', user)
+            const localVarPath = `/users/{id}`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -223,10 +223,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdTogglePut: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdTogglePut: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('apiV1UsersIdTogglePut', 'id', id)
-            const localVarPath = `/api/v1/users/{id}/toggle`
+            assertParamExists('usersIdTogglePut', 'id', id)
+            const localVarPath = `/users/{id}/toggle`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -257,10 +257,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersPost: async (user: POSKasirInternalDtoCreateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersPost: async (user: POSKasirInternalDtoCreateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'user' is not null or undefined
-            assertParamExists('apiV1UsersPost', 'user', user)
-            const localVarPath = `/api/v1/users`;
+            assertParamExists('usersPost', 'user', user)
+            const localVarPath = `/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -301,18 +301,18 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
          * @param {string} [search] Search by username or email
-         * @param {ApiV1UsersGetRoleEnum} [role] Filter by User Role
+         * @param {UsersGetRoleEnum} [role] Filter by User Role
          * @param {boolean} [isActive] Filter by Active Status
-         * @param {ApiV1UsersGetStatusEnum} [status] Filter by Account Status
-         * @param {ApiV1UsersGetSortByEnum} [sortBy] Sort by column
-         * @param {ApiV1UsersGetSortOrderEnum} [sortOrder] Sort direction
+         * @param {UsersGetStatusEnum} [status] Filter by Account Status
+         * @param {UsersGetSortByEnum} [sortBy] Sort by column
+         * @param {UsersGetSortOrderEnum} [sortOrder] Sort direction
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersGet(page?: number, limit?: number, search?: string, role?: ApiV1UsersGetRoleEnum, isActive?: boolean, status?: ApiV1UsersGetStatusEnum, sortBy?: ApiV1UsersGetSortByEnum, sortOrder?: ApiV1UsersGetSortOrderEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersGet200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options);
+        async usersGet(page?: number, limit?: number, search?: string, role?: UsersGetRoleEnum, isActive?: boolean, status?: UsersGetStatusEnum, sortBy?: UsersGetSortByEnum, sortOrder?: UsersGetSortOrderEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UsersGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -322,10 +322,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersIdDelete(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersIdDelete(id, options);
+        async usersIdDelete(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdDelete(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersIdDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -335,10 +335,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersIdGet(id, options);
+        async usersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersIdGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -349,10 +349,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersIdPut(id, user, options);
+        async usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdPut(id, user, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersIdPut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -362,10 +362,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersIdTogglePut(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersIdTogglePut(id, options);
+        async usersIdTogglePut(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdTogglePut(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersIdTogglePut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdTogglePut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -375,10 +375,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1UsersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1UsersPost(user, options);
+        async usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersPost(user, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.apiV1UsersPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -396,16 +396,16 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
          * @param {string} [search] Search by username or email
-         * @param {ApiV1UsersGetRoleEnum} [role] Filter by User Role
+         * @param {UsersGetRoleEnum} [role] Filter by User Role
          * @param {boolean} [isActive] Filter by Active Status
-         * @param {ApiV1UsersGetStatusEnum} [status] Filter by Account Status
-         * @param {ApiV1UsersGetSortByEnum} [sortBy] Sort by column
-         * @param {ApiV1UsersGetSortOrderEnum} [sortOrder] Sort direction
+         * @param {UsersGetStatusEnum} [status] Filter by Account Status
+         * @param {UsersGetSortByEnum} [sortBy] Sort by column
+         * @param {UsersGetSortOrderEnum} [sortOrder] Sort direction
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersGet(page?: number, limit?: number, search?: string, role?: ApiV1UsersGetRoleEnum, isActive?: boolean, status?: ApiV1UsersGetStatusEnum, sortBy?: ApiV1UsersGetSortByEnum, sortOrder?: ApiV1UsersGetSortOrderEnum, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersGet200Response> {
-            return localVarFp.apiV1UsersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options).then((request) => request(axios, basePath));
+        usersGet(page?: number, limit?: number, search?: string, role?: UsersGetRoleEnum, isActive?: boolean, status?: UsersGetStatusEnum, sortBy?: UsersGetSortByEnum, sortOrder?: UsersGetSortOrderEnum, options?: RawAxiosRequestConfig): AxiosPromise<UsersGet200Response> {
+            return localVarFp.usersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -414,8 +414,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdDelete(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
-            return localVarFp.apiV1UsersIdDelete(id, options).then((request) => request(axios, basePath));
+        usersIdDelete(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.usersIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -424,8 +424,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
-            return localVarFp.apiV1UsersIdGet(id, options).then((request) => request(axios, basePath));
+        usersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+            return localVarFp.usersIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -435,8 +435,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
-            return localVarFp.apiV1UsersIdPut(id, user, options).then((request) => request(axios, basePath));
+        usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+            return localVarFp.usersIdPut(id, user, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -445,8 +445,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersIdTogglePut(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
-            return localVarFp.apiV1UsersIdTogglePut(id, options).then((request) => request(axios, basePath));
+        usersIdTogglePut(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.usersIdTogglePut(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -455,8 +455,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1UsersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
-            return localVarFp.apiV1UsersPost(user, options).then((request) => request(axios, basePath));
+        usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+            return localVarFp.usersPost(user, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -471,16 +471,16 @@ export class UsersApi extends BaseAPI {
      * @param {number} [page] Page number (default 1)
      * @param {number} [limit] Items per page (default 10)
      * @param {string} [search] Search by username or email
-     * @param {ApiV1UsersGetRoleEnum} [role] Filter by User Role
+     * @param {UsersGetRoleEnum} [role] Filter by User Role
      * @param {boolean} [isActive] Filter by Active Status
-     * @param {ApiV1UsersGetStatusEnum} [status] Filter by Account Status
-     * @param {ApiV1UsersGetSortByEnum} [sortBy] Sort by column
-     * @param {ApiV1UsersGetSortOrderEnum} [sortOrder] Sort direction
+     * @param {UsersGetStatusEnum} [status] Filter by Account Status
+     * @param {UsersGetSortByEnum} [sortBy] Sort by column
+     * @param {UsersGetSortOrderEnum} [sortOrder] Sort direction
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersGet(page?: number, limit?: number, search?: string, role?: ApiV1UsersGetRoleEnum, isActive?: boolean, status?: ApiV1UsersGetStatusEnum, sortBy?: ApiV1UsersGetSortByEnum, sortOrder?: ApiV1UsersGetSortOrderEnum, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options).then((request) => request(this.axios, this.basePath));
+    public usersGet(page?: number, limit?: number, search?: string, role?: UsersGetRoleEnum, isActive?: boolean, status?: UsersGetStatusEnum, sortBy?: UsersGetSortByEnum, sortOrder?: UsersGetSortOrderEnum, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -490,8 +490,8 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersIdDelete(id: string, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersIdDelete(id, options).then((request) => request(this.axios, this.basePath));
+    public usersIdDelete(id: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersIdDelete(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -501,8 +501,8 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersIdGet(id: string, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    public usersIdGet(id: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersIdGet(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -513,8 +513,8 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersIdPut(id, user, options).then((request) => request(this.axios, this.basePath));
+    public usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersIdPut(id, user, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -524,8 +524,8 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersIdTogglePut(id: string, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersIdTogglePut(id, options).then((request) => request(this.axios, this.basePath));
+    public usersIdTogglePut(id: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersIdTogglePut(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -535,30 +535,30 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1UsersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).apiV1UsersPost(user, options).then((request) => request(this.axios, this.basePath));
+    public usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersPost(user, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
-export const ApiV1UsersGetRoleEnum = {
+export const UsersGetRoleEnum = {
     Admin: 'admin',
     Cashier: 'cashier',
     Manager: 'manager'
 } as const;
-export type ApiV1UsersGetRoleEnum = typeof ApiV1UsersGetRoleEnum[keyof typeof ApiV1UsersGetRoleEnum];
-export const ApiV1UsersGetStatusEnum = {
+export type UsersGetRoleEnum = typeof UsersGetRoleEnum[keyof typeof UsersGetRoleEnum];
+export const UsersGetStatusEnum = {
     Active: 'active',
     Deleted: 'deleted',
     All: 'all'
 } as const;
-export type ApiV1UsersGetStatusEnum = typeof ApiV1UsersGetStatusEnum[keyof typeof ApiV1UsersGetStatusEnum];
-export const ApiV1UsersGetSortByEnum = {
+export type UsersGetStatusEnum = typeof UsersGetStatusEnum[keyof typeof UsersGetStatusEnum];
+export const UsersGetSortByEnum = {
     CreatedAt: 'created_at',
     Username: 'username'
 } as const;
-export type ApiV1UsersGetSortByEnum = typeof ApiV1UsersGetSortByEnum[keyof typeof ApiV1UsersGetSortByEnum];
-export const ApiV1UsersGetSortOrderEnum = {
+export type UsersGetSortByEnum = typeof UsersGetSortByEnum[keyof typeof UsersGetSortByEnum];
+export const UsersGetSortOrderEnum = {
     Asc: 'asc',
     Desc: 'desc'
 } as const;
-export type ApiV1UsersGetSortOrderEnum = typeof ApiV1UsersGetSortOrderEnum[keyof typeof ApiV1UsersGetSortOrderEnum];
+export type UsersGetSortOrderEnum = typeof UsersGetSortOrderEnum[keyof typeof UsersGetSortOrderEnum];

@@ -58,21 +58,20 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**authRegisterPost**](docs/AuthApi.md#authregisterpost) | **POST** /auth/register | Register
 *AuthApi* | [**authUpdatePasswordPost**](docs/AuthApi.md#authupdatepasswordpost) | **POST** /auth/update-password | Update password
 *CancellationReasonsApi* | [**apiV1CancellationReasonsGet**](docs/CancellationReasonsApi.md#apiv1cancellationreasonsget) | **GET** /api/v1/cancellation-reasons | List cancellation reasons
-*UsersApi* | [**apiV1UsersGet**](docs/UsersApi.md#apiv1usersget) | **GET** /api/v1/users | Get all users
-*UsersApi* | [**apiV1UsersIdDelete**](docs/UsersApi.md#apiv1usersiddelete) | **DELETE** /api/v1/users/{id} | Delete user
-*UsersApi* | [**apiV1UsersIdGet**](docs/UsersApi.md#apiv1usersidget) | **GET** /api/v1/users/{id} | Get user by ID
-*UsersApi* | [**apiV1UsersIdPut**](docs/UsersApi.md#apiv1usersidput) | **PUT** /api/v1/users/{id} | Update user
-*UsersApi* | [**apiV1UsersIdTogglePut**](docs/UsersApi.md#apiv1usersidtoggleput) | **PUT** /api/v1/users/{id}/toggle | Toggle user status
-*UsersApi* | [**apiV1UsersPost**](docs/UsersApi.md#apiv1userspost) | **POST** /api/v1/users | Create user
+*UsersApi* | [**usersGet**](docs/UsersApi.md#usersget) | **GET** /users | Get all users
+*UsersApi* | [**usersIdDelete**](docs/UsersApi.md#usersiddelete) | **DELETE** /users/{id} | Delete user
+*UsersApi* | [**usersIdGet**](docs/UsersApi.md#usersidget) | **GET** /users/{id} | Get user by ID
+*UsersApi* | [**usersIdPut**](docs/UsersApi.md#usersidput) | **PUT** /users/{id} | Update user
+*UsersApi* | [**usersIdTogglePut**](docs/UsersApi.md#usersidtoggleput) | **PUT** /users/{id}/toggle | Toggle user status
+*UsersApi* | [**usersPost**](docs/UsersApi.md#userspost) | **POST** /users | Create user
 
 
 ### Documentation For Models
 
  - [ApiV1CancellationReasonsGet200Response](docs/ApiV1CancellationReasonsGet200Response.md)
- - [ApiV1UsersGet200Response](docs/ApiV1UsersGet200Response.md)
- - [ApiV1UsersPost201Response](docs/ApiV1UsersPost201Response.md)
  - [AuthLoginPost200Response](docs/AuthLoginPost200Response.md)
  - [AuthLogoutPost200Response](docs/AuthLogoutPost200Response.md)
+ - [AuthMeGet200Response](docs/AuthMeGet200Response.md)
  - [POSKasirInternalCommonErrorResponse](docs/POSKasirInternalCommonErrorResponse.md)
  - [POSKasirInternalCommonSuccessResponse](docs/POSKasirInternalCommonSuccessResponse.md)
  - [POSKasirInternalDtoCancellationReasonResponse](docs/POSKasirInternalDtoCancellationReasonResponse.md)
@@ -86,6 +85,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoUsersResponse](docs/POSKasirInternalDtoUsersResponse.md)
  - [POSKasirInternalRepositoryUserRole](docs/POSKasirInternalRepositoryUserRole.md)
  - [POSKasirPkgPaginationPagination](docs/POSKasirPkgPaginationPagination.md)
+ - [UsersGet200Response](docs/UsersGet200Response.md)
 
 
 <a id="documentation-for-authorization"></a>

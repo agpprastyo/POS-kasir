@@ -46,7 +46,7 @@ type UsrHandler struct {
 // @failure 400 {object} common.ErrorResponse "Bad Request"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
-// @Router /api/v1/users/{id} [delete]
+// @Router /users/{id} [delete]
 func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -103,7 +103,7 @@ func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 404 {object} common.ErrorResponse "No users found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /api/v1/users [get]
+// @Router /users [get]
 func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.UsersRequest)
@@ -164,7 +164,7 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 409 {object} common.ErrorResponse "User already exists"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /api/v1/users [post]
+// @Router /users [post]
 func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.CreateUserRequest)
@@ -223,7 +223,7 @@ func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "User ID is required"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /api/v1/users/{id} [get]
+// @Router /users/{id} [get]
 func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -278,7 +278,7 @@ func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 409 {object} common.ErrorResponse "Username already exists"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /api/v1/users/{id} [put]
+// @Router /users/{id} [put]
 func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -365,7 +365,7 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "User ID is required"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /api/v1/users/{id}/toggle [put]
+// @Router /users/{id}/toggle [put]
 func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")

@@ -2,23 +2,21 @@ import { useMutation, useQuery, useQueryClient, queryOptions, keepPreviousData }
 import { usersApi } from "../../api/client.ts"
 import {
     POSKasirInternalDtoCreateUserRequest,
-    POSKasirInternalDtoUpdateUserRequest,
-    ApiV1UsersGetRoleEnum,
-    ApiV1UsersGetStatusEnum,
-    ApiV1UsersGetSortByEnum,
-    ApiV1UsersGetSortOrderEnum
+    POSKasirInternalDtoUpdateUserRequest, UsersGetRoleEnum, UsersGetSortByEnum,
+    UsersGetSortOrderEnum, UsersGetStatusEnum,
+
 } from "@/lib/api/generated"
 
-// Tipe helper untuk parameter list users agar tidak terlalu panjang di function arguments
+
 export type UsersListParams = {
     page?: number
     limit?: number
     search?: string
-    role?: ApiV1UsersGetRoleEnum
+    role?: UsersGetRoleEnum
     isActive?: boolean
-    status?: ApiV1UsersGetStatusEnum
-    sortBy?: ApiV1UsersGetSortByEnum
-    sortOrder?: ApiV1UsersGetSortOrderEnum
+    status?: UsersGetStatusEnum
+    sortBy?: UsersGetSortByEnum
+    sortOrder?: UsersGetSortOrderEnum
 }
 
 // --- QUERY: Get All Users (/api/v1/users) ---
@@ -26,7 +24,7 @@ export const usersListQueryOptions = (params?: UsersListParams) =>
     queryOptions({
         queryKey: ['users', 'list', params],
         queryFn: async () => {
-            const res = await usersApi.apiV1UsersGet(
+            const res = await usersApi.usersGet(
                 params?.page,
                 params?.limit,
                 params?.search,
@@ -36,10 +34,9 @@ export const usersListQueryOptions = (params?: UsersListParams) =>
                 params?.sortBy,
                 params?.sortOrder
             )
-            // Asumsi response wrapper: res.data.data berisi list dan pagination
-            return res.data.data
+            return res.data
         },
-        // keepPreviousData berguna untuk pagination agar UI tidak flicker saat pindah halaman
+
         placeholderData: keepPreviousData,
     })
 
@@ -51,10 +48,10 @@ export const userDetailQueryOptions = (id: string) =>
     queryOptions({
         queryKey: ['users', 'detail', id],
         queryFn: async () => {
-            const res = await usersApi.apiV1UsersIdGet(id)
-            return res.data.data
+            const res = await usersApi.usersIdGet(id)
+            return res.data
         },
-        enabled: !!id, // Query tidak jalan jika ID kosong
+        enabled: !!id,
     })
 
 export const useUserDetailQuery = (id: string) => useQuery(userDetailQueryOptions(id))
@@ -67,8 +64,8 @@ export const useCreateUserMutation = () => {
     return useMutation({
         mutationKey: ['users', 'create'],
         mutationFn: async (body: POSKasirInternalDtoCreateUserRequest) => {
-            const res = await usersApi.apiV1UsersPost(body)
-            return res.data.data
+            const res = await usersApi.usersPost(body)
+            return res.data
         },
         onSuccess: async () => {
             // Refresh list user setelah create sukses
@@ -85,8 +82,8 @@ export const useUpdateUserMutation = () => {
     return useMutation({
         mutationKey: ['users', 'update'],
         mutationFn: async ({ id, body }: { id: string; body: POSKasirInternalDtoUpdateUserRequest }) => {
-            const res = await usersApi.apiV1UsersIdPut(id, body)
-            return res.data.data
+            const res = await usersApi.usersIdPut(id, body)
+            return res.data
         },
         onSuccess: async (_, variables) => {
             // Refresh list dan detail user spesifik yang diupdate
@@ -107,7 +104,7 @@ export const useDeleteUserMutation = () => {
     return useMutation({
         mutationKey: ['users', 'delete'],
         mutationFn: async (id: string) => {
-            const res = await usersApi.apiV1UsersIdDelete(id)
+            const res = await usersApi.usersIdDelete(id)
             return res.data
         },
         onSuccess: async () => {
@@ -124,7 +121,7 @@ export const useToggleUserStatusMutation = () => {
     return useMutation({
         mutationKey: ['users', 'toggle'],
         mutationFn: async (id: string) => {
-            const res = await usersApi.apiV1UsersIdTogglePut(id)
+            const res = await usersApi.usersIdTogglePut(id)
             return res.data
         },
         onSuccess: async (_, id) => {

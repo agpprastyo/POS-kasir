@@ -10,8 +10,8 @@ import {
     useUpdateUserMutation
 } from '../lib/api/query/user.ts'
 import {
-    ApiV1UsersGetRoleEnum,
-    ApiV1UsersGetStatusEnum,
+    UsersGetRoleEnum,
+    UsersGetStatusEnum,
     POSKasirInternalDtoCreateUserRequest,
     POSKasirInternalDtoUpdateUserRequest
 } from '@/lib/api/generated'
@@ -68,8 +68,8 @@ const usersSearchSchema = z.object({
     page: z.number().catch(1),
     limit: z.number().catch(10),
     search: z.string().optional(),
-    role: z.nativeEnum(ApiV1UsersGetRoleEnum).optional(),
-    status: z.nativeEnum(ApiV1UsersGetStatusEnum).optional(),
+    role: z.nativeEnum(UsersGetRoleEnum).optional(),
+    status: z.nativeEnum(UsersGetStatusEnum).optional(),
 })
 
 
@@ -184,9 +184,9 @@ function UsersPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Roles</SelectItem>
-                            <SelectItem value={ApiV1UsersGetRoleEnum.Admin}>Admin</SelectItem>
-                            <SelectItem value={ApiV1UsersGetRoleEnum.Manager}>Manager</SelectItem>
-                            <SelectItem value={ApiV1UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Admin}>Admin</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Manager}>Manager</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -337,7 +337,7 @@ function UserFormDialog({ open, onOpenChange, userToEdit }: {
         username: '',
         email: '',
         password: '',
-        role: ApiV1UsersGetRoleEnum.Cashier
+        role: UsersGetRoleEnum.Cashier
     })
 
     // Populate form on open
@@ -351,7 +351,7 @@ function UserFormDialog({ open, onOpenChange, userToEdit }: {
     }
     // Reset form jika mode create
     if (open && !userToEdit && formData.email !== '') {
-        setFormData({ username: '', email: '', password: '', role: ApiV1UsersGetRoleEnum.Cashier })
+        setFormData({ username: '', email: '', password: '', role: UsersGetRoleEnum.Cashier })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -430,9 +430,9 @@ function UserFormDialog({ open, onOpenChange, userToEdit }: {
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value={ApiV1UsersGetRoleEnum.Admin}>Admin</SelectItem>
-                                        <SelectItem value={ApiV1UsersGetRoleEnum.Manager}>Manager</SelectItem>
-                                        <SelectItem value={ApiV1UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Admin}>Admin</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Manager}>Manager</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

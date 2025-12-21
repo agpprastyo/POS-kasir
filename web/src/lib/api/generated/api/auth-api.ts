@@ -22,11 +22,11 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1UsersPost201Response } from '../models';
-// @ts-ignore
 import type { AuthLoginPost200Response } from '../models';
 // @ts-ignore
 import type { AuthLogoutPost200Response } from '../models';
+// @ts-ignore
+import type { AuthMeGet200Response } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
@@ -290,7 +290,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
+        async authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authMeAvatarPut(avatar, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeAvatarPut']?.[localVarOperationServerIndex]?.url;
@@ -302,7 +302,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
+        async authMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authMeGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeGet']?.[localVarOperationServerIndex]?.url;
@@ -315,7 +315,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1UsersPost201Response>> {
+        async authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authRegisterPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authRegisterPost']?.[localVarOperationServerIndex]?.url;
@@ -369,7 +369,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
+        authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
             return localVarFp.authMeAvatarPut(avatar, options).then((request) => request(axios, basePath));
         },
         /**
@@ -378,7 +378,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeGet(options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
+        authMeGet(options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
             return localVarFp.authMeGet(options).then((request) => request(axios, basePath));
         },
         /**
@@ -388,7 +388,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1UsersPost201Response> {
+        authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
             return localVarFp.authRegisterPost(request, options).then((request) => request(axios, basePath));
         },
         /**

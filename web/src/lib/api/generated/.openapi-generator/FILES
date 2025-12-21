@@ -9,11 +9,10 @@ base.ts
 common.ts
 configuration.ts
 docs/ApiV1CancellationReasonsGet200Response.md
-docs/ApiV1UsersGet200Response.md
-docs/ApiV1UsersPost201Response.md
 docs/AuthApi.md
 docs/AuthLoginPost200Response.md
 docs/AuthLogoutPost200Response.md
+docs/AuthMeGet200Response.md
 docs/CancellationReasonsApi.md
 docs/POSKasirInternalCommonErrorResponse.md
 docs/POSKasirInternalCommonSuccessResponse.md
@@ -29,13 +28,13 @@ docs/POSKasirInternalDtoUsersResponse.md
 docs/POSKasirInternalRepositoryUserRole.md
 docs/POSKasirPkgPaginationPagination.md
 docs/UsersApi.md
+docs/UsersGet200Response.md
 git_push.sh
 index.ts
 models/api-v1-cancellation-reasons-get200-response.ts
-models/api-v1-users-get200-response.ts
-models/api-v1-users-post201-response.ts
 models/auth-login-post200-response.ts
 models/auth-logout-post200-response.ts
+models/auth-me-get200-response.ts
 models/index.ts
 models/poskasir-internal-common-error-response.ts
 models/poskasir-internal-common-success-response.ts
@@ -50,6 +49,7 @@ models/poskasir-internal-dto-update-user-request.ts
 models/poskasir-internal-dto-users-response.ts
 models/poskasir-internal-repository-user-role.ts
 models/poskasir-pkg-pagination-pagination.ts
+models/users-get200-response.ts
 package.json
 tsconfig.esm.json
 tsconfig.json

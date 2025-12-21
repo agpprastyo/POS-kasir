@@ -115,7 +115,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authMeAvatarPut**
-> ApiV1UsersPost201Response authMeAvatarPut()
+> AuthMeGet200Response authMeAvatarPut()
 
 Update avatar
 
@@ -146,7 +146,7 @@ const { status, data } = await apiInstance.authMeAvatarPut(
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 
@@ -170,7 +170,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authMeGet**
-> ApiV1UsersPost201Response authMeGet()
+> AuthMeGet200Response authMeGet()
 
 Get profile
 
@@ -194,7 +194,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 
@@ -217,7 +217,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authRegisterPost**
-> ApiV1UsersPost201Response authRegisterPost(request)
+> AuthMeGet200Response authRegisterPost(request)
 
 Register
 
@@ -249,7 +249,7 @@ const { status, data } = await apiInstance.authRegisterPost(
 
 ### Return type
 
-**ApiV1UsersPost201Response**
+**AuthMeGet200Response**
 
 ### Authorization
 

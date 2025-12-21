@@ -205,278 +205,6 @@ paths:
       summary: List cancellation reasons
       tags:
       - Cancellation Reasons
-  /api/v1/users:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a list of users with pagination, filtering, and sorting
-      parameters:
-      - default: 1
-        description: Page number (default 1)
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page (default 10)
-        in: query
-        name: limit
-        type: integer
-      - description: Search by username or email
-        in: query
-        name: search
-        type: string
-      - description: Filter by User Role
-        enum:
-        - admin
-        - cashier
-        - manager
-        in: query
-        name: role
-        type: string
-      - description: Filter by Active Status
-        in: query
-        name: is_active
-        type: boolean
-      - description: Filter by Account Status
-        enum:
-        - active
-        - deleted
-        - all
-        in: query
-        name: status
-        type: string
-      - description: Sort by column
-        enum:
-        - created_at
-        - username
-        in: query
-        name: sortBy
-        type: string
-      - description: Sort direction
-        enum:
-        - asc
-        - desc
-        in: query
-        name: sortOrder
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/POS-kasir_internal_dto.UsersResponse'
-              type: object
-        "400":
-          description: Invalid query parameters
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: No users found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Get all users
-      tags:
-      - Users
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: User details
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/POS-kasir_internal_dto.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
-              type: object
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "409":
-          description: User already exists
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Create user
-      tags:
-      - Users
-  /api/v1/users/{id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Delete user
-      tags:
-      - Users
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
-              type: object
-        "400":
-          description: User ID is required
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Get user by ID
-      tags:
-      - Users
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: User details
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/POS-kasir_internal_dto.UpdateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
-              type: object
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "403":
-          description: You are not authorized to change user roles
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "409":
-          description: Username already exists
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Update user
-      tags:
-      - Users
-  /api/v1/users/{id}/toggle:
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-        "400":
-          description: User ID is required
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Toggle user status
-      tags:
-      - Users
   /auth/login:
     post:
       consumes:
@@ -708,4 +436,276 @@ paths:
       summary: Update password
       tags:
       - Auth
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of users with pagination, filtering, and sorting
+      parameters:
+      - default: 1
+        description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page (default 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Search by username or email
+        in: query
+        name: search
+        type: string
+      - description: Filter by User Role
+        enum:
+        - admin
+        - cashier
+        - manager
+        in: query
+        name: role
+        type: string
+      - description: Filter by Active Status
+        in: query
+        name: is_active
+        type: boolean
+      - description: Filter by Account Status
+        enum:
+        - active
+        - deleted
+        - all
+        in: query
+        name: status
+        type: string
+      - description: Sort by column
+        enum:
+        - created_at
+        - username
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort direction
+        enum:
+        - asc
+        - desc
+        in: query
+        name: sortOrder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.UsersResponse'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: No users found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
+              type: object
+        "400":
+          description: User ID is required
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "403":
+          description: You are not authorized to change user roles
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Username already exists
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update user
+      tags:
+      - Users
+  /users/{id}/toggle:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: User ID is required
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Toggle user status
+      tags:
+      - Users
 swagger: "2.0"

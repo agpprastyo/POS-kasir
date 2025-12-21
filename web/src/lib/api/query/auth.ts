@@ -9,7 +9,7 @@ export const meQueryOptions = () =>
         queryKey: ['auth', 'me'],
         queryFn: async () => {
             const res = await authApi.authMeGet()
-            return res.data.data
+            return res.data
         },
         retry: false,
     })

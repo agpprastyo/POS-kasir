@@ -2,10 +2,17 @@ import { useMutation, useQuery, useQueryClient, queryOptions, keepPreviousData }
 import { usersApi } from "../../api/client.ts"
 import {
     POSKasirInternalDtoCreateUserRequest,
-    POSKasirInternalDtoUpdateUserRequest, UsersGetRoleEnum, UsersGetSortByEnum,
-    UsersGetSortOrderEnum, UsersGetStatusEnum,
+    POSKasirInternalDtoUpdateUserRequest,
+    POSKasirInternalDtoUsersResponse,
+    POSKasirInternalDtoProfileResponse,
+    UsersGetRoleEnum,
+    UsersGetSortByEnum,
+    UsersGetSortOrderEnum,
+    UsersGetStatusEnum, POSKasirInternalCommonErrorResponse,
+} from "../generated"
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
-} from "@/lib/api/generated"
 
 
 export type UsersListParams = {
@@ -21,7 +28,10 @@ export type UsersListParams = {
 
 // --- QUERY: Get All Users (/api/v1/users) ---
 export const usersListQueryOptions = (params?: UsersListParams) =>
-    queryOptions({
+    queryOptions<
+        POSKasirInternalDtoUsersResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
         queryKey: ['users', 'list', params],
         queryFn: async () => {
             const res = await usersApi.usersGet(
@@ -34,9 +44,8 @@ export const usersListQueryOptions = (params?: UsersListParams) =>
                 params?.sortBy,
                 params?.sortOrder
             )
-            return res.data
+            return (res.data as any).data;
         },
-
         placeholderData: keepPreviousData,
     })
 
@@ -45,11 +54,14 @@ export const useUsersListQuery = (params?: UsersListParams) => useQuery(usersLis
 
 // --- QUERY: Get User By ID (/api/v1/users/{id}) ---
 export const userDetailQueryOptions = (id: string) =>
-    queryOptions({
+    queryOptions<
+        POSKasirInternalDtoProfileResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
         queryKey: ['users', 'detail', id],
         queryFn: async () => {
             const res = await usersApi.usersIdGet(id)
-            return res.data
+            return (res.data as any).data;
         },
         enabled: !!id,
     })
@@ -57,7 +69,7 @@ export const userDetailQueryOptions = (id: string) =>
 export const useUserDetailQuery = (id: string) => useQuery(userDetailQueryOptions(id))
 
 
-// --- MUTATION: Create User (/api/v1/users) ---
+
 export const useCreateUserMutation = () => {
     const qc = useQueryClient()
 
@@ -65,17 +77,19 @@ export const useCreateUserMutation = () => {
         mutationKey: ['users', 'create'],
         mutationFn: async (body: POSKasirInternalDtoCreateUserRequest) => {
             const res = await usersApi.usersPost(body)
-            return res.data
+            return (res.data as any).data as POSKasirInternalDtoProfileResponse;
         },
         onSuccess: async () => {
-            // Refresh list user setelah create sukses
             await qc.invalidateQueries({ queryKey: ['users', 'list'] })
+            toast.success("User created successfully")
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal membuat user: " + msg)
+        }
     })
 }
 
-
-// --- MUTATION: Update User (/api/v1/users/{id}) ---
 export const useUpdateUserMutation = () => {
     const qc = useQueryClient()
 
@@ -83,21 +97,20 @@ export const useUpdateUserMutation = () => {
         mutationKey: ['users', 'update'],
         mutationFn: async ({ id, body }: { id: string; body: POSKasirInternalDtoUpdateUserRequest }) => {
             const res = await usersApi.usersIdPut(id, body)
-            return res.data
+            return (res.data as any).data as POSKasirInternalDtoProfileResponse;
         },
-        onSuccess: async (_, variables) => {
-            // Refresh list dan detail user spesifik yang diupdate
+        onSuccess: async (data) => {
             await qc.invalidateQueries({ queryKey: ['users', 'list'] })
-            await qc.invalidateQueries({ queryKey: ['users', 'detail', variables.id] })
-
-            // Jika user mengupdate dirinya sendiri, mungkin perlu invalidate 'auth/me' juga
-            // await qc.invalidateQueries({ queryKey: ['auth', 'me'] })
+            await qc.invalidateQueries({ queryKey: ['users', 'detail', data.id] })
+            toast.success("User updated successfully")
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal memperbarui user: " + msg)
+        }
     })
 }
 
-
-// --- MUTATION: Delete User (/api/v1/users/{id}) ---
 export const useDeleteUserMutation = () => {
     const qc = useQueryClient()
 
@@ -105,28 +118,38 @@ export const useDeleteUserMutation = () => {
         mutationKey: ['users', 'delete'],
         mutationFn: async (id: string) => {
             const res = await usersApi.usersIdDelete(id)
-            return res.data
+            return (res.data as any).data;
         },
         onSuccess: async () => {
             await qc.invalidateQueries({ queryKey: ['users', 'list'] })
+            toast.success("User deleted successfully")
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal menghapus user: " + msg)
+        }
     })
 }
 
-
-// --- MUTATION: Toggle User Status (/api/v1/users/{id}/toggle) ---
 export const useToggleUserStatusMutation = () => {
     const qc = useQueryClient()
 
     return useMutation({
         mutationKey: ['users', 'toggle'],
         mutationFn: async (id: string) => {
-            const res = await usersApi.usersIdTogglePut(id)
-            return res.data
+            const res = await usersApi.usersIdToggleStatusPost(id)
+            return (res.data as any).data;
         },
         onSuccess: async (_, id) => {
             await qc.invalidateQueries({ queryKey: ['users', 'list'] })
             await qc.invalidateQueries({ queryKey: ['users', 'detail', id] })
+            toast.success("Status user berhasil diubah")
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            console.error("Masuk ke onError Mutation:", error)
+
+            const errorMessage = error.response?.data?.error
+            toast.error("Gagal mengubah status: " + errorMessage)
+        }
     })
 }

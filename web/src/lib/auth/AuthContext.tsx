@@ -21,8 +21,9 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+
     const {
-        data,
+        data: userProfile,
         isLoading: isMeLoading,
         isError: isMeError,
     } = useMeQuery()
@@ -31,7 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logoutMutation = useLogoutMutation()
 
     const value: AuthContextValue = useMemo(() => {
-        const profile = (data as any)?.data?.profile ?? (data as any)?.data ?? null
+
+        const profile = userProfile ?? null
         const isAuthenticated = !!profile && !isMeError
 
         const login = async (payload: POSKasirInternalDtoLoginRequest) => {
@@ -45,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error("Logout error (server side):", e)
             } finally {
                 queryClient.clear()
+
             }
         }
 
@@ -56,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             logout,
         }
     }, [
-        data,
+        userProfile,
         isMeLoading,
         isMeError,
         loginMutation,

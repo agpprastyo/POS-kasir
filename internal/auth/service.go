@@ -216,8 +216,6 @@ func (s *AthService) UploadAvatar(ctx context.Context, userID uuid.UUID, data []
 
 func (s *AthService) Register(ctx context.Context, req dto.RegisterRequest) (*dto.ProfileResponse, error) {
 
-	// --- start replace block ---
-	// validate unique email and username (sequential & robust)
 	if _, err := s.Repo.GetUserByEmail(ctx, req.Email); err == nil {
 		return nil, common.ErrEmailExists
 	} else if !errors.Is(err, pgx.ErrNoRows) {
@@ -229,7 +227,6 @@ func (s *AthService) Register(ctx context.Context, req dto.RegisterRequest) (*dt
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return nil, fmt.Errorf("failed check username existence: %w", err)
 	}
-	// --- end replace block ---
 
 	userUUID, err := uuid.NewV7()
 	if err != nil {

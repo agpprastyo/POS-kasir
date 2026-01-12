@@ -15,13 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoProfileResponse } from './poskasir-internal-dto-profile-response';
+import type { POSKasirInternalCommonPaginationPagination } from './poskasir-internal-common-pagination-pagination';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirPkgPaginationPagination } from './poskasir-pkg-pagination-pagination';
+import type { POSKasirInternalDtoProfileResponse } from './poskasir-internal-dto-profile-response';
 
 export interface POSKasirInternalDtoUsersResponse {
-    'pagination'?: POSKasirPkgPaginationPagination;
+    'pagination'?: POSKasirInternalCommonPaginationPagination;
     'users'?: Array<POSKasirInternalDtoProfileResponse>;
 }
 

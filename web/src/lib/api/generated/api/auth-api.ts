@@ -32,8 +32,6 @@ import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalDtoLoginRequest } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoRegisterRequest } from '../models';
-// @ts-ignore
 import type { POSKasirInternalDtoUpdatePasswordRequest } from '../models';
 /**
  * AuthApi - axios parameter creator
@@ -178,52 +176,16 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Register
-         * @summary Register
-         * @param {POSKasirInternalDtoRegisterRequest} request Register request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authRegisterPost: async (request: POSKasirInternalDtoRegisterRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'request' is not null or undefined
-            assertParamExists('authRegisterPost', 'request', request)
-            const localVarPath = `/auth/register`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Update password
          * @summary Update password
          * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authUpdatePasswordPost: async (request: POSKasirInternalDtoUpdatePasswordRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        authMeUpdatePasswordPost: async (request: POSKasirInternalDtoUpdatePasswordRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
-            assertParamExists('authUpdatePasswordPost', 'request', request)
-            const localVarPath = `/auth/update-password`;
+            assertParamExists('authMeUpdatePasswordPost', 'request', request)
+            const localVarPath = `/auth/me/update-password`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -309,29 +271,16 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Register
-         * @summary Register
-         * @param {POSKasirInternalDtoRegisterRequest} request Register request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authRegisterPost(request, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AuthApi.authRegisterPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Update password
          * @summary Update password
          * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLogoutPost200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authUpdatePasswordPost(request, options);
+        async authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLogoutPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authMeUpdatePasswordPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AuthApi.authUpdatePasswordPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeUpdatePasswordPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -382,24 +331,14 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.authMeGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Register
-         * @summary Register
-         * @param {POSKasirInternalDtoRegisterRequest} request Register request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
-            return localVarFp.authRegisterPost(request, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Update password
          * @summary Update password
          * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLogoutPost200Response> {
-            return localVarFp.authUpdatePasswordPost(request, options).then((request) => request(axios, basePath));
+        authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLogoutPost200Response> {
+            return localVarFp.authMeUpdatePasswordPost(request, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -451,25 +390,14 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Register
-     * @summary Register
-     * @param {POSKasirInternalDtoRegisterRequest} request Register request
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public authRegisterPost(request: POSKasirInternalDtoRegisterRequest, options?: RawAxiosRequestConfig) {
-        return AuthApiFp(this.configuration).authRegisterPost(request, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Update password
      * @summary Update password
      * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
-        return AuthApiFp(this.configuration).authUpdatePasswordPost(request, options).then((request) => request(this.axios, this.basePath));
+    public authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authMeUpdatePasswordPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

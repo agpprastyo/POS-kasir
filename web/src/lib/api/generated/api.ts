@@ -16,5 +16,9 @@
 
 export * from './api/auth-api';
 export * from './api/cancellation-reasons-api';
+export * from './api/categories-api';
+export * from './api/orders-api';
+export * from './api/payment-methods-api';
+export * from './api/products-api';
 export * from './api/users-api';
 

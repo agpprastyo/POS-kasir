@@ -6,6 +6,7 @@ import (
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"errors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -38,30 +39,37 @@ func NewOrderHandler(orderService IOrderService, log logger.ILogger, validate va
 }
 
 // ListProductOptionsHandler is a placeholder for listing product options
-
+// @Summary Apply promotion to an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Param request body dto.ApplyPromotionRequest true "Promotion details"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/apply-promotion [post]
 func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
-	// 1. Ambil ID pesanan dari parameter URL
+
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	// 2. Parse request body
 	var req dto.ApplyPromotionRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
-	// 3. Validasi DTO
 	if err := h.validate.Validate(req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	// 4. Panggil service untuk menerapkan promosi
 	orderResponse, err := h.orderService.ApplyPromotion(c.Context(), orderID, req)
 	if err != nil {
-		// Tangani error spesifik dari service, seperti promosi tidak valid atau pesanan tidak memenuhi syarat
+
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order or Promotion not found"})
 		}
@@ -72,13 +80,24 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to apply promotion"})
 	}
 
-	// 5. Kirim respons sukses
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Promotion applied successfully",
 		Data:    orderResponse,
 	})
 }
 
+// UpdateOperationalStatusHandler is a placeholder for updating order operational status
+// @Summary Update order operational status
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Param request body dto.UpdateOrderStatusRequest true "Order status details"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/update-status [post]
 func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
@@ -116,6 +135,19 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 		Data:    orderResponse,
 	})
 }
+
+// CompleteManualPaymentHandler is a placeholder for completing manual payment
+// @Summary Complete manual payment for an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Param request body dto.CompleteManualPaymentRequest true "Manual payment details"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/complete-manual-payment [post]
 func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
@@ -181,6 +213,18 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 	})
 }
 
+// CancelOrderHandler is a placeholder for cancelling an order
+// @Summary Cancel an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Param request body dto.CancelOrderRequest true "Cancel order details"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/cancel [post]
 func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -218,6 +262,19 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 	})
 }
 
+// ListOrdersHandler is a placeholder for listing orders
+// @Summary List orders
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param limit query int false "Number of orders per page"
+// @Param status query string false "Order status" Enums(open, in_progress, served, paid, cancelled)
+// @Param user_id query string false "Filter by User ID"
+// @Success 200 {object} common.SuccessResponse{data=dto.PagedOrderResponse}
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders [get]
 func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 
 	var req dto.ListOrdersRequest
@@ -243,16 +300,27 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 	})
 }
 
+// CreateOrderHandler is a placeholder for creating an order
+// @Summary Create an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateOrderRequest true "Create order details"
+// @Success 201 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders [post]
 func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 	var req dto.CreateOrderRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.log.Warnf("Cannot parse create order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
+	h.log.Infof("CreateOrderHandler payload: %+v", req)
 
 	if err := h.validate.Validate(req); err != nil {
 		h.log.Warnf("Create order request validation failed", "error", err)
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error(), Data: req})
 	}
 
 	orderResponse, err := h.orderService.CreateOrder(c.Context(), req)
@@ -267,6 +335,17 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 	})
 }
 
+// GetOrderHandler is a placeholder for getting an order by ID
+// @Summary Get an order by ID
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id} [get]
 func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
 	orderIDStr := c.Params("id")
@@ -292,6 +371,17 @@ func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 	})
 }
 
+// ProcessPaymentHandler is a placeholder for processing payment for an order
+// @Summary Process payment for an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Success 200 {object} common.SuccessResponse
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/process-payment [post]
 func (h *OrderHandler) ProcessPaymentHandler(c *fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")

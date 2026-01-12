@@ -349,6 +349,8 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 		}
 	}
 
+	h.log.Infof("UpdateUserHandler | User updated successfully: %v", user.Username)
+
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "User updated successfully",
 		Data:    user,
@@ -365,7 +367,7 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "User ID is required"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
-// @Router /users/{id}/toggle [put]
+// @Router /users/{id}/toggle-status [post]
 func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")

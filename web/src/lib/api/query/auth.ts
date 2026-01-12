@@ -1,77 +1,127 @@
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
-import {authApi} from "../../api/client.ts";
-import {POSKasirInternalDtoLoginRequest, POSKasirInternalDtoUpdatePasswordRequest} from "@/lib/api/generated";
+import { authApi } from "../../api/client.ts";
+import {
+    POSKasirInternalDtoLoginRequest,
+    POSKasirInternalDtoUpdatePasswordRequest,
+    POSKasirInternalDtoProfileResponse,
+    POSKasirInternalDtoLoginResponse,
+    POSKasirInternalCommonErrorResponse
+} from "@/lib/api/generated";
+import { AxiosError } from "axios";
+import {toast} from "sonner";
 
 
-// --- QUERY: current user (/auth/profile) ---
+// --- QUERY: current user (/auth/me) ---
 export const meQueryOptions = () =>
-    queryOptions({
+    queryOptions<
+        POSKasirInternalDtoProfileResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
         queryKey: ['auth', 'me'],
         queryFn: async () => {
             const res = await authApi.authMeGet()
-            return res.data
+            return (res.data as any).data;
         },
         retry: false,
+        staleTime: 1000 * 60 * 5,
+
     })
 
 export const useMeQuery = () => useQuery(meQueryOptions())
+
 
 // --- MUTATION: login (/auth/login) ---
 export const useLoginMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation({
+    return useMutation<
+        POSKasirInternalDtoLoginResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        POSKasirInternalDtoLoginRequest
+    >({
         mutationKey: ['auth', 'login'],
-        mutationFn: async (body: POSKasirInternalDtoLoginRequest) => {
+        mutationFn: async (body) => {
             const res = await authApi.authLoginPost(body)
-            return res.data.data
+
+            return (res.data as any).data;
         },
         onSuccess: async () => {
             await qc.invalidateQueries({ queryKey: ['auth', 'me'] })
         },
     })
 }
+
 
 // --- MUTATION: logout (/auth/logout) ---
 export const useLogoutMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation({
+    return useMutation<
+        any,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        void
+    >({
         mutationKey: ['auth', 'logout'],
         mutationFn: async () => {
             const res = await authApi.authLogoutPost()
-            return res.data.data
+            return (res.data as any).data;
         },
         onSuccess: async () => {
+            qc.setQueryData(['auth', 'me'], null);
             await qc.invalidateQueries({ queryKey: ['auth', 'me'] })
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal logout: " + msg)
+        }
     })
 }
 
 
-// --- MUTATION: Update Avatar (/auth/avatar) ---
+// --- MUTATION: Update Avatar (/auth/me/avatar) ---
 export const useUpdateAvatarMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation({
+    return useMutation<
+        POSKasirInternalDtoProfileResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        File
+    >({
         mutationKey: ['auth', 'update-avatar'],
-        mutationFn: async (file: File) => {
+        mutationFn: async (file) => {
             const res = await authApi.authMeAvatarPut(file)
-            return res.data
+            return (res.data as any).data;
         },
-        onSuccess: () => {
+        onSuccess: (newData) => {
+            qc.setQueryData(['auth', 'me'], newData);
             return qc.invalidateQueries({ queryKey: ['auth', 'me'] })
         },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal memperbarui avatar: " + msg)
+        }
     })
 }
 
+
 // --- MUTATION: Update Password (/auth/update-password) ---
 export const useUpdatePasswordMutation = () => {
-    return useMutation({
+    return useMutation<
+        any,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        POSKasirInternalDtoUpdatePasswordRequest
+    >({
         mutationKey: ['auth', 'update-password'],
-        mutationFn: async (payload: POSKasirInternalDtoUpdatePasswordRequest) => {
+        mutationFn: async (payload) => {
             const res = await authApi.authUpdatePasswordPost(payload)
-            return res.data
+            return (res.data as any).data;
         },
+        onSuccess: async () => {
+            toast.success("Password berhasil diubah")
+        },
+        onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
+            const msg = error.response?.data?.error
+            toast.error("Gagal memperbarui password: " + msg)
+        }
     })
 }

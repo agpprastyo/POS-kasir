@@ -4,10 +4,10 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1CancellationReasonsGet**](#apiv1cancellationreasonsget) | **GET** /api/v1/cancellation-reasons | List cancellation reasons|
+|[**cancellationReasonsGet**](#cancellationreasonsget) | **GET** /cancellation-reasons | List cancellation reasons|
 
-# **apiV1CancellationReasonsGet**
-> ApiV1CancellationReasonsGet200Response apiV1CancellationReasonsGet()
+# **cancellationReasonsGet**
+> CancellationReasonsGet200Response cancellationReasonsGet()
 
 
 ### Example
@@ -21,7 +21,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new CancellationReasonsApi(configuration);
 
-const { status, data } = await apiInstance.apiV1CancellationReasonsGet();
+const { status, data } = await apiInstance.cancellationReasonsGet();
 ```
 
 ### Parameters
@@ -30,7 +30,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**ApiV1CancellationReasonsGet200Response**
+**CancellationReasonsGet200Response**
 
 ### Authorization
 

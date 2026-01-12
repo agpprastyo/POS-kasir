@@ -22,7 +22,7 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1CancellationReasonsGet200Response } from '../models';
+import type { CancellationReasonsGet200Response } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 /**
@@ -36,8 +36,8 @@ export const CancellationReasonsApiAxiosParamCreator = function (configuration?:
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1CancellationReasonsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/cancellation-reasons`;
+        cancellationReasonsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/cancellation-reasons`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -75,10 +75,10 @@ export const CancellationReasonsApiFp = function(configuration?: Configuration) 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1CancellationReasonsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1CancellationReasonsGet200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1CancellationReasonsGet(options);
+        async cancellationReasonsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CancellationReasonsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cancellationReasonsGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CancellationReasonsApi.apiV1CancellationReasonsGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CancellationReasonsApi.cancellationReasonsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -96,8 +96,8 @@ export const CancellationReasonsApiFactory = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1CancellationReasonsGet(options?: RawAxiosRequestConfig): AxiosPromise<ApiV1CancellationReasonsGet200Response> {
-            return localVarFp.apiV1CancellationReasonsGet(options).then((request) => request(axios, basePath));
+        cancellationReasonsGet(options?: RawAxiosRequestConfig): AxiosPromise<CancellationReasonsGet200Response> {
+            return localVarFp.cancellationReasonsGet(options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -112,8 +112,8 @@ export class CancellationReasonsApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1CancellationReasonsGet(options?: RawAxiosRequestConfig) {
-        return CancellationReasonsApiFp(this.configuration).apiV1CancellationReasonsGet(options).then((request) => request(this.axios, this.basePath));
+    public cancellationReasonsGet(options?: RawAxiosRequestConfig) {
+        return CancellationReasonsApiFp(this.configuration).cancellationReasonsGet(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -223,10 +223,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersIdTogglePut: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdToggleStatusPost: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('usersIdTogglePut', 'id', id)
-            const localVarPath = `/users/{id}/toggle`
+            assertParamExists('usersIdToggleStatusPost', 'id', id)
+            const localVarPath = `/users/{id}/toggle-status`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -235,7 +235,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -362,10 +362,10 @@ export const UsersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async usersIdTogglePut(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdTogglePut(id, options);
+        async usersIdToggleStatusPost(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdToggleStatusPost(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdTogglePut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdToggleStatusPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -445,8 +445,8 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersIdTogglePut(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
-            return localVarFp.usersIdTogglePut(id, options).then((request) => request(axios, basePath));
+        usersIdToggleStatusPost(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.usersIdToggleStatusPost(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -524,8 +524,8 @@ export class UsersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public usersIdTogglePut(id: string, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).usersIdTogglePut(id, options).then((request) => request(this.axios, this.basePath));
+    public usersIdToggleStatusPost(id: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).usersIdToggleStatusPost(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

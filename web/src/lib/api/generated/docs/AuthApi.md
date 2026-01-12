@@ -8,8 +8,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**authLogoutPost**](#authlogoutpost) | **POST** /auth/logout | Logout|
 |[**authMeAvatarPut**](#authmeavatarput) | **PUT** /auth/me/avatar | Update avatar|
 |[**authMeGet**](#authmeget) | **GET** /auth/me | Get profile|
-|[**authRegisterPost**](#authregisterpost) | **POST** /auth/register | Register|
-|[**authUpdatePasswordPost**](#authupdatepasswordpost) | **POST** /auth/update-password | Update password|
+|[**authMeUpdatePasswordPost**](#authmeupdatepasswordpost) | **POST** /auth/me/update-password | Update password|
 
 # **authLoginPost**
 > AuthLoginPost200Response authLoginPost(request)
@@ -216,63 +215,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **authRegisterPost**
-> AuthMeGet200Response authRegisterPost(request)
-
-Register
-
-### Example
-
-```typescript
-import {
-    AuthApi,
-    Configuration,
-    POSKasirInternalDtoRegisterRequest
-} from 'restClient';
-
-const configuration = new Configuration();
-const apiInstance = new AuthApi(configuration);
-
-let request: POSKasirInternalDtoRegisterRequest; //Register request
-
-const { status, data } = await apiInstance.authRegisterPost(
-    request
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoRegisterRequest**| Register request | |
-
-
-### Return type
-
-**AuthMeGet200Response**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**400** | Bad Request |  -  |
-|**409** | Conflict |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **authUpdatePasswordPost**
-> AuthLogoutPost200Response authUpdatePasswordPost(request)
+# **authMeUpdatePasswordPost**
+> AuthLogoutPost200Response authMeUpdatePasswordPost(request)
 
 Update password
 
@@ -290,7 +234,7 @@ const apiInstance = new AuthApi(configuration);
 
 let request: POSKasirInternalDtoUpdatePasswordRequest; //Update password request
 
-const { status, data } = await apiInstance.authUpdatePasswordPost(
+const { status, data } = await apiInstance.authMeUpdatePasswordPost(
     request
 );
 ```

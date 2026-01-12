@@ -12,6 +12,7 @@ import (
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/user"
+	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/minio"
@@ -44,6 +45,7 @@ type App struct {
 	Store           repository.Store
 	Validator       validator.Validator
 	MidtransService payment.IMidtrans
+	R2              cloudflarer2.IR2
 }
 
 type AppContainer struct {
@@ -86,6 +88,15 @@ func InitApp() *App {
 	val := validator.NewValidator()
 	midtransService := payment.NewMidtransService(cfg, log)
 
+	newR2, err := cloudflarer2.NewCloudflareR2(cfg, log)
+	if err != nil {
+		log.Errorf("Failed to initialize Cloudflare R2 (continuing without it): %v", err)
+	}
+
+	if err != nil {
+		log.Warnf("Failed to initialize Cloudflare R2: %v", err)
+	}
+
 	return &App{
 		Config:          cfg,
 		Logger:          log,
@@ -96,6 +107,7 @@ func InitApp() *App {
 		Store:           store,
 		Validator:       val,
 		MidtransService: midtransService,
+		R2:              newR2,
 	}
 }
 
@@ -104,7 +116,7 @@ func BuildAppContainer(app *App) *AppContainer {
 	activityService := activitylog.NewActivityService(app.Store, app.Logger)
 
 	// Auth Module
-	authRepo := auth.NewAuthRepo(app.Logger, app.Minio)
+	authRepo := auth.NewAuthRepo(app.Logger, app.Minio, app.R2)
 	authService := auth.NewAuthService(app.Store, app.Logger, app.JWT, authRepo, activityService)
 	authHandler := auth.NewAuthHandler(authService, app.Logger, app.Validator, app.Config)
 

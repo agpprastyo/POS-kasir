@@ -106,9 +106,11 @@ func runMigrations(cfg *config.AppConfig, dsn string, log logger.ILogger) error 
 	if cfg.MigrationsPath == "" {
 		return fmt.Errorf("migrations path is empty")
 	}
-	if !strings.HasPrefix(cfg.MigrationsPath, "file://") {
-
-		log.Warnf("MigrationsPath does not start with file:// — make sure you intend this. Current: %s", cfg.MigrationsPath)
+	// Ensure the path has the correct scheme (file://)
+	migrationSource := cfg.MigrationsPath
+	if !strings.HasPrefix(migrationSource, "file://") {
+		log.Warnf("MigrationsPath does not start with file:// — automatically adding prefix. Original: %s", migrationSource)
+		migrationSource = "file://" + migrationSource
 	}
 
 	sqlDB, err := sql.Open("pgx", dsn)
@@ -132,7 +134,7 @@ func runMigrations(cfg *config.AppConfig, dsn string, log logger.ILogger) error 
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		cfg.MigrationsPath,
+		migrationSource,
 		"postgres", driver,
 	)
 	if err != nil {

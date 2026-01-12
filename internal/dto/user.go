@@ -1,8 +1,8 @@
 package dto
 
 import (
+	"POS-kasir/internal/common/pagination"
 	"POS-kasir/internal/repository"
-	"POS-kasir/pkg/pagination"
 )
 
 type UsersRequest struct {

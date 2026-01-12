@@ -8,6 +8,7 @@ import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth/AuthContext'
 import {queryClient} from "@/lib/queryClient.ts";
+import {Toaster} from "@/components/ui/sonner.tsx";
 
 
 
@@ -55,6 +56,7 @@ function RootDocument({ children }: any) {
             />
         </QueryClientProvider>
         <Scripts />
+        <Toaster />
         </body>
         </html>
     )

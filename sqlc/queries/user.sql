@@ -61,7 +61,9 @@ SET
     username = COALESCE(sqlc.narg(username), username),
     email = COALESCE(sqlc.narg(email), email),
     avatar = COALESCE(sqlc.narg(avatar), avatar),
-    is_active = COALESCE(sqlc.narg(is_active), is_active)
+    is_active = COALESCE(sqlc.narg(is_active), is_active),
+    role = COALESCE(sqlc.narg(role), role)
+
 WHERE id = $1 AND deleted_at IS NULL
 RETURNING *;
 

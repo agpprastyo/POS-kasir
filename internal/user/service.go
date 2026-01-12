@@ -4,10 +4,11 @@ import (
 	"POS-kasir/internal/activitylog"
 	"POS-kasir/internal/auth"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/common/pagination"
 	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
-	"POS-kasir/pkg/pagination"
+
 	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
@@ -147,12 +148,24 @@ func (s *UsrService) UpdateUser(ctx context.Context, userID uuid.UUID, req dto.U
 		existingUser.IsActive = *req.IsActive
 	}
 
+	var roleParam repository.NullUserRole
+	if existingUser.Role != "" {
+		roleParam = repository.NullUserRole{
+			UserRole: existingUser.Role,
+			Valid:    true,
+		}
+	} else {
+		roleParam = repository.NullUserRole{Valid: false}
+	}
+
 	user, err := s.repo.UpdateUser(ctx, repository.UpdateUserParams{
 		ID:       userID,
 		Username: &existingUser.Username,
 		Email:    &existingUser.Email,
 		IsActive: &existingUser.IsActive,
+		Role:     roleParam,
 	})
+
 	if err != nil {
 		s.log.Errorf("UpdateUser | Failed to update user: %v, userID=%v", err, userID)
 		return nil, err

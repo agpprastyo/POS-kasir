@@ -49,6 +49,11 @@ WHERE
     id = $1
 RETURNING *;
 
+-- name: UpdateOrderAppliedPromotion :exec
+UPDATE orders
+SET applied_promotion_id = $2
+WHERE id = $1;
+
 -- name: GetOrderWithDetails :one
 -- Mengambil detail lengkap pesanan, termasuk item dan opsinya dalam format JSON.
 SELECT
@@ -93,8 +98,16 @@ WHERE payment_gateway_reference = $1
 LIMIT 1;
 
 -- name: ListOrders :many
--- Mengambil daftar pesanan dengan filter dan pagination.
-SELECT * FROM orders
+SELECT
+    id,
+    user_id,
+    type,
+    status,
+    gross_total,
+    net_total,
+    created_at,
+    payment_method_id
+FROM orders
 WHERE
     (sqlc.narg(status)::order_status IS NULL OR status = sqlc.narg(status))
   AND
@@ -154,7 +167,8 @@ RETURNING *;
 SELECT * FROM order_items WHERE id = $1 AND order_id = $2;
 
 -- name: UpdateOrderItemQuantity :one
--- Memperbarui kuantitas dan subtotal dari satu item pesanan.
+-- Update qty dan subtotal. Penting: Tambahkan validasi stok/constraint di level aplikasi
+-- atau pastikan trigger handle pengurangan stok jika qty bertambah.
 UPDATE order_items
 SET
     quantity = $3,
@@ -163,7 +177,6 @@ SET
 WHERE
     id = $1 AND order_id = $2
 RETURNING *;
-
 -- name: DeleteOrderItem :exec
 -- Menghapus satu item dari pesanan.
 DELETE FROM order_items WHERE id = $1 AND order_id = $2;
@@ -196,3 +209,55 @@ RETURNING *;
 -- name: DeleteOrderItemOptionsByOrderItemID :exec
 DELETE FROM order_item_options WHERE order_item_id = $1;
 
+
+-- name: GetProductsForUpdate :many
+-- Mengambil produk sekaligus mengunci barisnya (Row-Level Locking).
+-- Transaksi lain yang mencoba update produk ini harus menunggu sampai transaksi ini selesai.
+SELECT * FROM products
+WHERE id = ANY($1::uuid[])
+    FOR UPDATE;
+
+-- name: BatchCreateOrderItems :many
+-- Memasukkan banyak item sekaligus menggunakan array (Bulk Insert).
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    quantity,
+    price_at_sale,
+    subtotal,
+    net_subtotal
+)
+SELECT
+    sqlc.arg(order_id) AS order_id,
+    unnest(sqlc.arg(product_ids)::uuid[]) AS product_id,
+    unnest(sqlc.arg(quantities)::int[]) AS quantity,
+    unnest(sqlc.arg(prices_at_sale)::numeric[]) AS price_at_sale,
+    unnest(sqlc.arg(subtotals)::numeric[]) AS subtotal,
+    unnest(sqlc.arg(net_subtotals)::numeric[]) AS net_subtotal
+RETURNING *;
+
+-- name: BatchDecreaseProductStock :exec
+-- Mengurangi stok banyak produk sekaligus berdasarkan pasangan ID dan Qty.
+UPDATE products AS p
+SET
+    stock = p.stock - v.qty,
+    updated_at = NOW()
+FROM (
+         SELECT
+             unnest(sqlc.arg(product_ids)::uuid[]) AS id,
+             unnest(sqlc.arg(quantities)::int[]) AS qty
+     ) AS v
+WHERE p.id = v.id;
+
+-- name: GetProductOptionsByIDs :many
+SELECT * FROM product_options
+WHERE id = ANY(sqlc.arg(ids)::uuid[]);
+
+-- name: BatchCreateOrderItemOptions :copyfrom
+INSERT INTO order_item_options (
+    order_item_id,
+    product_option_id,
+    price_at_sale
+) VALUES (
+    $1, $2, $3
+);

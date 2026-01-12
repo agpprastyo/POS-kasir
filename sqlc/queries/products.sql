@@ -81,7 +81,8 @@ SELECT count(*) FROM products
 WHERE
     (sqlc.narg(category_id)::int IS NULL OR category_id = sqlc.narg(category_id))
   AND
-    (sqlc.narg(search_text)::text IS NULL OR name ILIKE '%' || sqlc.narg(search_text) || '%');
+    (sqlc.narg(search_text)::text IS NULL OR name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND deleted_at IS NULL;
 
 
 -- Queries for Product Options (Variants)
@@ -171,4 +172,61 @@ WHERE
     p.id = $1
   AND p.deleted_at IS NULL
 LIMIT 1;
+
+-- name: ListDeletedProducts :many
+SELECT
+    p.id,
+    p.name,
+    p.price,
+    p.stock,
+    p.image_url,
+    c.name as category_name,
+    c.id as category_id,
+    p.deleted_at
+FROM
+    products p
+        LEFT JOIN
+    categories c ON p.category_id = c.id
+WHERE
+    (sqlc.narg(category_id)::int IS NULL OR p.category_id = sqlc.narg(category_id))
+  AND
+    (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND p.deleted_at IS NOT NULL
+ORDER BY
+    p.deleted_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountDeletedProducts :one
+SELECT count(*) FROM products
+WHERE
+    (sqlc.narg(category_id)::int IS NULL OR category_id = sqlc.narg(category_id))
+  AND
+    (sqlc.narg(search_text)::text IS NULL OR name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND deleted_at IS NOT NULL;
+
+-- name: GetDeletedProduct :one
+SELECT
+    p.*,
+    COALESCE(
+            (SELECT json_agg(po.*)
+             FROM product_options po
+             WHERE po.product_id = p.id), -- Include all options (even deleted ones optionally, but usually strictly matching parent state or just all)
+            '[]'::json
+    ) AS options
+FROM
+    products p
+WHERE
+    p.id = $1
+  AND p.deleted_at IS NOT NULL
+LIMIT 1;
+
+-- name: RestoreProduct :exec
+UPDATE products
+SET deleted_at = NULL
+WHERE id = $1;
+
+-- name: RestoreProductsBulk :exec
+UPDATE products
+SET deleted_at = NULL
+WHERE id = ANY($1::uuid[]);
 

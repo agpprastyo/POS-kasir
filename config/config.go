@@ -13,9 +13,19 @@ type AppConfig struct {
 	Logger         loggerConfig
 	JWT            jwtConfig
 	Minio          minioConfig
+	CloudflareR2   cloudflareR2Config
 	Midtrans       midtransConfig
 	AutoMigrate    bool
 	MigrationsPath string
+}
+
+type cloudflareR2Config struct {
+	AccountID    string
+	AccessKey    string
+	SecretKey    string
+	Bucket       string
+	PublicDomain string
+	ExpirySec    int64
 }
 
 type midtransConfig struct {
@@ -114,6 +124,14 @@ func Load() *AppConfig {
 			UseSSL:    getBool("MINIO_USE_SSL", false),
 			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
 			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400),
+		},
+		CloudflareR2: cloudflareR2Config{
+			AccountID:    getEnv("R2_ACCOUNT_ID", ""),
+			AccessKey:    getEnv("R2_ACCESS_KEY", ""),
+			SecretKey:    getEnv("R2_SECRET_KEY", ""),
+			Bucket:       getEnv("R2_BUCKET", "pos-kasir"),
+			PublicDomain: getEnv("R2_PUBLIC_DOMAIN", ""),
+			ExpirySec:    getInt64("R2_EXPIRY_SECONDS", 3600),
 		},
 		AutoMigrate:    getBool("AUTO_MIGRATE", false),
 		MigrationsPath: getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),

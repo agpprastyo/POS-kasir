@@ -15,43 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/cancellation-reasons": {
-            "get": {
-                "tags": [
-                    "Cancellation Reasons"
-                ],
-                "summary": "List cancellation reasons",
-                "responses": {
-                    "200": {
-                        "description": "List of cancellation reasons",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/POS-kasir_internal_dto.CancellationReasonResponse"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/login": {
             "post": {
                 "description": "Login",
@@ -296,71 +259,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/register": {
-            "post": {
-                "description": "Register",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Register",
-                "parameters": [
-                    {
-                        "description": "Register request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_dto.RegisterRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProfileResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/update-password": {
+        "/auth/me/update-password": {
             "post": {
                 "description": "Update password",
                 "consumes": [
@@ -423,6 +322,1724 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cancellation-reasons": {
+            "get": {
+                "tags": [
+                    "Cancellation Reasons"
+                ],
+                "summary": "List cancellation reasons",
+                "responses": {
+                    "200": {
+                        "description": "List of cancellation reasons",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.CancellationReasonResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories": {
+            "get": {
+                "description": "Get all categories",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get all categories",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of categories to return",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.CategoryWithCountResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve categories",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Create a new category",
+                "parameters": [
+                    {
+                        "description": "Category details",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreateCategoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.CategoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Category with this name already exists",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create category",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/count": {
+            "get": {
+                "description": "Get total number of categories",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get total number of categories",
+                "responses": {
+                    "200": {
+                        "description": "Category count retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve category count",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/categories/{id}": {
+            "get": {
+                "description": "Get category by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Get category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.CategoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid category ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve category",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update category by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Update category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Category details",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreateCategoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Category with this name already exists",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update category",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete category by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Delete category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid category ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Category not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Category cannot be deleted because it is in use",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete category",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "List orders",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of orders per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "open",
+                            "in_progress",
+                            "served",
+                            "paid",
+                            "cancelled"
+                        ],
+                        "type": "string",
+                        "description": "Order status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by User ID",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.PagedOrderResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Create an order",
+                "parameters": [
+                    {
+                        "description": "Create order details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get an order by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/apply-promotion": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Apply promotion to an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Promotion details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.ApplyPromotionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/cancel": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Cancel an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cancel order details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CancelOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/complete-manual-payment": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Complete manual payment for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Manual payment details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CompleteManualPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/process-payment": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Process payment for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/update-status": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update order operational status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Order status details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdateOrderStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment-methods": {
+            "get": {
+                "description": "List payment methods",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment Methods"
+                ],
+                "summary": "List payment methods",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.PaymentMethodResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products": {
+            "get": {
+                "description": "List products based on query parameters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "List products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit the number of products returned",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search products by name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Search products by category ID",
+                        "name": "category_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Products retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ListProductsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve products",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Create a new product",
+                "parameters": [
+                    {
+                        "description": "Product create request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreateProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Product created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Product with same name already exists",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/trash": {
+            "get": {
+                "description": "List deleted products with pagination and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "List deleted products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit the number of products returned",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search products by name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Search products by category ID",
+                        "name": "category_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted products retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ListProductsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve deleted products",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/trash/restore-bulk": {
+            "post": {
+                "description": "Restore multiple deleted products by IDs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Bulk restore deleted products",
+                "parameters": [
+                    {
+                        "description": "Bulk restore request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.RestoreBulkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Products restored successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to restore products",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/trash/{id}": {
+            "get": {
+                "description": "Get a deleted product by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get a deleted product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted product retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve deleted product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/trash/{id}/restore": {
+            "post": {
+                "description": "Restore a deleted product by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Restore a deleted product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product restored successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to restore product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}": {
+            "get": {
+                "description": "Get a product by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get a product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a product by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Delete a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update a product by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Update a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product update request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdateProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update product",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{id}/image": {
+            "post": {
+                "description": "Upload an image for a product by ID",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Upload an image for a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product image uploaded successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format or image file is missing",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to upload image",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/options": {
+            "post": {
+                "description": "Create a product option for a parent product",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Create a product option",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product option create request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreateProductOptionRequestStandalone"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Product option created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductOptionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Parent product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create product option",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/options/{option_id}": {
+            "put": {
+                "description": "Update a product option by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Update a product option",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Option ID",
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product option update request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdateProductOptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product option updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductOptionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product or option not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update product option",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{product_id}/options/{option_id}/image": {
+            "post": {
+                "description": "Upload image for a specific product option",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Upload product option image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Option ID",
+                        "name": "option_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Product image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product option image uploaded successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ProductOptionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format or missing file",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product or option not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to upload product image",
                         "schema": {
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
@@ -808,8 +2425,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}/toggle": {
-            "put": {
+        "/users/{id}/toggle-status": {
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -878,6 +2495,49 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_common_pagination.Pagination": {
+            "type": "object",
+            "properties": {
+                "current_page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total_data": {
+                    "type": "integer"
+                },
+                "total_page": {
+                    "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ApplyPromotionRequest": {
+            "type": "object",
+            "required": [
+                "promotion_id"
+            ],
+            "properties": {
+                "promotion_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CancelOrderRequest": {
+            "type": "object",
+            "required": [
+                "cancellation_reason_id"
+            ],
+            "properties": {
+                "cancellation_notes": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "cancellation_reason_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "POS-kasir_internal_dto.CancellationReasonResponse": {
             "type": "object",
             "properties": {
@@ -895,6 +2555,191 @@ const docTemplate = `{
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CategoryResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CategoryWithCountResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "product_count": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CompleteManualPaymentRequest": {
+            "type": "object",
+            "required": [
+                "payment_method_id"
+            ],
+            "properties": {
+                "cash_received": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "payment_method_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateCategoryRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateOrderItemOptionRequest": {
+            "type": "object",
+            "required": [
+                "product_option_id"
+            ],
+            "properties": {
+                "product_option_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateOrderItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreateOrderItemOptionRequest"
+                    }
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateOrderRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "type"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreateOrderItemRequest"
+                    }
+                },
+                "type": {
+                    "enum": [
+                        "dine_in",
+                        "takeaway"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/POS-kasir_internal_repository.OrderType"
+                        }
+                    ]
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateProductOptionRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "additional_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateProductOptionRequestStandalone": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "additional_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreateProductRequest": {
+            "type": "object",
+            "required": [
+                "category_id",
+                "name",
+                "price",
+                "stock"
+            ],
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreateProductOptionRequest"
+                    }
+                },
+                "price": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
@@ -938,6 +2783,20 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.ListProductsResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.ProductListResponse"
+                    }
+                }
+            }
+        },
         "POS-kasir_internal_dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -964,6 +2823,147 @@ const docTemplate = `{
                 },
                 "profile": {
                     "$ref": "#/definitions/POS-kasir_internal_dto.ProfileResponse"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.OrderListResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "net_total": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.OrderStatus"
+                },
+                "type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.OrderType"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.PagedOrderResponse": {
+            "type": "object",
+            "properties": {
+                "orders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.OrderListResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.PaymentMethodResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ProductListResponse": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "category_name": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ProductOptionResponse": {
+            "type": "object",
+            "properties": {
+                "additional_price": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "category_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.ProductOptionResponse"
+                    }
+                },
+                "price": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -1026,6 +3026,40 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.RestoreBulkRequest": {
+            "type": "object",
+            "required": [
+                "product_ids"
+            ],
+            "properties": {
+                "product_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdateOrderStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "enum": [
+                        "in_progress",
+                        "served"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/POS-kasir_internal_repository.OrderStatus"
+                        }
+                    ]
+                }
+            }
+        },
         "POS-kasir_internal_dto.UpdatePasswordRequest": {
             "type": "object",
             "required": [
@@ -1042,6 +3076,40 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 32,
                     "minLength": 8
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdateProductOptionRequest": {
+            "type": "object",
+            "properties": {
+                "additional_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdateProductRequest": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "price": {
+                    "type": "number"
+                },
+                "stock": {
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
@@ -1078,7 +3146,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/POS-kasir_pkg_pagination.Pagination"
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
                 },
                 "users": {
                     "type": "array",
@@ -1087,6 +3155,34 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "POS-kasir_internal_repository.OrderStatus": {
+            "type": "string",
+            "enum": [
+                "open",
+                "in_progress",
+                "served",
+                "paid",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "OrderStatusOpen",
+                "OrderStatusInProgress",
+                "OrderStatusServed",
+                "OrderStatusPaid",
+                "OrderStatusCancelled"
+            ]
+        },
+        "POS-kasir_internal_repository.OrderType": {
+            "type": "string",
+            "enum": [
+                "dine_in",
+                "takeaway"
+            ],
+            "x-enum-varnames": [
+                "OrderTypeDineIn",
+                "OrderTypeTakeaway"
+            ]
         },
         "POS-kasir_internal_repository.UserRole": {
             "type": "string",
@@ -1100,23 +3196,6 @@ const docTemplate = `{
                 "UserRoleCashier",
                 "UserRoleManager"
             ]
-        },
-        "POS-kasir_pkg_pagination.Pagination": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "type": "integer"
-                },
-                "per_page": {
-                    "type": "integer"
-                },
-                "total_data": {
-                    "type": "integer"
-                },
-                "total_page": {
-                    "type": "integer"
-                }
-            }
         }
     }
 }`

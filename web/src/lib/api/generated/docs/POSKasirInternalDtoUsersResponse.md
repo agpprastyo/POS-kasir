@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**pagination** | [**POSKasirPkgPaginationPagination**](POSKasirPkgPaginationPagination.md) |  | [optional] [default to undefined]
+**pagination** | [**POSKasirInternalCommonPaginationPagination**](POSKasirInternalCommonPaginationPagination.md) |  | [optional] [default to undefined]
 **users** | [**Array&lt;POSKasirInternalDtoProfileResponse&gt;**](POSKasirInternalDtoProfileResponse.md) |  | [optional] [default to undefined]
 
 ## Example

@@ -1,8 +1,8 @@
 package server
 
 import (
+	"POS-kasir/internal/common/middleware"
 	"POS-kasir/internal/repository"
-	"POS-kasir/pkg/middleware"
 )
 
 func SetupRoutes(app *App, container *AppContainer) {
@@ -14,9 +14,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
-	api.Post("/auth/register", container.AuthHandler.RegisterHandler)
 	api.Get("/auth/me", authMiddleware, container.AuthHandler.ProfileHandler)
-	api.Post("/auth/add", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.AuthHandler.AddUserHandler)
+	api.Post("/auth/add", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.AuthHandler.AddUserHandler)
 	api.Put("/auth/me/avatar", authMiddleware, container.AuthHandler.UpdateAvatarHandler)
 	api.Put("/auth/me/password", authMiddleware, container.AuthHandler.UpdatePasswordHandler)
 	api.Post("/auth/logout", authMiddleware, container.AuthHandler.LogoutHandler)
@@ -24,7 +23,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/users", authMiddleware, container.UserHandler.GetAllUsersHandler)
 	api.Post("/users", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.UserHandler.CreateUserHandler)
 	api.Get("/users/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.UserHandler.GetUserByIDHandler)
-	api.Put("/users/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.UserHandler.UpdateUserHandler)
+	api.Put("/users/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.UserHandler.UpdateUserHandler)
 	api.Post("/users/:id/toggle-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.UserHandler.ToggleUserStatusHandler)
 	api.Delete("/users/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.UserHandler.DeleteUserHandler)
 
@@ -37,6 +36,13 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Post("/products", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.CreateProductHandler)
 	api.Post("/products/:id/image", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UploadProductImageHandler)
+
+	// Deleted Products Management (Admin only)
+	api.Get("/products/trash", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.ListDeletedProductsHandler)
+	api.Post("/products/trash/restore-bulk", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.RestoreProductsBulkHandler)
+	api.Get("/products/trash/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.GetDeletedProductHandler)
+	api.Post("/products/trash/:id/restore", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.RestoreProductHandler)
+
 	api.Get("/products", authMiddleware, container.ProductHandler.ListProductsHandler)
 	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.ProductHandler.GetProductHandler)
 	api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UpdateProductHandler)
@@ -58,7 +64,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Post("/orders/:id/cancel", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CancelOrderHandler)
 	//api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
 	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
-	api.Post("/orders/:id/complete-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
+	api.Post("/orders/:id/complete-manual-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
 	api.Patch("/orders/:id/status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 

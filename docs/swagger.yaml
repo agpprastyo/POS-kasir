@@ -13,6 +13,34 @@ definitions:
       message:
         type: string
     type: object
+  POS-kasir_internal_common_pagination.Pagination:
+    properties:
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total_data:
+        type: integer
+      total_page:
+        type: integer
+    type: object
+  POS-kasir_internal_dto.ApplyPromotionRequest:
+    properties:
+      promotion_id:
+        type: string
+    required:
+    - promotion_id
+    type: object
+  POS-kasir_internal_dto.CancelOrderRequest:
+    properties:
+      cancellation_notes:
+        maxLength: 255
+        type: string
+      cancellation_reason_id:
+        type: integer
+    required:
+    - cancellation_reason_id
+    type: object
   POS-kasir_internal_dto.CancellationReasonResponse:
     properties:
       created_at:
@@ -25,6 +53,130 @@ definitions:
         type: boolean
       reason:
         type: string
+    type: object
+  POS-kasir_internal_dto.CategoryResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  POS-kasir_internal_dto.CategoryWithCountResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      product_count:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  POS-kasir_internal_dto.CompleteManualPaymentRequest:
+    properties:
+      cash_received:
+        minimum: 0
+        type: integer
+      payment_method_id:
+        type: integer
+    required:
+    - payment_method_id
+    type: object
+  POS-kasir_internal_dto.CreateCategoryRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  POS-kasir_internal_dto.CreateOrderItemOptionRequest:
+    properties:
+      product_option_id:
+        type: string
+    required:
+    - product_option_id
+    type: object
+  POS-kasir_internal_dto.CreateOrderItemRequest:
+    properties:
+      options:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateOrderItemOptionRequest'
+        type: array
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+  POS-kasir_internal_dto.CreateOrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateOrderItemRequest'
+        minItems: 1
+        type: array
+      type:
+        allOf:
+        - $ref: '#/definitions/POS-kasir_internal_repository.OrderType'
+        enum:
+        - dine_in
+        - takeaway
+    required:
+    - items
+    - type
+    type: object
+  POS-kasir_internal_dto.CreateProductOptionRequest:
+    properties:
+      additional_price:
+        minimum: 0
+        type: number
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  POS-kasir_internal_dto.CreateProductOptionRequestStandalone:
+    properties:
+      additional_price:
+        minimum: 0
+        type: number
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  POS-kasir_internal_dto.CreateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateProductOptionRequest'
+        type: array
+      price:
+        type: number
+      stock:
+        minimum: 0
+        type: integer
+    required:
+    - category_id
+    - name
+    - price
+    - stock
     type: object
   POS-kasir_internal_dto.CreateUserRequest:
     properties:
@@ -54,6 +206,15 @@ definitions:
     - role
     - username
     type: object
+  POS-kasir_internal_dto.ListProductsResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+      products:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.ProductListResponse'
+        type: array
+    type: object
   POS-kasir_internal_dto.LoginRequest:
     properties:
       email:
@@ -72,6 +233,98 @@ definitions:
         type: string
       profile:
         $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
+    type: object
+  POS-kasir_internal_dto.OrderListResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      net_total:
+        type: integer
+      status:
+        $ref: '#/definitions/POS-kasir_internal_repository.OrderStatus'
+      type:
+        $ref: '#/definitions/POS-kasir_internal_repository.OrderType'
+      user_id:
+        type: string
+    type: object
+  POS-kasir_internal_dto.PagedOrderResponse:
+    properties:
+      orders:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.OrderListResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+    type: object
+  POS-kasir_internal_dto.PaymentMethodResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+    type: object
+  POS-kasir_internal_dto.ProductListResponse:
+    properties:
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
+  POS-kasir_internal_dto.ProductOptionResponse:
+    properties:
+      additional_price:
+        type: number
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+    type: object
+  POS-kasir_internal_dto.ProductResponse:
+    properties:
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.ProductOptionResponse'
+        type: array
+      price:
+        type: number
+      stock:
+        type: integer
+      updated_at:
+        type: string
     type: object
   POS-kasir_internal_dto.ProfileResponse:
     properties:
@@ -114,6 +367,27 @@ definitions:
     - role
     - username
     type: object
+  POS-kasir_internal_dto.RestoreBulkRequest:
+    properties:
+      product_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - product_ids
+    type: object
+  POS-kasir_internal_dto.UpdateOrderStatusRequest:
+    properties:
+      status:
+        allOf:
+        - $ref: '#/definitions/POS-kasir_internal_repository.OrderStatus'
+        enum:
+        - in_progress
+        - served
+    required:
+    - status
+    type: object
   POS-kasir_internal_dto.UpdatePasswordRequest:
     properties:
       new_password:
@@ -127,6 +401,30 @@ definitions:
     required:
     - new_password
     - old_password
+    type: object
+  POS-kasir_internal_dto.UpdateProductOptionRequest:
+    properties:
+      additional_price:
+        minimum: 0
+        type: number
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    type: object
+  POS-kasir_internal_dto.UpdateProductRequest:
+    properties:
+      category_id:
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      price:
+        type: number
+      stock:
+        minimum: 0
+        type: integer
     type: object
   POS-kasir_internal_dto.UpdateUserRequest:
     properties:
@@ -150,12 +448,34 @@ definitions:
   POS-kasir_internal_dto.UsersResponse:
     properties:
       pagination:
-        $ref: '#/definitions/POS-kasir_pkg_pagination.Pagination'
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
       users:
         items:
           $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
         type: array
     type: object
+  POS-kasir_internal_repository.OrderStatus:
+    enum:
+    - open
+    - in_progress
+    - served
+    - paid
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - OrderStatusOpen
+    - OrderStatusInProgress
+    - OrderStatusServed
+    - OrderStatusPaid
+    - OrderStatusCancelled
+  POS-kasir_internal_repository.OrderType:
+    enum:
+    - dine_in
+    - takeaway
+    type: string
+    x-enum-varnames:
+    - OrderTypeDineIn
+    - OrderTypeTakeaway
   POS-kasir_internal_repository.UserRole:
     enum:
     - admin
@@ -166,17 +486,6 @@ definitions:
     - UserRoleAdmin
     - UserRoleCashier
     - UserRoleManager
-  POS-kasir_pkg_pagination.Pagination:
-    properties:
-      current_page:
-        type: integer
-      per_page:
-        type: integer
-      total_data:
-        type: integer
-      total_page:
-        type: integer
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -184,27 +493,6 @@ info:
   title: POS Kasir API
   version: "1.0"
 paths:
-  /api/v1/cancellation-reasons:
-    get:
-      responses:
-        "200":
-          description: List of cancellation reasons
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/POS-kasir_internal_dto.CancellationReasonResponse'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: List cancellation reasons
-      tags:
-      - Cancellation Reasons
   /auth/login:
     post:
       consumes:
@@ -354,46 +642,7 @@ paths:
       summary: Update avatar
       tags:
       - Auth
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Register
-      parameters:
-      - description: Register request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/POS-kasir_internal_dto.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Register
-      tags:
-      - Auth
-  /auth/update-password:
+  /auth/me/update-password:
     post:
       consumes:
       - application/json
@@ -436,6 +685,1090 @@ paths:
       summary: Update password
       tags:
       - Auth
+  /cancellation-reasons:
+    get:
+      responses:
+        "200":
+          description: List of cancellation reasons
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.CancellationReasonResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List cancellation reasons
+      tags:
+      - Cancellation Reasons
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get all categories
+      parameters:
+      - description: Number of categories to return
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.CategoryWithCountResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve categories
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get all categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new category
+      parameters:
+      - description: Category details
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.CategoryResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Category with this name already exists
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to create category
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a new category
+      tags:
+      - Categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid category ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Category cannot be deleted because it is in use
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to delete category
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Delete category by ID
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Get category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.CategoryResponse'
+              type: object
+        "400":
+          description: Invalid category ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve category
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get category by ID
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Update category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Category details
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Category not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Category with this name already exists
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to update category
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update category by ID
+      tags:
+      - Categories
+  /categories/count:
+    get:
+      consumes:
+      - application/json
+      description: Get total number of categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category count retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Failed to retrieve category count
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get total number of categories
+      tags:
+      - Categories
+  /orders:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of orders per page
+        in: query
+        name: limit
+        type: integer
+      - description: Order status
+        enum:
+        - open
+        - in_progress
+        - served
+        - paid
+        - cancelled
+        in: query
+        name: status
+        type: string
+      - description: Filter by User ID
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.PagedOrderResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List orders
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create an order
+      tags:
+      - Orders
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get an order by ID
+      tags:
+      - Orders
+  /orders/{id}/apply-promotion:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Promotion details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.ApplyPromotionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Apply promotion to an order
+      tags:
+      - Orders
+  /orders/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Cancel order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CancelOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Cancel an order
+      tags:
+      - Orders
+  /orders/{id}/complete-manual-payment:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Manual payment details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CompleteManualPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Complete manual payment for an order
+      tags:
+      - Orders
+  /orders/{id}/process-payment:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Process payment for an order
+      tags:
+      - Orders
+  /orders/{id}/update-status:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Order status details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdateOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update order operational status
+      tags:
+      - Orders
+  /payment-methods:
+    get:
+      consumes:
+      - application/json
+      description: List payment methods
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.PaymentMethodResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List payment methods
+      tags:
+      - Payment Methods
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: List products based on query parameters
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit the number of products returned
+        in: query
+        name: limit
+        type: integer
+      - description: Search products by name
+        in: query
+        name: search
+        type: string
+      - description: Search products by category ID
+        in: query
+        name: category_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Products retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ListProductsResponse'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve products
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List products
+      tags:
+      - Products
+    post:
+      consumes:
+      - application/json
+      description: Create a new product
+      parameters:
+      - description: Product create request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Product with same name already exists
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to create product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a new product
+      tags:
+      - Products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to delete product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Delete a product
+      tags:
+      - Products
+    get:
+      consumes:
+      - application/json
+      description: Get a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductResponse'
+              type: object
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get a product by ID
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: Update a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductResponse'
+              type: object
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to update product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update a product
+      tags:
+      - Products
+  /products/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image for a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product image uploaded successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductResponse'
+              type: object
+        "400":
+          description: Invalid product ID format or image file is missing
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to upload image
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Upload an image for a product
+      tags:
+      - Products
+  /products/{product_id}/options:
+    post:
+      consumes:
+      - application/json
+      description: Create a product option for a parent product
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Product option create request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateProductOptionRequestStandalone'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product option created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductOptionResponse'
+              type: object
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Parent product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to create product option
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a product option
+      tags:
+      - Products
+  /products/{product_id}/options/{option_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a product option by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Option ID
+        in: path
+        name: option_id
+        required: true
+        type: string
+      - description: Product option update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdateProductOptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product option updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductOptionResponse'
+              type: object
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product or option not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to update product option
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update a product option
+      tags:
+      - Products
+  /products/{product_id}/options/{option_id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload image for a specific product option
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Option ID
+        in: path
+        name: option_id
+        required: true
+        type: string
+      - description: Product image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product option image uploaded successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductOptionResponse'
+              type: object
+        "400":
+          description: Invalid ID format or missing file
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product or option not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to upload product image
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Upload product option image
+      tags:
+      - Products
+  /products/trash:
+    get:
+      consumes:
+      - application/json
+      description: List deleted products with pagination and filtering
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit the number of products returned
+        in: query
+        name: limit
+        type: integer
+      - description: Search products by name
+        in: query
+        name: search
+        type: string
+      - description: Search products by category ID
+        in: query
+        name: category_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted products retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ListProductsResponse'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve deleted products
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List deleted products
+      tags:
+      - Products
+  /products/trash/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a deleted product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted product retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ProductResponse'
+              type: object
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve deleted product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get a deleted product
+      tags:
+      - Products
+  /products/trash/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Restore a deleted product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product restored successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid product ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to restore product
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Restore a deleted product
+      tags:
+      - Products
+  /products/trash/restore-bulk:
+    post:
+      consumes:
+      - application/json
+      description: Restore multiple deleted products by IDs
+      parameters:
+      - description: Bulk restore request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.RestoreBulkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Products restored successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to restore products
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Bulk restore deleted products
+      tags:
+      - Products
   /users:
     get:
       consumes:
@@ -676,8 +2009,8 @@ paths:
       summary: Update user
       tags:
       - Users
-  /users/{id}/toggle:
-    put:
+  /users/{id}/toggle-status:
+    post:
       consumes:
       - application/json
       parameters:

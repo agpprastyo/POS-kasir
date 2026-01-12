@@ -1,9 +1,9 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import {type ClassValue, clsx} from 'clsx'
+import {twMerge} from 'tailwind-merge'
 import {Area} from "react-easy-crop";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+    return twMerge(clsx(inputs))
 }
 
 
@@ -16,7 +16,7 @@ export function readFile(file: File) {
 }
 
 
-const createImage = (url: string): Promise<HTMLImageElement> =>
+export const createImage = (url: string): Promise<HTMLImageElement> =>
     new Promise((resolve, reject) => {
         const image = new Image()
         image.addEventListener('load', () => resolve(image))
@@ -58,4 +58,12 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<
             resolve(blob)
         }, 'image/jpeg')
     })
+}
+
+export const formatRupiah = (number: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number)
 }

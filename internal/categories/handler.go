@@ -31,6 +31,19 @@ type CtgHandler struct {
 	log     logger.ILogger
 }
 
+// DeleteCategoryHandler
+// @Summary Delete category by ID
+// @Description Delete category by ID
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path int true "Category ID"
+// @Success 200 {object} common.SuccessResponse "Category deleted successfully"
+// @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
+// @Failure 404 {object} common.ErrorResponse "Category not found"
+// @Failure 409 {object} common.ErrorResponse "Category cannot be deleted because it is in use"
+// @Failure 500 {object} common.ErrorResponse "Failed to delete category"
+// @Router /categories/{id} [delete]
 func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	idStr := c.Params("id")
@@ -67,6 +80,20 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateCategoryHandler
+// @Summary Update category by ID
+// @Description Update category by ID
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path int true "Category ID"
+// @Param category body dto.CreateCategoryRequest true "Category details"
+// @Success 200 {object} common.SuccessResponse "Category deleted successfully"
+// @Failure 400 {object} common.ErrorResponse "Invalid request body"
+// @Failure 404 {object} common.ErrorResponse "Category not found"
+// @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
+// @Failure 500 {object} common.ErrorResponse "Failed to update category"
+// @Router /categories/{id} [put]
 func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -123,6 +150,18 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 	})
 }
 
+// GetCategoryByIDHandler
+// @Summary Get category by ID
+// @Description Get category by ID
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param id path int true "Category ID"
+// @Success 200 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category retrieved successfully"
+// @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
+// @Failure 404 {object} common.ErrorResponse "Category not found"
+// @Failure 500 {object} common.ErrorResponse "Failed to retrieve category"
+// @Router /categories/{id} [get]
 func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	id := c.Params("id")
@@ -160,6 +199,18 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 	})
 }
 
+// CreateCategoryHandler
+// @Summary Create a new category
+// @Description Create a new category
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param category body dto.CreateCategoryRequest true "Category details"
+// @Success 201 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category created successfully"
+// @Failure 400 {object} common.ErrorResponse "Invalid request body"
+// @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
+// @Failure 500 {object} common.ErrorResponse "Failed to create category"
+// @Router /categories [post]
 func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.CreateCategoryRequest)
@@ -197,6 +248,18 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	})
 }
 
+// GetAllCategoriesHandler
+// @Summary Get all categories
+// @Description Get all categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Param limit query int false "Number of categories to return"
+// @Param offset query int false "Offset for pagination"
+// @Success 200 {object} common.SuccessResponse{data=[]dto.CategoryWithCountResponse} "Categories retrieved successfully"
+// @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
+// @Failure 500 {object} common.ErrorResponse "Failed to retrieve categories"
+// @Router /categories [get]
 func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	req := new(dto.ListCategoryRequest)
@@ -233,6 +296,15 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	})
 }
 
+// GetCategoryCountHandler
+// @Summary Get total number of categories
+// @Description Get total number of categories
+// @Tags Categories
+// @Accept json
+// @Produce json
+// @Success 200 {object} common.SuccessResponse{data=int} "Category count retrieved successfully"
+// @Failure 500 {object} common.ErrorResponse "Failed to retrieve category count"
+// @Router /categories/count [get]
 func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	count, err := h.service.GetCategoryWithProductCount(ctx)

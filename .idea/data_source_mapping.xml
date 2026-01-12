@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/sqlc/queries/order.sql" value="a4f6c559-4b3c-4178-8547-fca7cd9f1e05" />
+    <file url="file://$PROJECT_DIR$/sqlc/queries/user.sql" value="a4f6c559-4b3c-4178-8547-fca7cd9f1e05" />
+  </component>
+</project>

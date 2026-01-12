@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"POS-kasir/pkg/pagination"
+	"POS-kasir/internal/common/pagination"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,7 +48,7 @@ type ProductOptionResponse struct {
 	ID              uuid.UUID `json:"id"`
 	Name            string    `json:"name"`
 	AdditionalPrice float64   `json:"additional_price"`
-	ImageURL        *string   `json:"image_url,omitempty"` // Pointer karena bisa NULL
+	ImageURL        *string   `json:"image_url,omitempty"`
 }
 
 type ProductResponse struct {
@@ -61,20 +61,26 @@ type ProductResponse struct {
 	Stock        int32                   `json:"stock"`
 	CreatedAt    time.Time               `json:"created_at"`
 	UpdatedAt    time.Time               `json:"updated_at"`
+	DeletedAt    *time.Time              `json:"deleted_at,omitempty"`
 	Options      []ProductOptionResponse `json:"options,omitempty"`
 }
 
 type ProductListResponse struct {
-	ID           uuid.UUID `json:"id"`
-	Name         string    `json:"name"`
-	CategoryID   *int32    `json:"category_id,omitempty"`
-	CategoryName *string   `json:"category_name,omitempty"`
-	ImageURL     *string   `json:"image_url,omitempty"`
-	Price        float64   `json:"price"`
-	Stock        int32     `json:"stock"`
+	ID           uuid.UUID  `json:"id"`
+	Name         string     `json:"name"`
+	CategoryID   *int32     `json:"category_id,omitempty"`
+	CategoryName *string    `json:"category_name,omitempty"`
+	ImageURL     *string    `json:"image_url,omitempty"`
+	Price        float64    `json:"price"`
+	Stock        int32      `json:"stock"`
+	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
 }
 
 type ListProductsResponse struct {
 	Products   []ProductListResponse `json:"products"`
 	Pagination pagination.Pagination `json:"pagination"`
+}
+
+type RestoreBulkRequest struct {
+	ProductIDs []string `json:"product_ids" validate:"required,min=1"`
 }

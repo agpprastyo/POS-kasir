@@ -1,37 +1,27 @@
-import {useState} from 'react'
-import {createFileRoute, getRouteApi, Link, Outlet, redirect, RegisteredRouter, useRouter} from '@tanstack/react-router'
-import {FileText, LayoutDashboard, LogOut, Menu, Package, Settings, User as UserIcon, Zap} from 'lucide-react'
-import {Button} from '@/components/ui/button'
-import {Sheet, SheetContent, SheetTrigger} from '@/components/ui/sheet'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
-import {useAuth} from '@/lib/auth/AuthContext'
-import {meQueryOptions} from '@/lib/api/query/auth'
-import {queryClient} from '@/lib/queryClient'
-import {POSKasirInternalRepositoryUserRole} from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
-import {FileRouteByToPath} from "@tanstack/router-core/src/routeInfo.ts";
+import { useState } from 'react'
+import { createFileRoute, getRouteApi, Link, Outlet, redirect, RegisteredRouter, useRouter } from '@tanstack/react-router'
+import { FileText, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, User as UserIcon, Zap, Receipt } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
-// 1. Definisikan Route API helper
-const routeApi = getRouteApi('/_dashboard')
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/lib/auth/AuthContext'
+import { meQueryOptions } from '@/lib/api/query/auth'
+import { queryClient } from '@/lib/queryClient'
+import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
 
-export const Route = createFileRoute('/_dashboard' as FileRouteByToPath<any, any>)({
+
+
+
+
+export const Route = createFileRoute('/_dashboard')({
     loader: async () => {
         try {
             return await queryClient.ensureQueryData(meQueryOptions())
         } catch (error: any) {
-            const status =
-                error?.response?.status ??
-                error?.status ??
-                error?.cause?.status
+            const status = error?.response?.status ?? error?.status
             if (status === 401) {
-                throw redirect({ to: '/login' } as RegisteredRouter)
+                throw redirect({ to: '/login' })
             }
             throw error
         }
@@ -40,21 +30,17 @@ export const Route = createFileRoute('/_dashboard' as FileRouteByToPath<any, any
 })
 
 function DashboardLayout() {
+
     const auth = useAuth()
     const router = useRouter()
-
     const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-    const user = routeApi.useLoaderData()
+    const user = auth.user
 
-    const profile = user as any
-    const userRole = (profile?.role ?? profile?.data?.role) as POSKasirInternalRepositoryUserRole | undefined
-    const userAvatar = profile?.avatar ?? profile?.data?.avatar
-    const userName = profile?.username ?? profile?.data?.username ?? 'User'
 
-    console.log('[Dashboard] User Data (Loader):', user)
-    console.log('[Dashboard] User Role:', userRole)
-
+    const userRole = user?.role
+    const userAvatar = user?.avatar
+    const userName = user?.username ?? 'User'
 
     const handleLogout = async () => {
         if (isLoggingOut) return
@@ -63,12 +49,11 @@ function DashboardLayout() {
         try {
 
             await auth.logout()
-        } catch (error) {
-            console.error("Gagal logout di server (mungkin sudah expired):", error)
-        } finally {
-            queryClient.clear()
 
             await router.navigate({ to: '/login', replace: true })
+        } catch (error) {
+            console.error("Logout UI error:", error)
+        } finally {
             setIsLoggingOut(false)
         }
     }
@@ -85,6 +70,26 @@ function DashboardLayout() {
             label: 'Summary',
             icon: LayoutDashboard,
             to: '/',
+            allowedRoles: [
+                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
+            ]
+        },
+        {
+            label: 'POS',
+            icon: ShoppingCart,
+            to: '/order',
+            allowedRoles: [
+                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
+            ]
+        },
+        {
+            label: 'Transactions',
+            icon: Receipt,
+            to: '/transactions',
             allowedRoles: [
                 POSKasirInternalRepositoryUserRole.UserRoleAdmin,
                 POSKasirInternalRepositoryUserRole.UserRoleManager,
@@ -114,7 +119,7 @@ function DashboardLayout() {
             to: '/users',
             allowedRoles: [
                 POSKasirInternalRepositoryUserRole.UserRoleAdmin
-                ,POSKasirInternalRepositoryUserRole.UserRoleManager
+                , POSKasirInternalRepositoryUserRole.UserRoleManager
             ]
         },
         {
@@ -122,7 +127,19 @@ function DashboardLayout() {
             icon: Settings,
             to: '/settings',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin
+                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
+            ]
+        },
+        {
+            label: 'Account',
+            icon: UserIcon,
+            to: '/account',
+            allowedRoles: [
+                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
             ]
         },
     ]
@@ -132,14 +149,14 @@ function DashboardLayout() {
     )
 
     return (
-        <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] overflow-hidden">
             {/* --- DESKTOP SIDEBAR --- */}
-            <div className="hidden border-r bg-muted/40 md:block">
+            <div className="hidden md:block">
                 <div className="flex h-full max-h-screen flex-col gap-2">
-                    <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+                    <div className="flex h-14 items-center  px-4 lg:h-[60px] lg:px-6">
                         <Link to="/" className="flex items-center gap-2 font-semibold">
-                            <Zap className="h-6 w-6" />
-                            <span className="">Acme Inc</span>
+                            <Zap className="h-8 w-8" />
+                            <span className="text-2xl">Acme Inc</span>
                         </Link>
                     </div>
                     <div className="flex-1">
@@ -156,19 +173,50 @@ function DashboardLayout() {
                             ))}
                         </nav>
                     </div>
+                    <div className="mt-auto p-4">
+
+                        <div className="rounded-2xl w-full flex items-center justify-between px-2 gap-2 pl-4 aspect-auto h-12 border">
+
+
+                            <div className="flex items-center gap-4 cursor-default">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={userAvatar || undefined} alt={userName} />
+                                    <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col items-start truncate text-sm">
+                                    <span className="font-semibold">{userName}</span>
+                                    <span className="text-xs text-muted-foreground">{userRole}</span>
+                                </div>
+                            </div>
+
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLogout();
+                                }}
+                                className="h-8 w-8 hover:bg-destructive/10"
+                            >
+                                <LogOut className="h-4 w-4 text-muted-foreground hover:text-background transition-colors" />
+                                <span className="sr-only">Logout</span>
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* --- MAIN CONTENT AREA --- */}
-            <div className="flex flex-col">
+            <div className="flex flex-col border rounded-xl m-2 bg-background overflow-hidden h-[calc(100vh-1rem)]">
                 {/* HEADER / TOPBAR */}
-                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-4 relative overflow-y-auto">
                     <Sheet>
                         <SheetTrigger asChild>
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="shrink-0 md:hidden"
+                                className="shrink-0 md:hidden absolute left-4 top-4 z-10"
                             >
                                 <Menu className="h-5 w-5" />
                                 <span className="sr-only">Toggle navigation menu</span>
@@ -194,47 +242,29 @@ function DashboardLayout() {
                                         {item.label}
                                     </Link>
                                 ))}
+
+                                <div className="mt-auto">
+                                    <div className="flex items-center gap-4 px-2 py-4">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={userAvatar || undefined} alt={userName} />
+                                            <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-sm">{userName}</span>
+                                            <span className="text-xs text-muted-foreground">{userRole}</span>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={handleLogout} className="ml-auto text-destructive">
+                                            <LogOut className="h-5 w-5" />
+                                        </Button>
+                                    </div>
+                                </div>
                             </nav>
                         </SheetContent>
                     </Sheet>
 
-                    <div className="w-full flex-1">
-                        {/* Search bar could go here */}
+                    <div className="mt-12 md:mt-0 flex-1">
+                        <Outlet />
                     </div>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <Avatar className="h-8 w-8">
-                                    {/* Menggunakan userAvatar jika ada, fallback ke default github jika kosong */}
-                                    <AvatarImage src={userAvatar || "https://github.com/shadcn.png"} alt={userName} />
-                                    <AvatarFallback><UserIcon className="h-4 w-4"/></AvatarFallback>
-                                </Avatar>
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>My Account ({userRole})</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Settings</DropdownMenuItem>
-                            <DropdownMenuItem>Support</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-
-                            {/* Gunakan state lokal isLoggingOut untuk UI feedback */}
-                            <DropdownMenuItem
-                                onClick={handleLogout}
-                                disabled={isLoggingOut}
-                                className="text-red-600 focus:text-red-600 cursor-pointer"
-                            >
-                                <LogOut className="mr-2 h-4 w-4"/>
-                                {isLoggingOut ? 'Logging out...' : 'Logout'}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
-
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                    <Outlet />
                 </main>
             </div>
         </div>

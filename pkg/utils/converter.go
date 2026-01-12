@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"math"
 )
 
 func NullableUUIDToPointer(nu pgtype.UUID) *uuid.UUID {
@@ -32,4 +33,8 @@ func Float64ToNumeric(f float64) (pgtype.Numeric, error) {
 func Int32Ptr(i int) *int32 {
 	v := int32(i)
 	return &v
+}
+
+func StringPtr(s string) *string {
+	return &s
 }

@@ -3,10 +3,11 @@ package auth
 import (
 	"POS-kasir/config"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/common/middleware"
 	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
-	"POS-kasir/pkg/middleware"
+
 	"POS-kasir/pkg/validator"
 	"errors"
 	"io"
@@ -21,7 +22,7 @@ type IAuthHandler interface {
 	UpdatePasswordHandler(c *fiber.Ctx) error
 	LoginHandler(c *fiber.Ctx) error
 	LogoutHandler(c *fiber.Ctx) error
-	RegisterHandler(c *fiber.Ctx) error
+
 	ProfileHandler(c *fiber.Ctx) error
 	AddUserHandler(c *fiber.Ctx) error
 	UpdateAvatarHandler(c *fiber.Ctx) error
@@ -55,7 +56,7 @@ func NewAuthHandler(service IAuthService, log logger.ILogger, validator validato
 // @Failure 401 {object} common.ErrorResponse "Unauthorized"
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
-// @Router /auth/update-password [post]
+// @Router /auth/me/update-password [post]
 func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 
@@ -205,60 +206,6 @@ func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
 	})
 }
 
-// RegisterHandler handles the user registration process, including request parsing, validation, and service interaction.
-// @Summary Register
-// @Description Register
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body dto.RegisterRequest true "Register request"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
-// @Failure 400 {object} common.ErrorResponse "Bad Request"
-// @Failure 409 {object} common.ErrorResponse "Conflict"
-// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
-// @Router /auth/register [post]
-func (h *AthHandler) RegisterHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	var req dto.RegisterRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Failed to parse request body",
-		})
-	}
-
-	if done, err := common.ValidateAndRespond(c, h.Validator, h.Log, &req); done {
-		return err
-	}
-
-	resp, err := h.Service.Register(ctx, req)
-	if err != nil {
-		switch {
-		case errors.Is(err, common.ErrUserExists):
-			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-				Message: "User already exists",
-			})
-		case errors.Is(err, common.ErrUsernameExists):
-			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-				Message: "Username already exists",
-			})
-		case errors.Is(err, common.ErrEmailExists):
-			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-				Message: "Email already exists",
-			})
-		default:
-			h.Log.Errorf("RegisterHandler | Failed to register user: %v", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
-				Message: "Failed to register user",
-			})
-		}
-	}
-
-	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
-		Message: "Success",
-		Data:    resp,
-	})
-}
-
 // ProfileHandler handles requests to retrieve the profile of the currently authenticated user.
 // @Summary Get profile
 // @Description Get profile
@@ -314,11 +261,10 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param request body dto.RegisterRequest true "Register request"
-// @Success 200 {object} common.SuccessResponse{data=dto.RegisterResponse} "Success"
+// @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
 // @Failure 400 {object} common.ErrorResponse "Bad Request"
 // @Failure 409 {object} common.ErrorResponse "Conflict"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
-
 func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
 	var req dto.RegisterRequest

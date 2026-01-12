@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DollarSign, Users, CreditCard, Activity } from 'lucide-react'
-import {FileRouteByToPath} from "@tanstack/router-core/src/routeInfo.ts";
 
-export const Route = createFileRoute('/_dashboard/' as FileRouteByToPath<any, any>)({
+
+export const Route = createFileRoute('/_dashboard/')({
     component: DashboardIndex,
 })
 

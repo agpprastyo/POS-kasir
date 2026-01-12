@@ -1,8 +1,9 @@
 package dto
 
 import (
+	"POS-kasir/internal/common/pagination"
 	"POS-kasir/internal/repository"
-	"POS-kasir/pkg/pagination"
+
 	"time"
 
 	"github.com/google/uuid"
@@ -39,6 +40,21 @@ type CancelOrderRequest struct {
 	CancellationNotes    string `json:"cancellation_notes" validate:"omitempty,max=255"`
 }
 
+type UpdateOrderItemRequest struct {
+	ProductID uuid.UUID                      `json:"product_id" validate:"required"`
+	Quantity  int32                          `json:"quantity" validate:"required,gt=0"`
+	Options   []CreateOrderItemOptionRequest `json:"options" validate:"dive"`
+}
+
+type CompleteManualPaymentRequest struct {
+	PaymentMethodID int32 `json:"payment_method_id" validate:"required,gt=0"`
+	CashReceived    int64 `json:"cash_received" validate:"omitempty,gte=0"`
+}
+
+type UpdateOrderStatusRequest struct {
+	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served"`
+}
+
 type MidtransNotificationPayload struct {
 	TransactionTime   string `json:"transaction_time"`
 	TransactionStatus string `json:"transaction_status"`
@@ -56,15 +72,15 @@ type MidtransNotificationPayload struct {
 
 type OrderItemOptionResponse struct {
 	ProductOptionID uuid.UUID `json:"product_option_id"`
-	PriceAtSale     float64   `json:"price_at_sale"`
+	PriceAtSale     int64     `json:"price_at_sale"`
 }
 
 type OrderItemResponse struct {
 	ID          uuid.UUID                 `json:"id"`
 	ProductID   uuid.UUID                 `json:"product_id"`
 	Quantity    int32                     `json:"quantity"`
-	PriceAtSale float64                   `json:"price_at_sale"`
-	Subtotal    float64                   `json:"subtotal"`
+	PriceAtSale int64                     `json:"price_at_sale"`
+	Subtotal    int64                     `json:"subtotal"`
 	Options     []OrderItemOptionResponse `json:"options,omitempty"`
 }
 
@@ -73,9 +89,9 @@ type OrderDetailResponse struct {
 	UserID                  *uuid.UUID             `json:"user_id,omitempty"`
 	Type                    repository.OrderType   `json:"type"`
 	Status                  repository.OrderStatus `json:"status"`
-	GrossTotal              float64                `json:"gross_total"`
-	DiscountAmount          float64                `json:"discount_amount"`
-	NetTotal                float64                `json:"net_total"`
+	GrossTotal              int64                  `json:"gross_total"`
+	DiscountAmount          int64                  `json:"discount_amount"`
+	NetTotal                int64                  `json:"net_total"`
 	PaymentMethodID         *int32                 `json:"payment_method_id,omitempty"`
 	PaymentGatewayReference *string                `json:"payment_gateway_reference,omitempty"`
 	CreatedAt               time.Time              `json:"created_at"`
@@ -88,7 +104,7 @@ type OrderListResponse struct {
 	UserID    *uuid.UUID             `json:"user_id,omitempty"`
 	Type      repository.OrderType   `json:"type"`
 	Status    repository.OrderStatus `json:"status"`
-	NetTotal  float64                `json:"net_total"`
+	NetTotal  int64                  `json:"net_total"`
 	CreatedAt time.Time              `json:"created_at"`
 }
 
@@ -103,23 +119,4 @@ type QRISResponse struct {
 	GrossAmount   string `json:"gross_amount"`
 	QRString      string `json:"qr_string"`
 	ExpiryTime    string `json:"expiry_time"`
-}
-
-// UpdateOrderItemRequest merepresentasikan satu aksi yang akan dilakukan pada item pesanan.
-type UpdateOrderItemRequest struct {
-	ProductID uuid.UUID                      `json:"product_id" validate:"required"`
-	Quantity  int32                          `json:"quantity" validate:"required,gt=0"`
-	Options   []CreateOrderItemOptionRequest `json:"options" validate:"dive"`
-}
-
-// CompleteManualPaymentRequest adalah DTO untuk menyelesaikan pembayaran manual.
-type CompleteManualPaymentRequest struct {
-	PaymentMethodID int32   `json:"payment_method_id" validate:"required,gt=0"`
-	CashReceived    float64 `json:"cash_received" validate:"omitempty,gte=0"`
-}
-
-// UpdateOrderStatusRequest adalah DTO untuk mengubah status operasional pesanan.
-// Digunakan pada endpoint `PATCH /orders/{id}/status`.
-type UpdateOrderStatusRequest struct {
-	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served"`
 }

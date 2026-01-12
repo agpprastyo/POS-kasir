@@ -8,7 +8,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**usersIdDelete**](#usersiddelete) | **DELETE** /users/{id} | Delete user|
 |[**usersIdGet**](#usersidget) | **GET** /users/{id} | Get user by ID|
 |[**usersIdPut**](#usersidput) | **PUT** /users/{id} | Update user|
-|[**usersIdTogglePut**](#usersidtoggleput) | **PUT** /users/{id}/toggle | Toggle user status|
+|[**usersIdToggleStatusPost**](#usersidtogglestatuspost) | **POST** /users/{id}/toggle-status | Toggle user status|
 |[**usersPost**](#userspost) | **POST** /users | Create user|
 
 # **usersGet**
@@ -252,8 +252,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **usersIdTogglePut**
-> POSKasirInternalCommonSuccessResponse usersIdTogglePut()
+# **usersIdToggleStatusPost**
+> POSKasirInternalCommonSuccessResponse usersIdToggleStatusPost()
 
 
 ### Example
@@ -269,7 +269,7 @@ const apiInstance = new UsersApi(configuration);
 
 let id: string; //User ID (default to undefined)
 
-const { status, data } = await apiInstance.usersIdTogglePut(
+const { status, data } = await apiInstance.usersIdToggleStatusPost(
     id
 );
 ```

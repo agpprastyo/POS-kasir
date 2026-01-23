@@ -6,42 +6,6 @@ on:
 
 jobs:
   # ======================================================
-  # JOB 1: DEPLOY FRONTEND KE CLOUDFLARE PAGES
-  # ======================================================
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    name: Deploy Frontend
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install & Build Frontend
-        working-directory: ./web
-        run: |
-          bun install
-          bun run build
-        env:
-          VITE_API_BASE: "https://api.domainanda.com/api/v1"
-          CI: false 
-
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: "pos-kasir-fe" 
-          directory: "./web/dist"
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
-  # ======================================================
   # JOB 2: DEPLOY BACKEND KE HOME SERVER
   # ======================================================
   deploy-backend:

@@ -2,7 +2,7 @@ name: Deploy Production
 
 on:
   push:
-    branches: [ "master" ] # [UPDATED] Menggunakan branch master
+    branches: [ "master" ] 
 
 jobs:
   # ======================================================

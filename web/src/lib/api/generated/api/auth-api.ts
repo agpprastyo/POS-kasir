@@ -211,6 +211,36 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Refresh token
+         * @summary Refresh token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authRefreshPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/refresh`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -283,6 +313,18 @@ export const AuthApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeUpdatePasswordPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Refresh token
+         * @summary Refresh token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authRefreshPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLoginPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authRefreshPost(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authRefreshPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -339,6 +381,15 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLogoutPost200Response> {
             return localVarFp.authMeUpdatePasswordPost(request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Refresh token
+         * @summary Refresh token
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authRefreshPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthLoginPost200Response> {
+            return localVarFp.authRefreshPost(options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -398,6 +449,16 @@ export class AuthApi extends BaseAPI {
      */
     public authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authMeUpdatePasswordPost(request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Refresh token
+     * @summary Refresh token
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authRefreshPost(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authRefreshPost(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

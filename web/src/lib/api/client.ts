@@ -15,19 +15,41 @@ export const axiosInstance = axios.create({})
 
 axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            if (!window.location.pathname.includes('/login')) {
-                console.error("Session expired. Redirecting to login...")
-                window.location.href = '/login'
+    async (error) => {
+        const originalRequest = error.config;
+
+
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
+            originalRequest._retry = true;
+
+            try {
+
+                await axiosInstance.post('/auth/refresh');
+
+
+                return axiosInstance(originalRequest);
+            } catch (refreshError) {
+                console.error("Token refresh failed. Redirecting to login...", refreshError);
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+                return Promise.reject(refreshError);
             }
         }
+
+        if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
+
+            if (!originalRequest.url?.includes('/auth/refresh')) {
+                window.location.href = '/login';
+            }
+        }
+
         return Promise.reject(error)
     }
 )
 
 const config = new Configuration({
-    basePath: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1',
+    basePath: import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api/v1',
     baseOptions: {
         withCredentials: true,
     },

@@ -102,7 +102,7 @@ func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id,username, email, password_hash, avatar, role, is_active)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 `
 
 type CreateUserParams struct {
@@ -138,6 +138,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }
@@ -155,7 +156,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 FROM users
 WHERE email = $1 AND deleted_at IS NULL
 LIMIT 1
@@ -176,12 +177,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 FROM users
 WHERE id = $1 AND deleted_at IS NULL
 LIMIT 1
@@ -202,12 +204,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+SELECT id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 FROM users
 WHERE username = $1 AND deleted_at IS NULL
 LIMIT 1
@@ -228,6 +231,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }
@@ -338,6 +342,23 @@ func (q *Queries) ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uui
 	return id, err
 }
 
+const updateRefreshToken = `-- name: UpdateRefreshToken :exec
+UPDATE users
+SET refresh_token = $2
+WHERE id = $1 AND deleted_at IS NULL
+`
+
+type UpdateRefreshTokenParams struct {
+	ID           uuid.UUID `json:"id"`
+	RefreshToken *string   `json:"refresh_token"`
+}
+
+// Memperbarui refresh token pengguna (Single Session Enforcement).
+func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error {
+	_, err := q.db.Exec(ctx, updateRefreshToken, arg.ID, arg.RefreshToken)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
@@ -348,7 +369,7 @@ SET
     role = COALESCE($6, role)
 
 WHERE id = $1 AND deleted_at IS NULL
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 `
 
 type UpdateUserParams struct {
@@ -382,6 +403,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }
@@ -407,7 +429,7 @@ const updateUserRole = `-- name: UpdateUserRole :one
 UPDATE users
 SET role = $2
 WHERE id = $1 AND deleted_at IS NULL
-RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at
+RETURNING id, username, email, password_hash, created_at, updated_at, avatar, role, is_active, deleted_at, refresh_token
 `
 
 type UpdateUserRoleParams struct {
@@ -431,6 +453,7 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 		&i.Role,
 		&i.IsActive,
 		&i.DeletedAt,
+		&i.RefreshToken,
 	)
 	return i, err
 }

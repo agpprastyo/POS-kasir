@@ -14,6 +14,7 @@ import (
 // Manager defines the interface for JWT operations.
 type Manager interface {
 	GenerateToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error)
+	GenerateRefreshToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error)
 	VerifyToken(tokenStr string) (JWTClaims, error)
 }
 
@@ -26,6 +27,7 @@ type JWTClaims struct {
 	Email    string              `json:"email"`
 	Role     repository.UserRole `json:"role"`
 	UserID   uuid.UUID           `json:"user_id"`
+	Type     string              `json:"type"` // "access" or "refresh"
 	jwt.RegisteredClaims
 }
 
@@ -36,16 +38,25 @@ func NewJWTManager(cfg *config.AppConfig) *JWTManager {
 	}
 }
 
-// GenerateToken creates a JWT for the given username.
+// GenerateToken creates a short-lived Access Token.
 func (j *JWTManager) GenerateToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+	return j.generateToken(username, email, userID, role, "access", j.cfg.JWT.Duration)
+}
+
+// GenerateRefreshToken creates a long-lived Refresh Token.
+func (j *JWTManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+	return j.generateToken(username, email, userID, role, "refresh", j.cfg.JWT.RefreshTokenDuration)
+}
+
+func (j *JWTManager) generateToken(username, email string, userID uuid.UUID, role repository.UserRole, tokenType string, duration time.Duration) (string, time.Time, error) {
 	claims := JWTClaims{
 		Username: username,
 		Email:    email,
 		Role:     role,
 		UserID:   userID,
+		Type:     tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
-
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.cfg.JWT.Duration)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    j.cfg.JWT.Issuer,

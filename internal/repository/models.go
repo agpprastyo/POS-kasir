@@ -633,4 +633,5 @@ type User struct {
 	Role         UserRole           `json:"role"`
 	IsActive     bool               `json:"is_active"`
 	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
+	RefreshToken *string            `json:"refresh_token"`
 }

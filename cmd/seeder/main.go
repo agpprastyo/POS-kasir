@@ -22,19 +22,15 @@ func main() {
 
 	ctx := context.Background()
 
-	// Initialize logger
 	logr := logger.New(cfg)
 
-	// Initialize database connection (replace with your actual DB connection code)
 	db, err := database.NewDatabase(cfg, logr)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Initialize sqlc Queries
 	queries := repository.New(db.GetPool())
 
-	// Run seeders
 	if err := seeder.RunSeeders(ctx, queries, logr); err != nil {
 		log.Fatalf("Seeding failed: %v", err)
 	}

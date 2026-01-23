@@ -173,6 +173,8 @@ type Querier interface {
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	// Updates a specific product option.
 	UpdateProductOption(ctx context.Context, arg UpdateProductOptionParams) (ProductOption, error)
+	// Memperbarui refresh token pengguna (Single Session Enforcement).
+	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
 	// Memperbarui pengguna aktif.
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	// Hanya bisa mengubah password pengguna aktif.

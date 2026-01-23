@@ -56,6 +56,7 @@ Class | Method | HTTP request | Description
 *AuthApi* | [**authMeAvatarPut**](docs/AuthApi.md#authmeavatarput) | **PUT** /auth/me/avatar | Update avatar
 *AuthApi* | [**authMeGet**](docs/AuthApi.md#authmeget) | **GET** /auth/me | Get profile
 *AuthApi* | [**authMeUpdatePasswordPost**](docs/AuthApi.md#authmeupdatepasswordpost) | **POST** /auth/me/update-password | Update password
+*AuthApi* | [**authRefreshPost**](docs/AuthApi.md#authrefreshpost) | **POST** /auth/refresh | Refresh token
 *CancellationReasonsApi* | [**cancellationReasonsGet**](docs/CancellationReasonsApi.md#cancellationreasonsget) | **GET** /cancellation-reasons | List cancellation reasons
 *CategoriesApi* | [**categoriesCountGet**](docs/CategoriesApi.md#categoriescountget) | **GET** /categories/count | Get total number of categories
 *CategoriesApi* | [**categoriesGet**](docs/CategoriesApi.md#categoriesget) | **GET** /categories | Get all categories

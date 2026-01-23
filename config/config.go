@@ -43,9 +43,10 @@ type minioConfig struct {
 }
 
 type jwtConfig struct {
-	Secret   string
-	Duration time.Duration
-	Issuer   string
+	Secret               string
+	Duration             time.Duration
+	RefreshTokenDuration time.Duration
+	Issuer               string
 }
 
 type serverConfig struct {
@@ -113,9 +114,10 @@ func Load() *AppConfig {
 			WebFrontendCrossOrigin: getBool("WEB_FRONTEND_CROSS_ORIGIN", false),
 		},
 		JWT: jwtConfig{
-			Secret:   getEnv("JWT_SECRET", "secret"),
-			Duration: time.Duration(getInt("JWT_DURATION_HOURS", 24)) * time.Hour,
-			Issuer:   getEnv("JWT_ISSUER", "poskasir"),
+			Secret:               getEnv("JWT_SECRET", "secret"),
+			Duration:             time.Duration(getInt("JWT_DURATION_HOURS", 24)) * time.Hour,
+			RefreshTokenDuration: time.Duration(getInt("JWT_REFRESH_DURATION_DAYS", 7)) * 24 * time.Hour,
+			Issuer:               getEnv("JWT_ISSUER", "poskasir"),
 		},
 		Minio: minioConfig{
 			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),

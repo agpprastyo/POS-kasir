@@ -14,6 +14,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
+	api.Post("/auth/refresh", container.AuthHandler.RefreshHandler)
 	api.Get("/auth/me", authMiddleware, container.AuthHandler.ProfileHandler)
 	api.Post("/auth/add", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.AuthHandler.AddUserHandler)
 	api.Put("/auth/me/avatar", authMiddleware, container.AuthHandler.UpdateAvatarHandler)

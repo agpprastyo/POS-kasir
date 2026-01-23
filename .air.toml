@@ -9,7 +9,9 @@ bin = "./tmp/main"
 
 include_ext = ["go", "tpl", "tmpl", "html"]
 
-exclude_dir = ["tmp", "web", "mocks", "vendor", "sqlc"]
+
+
+exclude_dir = ["tmp", "web", "mocks", "vendor", "sqlc", "node_modules"]
 
 delay = 1000
 

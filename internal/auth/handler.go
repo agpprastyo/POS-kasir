@@ -26,6 +26,7 @@ type IAuthHandler interface {
 	ProfileHandler(c *fiber.Ctx) error
 	AddUserHandler(c *fiber.Ctx) error
 	UpdateAvatarHandler(c *fiber.Ctx) error
+	RefreshHandler(c *fiber.Ctx) error
 }
 
 type AthHandler struct {
@@ -162,12 +163,27 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		Secure:   h.cfg.Server.Env == "production",
 		SameSite: fiber.CookieSameSiteLaxMode,
 	}
+
+	refreshCookie := &fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    resp.RefreshToken,
+		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
+		Expires:  time.Now().Add(h.cfg.JWT.RefreshTokenDuration),
+		MaxAge:   int(h.cfg.JWT.RefreshTokenDuration.Seconds()),
+		HTTPOnly: true,
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
+	}
+
 	if h.cfg.Server.WebFrontendCrossOrigin {
 		cookie.SameSite = fiber.CookieSameSiteNoneMode
-
 		cookie.Secure = true
+		refreshCookie.SameSite = fiber.CookieSameSiteNoneMode
+		refreshCookie.Secure = true
 	}
 	c.Cookie(cookie)
+	c.Cookie(refreshCookie)
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Success",
@@ -192,6 +208,17 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
+	})
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
 		Value:    "",
 		Path:     "/",
 		Domain:   h.cfg.Server.CookieDomain,
@@ -415,5 +442,73 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Avatar updated successfully",
 		Data:    response,
+	})
+}
+
+// RefreshHandler handles token refresh requests.
+// @Summary Refresh token
+// @Description Refresh token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} common.SuccessResponse{data=dto.LoginResponse} "Success"
+// @Failure 401 {object} common.ErrorResponse "Unauthorized"
+// @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @Router /auth/refresh [post]
+func (h *AthHandler) RefreshHandler(c *fiber.Ctx) error {
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
+			Message: "Refresh token missing",
+		})
+	}
+
+	resp, err := h.Service.RefreshToken(c.Context(), refreshToken)
+	if err != nil {
+		h.Log.Errorf("RefreshHandler | Failed to refresh token: %v", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
+			Message: "Invalid or expired session",
+		})
+	}
+
+	cookie := &fiber.Cookie{
+		Name:     "access_token",
+		Value:    resp.Token,
+		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
+		Expires:  resp.ExpiredAt,
+		MaxAge:   int(time.Until(resp.ExpiredAt).Seconds()),
+		HTTPOnly: true,
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
+	}
+
+	refreshCookie := &fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    resp.RefreshToken,
+		Path:     "/",
+		Domain:   h.cfg.Server.CookieDomain,
+		Expires:  time.Now().Add(h.cfg.JWT.RefreshTokenDuration),
+		MaxAge:   int(h.cfg.JWT.RefreshTokenDuration.Seconds()),
+		HTTPOnly: true,
+		Secure:   h.cfg.Server.Env == "production",
+		SameSite: fiber.CookieSameSiteLaxMode,
+	}
+
+	if h.cfg.Server.WebFrontendCrossOrigin {
+		cookie.SameSite = fiber.CookieSameSiteNoneMode
+		cookie.Secure = true
+		refreshCookie.SameSite = fiber.CookieSameSiteNoneMode
+		refreshCookie.Secure = true
+	}
+	c.Cookie(cookie)
+	c.Cookie(refreshCookie)
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Token refreshed successfully",
+		Data: fiber.Map{
+			"expired": resp.ExpiredAt,
+			"profile": resp.Profile,
+		},
 	})
 }

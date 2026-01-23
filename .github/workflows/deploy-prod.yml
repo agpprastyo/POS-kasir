@@ -1,0 +1,128 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ "main" ] # Trigger otomatis saat push ke main
+
+jobs:
+  # ======================================================
+  # JOB 1: DEPLOY FRONTEND KE CLOUDFLARE PAGES
+  # ======================================================
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy Frontend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install & Build Frontend
+        working-directory: ./web
+        run: |
+          bun install
+          bun run build
+        env:
+          
+          CI: false 
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: "pos-kasir" 
+          directory: "./web/dist"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # ======================================================
+  # JOB 2: DEPLOY BACKEND KE HOME SERVER
+  # ======================================================
+  deploy-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Login ke GitHub Container Registry
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+    
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:latest
+
+  
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: tag:ci
+
+     
+      - name: Deploy to Local Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.HOST_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Login Docker di server lokal
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Tarik image terbaru
+            docker pull ghcr.io/${{ github.repository }}:latest
+
+            # Hapus container lama (jika ada)
+            docker stop pos-backend || true
+            docker rm pos-backend || true
+
+            # Jalankan Container Baru (Inject Secrets sesuai nama yang Anda buat)
+            docker run -d \
+              --name pos-backend \
+              --restart unless-stopped \
+              --cpus="1.0" \
+              --memory="1g" \
+              -p 8080:8080 \
+              -e APP_ENV=production \
+              -e APP_PORT=8080 \
+              -e DB_HOST="${{ secrets.PROD_DB_HOST }}" \
+              -e DB_PORT=5432 \
+              -e DB_USER="${{ secrets.PROD_DB_USER }}" \
+              -e DB_PASSWORD="${{ secrets.PROD_DB_PASSWORD }}" \
+              -e DB_NAME="${{ secrets.PROD_DB_NAME }}" \
+              -e DB_SSLMODE=disable \
+              -e MIGRATIONS_PATH=file://sqlc/migrations \
+              -e AUTO_MIGRATE=true \
+              -e JWT_SECRET="${{ secrets.PROD_JWT_SECRET }}" \
+              -e LOG_LEVEL=error \
+              -e LOG_JSON_FORMAT=true \
+              -e MIDTRANS_SERVER_KEY="${{ secrets.PROD_MIDTRANS_KEY }}" \
+              -e MIDTRANS_IS_PROD=false \
+              -e MINIO_ENDPOINT="" \
+              -e R2_ACCOUNT_ID="${{ secrets.PROD_R2_ACCOUNT }}" \
+              -e R2_ACCESS_KEY="${{ secrets.PROD_R2_ACCESS }}" \
+              -e R2_SECRET_KEY="${{ secrets.PROD_R2_SECRET }}" \
+              -e R2_BUCKET="${{ secrets.PROD_R2_BUCKET }}" \
+              -e R2_PUBLIC_DOMAIN="${{ secrets.PROD_R2_DOMAIN }}" \
+              ghcr.io/${{ github.repository }}:latest
+
+            # Bersihkan sampah image
+            docker image prune -f

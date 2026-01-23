@@ -329,6 +329,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/refresh": {
+            "post": {
+                "description": "Refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh token",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cancellation-reasons": {
             "get": {
                 "tags": [
@@ -2823,6 +2870,9 @@ const docTemplate = `{
                 },
                 "profile": {
                     "$ref": "#/definitions/POS-kasir_internal_dto.ProfileResponse"
+                },
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         },

@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **Token** | **string** |  | [optional] [default to undefined]
 **expired_at** | **string** |  | [optional] [default to undefined]
 **profile** | [**POSKasirInternalDtoProfileResponse**](POSKasirInternalDtoProfileResponse.md) |  | [optional] [default to undefined]
+**refresh_token** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -18,6 +19,7 @@ const instance: POSKasirInternalDtoLoginResponse = {
     Token,
     expired_at,
     profile,
+    refresh_token,
 };
 ```
 

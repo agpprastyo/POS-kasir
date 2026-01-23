@@ -7,7 +7,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
-    "api:gen": "JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:$PATH openapi-generator-cli generate",
+    "api:gen": "openapi-generator-cli generate",
     "debug:java": "echo PATH=$PATH && which java && java -version"
   },
   "dependencies": {
@@ -79,6 +79,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "baseline-browser-mapping": "^2.9.15",
     "jsdom": "^27.0.0",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",

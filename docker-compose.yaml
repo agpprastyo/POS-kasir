@@ -65,4 +65,3 @@ volumes:
 
 networks:
   kasir-net:
-    external: true

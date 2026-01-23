@@ -44,6 +44,7 @@ type IAuthService interface {
 	Profile(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error)
 	UploadAvatar(ctx context.Context, userID uuid.UUID, data []byte) (*dto.ProfileResponse, error)
 	UpdatePassword(ctx context.Context, userID uuid.UUID, req dto.UpdatePasswordRequest) error
+	RefreshToken(ctx context.Context, refreshToken string) (*dto.LoginResponse, error)
 }
 
 func (s *AthService) Profile(ctx context.Context, userID uuid.UUID) (*dto.ProfileResponse, error) {
@@ -341,6 +342,21 @@ func (s *AthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Logi
 		return nil, common.ErrInvalidCredentials
 	}
 
+	refreshToken, _, err := s.Token.GenerateRefreshToken(user.Username, user.Email, user.ID, user.Role)
+	if err != nil {
+		s.Log.Errorf("Login | Failed to generate Refresh Token: %v", err)
+		return nil, common.ErrInternal
+	}
+
+	// Update refresh token in database (Single Session Enforcement)
+	if err := s.Repo.UpdateRefreshToken(ctx, repository.UpdateRefreshTokenParams{
+		ID:           user.ID,
+		RefreshToken: &refreshToken,
+	}); err != nil {
+		s.Log.Errorf("Login | Failed to update refresh token: %v", err)
+		return nil, common.ErrInternal
+	}
+
 	s.ActivityLogger.Log(
 		ctx,
 		user.ID,
@@ -351,8 +367,72 @@ func (s *AthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Logi
 	)
 
 	return &dto.LoginResponse{
-		ExpiredAt: expiredAt,
-		Token:     token,
+		ExpiredAt:    expiredAt,
+		Token:        token,
+		RefreshToken: refreshToken,
+		Profile: dto.ProfileResponse{
+			ID:        user.ID,
+			IsActive:  user.IsActive,
+			Username:  user.Username,
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt.Time,
+			UpdatedAt: user.UpdatedAt.Time,
+			Role:      user.Role,
+		},
+	}, nil
+}
+
+func (s *AthService) RefreshToken(ctx context.Context, refreshToken string) (*dto.LoginResponse, error) {
+	// 1. Verify token signature
+	claims, err := s.Token.VerifyToken(refreshToken)
+	if err != nil {
+		s.Log.Errorf("RefreshToken | Invalid token: %v", err)
+		return nil, common.ErrUnauthorized
+	}
+
+	if claims.Type != "refresh" {
+		s.Log.Errorf("RefreshToken | Invalid token type: %v", claims.Type)
+		return nil, common.ErrUnauthorized
+	}
+
+	// 2. Check token in database (Single Session Enforcement)
+	user, err := s.Repo.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		s.Log.Errorf("RefreshToken | User not found: %v", claims.UserID)
+		return nil, common.ErrUnauthorized
+	}
+
+	if user.RefreshToken == nil || *user.RefreshToken != refreshToken {
+		s.Log.Errorf("RefreshToken | Token mismatch or revoked for user: %v", claims.UserID)
+		return nil, common.ErrUnauthorized // Force logout
+	}
+
+	// 3. Generate new tokens (Rotation)
+	newAccessToken, newExpiredAt, err := s.Token.GenerateToken(user.Username, user.Email, user.ID, user.Role)
+	if err != nil {
+		s.Log.Errorf("RefreshToken | Failed to generate access token: %v", err)
+		return nil, common.ErrInternal
+	}
+
+	newRefreshToken, _, err := s.Token.GenerateRefreshToken(user.Username, user.Email, user.ID, user.Role)
+	if err != nil {
+		s.Log.Errorf("RefreshToken | Failed to generate refresh token: %v", err)
+		return nil, common.ErrInternal
+	}
+
+	// 4. Update database with new refresh token
+	if err := s.Repo.UpdateRefreshToken(ctx, repository.UpdateRefreshTokenParams{
+		ID:           user.ID,
+		RefreshToken: &newRefreshToken,
+	}); err != nil {
+		s.Log.Errorf("RefreshToken | Failed to update refresh token in DB: %v", err)
+		return nil, common.ErrInternal
+	}
+
+	return &dto.LoginResponse{
+		ExpiredAt:    newExpiredAt,
+		Token:        newAccessToken,
+		RefreshToken: newRefreshToken,
 		Profile: dto.ProfileResponse{
 			ID:        user.ID,
 			IsActive:  user.IsActive,

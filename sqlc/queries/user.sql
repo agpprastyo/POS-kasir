@@ -129,3 +129,9 @@ SELECT
 
 
 
+
+-- name: UpdateRefreshToken :exec
+-- Memperbarui refresh token pengguna (Single Session Enforcement).
+UPDATE users
+SET refresh_token = $2
+WHERE id = $1 AND deleted_at IS NULL;

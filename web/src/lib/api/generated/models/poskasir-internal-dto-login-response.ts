@@ -21,5 +21,6 @@ export interface POSKasirInternalDtoLoginResponse {
     'Token'?: string;
     'expired_at'?: string;
     'profile'?: POSKasirInternalDtoProfileResponse;
+    'refresh_token'?: string;
 }
 

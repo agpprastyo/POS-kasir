@@ -13,9 +13,10 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	ExpiredAt time.Time       `json:"expired_at"`
-	Token     string          `json:"Token"`
-	Profile   ProfileResponse `json:"profile"`
+	ExpiredAt    time.Time       `json:"expired_at"`
+	Token        string          `json:"Token"`
+	RefreshToken string          `json:"refresh_token"`
+	Profile      ProfileResponse `json:"profile"`
 }
 
 type RegisterRequest struct {

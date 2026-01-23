@@ -2,7 +2,7 @@ name: Deploy Production
 
 on:
   push:
-    branches: [ "main" ] # Trigger otomatis saat push ke main
+    branches: [ "master" ] 
 
 jobs:
   # ======================================================

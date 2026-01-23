@@ -21,6 +21,7 @@ import (
 	"POS-kasir/pkg/validator"
 	"context"
 	"errors"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -60,9 +61,11 @@ type AppContainer struct {
 }
 
 func InitApp() *App {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
+	if err := godotenv.Load(); err != nil {
+		// Hanya panic jika ini di Local (Development) dan file benar-benar hilang
+		if os.Getenv("APP_ENV") != "production" {
+			log.Println("Warning: .env file not found, using system environment variables")
+		}
 	}
 
 	cfg := config.Load()

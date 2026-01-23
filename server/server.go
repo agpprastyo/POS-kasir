@@ -62,7 +62,6 @@ type AppContainer struct {
 
 func InitApp() *App {
 	if err := godotenv.Load(); err != nil {
-		// Hanya panic jika ini di Local (Development) dan file benar-benar hilang
 		if os.Getenv("APP_ENV") != "production" {
 			log.Println("Warning: .env file not found, using system environment variables")
 		}

@@ -31,3 +31,4 @@ go.work.sum
 tmp/**
 tmp/*
 
+tmp/

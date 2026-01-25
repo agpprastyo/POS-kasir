@@ -29,10 +29,10 @@ type CreateOrderRequest struct {
 }
 
 type ListOrdersRequest struct {
-	Page   *int                    `query:"page"`
-	Limit  *int                    `query:"limit"`
-	Status *repository.OrderStatus `query:"status" validate:"omitempty,oneof=open in_progress served paid cancelled"`
-	UserID *uuid.UUID              `query:"user_id"`
+	Page     *int                     `query:"page"`
+	Limit    *int                     `query:"limit"`
+	Statuses []repository.OrderStatus `query:"statuses" validate:"dive,oneof=open in_progress served paid cancelled"`
+	UserID   *uuid.UUID               `query:"user_id"`
 }
 
 type CancelOrderRequest struct {
@@ -52,7 +52,7 @@ type CompleteManualPaymentRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served"`
+	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served paid"`
 }
 
 type MidtransNotificationPayload struct {

@@ -204,6 +204,10 @@ func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.U
 			return common.ErrOrderNotModifiable
 		}
 
+		if order.PaymentMethodID != nil {
+			return fmt.Errorf("order already paid")
+		}
+
 		netTotal := order.NetTotal
 		cashReceived := req.CashReceived
 
@@ -526,27 +530,29 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 	}
 	offset := (page - 1) * limit
 
-	var nullStatus repository.NullOrderStatus
-	if req.Status != nil {
-		nullStatus.Valid = true
-		nullStatus.OrderStatus = *req.Status
-	}
-
 	var nullUserID pgtype.UUID
 	if req.UserID != nil {
 		nullUserID.Valid = true
 		nullUserID.Bytes = *req.UserID
 	}
 
+	var statusStrings []string
+	if req.Statuses != nil {
+		statusStrings = make([]string, len(req.Statuses))
+		for i, s := range req.Statuses {
+			statusStrings[i] = string(s)
+		}
+	}
+
 	listParams := repository.ListOrdersParams{
-		Limit:  int32(limit),
-		Offset: int32(offset),
-		Status: nullStatus,
-		UserID: nullUserID,
+		Limit:    int32(limit),
+		Offset:   int32(offset),
+		Statuses: statusStrings, 
+		UserID:   nullUserID,
 	}
 	countParams := repository.CountOrdersParams{
-		Status: nullStatus,
-		UserID: nullUserID,
+		Statuses: statusStrings, 
+		UserID:   nullUserID,
 	}
 	var wg sync.WaitGroup
 	var orders []repository.ListOrdersRow
@@ -580,8 +586,6 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 	for _, order := range orders {
 		netTotal := order.NetTotal
 
-		// Fetch items for each order to display in list
-		// Note: Ideally this should be a batch query or JOIN, but for generic sqlc usage, this is acceptable for small page sizes
 		items, err := s.store.GetOrderItemsByOrderID(ctx, order.ID)
 		if err != nil {
 			s.log.Error("Failed to fetch items for order list", "orderID", order.ID, "error", err)
@@ -598,7 +602,7 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 			products, err := s.store.GetProductsByIDs(ctx, productIDs)
 			if err != nil {
 				s.log.Error("Failed to fetch products for order list items", "error", err)
-				// Continue without names
+				
 			} else {
 				productMap = make(map[uuid.UUID]string)
 				for _, p := range products {
@@ -626,11 +630,8 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 			})
 		}
 
-		// Generate a simple Queue Number (e.g. last 4 digits of ID or a daily counter if available)
-		// Since we don't have a real queue system, we'll use a visual hash
 		queueNumber := order.ID.String()[len(order.ID.String())-4:]
 
-		// Check if order is paid (has payment method ID)
 		isPaid := false
 		if order.PaymentMethodID != nil {
 			isPaid = true

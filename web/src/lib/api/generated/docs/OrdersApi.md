@@ -30,13 +30,13 @@ const apiInstance = new OrdersApi(configuration);
 
 let page: number; //Page number (optional) (default to undefined)
 let limit: number; //Number of orders per page (optional) (default to undefined)
-let status: 'open' | 'in_progress' | 'served' | 'paid' | 'cancelled'; //Order status (optional) (default to undefined)
+let statuses: Array<'open' | 'in_progress' | 'served' | 'paid' | 'cancelled'>; //Order statuses (optional) (default to undefined)
 let userId: string; //Filter by User ID (optional) (default to undefined)
 
 const { status, data } = await apiInstance.ordersGet(
     page,
     limit,
-    status,
+    statuses,
     userId
 );
 ```
@@ -47,7 +47,7 @@ const { status, data } = await apiInstance.ordersGet(
 |------------- | ------------- | ------------- | -------------|
 | **page** | [**number**] | Page number | (optional) defaults to undefined|
 | **limit** | [**number**] | Number of orders per page | (optional) defaults to undefined|
-| **status** | [**&#39;open&#39; | &#39;in_progress&#39; | &#39;served&#39; | &#39;paid&#39; | &#39;cancelled&#39;**]**Array<&#39;open&#39; &#124; &#39;in_progress&#39; &#124; &#39;served&#39; &#124; &#39;paid&#39; &#124; &#39;cancelled&#39;>** | Order status | (optional) defaults to undefined|
+| **statuses** | **Array<&#39;open&#39; &#124; &#39;in_progress&#39; &#124; &#39;served&#39; &#124; &#39;paid&#39; &#124; &#39;cancelled&#39;>** | Order statuses | (optional) defaults to undefined|
 | **userId** | [**string**] | Filter by User ID | (optional) defaults to undefined|
 
 

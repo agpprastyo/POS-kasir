@@ -284,7 +284,6 @@
         "items": "item",
         "empty_cart": "Keranjang kosong",
         "subtotal": "Subtotal",
-        "tax": "Pajak (11%)",
         "total": "Total",
         "charge": "Bayar",
         "order_type": {

@@ -202,7 +202,7 @@ function OrderPage() {
             return
         }
 
-        const totalAmount = calculateTotal() * 1.11
+        const totalAmount = calculateTotal()
 
         const method = paymentMethods?.find(m => m.id === selectedPaymentMethod)
         const isCash = method?.name?.toLowerCase().includes('cash')
@@ -413,17 +413,14 @@ function OrderPage() {
                             <span className="text-muted-foreground">{t('order.subtotal')}</span>
                             <span>{formatRupiah(calculateTotal())}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{t('order.tax')}</span>
-                            <span>{formatRupiah(calculateTotal() * 0.11)}</span>
-                        </div>
+
                         <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
                             <span>{t('order.total')}</span>
-                            <span className="text-primary">{formatRupiah(calculateTotal() * 1.11)}</span>
+                            <span className="text-primary">{formatRupiah(calculateTotal())}</span>
                         </div>
                     </div>
                     <Button className="w-full h-12 text-lg " size="lg" disabled={cart.length === 0} onClick={handleCheckout}>
-                        {t('order.charge')} {formatRupiah(calculateTotal() * 1.11)}
+                        {t('order.charge')} {formatRupiah(calculateTotal())}
                     </Button>
                 </div>
             </div>
@@ -433,7 +430,7 @@ function OrderPage() {
                     <DialogHeader>
                         <DialogTitle>{t('order.payment_dialog.title')}</DialogTitle>
                         <DialogDescription>
-                            {t('order.payment_dialog.desc')} <span className="font-bold text-foreground">{formatRupiah(calculateTotal() * 1.11)}</span>
+                            {t('order.payment_dialog.desc')} <span className="font-bold text-foreground">{formatRupiah(calculateTotal())}</span>
                         </DialogDescription>
                     </DialogHeader>
 
@@ -476,7 +473,7 @@ function OrderPage() {
                                                 <div className="flex justify-between items-center text-sm py-3  rounded-lg ">
                                                     <span className="text-muted-foreground">{t('order.payment_dialog.change')}</span>
                                                     <span className="font-bold text-lg text-primary">
-                                                        {formatRupiah(Math.max(0, Number(cashReceived) - (calculateTotal() * 1.11)))}
+                                                        {formatRupiah(Math.max(0, Number(cashReceived) - calculateTotal()))}
                                                     </span>
                                                 </div>
                                             </div>

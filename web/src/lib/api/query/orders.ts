@@ -7,7 +7,6 @@ import {
     POSKasirInternalDtoCompleteManualPaymentRequest,
     POSKasirInternalDtoCreateOrderRequest,
     POSKasirInternalDtoUpdateOrderStatusRequest,
-    OrdersGetStatusEnum,
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -15,7 +14,7 @@ import { AxiosError } from "axios"
 export type OrdersListParams = {
     limit?: number
     page?: number
-    status?: string
+    statuses?: string[]
     userId?: string
 }
 
@@ -29,7 +28,7 @@ export const ordersListQueryOptions = (params?: OrdersListParams) =>
             const res = await ordersApi.ordersGet(
                 params?.page ? params.page : undefined,
                 params?.limit ? params.limit : undefined,
-                params?.status ? (params.status as OrdersGetStatusEnum) : undefined,
+                params?.statuses ? (params.statuses as any) : undefined,
                 params?.userId ? params.userId : undefined,
             )
 

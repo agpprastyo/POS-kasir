@@ -284,7 +284,6 @@
         "items": "items",
         "empty_cart": "Cart is empty",
         "subtotal": "Subtotal",
-        "tax": "Tax (11%)",
         "total": "Total",
         "charge": "Charge",
         "order_type": {

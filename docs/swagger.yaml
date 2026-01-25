@@ -268,6 +268,8 @@ definitions:
         type: string
       id:
         type: string
+      is_paid:
+        type: boolean
       items:
         items:
           $ref: '#/definitions/POS-kasir_internal_dto.OrderItemResponse'
@@ -998,16 +1000,19 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Order status
-        enum:
-        - open
-        - in_progress
-        - served
-        - paid
-        - cancelled
+      - collectionFormat: multi
+        description: Order statuses
         in: query
-        name: status
-        type: string
+        items:
+          enum:
+          - open
+          - in_progress
+          - served
+          - paid
+          - cancelled
+          type: string
+        name: statuses
+        type: array
       - description: Filter by User ID
         in: query
         name: user_id

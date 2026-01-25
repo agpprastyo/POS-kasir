@@ -109,7 +109,7 @@ SELECT
     payment_method_id
 FROM orders
 WHERE
-    (sqlc.narg(status)::order_status IS NULL OR status = sqlc.narg(status))
+    (sqlc.narg(statuses)::text[] IS NULL OR status = ANY(sqlc.narg(statuses)::text[]::order_status[]))
   AND
     (sqlc.narg(user_id)::uuid IS NULL OR user_id = sqlc.narg(user_id))
 ORDER BY
@@ -120,7 +120,7 @@ LIMIT $1 OFFSET $2;
 -- Menghitung total pesanan dengan filter.
 SELECT count(*) FROM orders
 WHERE
-    (sqlc.narg(status)::order_status IS NULL OR status = sqlc.narg(status))
+    (sqlc.narg(statuses)::text[] IS NULL OR status = ANY(sqlc.narg(statuses)::text[]::order_status[]))
   AND
     (sqlc.narg(user_id)::uuid IS NULL OR user_id = sqlc.narg(user_id));
 
@@ -190,7 +190,6 @@ SELECT * FROM order_items WHERE order_id = $1;
 -- Hanya bisa memproses pesanan yang statusnya 'open'.
 UPDATE orders
 SET
-    status = 'paid',
     payment_method_id = $2,
     cash_received = $3,
     change_due = $4

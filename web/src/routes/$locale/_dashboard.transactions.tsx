@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { formatRupiah } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useState, useMemo } from 'react'
-import { Loader2, Utensils, ShoppingBag, CreditCard, User as UserIcon } from 'lucide-react'
+import { Loader2, Utensils, ShoppingBag, CreditCard, User as UserIcon, Banknote, CheckCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
     Dialog,
@@ -41,7 +41,7 @@ import { useTranslation } from 'react-i18next'
 const transactionsSearchSchema = z.object({
     page: z.number().catch(1),
     limit: z.number().min(1).catch(10),
-    status: z.union([z.enum(POSKasirInternalRepositoryOrderStatus), z.literal('all')]).optional().catch(POSKasirInternalRepositoryOrderStatus.OrderStatusOpen),
+    status: z.enum(['active', 'paid', 'cancelled', 'all']).catch('active'),
     user_id: z.string().optional(),
 })
 
@@ -74,7 +74,7 @@ function TransactionsPage() {
     const searchParams = Route.useSearch()
 
     // Derived state from search params
-    const selectedStatus = searchParams.status || POSKasirInternalRepositoryOrderStatus.OrderStatusOpen
+    const selectedTab = searchParams.status || 'active'
     const selectedUserId = searchParams.user_id || 'all'
     const page = searchParams.page
     const limit = searchParams.limit
@@ -92,11 +92,19 @@ function TransactionsPage() {
         return map
     }, [users])
 
+    // Map tab to API statuses
+    const statusesFilter = useMemo(() => {
+        if (selectedTab === 'active') return ['open', 'in_progress', 'served']
+        if (selectedTab === 'paid') return ['paid']
+        if (selectedTab === 'cancelled') return ['cancelled']
+        return undefined // 'all'
+    }, [selectedTab])
+
     // Fetch Orders
     const { data, isLoading } = useQuery(ordersListQueryOptions({
         page,
         limit,
-        status: selectedStatus === 'all' ? undefined : selectedStatus,
+        statuses: statusesFilter,
         userId: selectedUserId === 'all' ? undefined : selectedUserId
     }))
 
@@ -118,8 +126,7 @@ function TransactionsPage() {
             await updateOrderStatusMutation.mutateAsync({
                 id,
                 body: { status: newStatus }
-            })
-            // Toast handled by mutation onSuccess
+            }) // Toast handled by mutation onSuccess
         } catch (error) {
             console.error(error)
         }
@@ -132,9 +139,21 @@ function TransactionsPage() {
         setSelectedPaymentMethod(undefined)
     }
 
-    const handleStatusChange = (value: string) => {
+    const handleFinish = async (order: OrderWithItems) => {
+        if (!order.id) return;
+        // Optional: Confirm dialog?
+        try {
+            await handleStatusUpdate(order.id, POSKasirInternalRepositoryOrderStatus.OrderStatusPaid)
+            toast.success("Order finished and moved to history.")
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+
+    const handleTabChange = (value: string) => {
         navigate({
-            search: (prev) => ({ ...prev, status: value as POSKasirInternalRepositoryOrderStatus, page: 1 })
+            search: (prev) => ({ ...prev, status: value as any, page: 1 })
         })
     }
 
@@ -222,13 +241,11 @@ function TransactionsPage() {
             </div>
 
             <div className="space-y-4">
-                <Tabs value={selectedStatus} onValueChange={handleStatusChange} className="w-full">
+                <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                     <TabsList className="flex w-full overflow-x-auto justify-start h-auto p-1 gap-2 bg-muted/20">
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen} className="flex-shrink-0">{t('transactions.status.open')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress} className="flex-shrink-0">{t('transactions.status.in_progress')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed} className="flex-shrink-0">{t('transactions.status.served')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusPaid} className="flex-shrink-0">{t('transactions.status.paid')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled} className="flex-shrink-0">{t('transactions.status.cancelled')}</TabsTrigger>
+                        <TabsTrigger value="active" className="flex-shrink-0">Proses (Open)</TabsTrigger>
+                        <TabsTrigger value="paid" className="flex-shrink-0">Selesai (History)</TabsTrigger>
+                        <TabsTrigger value="cancelled" className="flex-shrink-0">Dibatalkan</TabsTrigger>
                         <TabsTrigger value="all" className="flex-shrink-0">{t('transactions.status.all')}</TabsTrigger>
                     </TabsList>
                 </Tabs>
@@ -316,16 +333,13 @@ function TransactionsPage() {
                                             <TableCell>
                                                 <Select
                                                     value={order.status}
+                                                    disabled={order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid || order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled}
                                                     onValueChange={(val) => {
-                                                        if (val === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid) {
-                                                            handleOpenPayment(order)
-                                                        } else if (val === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) {
-                                                            // TODO: Handle cancellation dialog
-                                                            toast.info("Gunakan tombol 'Batalkan' di detail order (Coming Soon)")
+                                                        if (order.id && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) {
+                                                            handleStatusUpdate(order.id, val as POSKasirInternalRepositoryOrderStatus)
                                                         } else {
-                                                            if (order.id) {
-                                                                handleStatusUpdate(order.id, val as POSKasirInternalRepositoryOrderStatus)
-                                                            }
+                                                            
+                                                            toast.info("Gunakan tombol aksi di sebelah kanan")
                                                         }
                                                     }}
                                                 >
@@ -341,13 +355,24 @@ function TransactionsPage() {
                                                         <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen}>{t('transactions.status.open')}</SelectItem>
                                                         <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress}>{t('transactions.status.in_progress')}</SelectItem>
                                                         <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed}>{t('transactions.status.served')}</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusPaid}>{t('transactions.status.paid')}</SelectItem>
-                                                        {/* Cancelled option omitted to enforce proper cancellation flow or added as disabled? */}
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {/* Action button removed as functionality is moved to Status Dropdown */}
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {!order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
+                                                        <Button size="sm" variant="default" className="h-8 gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleOpenPayment(order)}>
+                                                            <Banknote className="h-3.5 w-3.5" />
+                                                            Bayar
+                                                        </Button>
+                                                    )}
+                                                    {order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
+                                                        <Button size="sm" variant="outline" className="h-8 gap-1 border-green-600 text-green-600 hover:bg-green-50" onClick={() => handleFinish(order)}>
+                                                            <CheckCircle className="h-3.5 w-3.5" />
+                                                            Selesai
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))

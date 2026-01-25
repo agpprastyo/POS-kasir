@@ -26,6 +26,7 @@ import type { POSKasirInternalRepositoryOrderType } from './poskasir-internal-re
 export interface POSKasirInternalDtoOrderListResponse {
     'created_at'?: string;
     'id'?: string;
+    'is_paid'?: boolean;
     'items'?: Array<POSKasirInternalDtoOrderItemResponse>;
     'net_total'?: number;
     'queue_number'?: string;

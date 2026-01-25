@@ -47,12 +47,12 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
          * @summary List orders
          * @param {number} [page] Page number
          * @param {number} [limit] Number of orders per page
-         * @param {OrdersGetStatusEnum} [status] Order status
+         * @param {Array<OrdersGetStatusesEnum>} [statuses] Order statuses
          * @param {string} [userId] Filter by User ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersGet: async (page?: number, limit?: number, status?: OrdersGetStatusEnum, userId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ordersGet: async (page?: number, limit?: number, statuses?: Array<OrdersGetStatusesEnum>, userId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/orders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -73,8 +73,8 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
                 localVarQueryParameter['limit'] = limit;
             }
 
-            if (status !== undefined) {
-                localVarQueryParameter['status'] = status;
+            if (statuses) {
+                localVarQueryParameter['statuses'] = statuses;
             }
 
             if (userId !== undefined) {
@@ -370,13 +370,13 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @summary List orders
          * @param {number} [page] Page number
          * @param {number} [limit] Number of orders per page
-         * @param {OrdersGetStatusEnum} [status] Order status
+         * @param {Array<OrdersGetStatusesEnum>} [statuses] Order statuses
          * @param {string} [userId] Filter by User ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersGet(page?: number, limit?: number, status?: OrdersGetStatusEnum, userId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersGet200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersGet(page, limit, status, userId, options);
+        async ordersGet(page?: number, limit?: number, statuses?: Array<OrdersGetStatusesEnum>, userId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersGet(page, limit, statuses, userId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -490,13 +490,13 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @summary List orders
          * @param {number} [page] Page number
          * @param {number} [limit] Number of orders per page
-         * @param {OrdersGetStatusEnum} [status] Order status
+         * @param {Array<OrdersGetStatusesEnum>} [statuses] Order statuses
          * @param {string} [userId] Filter by User ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersGet(page?: number, limit?: number, status?: OrdersGetStatusEnum, userId?: string, options?: RawAxiosRequestConfig): AxiosPromise<OrdersGet200Response> {
-            return localVarFp.ordersGet(page, limit, status, userId, options).then((request) => request(axios, basePath));
+        ordersGet(page?: number, limit?: number, statuses?: Array<OrdersGetStatusesEnum>, userId?: string, options?: RawAxiosRequestConfig): AxiosPromise<OrdersGet200Response> {
+            return localVarFp.ordersGet(page, limit, statuses, userId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -584,13 +584,13 @@ export class OrdersApi extends BaseAPI {
      * @summary List orders
      * @param {number} [page] Page number
      * @param {number} [limit] Number of orders per page
-     * @param {OrdersGetStatusEnum} [status] Order status
+     * @param {Array<OrdersGetStatusesEnum>} [statuses] Order statuses
      * @param {string} [userId] Filter by User ID
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public ordersGet(page?: number, limit?: number, status?: OrdersGetStatusEnum, userId?: string, options?: RawAxiosRequestConfig) {
-        return OrdersApiFp(this.configuration).ordersGet(page, limit, status, userId, options).then((request) => request(this.axios, this.basePath));
+    public ordersGet(page?: number, limit?: number, statuses?: Array<OrdersGetStatusesEnum>, userId?: string, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersGet(page, limit, statuses, userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -675,11 +675,11 @@ export class OrdersApi extends BaseAPI {
     }
 }
 
-export const OrdersGetStatusEnum = {
+export const OrdersGetStatusesEnum = {
     Open: 'open',
     InProgress: 'in_progress',
     Served: 'served',
     Paid: 'paid',
     Cancelled: 'cancelled'
 } as const;
-export type OrdersGetStatusEnum = typeof OrdersGetStatusEnum[keyof typeof OrdersGetStatusEnum];
+export type OrdersGetStatusesEnum = typeof OrdersGetStatusesEnum[keyof typeof OrdersGetStatusesEnum];

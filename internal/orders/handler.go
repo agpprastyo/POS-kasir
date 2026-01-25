@@ -270,7 +270,7 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param page query int false "Page number"
 // @Param limit query int false "Number of orders per page"
-// @Param status query string false "Order status" Enums(open, in_progress, served, paid, cancelled)
+// @Param statuses query []string false "Order statuses" collectionFormat(multi) Enums(open, in_progress, served, paid, cancelled)
 // @Param user_id query string false "Filter by User ID"
 // @Success 200 {object} common.SuccessResponse{data=dto.PagedOrderResponse}
 // @Failure 400 {object} common.ErrorResponse
@@ -291,7 +291,6 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 
 	h.log.Infof("List orders request", "request", req)
 
-	
 	currentRoleRaw := c.Locals("role")
 	currentRole, ok := currentRoleRaw.(repository.UserRole)
 	if !ok {
@@ -311,11 +310,10 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{Message: "Unauthorized"})
 	}
 
-	
 	if currentRole == repository.UserRoleCashier {
 		req.UserID = &currentUserID
 	}
-	
+
 	pagedResponse, err := h.orderService.ListOrders(c.Context(), req)
 	if err != nil {
 		h.log.Errorf("Failed to list orders from service", "error", err)

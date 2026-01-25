@@ -785,16 +785,20 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "enum": [
-                            "open",
-                            "in_progress",
-                            "served",
-                            "paid",
-                            "cancelled"
-                        ],
-                        "type": "string",
-                        "description": "Order status",
-                        "name": "status",
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "open",
+                                "in_progress",
+                                "served",
+                                "paid",
+                                "cancelled"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Order statuses",
+                        "name": "statuses",
                         "in": "query"
                     },
                     {
@@ -2924,6 +2928,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_paid": {
+                    "type": "boolean"
                 },
                 "items": {
                     "type": "array",

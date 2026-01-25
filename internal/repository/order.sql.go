@@ -178,19 +178,19 @@ func (q *Queries) CancelOrder(ctx context.Context, arg CancelOrderParams) (Order
 const countOrders = `-- name: CountOrders :one
 SELECT count(*) FROM orders
 WHERE
-    ($1::order_status IS NULL OR status = $1)
+    ($1::text[] IS NULL OR status = ANY($1::text[]::order_status[]))
   AND
     ($2::uuid IS NULL OR user_id = $2)
 `
 
 type CountOrdersParams struct {
-	Status NullOrderStatus `json:"status"`
-	UserID pgtype.UUID     `json:"user_id"`
+	Statuses []string    `json:"statuses"`
+	UserID   pgtype.UUID `json:"user_id"`
 }
 
 // Menghitung total pesanan dengan filter.
 func (q *Queries) CountOrders(ctx context.Context, arg CountOrdersParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countOrders, arg.Status, arg.UserID)
+	row := q.db.QueryRow(ctx, countOrders, arg.Statuses, arg.UserID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -715,7 +715,7 @@ SELECT
     payment_method_id
 FROM orders
 WHERE
-    ($3::order_status IS NULL OR status = $3)
+    ($3::text[] IS NULL OR status = ANY($3::text[]::order_status[]))
   AND
     ($4::uuid IS NULL OR user_id = $4)
 ORDER BY
@@ -724,10 +724,10 @@ LIMIT $1 OFFSET $2
 `
 
 type ListOrdersParams struct {
-	Limit  int32           `json:"limit"`
-	Offset int32           `json:"offset"`
-	Status NullOrderStatus `json:"status"`
-	UserID pgtype.UUID     `json:"user_id"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+	Statuses []string    `json:"statuses"`
+	UserID   pgtype.UUID `json:"user_id"`
 }
 
 type ListOrdersRow struct {
@@ -745,7 +745,7 @@ func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListO
 	rows, err := q.db.Query(ctx, listOrders,
 		arg.Limit,
 		arg.Offset,
-		arg.Status,
+		arg.Statuses,
 		arg.UserID,
 	)
 	if err != nil {
@@ -837,7 +837,6 @@ func (q *Queries) UpdateOrderItemQuantity(ctx context.Context, arg UpdateOrderIt
 const updateOrderManualPayment = `-- name: UpdateOrderManualPayment :one
 UPDATE orders
 SET
-    status = 'paid',
     payment_method_id = $2,
     cash_received = $3,
     change_due = $4

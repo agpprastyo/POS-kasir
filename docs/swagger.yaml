@@ -1557,7 +1557,7 @@ paths:
       tags:
       - Products
   /products/{product_id}/options/{option_id}:
-    put:
+    patch:
       consumes:
       - application/json
       description: Update a product option by ID

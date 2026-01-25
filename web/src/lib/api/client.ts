@@ -11,7 +11,12 @@ import {
 } from "@/lib/api/generated";
 
 
-export const axiosInstance = axios.create({})
+
+const BASE_PATH = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api/v1'
+
+export const axiosInstance = axios.create({
+    baseURL: BASE_PATH,
+})
 
 axiosInstance.interceptors.response.use(
     (response) => response,
@@ -49,7 +54,7 @@ axiosInstance.interceptors.response.use(
 )
 
 const config = new Configuration({
-    basePath: import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api/v1',
+    basePath: BASE_PATH,
     baseOptions: {
         withCredentials: true,
     },

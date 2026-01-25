@@ -22,13 +22,9 @@ export const Route = createRootRoute({
         ],
         links: [{ rel: 'stylesheet', href: appCss }],
     }),
-
-
-
     shellComponent: RootDocument,
     notFoundComponent: NotFound,
     errorComponent: RootError,
-
 
 } as any)
 
@@ -44,7 +40,6 @@ function RootDocument({ children }: any) {
             <AuthProvider>
                 {children}
             </AuthProvider>
-
             <TanStackDevtools
                 config={{ position: 'bottom-right' }}
                 plugins={[

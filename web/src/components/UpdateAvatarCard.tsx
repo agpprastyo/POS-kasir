@@ -1,15 +1,17 @@
-import {ReactNode, useRef, useState} from "react";
-import {useUpdateAvatarMutation} from "@/lib/api/query/auth.ts";
-import {useImageCropper} from "@/hooks/use-image-cropper";
-import {ImageCropperDialog} from "@/components/common/ImageCropperDialog";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {Loader2, Upload, User} from "lucide-react";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
-import {Input} from "@/components/ui/input.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
-import {Button} from "@/components/ui/button.tsx";
+import { ReactNode, useRef, useState } from "react";
+import { useUpdateAvatarMutation } from "@/lib/api/query/auth.ts";
+import { useImageCropper } from "@/hooks/use-image-cropper";
+import { ImageCropperDialog } from "@/components/common/ImageCropperDialog";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card.tsx";
+import { Loader2, Upload, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { useTranslation } from 'react-i18next';
 
-export function UpdateAvatarCard({currentAvatar, username}: { currentAvatar?: string, username?: string }) {
+export function UpdateAvatarCard({ currentAvatar, username }: { currentAvatar?: string, username?: string }) {
+    const { t } = useTranslation();
     const [preview, setPreview] = useState<string | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -28,12 +30,12 @@ export function UpdateAvatarCard({currentAvatar, username}: { currentAvatar?: st
         if (!selectedFile) return
         try {
             await mutation.mutateAsync(selectedFile)
-            setMessage({type: 'success', text: 'Profile picture updated successfully!'})
+            setMessage({ type: 'success', text: t('account.avatar.success') })
             setPreview(null)
             setSelectedFile(null)
             if (fileInputRef.current) fileInputRef.current.value = ''
         } catch (error: any) {
-            setMessage({type: 'error', text: 'Failed to update avatar.'})
+            setMessage({ type: 'error', text: t('account.avatar.error') })
         }
     }
 
@@ -42,15 +44,15 @@ export function UpdateAvatarCard({currentAvatar, username}: { currentAvatar?: st
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <User className="h-5 w-5"/> Profile Picture
+                        <User className="h-5 w-5" /> {t('account.avatar.title')}
                     </CardTitle>
                     <CardDescription>
-                        Update your profile picture.
+                        {t('account.avatar.description')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-6">
                     <Avatar className="h-32 w-32 border-4 border-muted">
-                        <AvatarImage src={preview || currentAvatar || "https://github.com/shadcn.png"}/>
+                        <AvatarImage src={preview || currentAvatar || "https://github.com/shadcn.png"} />
                         <AvatarFallback className="text-4xl">
                             {username?.slice(0, 2).toUpperCase() ?? 'US'}
                         </AvatarFallback>
@@ -77,9 +79,9 @@ export function UpdateAvatarCard({currentAvatar, username}: { currentAvatar?: st
                 </CardContent>
                 <CardFooter className="justify-end border-t bg-muted/20 px-6 py-4">
                     <Button onClick={handleSave} disabled={!selectedFile || mutation.isPending}>
-                        {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> :
-                            <Upload className="mr-2 h-4 w-4"/>}
-                        Upload New Picture
+                        {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+                            <Upload className="mr-2 h-4 w-4" />}
+                        {t('account.avatar.upload_button')}
                     </Button>
                 </CardFooter>
             </Card>

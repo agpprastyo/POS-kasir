@@ -113,7 +113,7 @@ export const useUpdateProductMutation = () => {
     })
 }
 
-// 5. Delete Product
+
 export const useDeleteProductMutation = () => {
     const qc = useQueryClient()
 
@@ -138,7 +138,6 @@ export const useDeleteProductMutation = () => {
     })
 }
 
-// 6. Upload Product Image
 export const useUploadProductImageMutation = () => {
     const qc = useQueryClient()
 
@@ -198,7 +197,7 @@ export const useUpdateProductOptionMutation = () => {
     >({
         mutationKey: ['products', 'update-option'],
         mutationFn: async ({ productId, optionId, body }) => {
-            const res = await productsApi.productsProductIdOptionsOptionIdPut(productId, optionId, body)
+            const res = await productsApi.productsProductIdOptionsOptionIdPatch(productId, optionId, body)
             return (res.data as any).data;
         },
         onSuccess: (_, variables) => {
@@ -211,7 +210,6 @@ export const useUpdateProductOptionMutation = () => {
     })
 }
 
-// 9. Upload Product Option Image
 export const useUploadProductOptionImageMutation = () => {
     const qc = useQueryClient()
 
@@ -235,7 +233,6 @@ export const useUploadProductOptionImageMutation = () => {
     })
 }
 
-// 10. Trash Product List
 export const trashProductsListQueryOptions = (params?: ProductsListParams) =>
     queryOptions<
         ProductListResponse,
@@ -258,7 +255,6 @@ export const trashProductsListQueryOptions = (params?: ProductsListParams) =>
 export const useTrashProductsListQuery = (params?: ProductsListParams) =>
     useQuery(trashProductsListQueryOptions(params))
 
-// 11. Restore Product
 export const useRestoreProductMutation = () => {
     const qc = useQueryClient()
 
@@ -284,7 +280,6 @@ export const useRestoreProductMutation = () => {
     })
 }
 
-// 12. Restore Bulk Product
 export const useRestoreBulkProductMutation = () => {
     const qc = useQueryClient()
 

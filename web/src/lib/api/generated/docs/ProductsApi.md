@@ -11,7 +11,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**productsIdPatch**](#productsidpatch) | **PATCH** /products/{id} | Update a product|
 |[**productsPost**](#productspost) | **POST** /products | Create a new product|
 |[**productsProductIdOptionsOptionIdImagePost**](#productsproductidoptionsoptionidimagepost) | **POST** /products/{product_id}/options/{option_id}/image | Upload product option image|
-|[**productsProductIdOptionsOptionIdPut**](#productsproductidoptionsoptionidput) | **PUT** /products/{product_id}/options/{option_id} | Update a product option|
+|[**productsProductIdOptionsOptionIdPatch**](#productsproductidoptionsoptionidpatch) | **PATCH** /products/{product_id}/options/{option_id} | Update a product option|
 |[**productsProductIdOptionsPost**](#productsproductidoptionspost) | **POST** /products/{product_id}/options | Create a product option|
 |[**productsTrashGet**](#productstrashget) | **GET** /products/trash | List deleted products|
 |[**productsTrashIdGet**](#productstrashidget) | **GET** /products/trash/{id} | Get a deleted product|
@@ -418,8 +418,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **productsProductIdOptionsOptionIdPut**
-> ProductsProductIdOptionsPost201Response productsProductIdOptionsOptionIdPut(body)
+# **productsProductIdOptionsOptionIdPatch**
+> ProductsProductIdOptionsPost201Response productsProductIdOptionsOptionIdPatch(body)
 
 Update a product option by ID
 
@@ -439,7 +439,7 @@ let productId: string; //Product ID (default to undefined)
 let optionId: string; //Option ID (default to undefined)
 let body: POSKasirInternalDtoUpdateProductOptionRequest; //Product option update request
 
-const { status, data } = await apiInstance.productsProductIdOptionsOptionIdPut(
+const { status, data } = await apiInstance.productsProductIdOptionsOptionIdPatch(
     productId,
     optionId,
     body

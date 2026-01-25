@@ -15,7 +15,6 @@ import (
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
-	"POS-kasir/pkg/minio"
 	"POS-kasir/pkg/payment"
 	"POS-kasir/pkg/utils"
 	"POS-kasir/pkg/validator"
@@ -34,6 +33,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/gofiber/swagger"
+
+	"POS-kasir/sqlc/migrations"
 )
 
 type App struct {
@@ -42,7 +43,6 @@ type App struct {
 	DB              database.IDatabase
 	FiberApp        *fiber.App
 	JWT             utils.Manager
-	Minio           minio.IMinio
 	Store           repository.Store
 	Validator       validator.Validator
 	MidtransService payment.IMidtrans
@@ -70,7 +70,7 @@ func InitApp() *App {
 	cfg := config.Load()
 	log := logger.New(cfg)
 
-	db, err := database.NewDatabase(cfg, log)
+	db, err := database.NewDatabase(cfg, log, migrations.FS)
 	if err != nil {
 		log.Fatalf("Failed to initialize PostgreSQL: %v", err)
 	}
@@ -81,10 +81,6 @@ func InitApp() *App {
 	})
 
 	jwtManager := utils.NewJWTManager(cfg)
-	newMinio, err := minio.NewMinio(cfg, log)
-	if err != nil {
-		log.Fatalf("Failed to initialize Minio: %v", err)
-	}
 
 	store := repository.NewStore(db.GetPool(), log)
 	val := validator.NewValidator()
@@ -92,11 +88,7 @@ func InitApp() *App {
 
 	newR2, err := cloudflarer2.NewCloudflareR2(cfg, log)
 	if err != nil {
-		log.Errorf("Failed to initialize Cloudflare R2 (continuing without it): %v", err)
-	}
-
-	if err != nil {
-		log.Warnf("Failed to initialize Cloudflare R2: %v", err)
+		log.Errorf("Failed to initialize Cloudflare R2: %v", err)
 	}
 
 	return &App{
@@ -105,7 +97,6 @@ func InitApp() *App {
 		DB:              db,
 		FiberApp:        fiberApp,
 		JWT:             jwtManager,
-		Minio:           newMinio,
 		Store:           store,
 		Validator:       val,
 		MidtransService: midtransService,
@@ -118,7 +109,7 @@ func BuildAppContainer(app *App) *AppContainer {
 	activityService := activitylog.NewActivityService(app.Store, app.Logger)
 
 	// Auth Module
-	authRepo := auth.NewAuthRepo(app.Logger, app.Minio, app.R2)
+	authRepo := auth.NewAuthRepo(app.Logger, app.R2)
 	authService := auth.NewAuthService(app.Store, app.Logger, app.JWT, authRepo, activityService)
 	authHandler := auth.NewAuthHandler(authService, app.Logger, app.Validator, app.Config)
 
@@ -131,7 +122,7 @@ func BuildAppContainer(app *App) *AppContainer {
 	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
 
 	// Product Module
-	prdRepo := products.NewPrdRepo(app.Minio, app.Logger)
+	prdRepo := products.NewPrdRepo(app.R2, app.Logger)
 	prdService := products.NewPrdService(app.Store, app.Logger, prdRepo, activityService)
 	prdHandler := products.NewPrdHandler(prdService, app.Logger, app.Validator)
 

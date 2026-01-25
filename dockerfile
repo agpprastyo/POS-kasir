@@ -42,7 +42,7 @@ COPY --from=builder /app/main .
 # 4. Copy Folder Migrations (PENTING!)
 # Karena kamu pakai golang-migrate, file SQL biasanya dibaca dari folder saat runtime
 # Jika kode kamu pakai "embed", langkah ini bisa diskip. Jika baca file path, ini wajib.
-COPY --from=builder /app/sqlc/migrations ./sqlc/migrations
+# COPY --from=builder /app/sqlc/migrations ./sqlc/migrations
 
 # 5. Expose port & Run
 EXPOSE 8080

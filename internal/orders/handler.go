@@ -288,6 +288,8 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
+	h.log.Infof("List orders request", "request", req)
+
 	pagedResponse, err := h.orderService.ListOrders(c.Context(), req)
 	if err != nil {
 		h.log.Errorf("Failed to list orders from service", "error", err)

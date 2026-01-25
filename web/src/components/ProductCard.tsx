@@ -5,6 +5,7 @@ import { ProductActions } from "@/components/ProductActions"
 import { Button } from "@/components/ui/button"
 import { Product } from "@/lib/api/query/products"
 import { cn } from "@/lib/utils"
+import { useTranslation } from 'react-i18next';
 
 interface ProductCardProps {
     product: Product
@@ -13,6 +14,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
+    const { t } = useTranslation();
     return (
         <div className={cn(
             "group relative rounded-lg bg-card border border-border/40 text-card-foreground transition-all duration-300 hover:border-border/80 hover:shadow-sm overflow-hidden",
@@ -67,7 +69,7 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                                 product.stock !== 0 && "bg-background/90 text-foreground/70"
                             )}
                         >
-                            {product.stock === 0 ? 'Out of Stock' : `${product.stock} Left`}
+                            {product.stock === 0 ? t('products.card.out_of_stock') : t('products.card.stock_left', { count: product.stock })}
                         </Badge>
                     )}
                 </div>
@@ -86,7 +88,7 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                             {product.name}
                         </h3>
                         <p className="text-[11px] text-muted-foreground font-normal truncate">
-                            {product.category_name || 'Uncategorized'}
+                            {product.category_name || t('products.card.uncategorized')}
                         </p>
                     </div>
 

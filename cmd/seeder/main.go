@@ -6,6 +6,7 @@ import (
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/database/seeder"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/sqlc/migrations"
 	"context"
 	"log"
 
@@ -24,7 +25,7 @@ func main() {
 
 	logr := logger.New(cfg)
 
-	db, err := database.NewDatabase(cfg, logr)
+	db, err := database.NewDatabase(cfg, logr, migrations.FS)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

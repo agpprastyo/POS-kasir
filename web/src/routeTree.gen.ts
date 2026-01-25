@@ -9,248 +9,298 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/_dashboard'
-import { Route as DashboardIndexRouteImport } from './routes/_dashboard.index'
-import { Route as DashboardUsersRouteImport } from './routes/_dashboard.users'
-import { Route as DashboardTransactionsRouteImport } from './routes/_dashboard.transactions'
-import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
-import { Route as DashboardReportsRouteImport } from './routes/_dashboard.reports'
-import { Route as DashboardProductRouteImport } from './routes/_dashboard.product'
-import { Route as DashboardOrderRouteImport } from './routes/_dashboard.order'
-import { Route as DashboardAccountRouteImport } from './routes/_dashboard.account'
+import { Route as LocaleRouteImport } from './routes/$locale'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocaleLoginRouteImport } from './routes/$locale/login'
+import { Route as LocaleDashboardRouteImport } from './routes/$locale/_dashboard'
+import { Route as LocaleDashboardIndexRouteImport } from './routes/$locale/_dashboard.index'
+import { Route as LocaleDashboardUsersRouteImport } from './routes/$locale/_dashboard.users'
+import { Route as LocaleDashboardTransactionsRouteImport } from './routes/$locale/_dashboard.transactions'
+import { Route as LocaleDashboardSettingsRouteImport } from './routes/$locale/_dashboard.settings'
+import { Route as LocaleDashboardReportsRouteImport } from './routes/$locale/_dashboard.reports'
+import { Route as LocaleDashboardProductRouteImport } from './routes/$locale/_dashboard.product'
+import { Route as LocaleDashboardOrderRouteImport } from './routes/$locale/_dashboard.order'
+import { Route as LocaleDashboardAccountRouteImport } from './routes/$locale/_dashboard.account'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const LocaleRoute = LocaleRouteImport.update({
+  id: '/$locale',
+  path: '/$locale',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/_dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardUsersRoute = DashboardUsersRouteImport.update({
+const LocaleLoginRoute = LocaleLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleDashboardRoute = LocaleDashboardRouteImport.update({
+  id: '/_dashboard',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleDashboardIndexRoute = LocaleDashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleDashboardRoute,
+} as any)
+const LocaleDashboardUsersRoute = LocaleDashboardUsersRouteImport.update({
   id: '/users',
   path: '/users',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
-const DashboardTransactionsRoute = DashboardTransactionsRouteImport.update({
-  id: '/transactions',
-  path: '/transactions',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+const LocaleDashboardTransactionsRoute =
+  LocaleDashboardTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => LocaleDashboardRoute,
+  } as any)
+const LocaleDashboardSettingsRoute = LocaleDashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
-const DashboardReportsRoute = DashboardReportsRouteImport.update({
+const LocaleDashboardReportsRoute = LocaleDashboardReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
-const DashboardProductRoute = DashboardProductRouteImport.update({
+const LocaleDashboardProductRoute = LocaleDashboardProductRouteImport.update({
   id: '/product',
   path: '/product',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
-const DashboardOrderRoute = DashboardOrderRouteImport.update({
+const LocaleDashboardOrderRoute = LocaleDashboardOrderRouteImport.update({
   id: '/order',
   path: '/order',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
-const DashboardAccountRoute = DashboardAccountRouteImport.update({
+const LocaleDashboardAccountRoute = LocaleDashboardAccountRouteImport.update({
   id: '/account',
   path: '/account',
-  getParentRoute: () => DashboardRoute,
+  getParentRoute: () => LocaleDashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/login': typeof LoginRoute
-  '/account': typeof DashboardAccountRoute
-  '/order': typeof DashboardOrderRoute
-  '/product': typeof DashboardProductRoute
-  '/reports': typeof DashboardReportsRoute
-  '/settings': typeof DashboardSettingsRoute
-  '/transactions': typeof DashboardTransactionsRoute
-  '/users': typeof DashboardUsersRoute
-  '/': typeof DashboardIndexRoute
+  '/': typeof IndexRoute
+  '/$locale': typeof LocaleDashboardRouteWithChildren
+  '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/account': typeof LocaleDashboardAccountRoute
+  '/$locale/order': typeof LocaleDashboardOrderRoute
+  '/$locale/product': typeof LocaleDashboardProductRoute
+  '/$locale/reports': typeof LocaleDashboardReportsRoute
+  '/$locale/settings': typeof LocaleDashboardSettingsRoute
+  '/$locale/transactions': typeof LocaleDashboardTransactionsRoute
+  '/$locale/users': typeof LocaleDashboardUsersRoute
+  '/$locale/': typeof LocaleDashboardIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/account': typeof DashboardAccountRoute
-  '/order': typeof DashboardOrderRoute
-  '/product': typeof DashboardProductRoute
-  '/reports': typeof DashboardReportsRoute
-  '/settings': typeof DashboardSettingsRoute
-  '/transactions': typeof DashboardTransactionsRoute
-  '/users': typeof DashboardUsersRoute
-  '/': typeof DashboardIndexRoute
+  '/': typeof IndexRoute
+  '/$locale': typeof LocaleDashboardIndexRoute
+  '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/account': typeof LocaleDashboardAccountRoute
+  '/$locale/order': typeof LocaleDashboardOrderRoute
+  '/$locale/product': typeof LocaleDashboardProductRoute
+  '/$locale/reports': typeof LocaleDashboardReportsRoute
+  '/$locale/settings': typeof LocaleDashboardSettingsRoute
+  '/$locale/transactions': typeof LocaleDashboardTransactionsRoute
+  '/$locale/users': typeof LocaleDashboardUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_dashboard': typeof DashboardRouteWithChildren
-  '/login': typeof LoginRoute
-  '/_dashboard/account': typeof DashboardAccountRoute
-  '/_dashboard/order': typeof DashboardOrderRoute
-  '/_dashboard/product': typeof DashboardProductRoute
-  '/_dashboard/reports': typeof DashboardReportsRoute
-  '/_dashboard/settings': typeof DashboardSettingsRoute
-  '/_dashboard/transactions': typeof DashboardTransactionsRoute
-  '/_dashboard/users': typeof DashboardUsersRoute
-  '/_dashboard/': typeof DashboardIndexRoute
+  '/': typeof IndexRoute
+  '/$locale': typeof LocaleRouteWithChildren
+  '/$locale/_dashboard': typeof LocaleDashboardRouteWithChildren
+  '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/_dashboard/account': typeof LocaleDashboardAccountRoute
+  '/$locale/_dashboard/order': typeof LocaleDashboardOrderRoute
+  '/$locale/_dashboard/product': typeof LocaleDashboardProductRoute
+  '/$locale/_dashboard/reports': typeof LocaleDashboardReportsRoute
+  '/$locale/_dashboard/settings': typeof LocaleDashboardSettingsRoute
+  '/$locale/_dashboard/transactions': typeof LocaleDashboardTransactionsRoute
+  '/$locale/_dashboard/users': typeof LocaleDashboardUsersRoute
+  '/$locale/_dashboard/': typeof LocaleDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/login'
-    | '/account'
-    | '/order'
-    | '/product'
-    | '/reports'
-    | '/settings'
-    | '/transactions'
-    | '/users'
     | '/'
+    | '/$locale'
+    | '/$locale/login'
+    | '/$locale/account'
+    | '/$locale/order'
+    | '/$locale/product'
+    | '/$locale/reports'
+    | '/$locale/settings'
+    | '/$locale/transactions'
+    | '/$locale/users'
+    | '/$locale/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/login'
-    | '/account'
-    | '/order'
-    | '/product'
-    | '/reports'
-    | '/settings'
-    | '/transactions'
-    | '/users'
     | '/'
+    | '/$locale'
+    | '/$locale/login'
+    | '/$locale/account'
+    | '/$locale/order'
+    | '/$locale/product'
+    | '/$locale/reports'
+    | '/$locale/settings'
+    | '/$locale/transactions'
+    | '/$locale/users'
   id:
     | '__root__'
-    | '/_dashboard'
-    | '/login'
-    | '/_dashboard/account'
-    | '/_dashboard/order'
-    | '/_dashboard/product'
-    | '/_dashboard/reports'
-    | '/_dashboard/settings'
-    | '/_dashboard/transactions'
-    | '/_dashboard/users'
-    | '/_dashboard/'
+    | '/'
+    | '/$locale'
+    | '/$locale/_dashboard'
+    | '/$locale/login'
+    | '/$locale/_dashboard/account'
+    | '/$locale/_dashboard/order'
+    | '/$locale/_dashboard/product'
+    | '/$locale/_dashboard/reports'
+    | '/$locale/_dashboard/settings'
+    | '/$locale/_dashboard/transactions'
+    | '/$locale/_dashboard/users'
+    | '/$locale/_dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  DashboardRoute: typeof DashboardRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  IndexRoute: typeof IndexRoute
+  LocaleRoute: typeof LocaleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/$locale': {
+      id: '/$locale'
+      path: '/$locale'
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_dashboard': {
-      id: '/_dashboard'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_dashboard/': {
-      id: '/_dashboard/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_dashboard/users': {
-      id: '/_dashboard/users'
+    '/$locale/login': {
+      id: '/$locale/login'
+      path: '/login'
+      fullPath: '/$locale/login'
+      preLoaderRoute: typeof LocaleLoginRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/_dashboard': {
+      id: '/$locale/_dashboard'
+      path: ''
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleDashboardRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/_dashboard/': {
+      id: '/$locale/_dashboard/'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocaleDashboardIndexRouteImport
+      parentRoute: typeof LocaleDashboardRoute
+    }
+    '/$locale/_dashboard/users': {
+      id: '/$locale/_dashboard/users'
       path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof DashboardUsersRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/users'
+      preLoaderRoute: typeof LocaleDashboardUsersRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/transactions': {
-      id: '/_dashboard/transactions'
+    '/$locale/_dashboard/transactions': {
+      id: '/$locale/_dashboard/transactions'
       path: '/transactions'
-      fullPath: '/transactions'
-      preLoaderRoute: typeof DashboardTransactionsRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/transactions'
+      preLoaderRoute: typeof LocaleDashboardTransactionsRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/settings': {
-      id: '/_dashboard/settings'
+    '/$locale/_dashboard/settings': {
+      id: '/$locale/_dashboard/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof DashboardSettingsRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/settings'
+      preLoaderRoute: typeof LocaleDashboardSettingsRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/reports': {
-      id: '/_dashboard/reports'
+    '/$locale/_dashboard/reports': {
+      id: '/$locale/_dashboard/reports'
       path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof DashboardReportsRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/reports'
+      preLoaderRoute: typeof LocaleDashboardReportsRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/product': {
-      id: '/_dashboard/product'
+    '/$locale/_dashboard/product': {
+      id: '/$locale/_dashboard/product'
       path: '/product'
-      fullPath: '/product'
-      preLoaderRoute: typeof DashboardProductRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/product'
+      preLoaderRoute: typeof LocaleDashboardProductRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/order': {
-      id: '/_dashboard/order'
+    '/$locale/_dashboard/order': {
+      id: '/$locale/_dashboard/order'
       path: '/order'
-      fullPath: '/order'
-      preLoaderRoute: typeof DashboardOrderRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/order'
+      preLoaderRoute: typeof LocaleDashboardOrderRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
-    '/_dashboard/account': {
-      id: '/_dashboard/account'
+    '/$locale/_dashboard/account': {
+      id: '/$locale/_dashboard/account'
       path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof DashboardAccountRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/$locale/account'
+      preLoaderRoute: typeof LocaleDashboardAccountRouteImport
+      parentRoute: typeof LocaleDashboardRoute
     }
   }
 }
 
-interface DashboardRouteChildren {
-  DashboardAccountRoute: typeof DashboardAccountRoute
-  DashboardOrderRoute: typeof DashboardOrderRoute
-  DashboardProductRoute: typeof DashboardProductRoute
-  DashboardReportsRoute: typeof DashboardReportsRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRoute
-  DashboardTransactionsRoute: typeof DashboardTransactionsRoute
-  DashboardUsersRoute: typeof DashboardUsersRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
+interface LocaleDashboardRouteChildren {
+  LocaleDashboardAccountRoute: typeof LocaleDashboardAccountRoute
+  LocaleDashboardOrderRoute: typeof LocaleDashboardOrderRoute
+  LocaleDashboardProductRoute: typeof LocaleDashboardProductRoute
+  LocaleDashboardReportsRoute: typeof LocaleDashboardReportsRoute
+  LocaleDashboardSettingsRoute: typeof LocaleDashboardSettingsRoute
+  LocaleDashboardTransactionsRoute: typeof LocaleDashboardTransactionsRoute
+  LocaleDashboardUsersRoute: typeof LocaleDashboardUsersRoute
+  LocaleDashboardIndexRoute: typeof LocaleDashboardIndexRoute
 }
 
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAccountRoute: DashboardAccountRoute,
-  DashboardOrderRoute: DashboardOrderRoute,
-  DashboardProductRoute: DashboardProductRoute,
-  DashboardReportsRoute: DashboardReportsRoute,
-  DashboardSettingsRoute: DashboardSettingsRoute,
-  DashboardTransactionsRoute: DashboardTransactionsRoute,
-  DashboardUsersRoute: DashboardUsersRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
+const LocaleDashboardRouteChildren: LocaleDashboardRouteChildren = {
+  LocaleDashboardAccountRoute: LocaleDashboardAccountRoute,
+  LocaleDashboardOrderRoute: LocaleDashboardOrderRoute,
+  LocaleDashboardProductRoute: LocaleDashboardProductRoute,
+  LocaleDashboardReportsRoute: LocaleDashboardReportsRoute,
+  LocaleDashboardSettingsRoute: LocaleDashboardSettingsRoute,
+  LocaleDashboardTransactionsRoute: LocaleDashboardTransactionsRoute,
+  LocaleDashboardUsersRoute: LocaleDashboardUsersRoute,
+  LocaleDashboardIndexRoute: LocaleDashboardIndexRoute,
 }
 
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
+const LocaleDashboardRouteWithChildren = LocaleDashboardRoute._addFileChildren(
+  LocaleDashboardRouteChildren,
 )
 
+interface LocaleRouteChildren {
+  LocaleDashboardRoute: typeof LocaleDashboardRouteWithChildren
+  LocaleLoginRoute: typeof LocaleLoginRoute
+}
+
+const LocaleRouteChildren: LocaleRouteChildren = {
+  LocaleDashboardRoute: LocaleDashboardRouteWithChildren,
+  LocaleLoginRoute: LocaleLoginRoute,
+}
+
+const LocaleRouteWithChildren =
+  LocaleRoute._addFileChildren(LocaleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  DashboardRoute: DashboardRouteWithChildren,
-  LoginRoute: LoginRoute,
+  IndexRoute: IndexRoute,
+  LocaleRoute: LocaleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

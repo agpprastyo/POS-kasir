@@ -175,9 +175,9 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 
 	filename := fmt.Sprintf("product_options/%s.jpg", optionID.String())
 
-	imageUrl, err := s.prdRepo.UploadImageToMinio(ctx, filename, data)
+	imageUrl, err := s.prdRepo.UploadImage(ctx, filename, data)
 	if err != nil {
-		s.log.Errorf("Failed to upload option image to Minio", "error", err)
+		s.log.Errorf("Failed to upload option image to R2", "error", err)
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 
@@ -634,9 +634,9 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 
 	filename := fmt.Sprintf("products/%s.jpg", productID.String())
 
-	imageUrl, err := s.prdRepo.UploadImageToMinio(ctx, filename, data)
+	imageUrl, err := s.prdRepo.UploadImage(ctx, filename, data)
 	if err != nil {
-		s.log.Errorf("Failed to upload image to Minio", "error", err)
+		s.log.Errorf("Failed to upload image to R2", "error", err)
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 

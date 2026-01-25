@@ -1,24 +1,25 @@
-import {useSuspenseQuery} from "@tanstack/react-query";
-import {cancellationReasonsListQueryOptions} from "@/lib/api/query/cancel-reason.ts";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
-import {Ban} from "lucide-react";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import {Badge} from "@/components/ui/badge.tsx";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { cancellationReasonsListQueryOptions } from "@/lib/api/query/cancel-reason.ts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
+import { Ban } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
+import { useTranslation } from 'react-i18next';
 
 
 export function CancellationReasonsCard() {
-
-    const {data: reasons} = useSuspenseQuery(cancellationReasonsListQueryOptions())
+    const { t } = useTranslation()
+    const { data: reasons } = useSuspenseQuery(cancellationReasonsListQueryOptions())
     const reasonsList = Array.isArray(reasons) ? reasons : (reasons as any)?.data || []
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Ban className="h-5 w-5"/> Cancellation Reasons
+                    <Ban className="h-5 w-5" /> {t('settings.cancellation.title')}
                 </CardTitle>
                 <CardDescription>
-                    Manage standard reasons for transaction cancellations.
+                    {t('settings.cancellation.description')}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -26,16 +27,16 @@ export function CancellationReasonsCard() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Reason</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead className="w-[100px]">Status</TableHead>
+                                <TableHead>{t('settings.cancellation.table.reason')}</TableHead>
+                                <TableHead>{t('settings.cancellation.table.description')}</TableHead>
+                                <TableHead className="w-[100px]">{t('settings.cancellation.table.status')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {reasonsList.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                                        No cancellation reasons found.
+                                        {t('settings.cancellation.table.empty')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -48,7 +49,9 @@ export function CancellationReasonsCard() {
                                                 variant={item.is_active ? 'default' : 'secondary'}
                                                 className={item.is_active ? 'bg-green-500 hover:bg-green-600' : ''}
                                             >
-                                                {item.is_active ? 'Active' : 'Inactive'}
+                                                {item.is_active
+                                                    ? t('settings.cancellation.status.active')
+                                                    : t('settings.cancellation.status.inactive')}
                                             </Badge>
                                         </TableCell>
                                     </TableRow>

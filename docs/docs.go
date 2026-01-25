@@ -1941,7 +1941,7 @@ const docTemplate = `{
             }
         },
         "/products/{product_id}/options/{option_id}": {
-            "put": {
+            "patch": {
                 "description": "Update a product option by ID",
                 "consumes": [
                     "application/json"

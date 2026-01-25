@@ -7,14 +7,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
+	"io/fs"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/golang-migrate/migrate/v4"
 	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -31,7 +31,7 @@ type postgresService struct {
 	Log    logger.ILogger
 }
 
-func NewDatabase(cfg *config.AppConfig, log logger.ILogger) (IDatabase, error) {
+func NewDatabase(cfg *config.AppConfig, log logger.ILogger, migrationFS fs.FS) (IDatabase, error) {
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
@@ -61,7 +61,7 @@ func NewDatabase(cfg *config.AppConfig, log logger.ILogger) (IDatabase, error) {
 	log.Infof("Successfully connected to PostgreSQL database")
 
 	if cfg.AutoMigrate {
-		if err := runMigrations(cfg, dsn, log); err != nil {
+		if err := runMigrations(dsn, log, migrationFS); err != nil {
 
 			pool.Close()
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
@@ -100,17 +100,12 @@ func (s *postgresService) Ping(ctx context.Context) error {
 	return nil
 }
 
-func runMigrations(cfg *config.AppConfig, dsn string, log logger.ILogger) error {
-	log.Infof("AutoMigrate enabled — running migrations from: %s", cfg.MigrationsPath)
+func runMigrations(dsn string, log logger.ILogger, migrationFS fs.FS) error {
+	log.Infof("AutoMigrate enabled — running migrations from embedded FS")
 
-	if cfg.MigrationsPath == "" {
-		return fmt.Errorf("migrations path is empty")
-	}
-	// Ensure the path has the correct scheme (file://)
-	migrationSource := cfg.MigrationsPath
-	if !strings.HasPrefix(migrationSource, "file://") {
-		log.Warnf("MigrationsPath does not start with file:// — automatically adding prefix. Original: %s", migrationSource)
-		migrationSource = "file://" + migrationSource
+	sourceDriver, err := iofs.New(migrationFS, ".")
+	if err != nil {
+		return fmt.Errorf("failed to create iofs source driver: %w", err)
 	}
 
 	sqlDB, err := sql.Open("pgx", dsn)
@@ -124,17 +119,13 @@ func runMigrations(cfg *config.AppConfig, dsn string, log logger.ILogger) error 
 		}
 	}(sqlDB)
 
-	sqlDB.SetMaxOpenConns(cfg.DB.MaxOpenConn)
-	sqlDB.SetMaxIdleConns(cfg.DB.MaxIdleConn)
-	sqlDB.SetConnMaxLifetime(cfg.DB.MaxLifetime)
-
 	driver, err := migratepg.WithInstance(sqlDB, &migratepg.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create migrate driver instance: %w", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationSource,
+	m, err := migrate.NewWithInstance(
+		"iofs", sourceDriver,
 		"postgres", driver,
 	)
 	if err != nil {

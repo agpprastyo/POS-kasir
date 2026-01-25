@@ -103,7 +103,7 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to update product option"
-// @Router /products/{product_id}/options/{option_id} [put]
+// @Router /products/{product_id}/options/{option_id} [patch]
 func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 
 	productIDStr := ctx.Params("product_id")

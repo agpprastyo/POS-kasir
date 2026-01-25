@@ -7,16 +7,18 @@ import {
 } from "@/components/ui/card"
 import { usePaymentMethodsListQuery } from "@/lib/api/query/payment-methods"
 import { Loader2, CreditCard } from "lucide-react"
+import { useTranslation } from 'react-i18next'
 
 export function PaymentMethodsCard() {
+    const { t } = useTranslation()
     const { data: paymentMethods, isLoading } = usePaymentMethodsListQuery()
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Payment Methods</CardTitle>
+                <CardTitle>{t('settings.payment_methods.title')}</CardTitle>
                 <CardDescription>
-                    Available payment methods for POS transactions.
+                    {t('settings.payment_methods.description')}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -40,12 +42,12 @@ export function PaymentMethodsCard() {
                                             <span className="font-semibold">{method.name}</span>
                                         </div>
                                     </div>
-                                   
+
                                 </div>
                             ))
                         ) : (
                             <div className="flex h-20 items-center justify-center rounded-lg border border-dashed text-muted-foreground">
-                                No payment methods found.
+                                {t('settings.payment_methods.empty')}
                             </div>
                         )}
                     </div>

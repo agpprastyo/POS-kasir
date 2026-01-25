@@ -1,20 +1,20 @@
 package products
 
 import (
+	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/logger"
-	"POS-kasir/pkg/minio"
 	"context"
 )
 
 type PrdRepo struct {
-	minio minio.IMinio
-	log   logger.ILogger
+	r2  cloudflarer2.IR2
+	log logger.ILogger
 }
 
-func (p PrdRepo) UploadImageToMinio(ctx context.Context, filename string, data []byte) (string, error) {
-	url, err := p.minio.UploadFile(ctx, filename, data, "image/jpeg")
+func (p PrdRepo) UploadImage(ctx context.Context, filename string, data []byte) (string, error) {
+	url, err := p.r2.UploadFile(ctx, filename, data, "image/jpeg")
 	if err != nil {
-		p.log.Errorf("Failed to upload product image: %v", err)
+		p.log.Errorf("Failed to upload product image to R2: %v", err)
 		return "", err
 	}
 	return url, nil
@@ -26,22 +26,22 @@ func (p PrdRepo) PrdImageLink(ctx context.Context, prdID string, image string) (
 		return "", nil // No image provided, return empty string
 	}
 
-	url, err := p.minio.GetFileShareLink(ctx, image)
+	url, err := p.r2.GetFileShareLink(ctx, image)
 	if err != nil {
-		p.log.Errorf("Failed to get product image link: %v", err)
+		p.log.Errorf("Failed to get product image link from R2: %v", err)
 		return "", err
 	}
 	return url, nil
 }
 
 type IPrdRepo interface {
-	UploadImageToMinio(ctx context.Context, filename string, data []byte) (string, error)
+	UploadImage(ctx context.Context, filename string, data []byte) (string, error)
 	PrdImageLink(ctx context.Context, prdID string, image string) (string, error)
 }
 
-func NewPrdRepo(minio minio.IMinio, log logger.ILogger) IPrdRepo {
+func NewPrdRepo(r2 cloudflarer2.IR2, log logger.ILogger) IPrdRepo {
 	return &PrdRepo{
-		minio: minio,
-		log:   log,
+		r2:  r2,
+		log: log,
 	}
 }

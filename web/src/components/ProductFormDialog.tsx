@@ -27,6 +27,7 @@ import {
 import { Label } from "@/components/ui/label.tsx";
 import { useImageCropper } from "@/hooks/use-image-cropper.ts";
 import { ImageCropperDialog } from "@/components/common/ImageCropperDialog.tsx";
+import { useTranslation } from 'react-i18next';
 
 
 interface VariantItem {
@@ -44,6 +45,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
     productToEdit: Product | null,
     categories: any[]
 }) {
+    const { t } = useTranslation();
     const createMutation = useCreateProductMutation()
     const updateMutation = useUpdateProductMutation()
     const uploadImageMutation = useUploadProductImageMutation()
@@ -126,7 +128,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
         if (variants[index].isNew) {
             setVariants(variants.filter((_, i) => i !== index))
         } else {
-            toast.error("Cannot delete existing variants (API limitation)")
+            toast.error(t('products.form.error_delete_variant'))
         }
     }
 
@@ -140,7 +142,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
     const triggerVariantImageUpload = (index: number) => {
         setActiveCropContext(index)
-    
+
         setTimeout(() => fileInputRef.current?.click(), 0)
     }
 
@@ -153,7 +155,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
         e.preventDefault()
 
         if (!formData.category_id) {
-            toast.error("Please select a category")
+            toast.error(t('products.form.error_category'))
             return
         }
 
@@ -221,7 +223,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
             }
 
             onOpenChange(false)
-            toast.success(productToEdit ? "Product updated!" : "Product created!")
+            toast.success(productToEdit ? t('products.form.success_update') : t('products.form.success_create'))
 
         } catch (error) {
             console.error(error)
@@ -238,11 +240,11 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0"> 
+                <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0">
                     <DialogHeader className="p-6 pb-2">
-                        <DialogTitle>{productToEdit ? 'Edit Product' : 'Create New Product'}</DialogTitle>
+                        <DialogTitle>{productToEdit ? t('products.form.title_edit') : t('products.form.title_create')}</DialogTitle>
                         <DialogDescription>
-                            Fill in the details below. Click save when you're done.
+                            {t('products.form.desc')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -270,7 +272,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                         size="sm"
                                         onClick={triggerMainImageUpload}
                                     >
-                                        {preview ? "Change Image" : "Upload Image"}
+                                        {preview ? t('products.form.change_image') : t('products.form.upload_image')}
                                     </Button>
 
                                     {/* Input File Hidden terhubung ke hook */}
@@ -287,7 +289,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                 <div className="grid gap-4">
                                     {/* Name */}
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="name" className="text-right">Name</Label>
+                                        <Label htmlFor="name" className="text-right">{t('products.form.name')}</Label>
                                         <Input
                                             id="name"
                                             value={formData.name}
@@ -299,14 +301,14 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
                                     {/* Category */}
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="category" className="text-right">Category</Label>
+                                        <Label htmlFor="category" className="text-right">{t('products.form.category')}</Label>
                                         <div className="col-span-3">
                                             <Select
                                                 value={formData.category_id ? String(formData.category_id) : ""}
                                                 onValueChange={val => setFormData({ ...formData, category_id: Number(val) })}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Category" />
+                                                    <SelectValue placeholder={t('products.form.select_category')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {categories.map((cat: any) => (
@@ -321,7 +323,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
                                     {/* Price */}
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="price" className="text-right">Price</Label>
+                                        <Label htmlFor="price" className="text-right">{t('products.form.price')}</Label>
                                         <div className="col-span-3 relative">
                                             <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
                                             <Input
@@ -342,7 +344,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
                                     {/* Stock */}
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="stock" className="text-right">Stock</Label>
+                                        <Label htmlFor="stock" className="text-right">{t('products.form.stock')}</Label>
                                         <Input
                                             id="stock"
                                             type="text"
@@ -363,9 +365,9 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                 {/* Variants Section */}
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <Label>Product Variants</Label>
+                                        <Label>{t('products.form.variants')}</Label>
                                         <Button type="button" variant="outline" size="sm" onClick={handleAddVariant}>
-                                            <Plus className="mr-2 h-3 w-3" /> Add Variant
+                                            <Plus className="mr-2 h-3 w-3" /> {t('products.form.add_variant')}
                                         </Button>
                                     </div>
 
@@ -387,7 +389,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                 <div className="grid grid-cols-2 gap-2 flex-1">
                                                     <div className="space-y-1">
                                                         <Input
-                                                            placeholder="Variant Name (e.g. Size XL)"
+                                                            placeholder={t('products.form.variant_name')}
                                                             value={variant.name}
                                                             onChange={e => handleVariantChange(index, "name", e.target.value)}
                                                             required
@@ -398,7 +400,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                         <Input
                                                             type="text"
                                                             inputMode="numeric"
-                                                            placeholder="Additional Price"
+                                                            placeholder={t('products.form.additional_price')}
                                                             className="pl-8"
                                                             value={variant.additional_price ? variant.additional_price.toLocaleString('id-ID') : ''}
                                                             onChange={e => {
@@ -416,29 +418,29 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                     className="text-destructive"
                                                     onClick={() => handleRemoveVariant(index)}
                                                     disabled={!variant.isNew}
-                                                    title={!variant.isNew ? "Cannot remove existing variant" : "Remove variant"}
+                                                    title={!variant.isNew ? t('products.form.error_delete_variant') : t('products.actions.delete')}
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         ))}
                                         {variants.length === 0 && (
-                                            <p className="text-sm text-center text-muted-foreground py-2">No variants added.</p>
+                                            <p className="text-sm text-center text-muted-foreground py-2">{t('products.form.no_variants')}</p>
                                         )}
                                     </div>
-                                </div> 
+                                </div>
 
-                              
+
                             </form>
-                        )} 
-                    </div> 
+                        )}
+                    </div>
 
                     <DialogFooter className="p-6 pt-2">
                         <Button type="submit" form="product-form" disabled={isSubmitting || (!!productToEdit && isLoadingDetail)}>
                             {isSubmitting ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.form.saving')}</>
                             ) : (
-                                "Save Product"
+                                t('products.form.save')
                             )}
                         </Button>
                     </DialogFooter>

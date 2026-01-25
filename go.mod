@@ -15,7 +15,6 @@ require (
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swaggo/swag v1.16.6
-	github.com/tom-draper/api-analytics/analytics/go/fiber v0.0.0-20250907111355-db5d0e1b0701
 	go.uber.org/mock v0.5.2
 	golang.org/x/crypto v0.37.0
 )
@@ -57,7 +56,6 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/swaggo/files/v2 v2.0.2 // indirect
 	github.com/tinylib/msgp v1.3.0 // indirect
-	github.com/tom-draper/api-analytics/analytics/go/core v0.0.0-20250423161653-bf0660dc994c // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.61.0 // indirect
 	golang.org/x/mod v0.21.0 // indirect

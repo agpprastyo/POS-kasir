@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react'
-import {useSuspenseQuery} from '@tanstack/react-query'
+import React, { useEffect, useState } from 'react'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import {
     categoriesListQueryOptions,
     type Category,
@@ -7,13 +7,13 @@ import {
     useDeleteCategoryMutation,
     useUpdateCategoryMutation
 } from '@/lib/api/query/categories'
-import {POSKasirInternalDtoCreateCategoryRequest} from '@/lib/api/generated'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
+import { POSKasirInternalDtoCreateCategoryRequest } from '@/lib/api/generated'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from '@/components/ui/card'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -40,11 +40,13 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-import {Loader2, MoreHorizontal, Package, Pencil, Plus, Tag, Trash2} from 'lucide-react'
+import { Loader2, MoreHorizontal, Package, Pencil, Plus, Tag, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // --- MAIN COMPONENT ---
 export function CategoriesCard() {
-    const {data: categories} = useSuspenseQuery(categoriesListQueryOptions())
+    const { t } = useTranslation()
+    const { data: categories } = useSuspenseQuery(categoriesListQueryOptions())
     const categoriesList = Array.isArray(categories) ? categories : (categories as any)?.data || []
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -67,14 +69,14 @@ export function CategoriesCard() {
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2">
-                                <Tag className="h-5 w-5"/> Product Categories
+                                <Tag className="h-5 w-5" /> {t('settings.category.title')}
                             </CardTitle>
                             <CardDescription>
-                                Organize your products into categories.
+                                {t('settings.category.description')}
                             </CardDescription>
                         </div>
                         <Button onClick={openCreateModal} size="sm">
-                            <Plus className="mr-2 h-4 w-4"/> Add Category
+                            <Plus className="mr-2 h-4 w-4" /> {t('settings.category.add_button')}
                         </Button>
                     </div>
                 </CardHeader>
@@ -83,17 +85,17 @@ export function CategoriesCard() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Name</TableHead>
+                                    <TableHead>{t('settings.category.table.name')}</TableHead>
                                     {/* Kolom Description Dihapus */}
-                                    <TableHead className="w-[150px] text-right">Created At</TableHead>
-                                    <TableHead className="w-[80px] text-right">Actions</TableHead>
+                                    <TableHead className="w-[150px] text-right">{t('settings.category.table.created_at')}</TableHead>
+                                    <TableHead className="w-[80px] text-right">{t('settings.category.table.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {categoriesList.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                                            No categories found. Create one to get started.
+                                            {t('settings.category.table.empty')}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -101,7 +103,7 @@ export function CategoriesCard() {
                                         <TableRow key={category.id}>
                                             <TableCell className="font-medium">
                                                 <div className="flex items-center gap-2">
-                                                    <Package className="h-4 w-4 text-muted-foreground"/>
+                                                    <Package className="h-4 w-4 text-muted-foreground" />
                                                     {category.name}
                                                 </div>
                                             </TableCell>
@@ -134,7 +136,8 @@ export function CategoriesCard() {
 }
 
 // --- SUB-COMPONENT: Actions ---
-function CategoryActions({category, onEdit}: { category: Category, onEdit: () => void }) {
+function CategoryActions({ category, onEdit }: { category: Category, onEdit: () => void }) {
+    const { t } = useTranslation()
     const deleteMutation = useDeleteCategoryMutation()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -153,13 +156,13 @@ function CategoryActions({category, onEdit}: { category: Category, onEdit: () =>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                         <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4"/>
+                        <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('settings.category.table.actions')}</DropdownMenuLabel>
                     <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4"/> Edit Details
+                        <Pencil className="mr-2 h-4 w-4" /> {t('settings.category.actions.edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onSelect={(e) => {
@@ -168,7 +171,7 @@ function CategoryActions({category, onEdit}: { category: Category, onEdit: () =>
                         }}
                         className="text-red-600 focus:text-red-600 cursor-pointer"
                     >
-                        <Trash2 className="mr-2 h-4 w-4"/> Delete Category
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('settings.category.actions.delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -176,24 +179,24 @@ function CategoryActions({category, onEdit}: { category: Category, onEdit: () =>
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Category?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('settings.category.actions.delete_title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete <span
-                            className="font-semibold text-foreground">"{category.name}"</span>?
-                            This action cannot be undone.
+                            {t('settings.category.actions.delete_confirm')} <span
+                                className="font-semibold text-foreground">"{category.name}"</span>?
+                            {t('settings.category.actions.delete_warning')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('settings.category.actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={deleteMutation.isPending}
                             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                         >
                             {deleteMutation.isPending ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Deleting...</>
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('settings.category.actions.deleting')}</>
                             ) : (
-                                "Delete"
+                                t('settings.category.actions.delete_button')
                             )}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -204,11 +207,12 @@ function CategoryActions({category, onEdit}: { category: Category, onEdit: () =>
 }
 
 // --- SUB-COMPONENT: Form Dialog ---
-function CategoryFormDialog({open, onOpenChange, categoryToEdit}: {
+function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: {
     open: boolean,
     onOpenChange: (open: boolean) => void,
     categoryToEdit: Category | null
 }) {
+    const { t } = useTranslation()
     const createMutation = useCreateCategoryMutation()
     const updateMutation = useUpdateCategoryMutation()
 
@@ -240,12 +244,12 @@ function CategoryFormDialog({open, onOpenChange, categoryToEdit}: {
 
         try {
             if (categoryToEdit && categoryToEdit.id) {
-                await updateMutation.mutateAsync({id: categoryToEdit.id, body: payload})
+                await updateMutation.mutateAsync({ id: categoryToEdit.id, body: payload })
             } else {
                 await createMutation.mutateAsync(payload)
             }
             onOpenChange(false)
-            setFormData({name: ''})
+            setFormData({ name: '' })
         } catch (error) {
             console.error(error)
         }
@@ -257,20 +261,20 @@ function CategoryFormDialog({open, onOpenChange, categoryToEdit}: {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{categoryToEdit ? 'Edit Category' : 'New Category'}</DialogTitle>
+                    <DialogTitle>{categoryToEdit ? t('settings.category.form.title_edit') : t('settings.category.form.title_add')}</DialogTitle>
                     <DialogDescription>
-                        {categoryToEdit ? "Update category name." : "Create a new product category."}
+                        {categoryToEdit ? t('settings.category.form.desc_edit') : t('settings.category.form.desc_add')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('settings.category.form.name_label')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
-                                onChange={(e) => setFormData({name: e.target.value})}
-                                placeholder="e.g., Beverages, Snacks"
+                                onChange={(e) => setFormData({ name: e.target.value })}
+                                placeholder={t('settings.category.form.name_placeholder')}
                                 required
                             />
                         </div>
@@ -278,9 +282,9 @@ function CategoryFormDialog({open, onOpenChange, categoryToEdit}: {
                     <DialogFooter>
                         <Button type="submit" disabled={isSubmitting}>
                             {isSubmitting ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Saving...</>
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('settings.category.form.saving')}</>
                             ) : (
-                                "Save Changes"
+                                t('settings.category.form.save')
                             )}
                         </Button>
                     </DialogFooter>

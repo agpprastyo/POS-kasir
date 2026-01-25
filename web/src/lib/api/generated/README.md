@@ -80,7 +80,7 @@ Class | Method | HTTP request | Description
 *ProductsApi* | [**productsIdPatch**](docs/ProductsApi.md#productsidpatch) | **PATCH** /products/{id} | Update a product
 *ProductsApi* | [**productsPost**](docs/ProductsApi.md#productspost) | **POST** /products | Create a new product
 *ProductsApi* | [**productsProductIdOptionsOptionIdImagePost**](docs/ProductsApi.md#productsproductidoptionsoptionidimagepost) | **POST** /products/{product_id}/options/{option_id}/image | Upload product option image
-*ProductsApi* | [**productsProductIdOptionsOptionIdPut**](docs/ProductsApi.md#productsproductidoptionsoptionidput) | **PUT** /products/{product_id}/options/{option_id} | Update a product option
+*ProductsApi* | [**productsProductIdOptionsOptionIdPatch**](docs/ProductsApi.md#productsproductidoptionsoptionidpatch) | **PATCH** /products/{product_id}/options/{option_id} | Update a product option
 *ProductsApi* | [**productsProductIdOptionsPost**](docs/ProductsApi.md#productsproductidoptionspost) | **POST** /products/{product_id}/options | Create a product option
 *ProductsApi* | [**productsTrashGet**](docs/ProductsApi.md#productstrashget) | **GET** /products/trash | List deleted products
 *ProductsApi* | [**productsTrashIdGet**](docs/ProductsApi.md#productstrashidget) | **GET** /products/trash/{id} | Get a deleted product

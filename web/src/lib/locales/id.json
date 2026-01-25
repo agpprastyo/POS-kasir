@@ -1,0 +1,329 @@
+{
+    "common": {
+        "loading": "Memuat...",
+        "cancel": "Batal",
+        "save": "Simpan",
+        "delete": "Hapus",
+        "edit": "Ubah",
+        "actions": "Aksi",
+        "logout": "Keluar",
+        "confirm": "Konfirmasi"
+    },
+    "auth": {
+        "welcome_back": "Selamat Datang Kembali",
+        "sign_in_subtitle": "Masuk ke akun Anda untuk melanjutkan.",
+        "email": "Email",
+        "password": "Kata Sandi",
+        "sign_in": "Masuk",
+        "signing_in": "Sedang masuk...",
+        "dont_have_account": "Belum punya akun?",
+        "register": "Daftar",
+        "forgot_password": "Lupa kata sandi?",
+        "login_failed": "Gagal masuk. Silakan periksa kredensial Anda."
+    },
+    "sidebar": {
+        "summary": "Ringkasan",
+        "pos": "Kasir",
+        "transactions": "Transaksi",
+        "product": "Produk",
+        "reports": "Laporan",
+        "users": "Pengguna",
+        "settings": "Pengaturan",
+        "account": "Akun"
+    },
+    "transactions": {
+        "title": "Transaksi",
+        "subtitle": "Pantau pesanan dan kelola pembayaran.",
+        "filter_user": "Semua Kasir",
+        "status": {
+            "open": "Buka",
+            "in_progress": "Proses",
+            "served": "Disajikan",
+            "paid": "Dibayar",
+            "cancelled": "Batal",
+            "all": "Semua"
+        },
+        "table": {
+            "queue": "Antrian",
+            "type": "Tipe",
+            "cashier": "Kasir",
+            "items": "Item",
+            "total": "Total",
+            "status": "Status",
+            "action": "Aksi",
+            "no_data": "Tidak ada transaksi ditemukan untuk filter ini."
+        },
+        "pay_button": "Bayar",
+        "payment_dialog": {
+            "title": "Selesaikan Pembayaran",
+            "description": "Proses pembayaran untuk Antrian",
+            "total_amount": "Total Tagihan",
+            "select_method": "Pilih Metode Pembayaran",
+            "cash_received": "Uang Diterima",
+            "change_due": "Kembalian",
+            "confirm": "Konfirmasi Pembayaran",
+            "money_insufficient": "Uang tunai kurang!",
+            "success": "Pembayaran Berhasil! Kembalian:"
+        }
+    },
+    "dashboard": {
+        "title": "Ringkasan Dashboard",
+        "total_revenue": "Total Pendapatan",
+        "active_users": "Pengguna Aktif",
+        "sales": "Penjualan",
+        "active_now": "Aktif Sekarang"
+    },
+    "account": {
+        "title": "Akun",
+        "subtitle": "Kelola pengaturan dan preferensi akun Anda.",
+        "tabs": {
+            "profile": "Profil",
+            "security": "Keamanan"
+        },
+        "avatar": {
+            "title": "Foto Profil",
+            "description": "Perbarui foto profil Anda.",
+            "success": "Foto profil berhasil diperbarui!",
+            "error": "Gagal memperbarui avatar.",
+            "upload_button": "Unggah Foto Baru"
+        },
+        "password": {
+            "title": "Password & Keamanan",
+            "description": "Ubah kata sandi Anda untuk menjaga keamanan akun.",
+            "current_password": "Kata Sandi Saat Ini",
+            "new_password": "Kata Sandi Baru",
+            "confirm_password": "Konfirmasi Kata Sandi Baru",
+            "button": "Ubah Kata Sandi",
+            "error_match": "Kata sandi baru tidak cocok.",
+            "success": "Kata sandi berhasil diperbarui!",
+            "error_fail": "Gagal memperbarui kata sandi."
+        }
+    },
+    "settings": {
+        "title": "Pengaturan",
+        "description": "Kelola pengaturan dan konfigurasi aplikasi.",
+        "tabs": {
+            "cancellation": "Alasan Pembatalan",
+            "category": "Kategori",
+            "payment_methods": "Metode Pembayaran"
+        },
+        "cancellation": {
+            "title": "Alasan Pembatalan",
+            "description": "Kelola alasan standar untuk pembatalan transaksi.",
+            "table": {
+                "reason": "Alasan",
+                "description": "Deskripsi",
+                "status": "Status",
+                "empty": "Tidak ada alasan pembatalan ditemukan."
+            },
+            "status": {
+                "active": "Aktif",
+                "inactive": "Tidak Aktif"
+            }
+        },
+        "category": {
+            "title": "Kategori Produk",
+            "description": "Atur produk Anda ke dalam kategori.",
+            "add_button": "Tambah Kategori",
+            "table": {
+                "name": "Nama",
+                "created_at": "Dibuat Pada",
+                "actions": "Aksi",
+                "empty": "Tidak ada kategori ditemukan. Buat satu untuk memulai."
+            },
+            "actions": {
+                "edit": "Edit Detail",
+                "delete": "Hapus Kategori",
+                "delete_title": "Hapus Kategori?",
+                "delete_confirm": "Apakah Anda yakin ingin menghapus",
+                "delete_warning": "Tindakan ini tidak dapat dibatalkan.",
+                "cancel": "Batal",
+                "delete_button": "Hapus",
+                "deleting": "Menghapus..."
+            },
+            "form": {
+                "title_add": "Kategori Baru",
+                "title_edit": "Edit Kategori",
+                "desc_add": "Buat kategori produk baru.",
+                "desc_edit": "Perbarui nama kategori.",
+                "name_label": "Nama",
+                "name_placeholder": "misal, Minuman, Makanan Ringan",
+                "save": "Simpan Perubahan",
+                "saving": "Menyimpan..."
+            }
+        },
+        "payment_methods": {
+            "title": "Metode Pembayaran",
+            "description": "Metode pembayaran yang tersedia untuk transaksi POS.",
+            "empty": "Tidak ada metode pembayaran ditemukan."
+        }
+    },
+    "users": {
+        "title": "Pengguna",
+        "description": "Kelola akses dan peran pengguna.",
+        "add_button": "Tambah Pengguna",
+        "search_placeholder": "Cari pengguna...",
+        "role_filter": "Peran",
+        "role_all": "Semua Peran",
+        "table": {
+            "avatar": "Avatar",
+            "user": "Pengguna",
+            "role": "Peran",
+            "status": "Status",
+            "actions": "Aksi",
+            "empty": "Tidak ada pengguna ditemukan."
+        },
+        "status": {
+            "active": "Aktif",
+            "inactive": "Tidak Aktif"
+        },
+        "actions": {
+            "edit": "Edit Detail",
+            "activate": "Aktifkan Akun",
+            "deactivate": "Nonaktifkan Akun",
+            "delete": "Hapus Pengguna",
+            "delete_title": "Apakah Anda yakin?",
+            "delete_desc": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus akun pengguna",
+            "delete_desc_2": "secara permanen dan menghapus data mereka dari server kami.",
+            "cancel": "Batal",
+            "delete_confirm": "Hapus",
+            "deleting": "Menghapus..."
+        },
+        "form": {
+            "title_create": "Buat Pengguna Baru",
+            "title_edit": "Edit Pengguna",
+            "desc_create": "Tambahkan pengguna baru ke sistem.",
+            "desc_edit": "Perbarui detail pengguna. Kata sandi tidak dapat diubah di sini.",
+            "username": "Username",
+            "email": "Email",
+            "role": "Peran",
+            "select_role": "Pilih peran",
+            "password": "Kata Sandi",
+            "password_placeholder": "Kata sandi kuat",
+            "save_changes": "Simpan Perubahan",
+            "create_user": "Buat Pengguna",
+            "success_create": "Pengguna berhasil dibuat",
+            "success_update": "Pengguna berhasil diperbarui",
+            "error_save": "Gagal menyimpan pengguna"
+        }
+    },
+    "pagination": {
+        "page_info": "Halaman {{current}} dari {{total}}",
+        "previous": "Sebelumnya",
+        "next": "Selanjutnya"
+    },
+    "products": {
+        "title": "Produk",
+        "description": "Kelola inventaris produk Anda.",
+        "add_button": "Tambah Produk",
+        "tabs": {
+            "active": "Produk Aktif",
+            "trash": "Sampah ({{count}})",
+            "list": "Tampilan List",
+            "grid": "Tampilan Grid"
+        },
+        "filters": {
+            "search_placeholder": "Cari produk...",
+            "category": "Kategori",
+            "category_all": "Semua Kategori"
+        },
+        "table": {
+            "image": "Gambar",
+            "name": "Nama",
+            "category": "Kategori",
+            "price": "Harga",
+            "stock": "Stok",
+            "actions": "Aksi",
+            "empty": "Tidak ada produk ditemukan.",
+            "empty_trash": "Tidak ada produk di sampah."
+        },
+        "card": {
+            "out_of_stock": "Stok Habis",
+            "stock_left": "Sisa {{count}}",
+            "uncategorized": "Tanpa Kategori"
+        },
+        "actions": {
+            "edit": "Edit Produk",
+            "delete": "Hapus Produk",
+            "restore": "Pulihkan",
+            "delete_title": "Hapus Produk?",
+            "delete_desc": "Apakah Anda yakin ingin menghapus",
+            "delete_desc_2": "Tindakan ini tidak dapat dibatalkan.",
+            "deleting": "Menghapus..."
+        },
+        "form": {
+            "title_create": "Buat Produk Baru",
+            "title_edit": "Edit Produk",
+            "desc": "Isi detail di bawah ini. Klik simpan setelah selesai.",
+            "upload_image": "Unggah Gambar",
+            "change_image": "Ganti Gambar",
+            "name": "Nama",
+            "category": "Kategori",
+            "select_category": "Pilih Kategori",
+            "price": "Harga",
+            "stock": "Stok",
+            "variants": "Varian Produk",
+            "add_variant": "Tambah Varian",
+            "variant_name": "Nama Varian (misal. Ukuran XL)",
+            "additional_price": "Harga Tambahan",
+            "no_variants": "Belum ada varian ditambahkan.",
+            "save": "Simpan Produk",
+            "saving": "Menyimpan...",
+            "success_create": "Produk berhasil dibuat!",
+            "success_update": "Produk berhasil diperbarui!",
+            "error_category": "Silakan pilih kategori",
+            "error_delete_variant": "Tidak dapat menghapus varian yang sudah ada (Batasan API)"
+        }
+    },
+    "order": {
+        "search_placeholder": "Cari produk...",
+        "all_categories": "Semua",
+        "out_of_stock": "Stok Habis",
+        "no_products": "Tidak ada produk ditemukan.",
+        "current_order": "Pesanan Saat Ini",
+        "items": "item",
+        "empty_cart": "Keranjang kosong",
+        "subtotal": "Subtotal",
+        "tax": "Pajak (11%)",
+        "total": "Total",
+        "charge": "Bayar",
+        "order_type": {
+            "dine_in": "Makan di Tempat",
+            "take_away": "Bawa Pulang"
+        },
+        "errors": {
+            "stock_empty": "Stok produk habis",
+            "load_failed": "Gagal memuat info produk",
+            "insufficient_stock": "Stok tidak mencukupi",
+            "create_failed": "Gagal membuat pesanan",
+            "cash_insufficient": "Uang tunai kurang!",
+            "payment_failed": "Pembayaran gagal",
+            "select_payment": "Pilih metode pembayaran"
+        },
+        "success": {
+            "created": "Pesanan dibuat! Lanjutkan pembayaran.",
+            "creating": "Membuat pesanan...",
+            "payment_complete": "Pembayaran berhasil",
+            "payment_success": "Pembayaran Berhasil! Kembalian:",
+            "received": "Diterima",
+            "saved": "Pesanan disimpan! Anda dapat membayar nanti di Transaksi."
+        },
+        "payment_dialog": {
+            "title": "Metode Pembayaran",
+            "desc": "Pilih cara pembayaran pelanggan. Total:",
+            "process_via": "Proses pembayaran via",
+            "cash_received": "Uang Diterima",
+            "enter_amount": "Masukkan jumlah",
+            "change": "Kembalian",
+            "cancel": "Batal",
+            "pay_later": "Bayar Nanti",
+            "complete": "Selesaikan Pembayaran"
+        },
+        "variant_dialog": {
+            "title": "Pilih Varian",
+            "desc": "Pilih opsi untuk",
+            "original": "Original",
+            "no_image": "Tidak Ada Gambar"
+        }
+    }
+}

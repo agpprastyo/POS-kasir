@@ -25,7 +25,7 @@ type IR2 interface {
 }
 
 func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
-	// R2 Endpoint: https://<accountid>.r2.cloudflarestorage.com
+
 	endpoint := fmt.Sprintf("%s.r2.cloudflarestorage.com", cfg.CloudflareR2.AccountID)
 
 	client, err := minio.New(endpoint, &minio.Options{

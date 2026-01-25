@@ -12,7 +12,6 @@ type AppConfig struct {
 	DB             dbConfig
 	Logger         loggerConfig
 	JWT            jwtConfig
-	Minio          minioConfig
 	CloudflareR2   cloudflareR2Config
 	Midtrans       midtransConfig
 	AutoMigrate    bool
@@ -31,15 +30,6 @@ type cloudflareR2Config struct {
 type midtransConfig struct {
 	ServerKey string `mapstructure:"server_key"`
 	IsProd    bool   `mapstructure:"is_prod"`
-}
-
-type minioConfig struct {
-	Endpoint  string
-	AccessKey string
-	SecretKey string
-	UseSSL    bool
-	Bucket    string
-	ExpirySec int64
 }
 
 type jwtConfig struct {
@@ -75,10 +65,7 @@ type dbConfig struct {
 	MaxLifetime time.Duration
 }
 
-// BuildDSN builds a postgres connection string usable by database/sql or migrator
 func (d dbConfig) BuildDSN() string {
-	// example: postgres://user:pass@host:port/dbname?sslmode=disable
-	// prefer explicit format for migrate and pq driver
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		d.User, d.Password, d.Host, d.Port, d.DBName, d.SSLMode)
 }
@@ -118,14 +105,6 @@ func Load() *AppConfig {
 			Duration:             time.Duration(getInt("JWT_DURATION_HOURS", 24)) * time.Hour,
 			RefreshTokenDuration: time.Duration(getInt("JWT_REFRESH_DURATION_DAYS", 7)) * 24 * time.Hour,
 			Issuer:               getEnv("JWT_ISSUER", "poskasir"),
-		},
-		Minio: minioConfig{
-			Endpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
-			AccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
-			SecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin123"),
-			UseSSL:    getBool("MINIO_USE_SSL", false),
-			Bucket:    getEnv("MINIO_BUCKET", "pos-kasir"),
-			ExpirySec: getInt64("MINIO_EXPIRY_SECONDS", 86400),
 		},
 		CloudflareR2: cloudflareR2Config{
 			AccountID:    getEnv("R2_ACCOUNT_ID", ""),

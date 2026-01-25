@@ -343,13 +343,13 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsOptionIdPut: async (productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsProductIdOptionsOptionIdPatch: async (productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'productId' is not null or undefined
-            assertParamExists('productsProductIdOptionsOptionIdPut', 'productId', productId)
+            assertParamExists('productsProductIdOptionsOptionIdPatch', 'productId', productId)
             // verify required parameter 'optionId' is not null or undefined
-            assertParamExists('productsProductIdOptionsOptionIdPut', 'optionId', optionId)
+            assertParamExists('productsProductIdOptionsOptionIdPatch', 'optionId', optionId)
             // verify required parameter 'body' is not null or undefined
-            assertParamExists('productsProductIdOptionsOptionIdPut', 'body', body)
+            assertParamExists('productsProductIdOptionsOptionIdPatch', 'body', body)
             const localVarPath = `/products/{product_id}/options/{option_id}`
                 .replace(`{${"product_id"}}`, encodeURIComponent(String(productId)))
                 .replace(`{${"option_id"}}`, encodeURIComponent(String(optionId)));
@@ -360,7 +360,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -688,10 +688,10 @@ export const ProductsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsProductIdOptionsOptionIdPut(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.productsProductIdOptionsOptionIdPut(productId, optionId, body, options);
+        async productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productsProductIdOptionsOptionIdPatch(productId, optionId, body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsProductIdOptionsOptionIdPut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsProductIdOptionsOptionIdPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -858,8 +858,8 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsOptionIdPut(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
-            return localVarFp.productsProductIdOptionsOptionIdPut(productId, optionId, body, options).then((request) => request(axios, basePath));
+        productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
+            return localVarFp.productsProductIdOptionsOptionIdPatch(productId, optionId, body, options).then((request) => request(axios, basePath));
         },
         /**
          * Create a product option for a parent product
@@ -1015,8 +1015,8 @@ export class ProductsApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsProductIdOptionsOptionIdPut(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig) {
-        return ProductsApiFp(this.configuration).productsProductIdOptionsOptionIdPut(productId, optionId, body, options).then((request) => request(this.axios, this.basePath));
+    public productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig) {
+        return ProductsApiFp(this.configuration).productsProductIdOptionsOptionIdPatch(productId, optionId, body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

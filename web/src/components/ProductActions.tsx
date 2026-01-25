@@ -20,8 +20,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
+import { useTranslation } from 'react-i18next';
 
 export function ProductActions({ product, onEdit }: { product: Product, onEdit?: () => void }) {
+    const { t } = useTranslation();
     const deleteMutation = useDeleteProductMutation()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -44,13 +46,11 @@ export function ProductActions({ product, onEdit }: { product: Product, onEdit?:
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('products.table.actions')}</DropdownMenuLabel>
                     <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit Product
+                        <Pencil className="mr-2 h-4 w-4" /> {t('products.actions.edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <List className="mr-2 h-4 w-4" /> Manage Variants
-                    </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onSelect={(e) => {
@@ -59,7 +59,7 @@ export function ProductActions({ product, onEdit }: { product: Product, onEdit?:
                         }}
                         className="text-red-600 focus:text-red-600 cursor-pointer"
                     >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete Product
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('products.actions.delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -67,24 +67,24 @@ export function ProductActions({ product, onEdit }: { product: Product, onEdit?:
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('products.actions.delete_title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete <span
+                            {t('products.actions.delete_desc')} <span
                                 className="font-semibold text-foreground">"{product.name}"</span>?
-                            This action cannot be undone.
+                            {t('products.actions.delete_desc_2')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('products.actions.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={deleteMutation.isPending}
                             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                         >
                             {deleteMutation.isPending ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.actions.deleting')}</>
                             ) : (
-                                "Delete"
+                                t('products.actions.delete_confirm')
                             )}
                         </AlertDialogAction>
                     </AlertDialogFooter>

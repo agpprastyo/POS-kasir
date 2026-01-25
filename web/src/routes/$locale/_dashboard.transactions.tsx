@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { ordersListQueryOptions, useCompleteManualPaymentMutation } from '@/lib/api/query/orders'
+import { ordersListQueryOptions, useCompleteManualPaymentMutation, useUpdateOrderStatusMutation } from '@/lib/api/query/orders'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -65,6 +65,7 @@ type OrderWithItems = POSKasirInternalDtoOrderListResponse & {
     }>;
     payment_amount?: number;
     queue_number?: string;
+    is_paid?: boolean;
 }
 
 function TransactionsPage() {
@@ -110,6 +111,19 @@ function TransactionsPage() {
 
     const { data: paymentMethods } = usePaymentMethodsListQuery()
     const completeManualPaymentMutation = useCompleteManualPaymentMutation()
+    const updateOrderStatusMutation = useUpdateOrderStatusMutation()
+
+    const handleStatusUpdate = async (id: string, newStatus: POSKasirInternalRepositoryOrderStatus) => {
+        try {
+            await updateOrderStatusMutation.mutateAsync({
+                id,
+                body: { status: newStatus }
+            })
+            // Toast handled by mutation onSuccess
+        } catch (error) {
+            console.error(error)
+        }
+    }
 
     const handleOpenPayment = (order: OrderWithItems) => {
         setSelectedOrder(order)
@@ -145,7 +159,7 @@ function TransactionsPage() {
 
         const method = paymentMethods?.find((m: any) => m.id === selectedPaymentMethod)
         const isCash = method?.name?.toLowerCase().includes('cash')
-        const totalAmount = selectedOrder.payment_amount || 0
+        const totalAmount = selectedOrder.net_total || 0
 
         let payload: any = {
             payment_method_id: selectedPaymentMethod
@@ -209,13 +223,13 @@ function TransactionsPage() {
 
             <div className="space-y-4">
                 <Tabs value={selectedStatus} onValueChange={handleStatusChange} className="w-full">
-                    <TabsList className="grid w-full max-w-3xl grid-cols-6 overflow-x-auto">
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen}>{t('transactions.status.open')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress}>{t('transactions.status.in_progress')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed}>{t('transactions.status.served')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusPaid}>{t('transactions.status.paid')}</TabsTrigger>
-                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled}>{t('transactions.status.cancelled')}</TabsTrigger>
-                        <TabsTrigger value="all">{t('transactions.status.all')}</TabsTrigger>
+                    <TabsList className="flex w-full overflow-x-auto justify-start h-auto p-1 gap-2 bg-muted/20">
+                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen} className="flex-shrink-0">{t('transactions.status.open')}</TabsTrigger>
+                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress} className="flex-shrink-0">{t('transactions.status.in_progress')}</TabsTrigger>
+                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed} className="flex-shrink-0">{t('transactions.status.served')}</TabsTrigger>
+                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusPaid} className="flex-shrink-0">{t('transactions.status.paid')}</TabsTrigger>
+                        <TabsTrigger value={POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled} className="flex-shrink-0">{t('transactions.status.cancelled')}</TabsTrigger>
+                        <TabsTrigger value="all" className="flex-shrink-0">{t('transactions.status.all')}</TabsTrigger>
                     </TabsList>
                 </Tabs>
 
@@ -248,7 +262,7 @@ function TransactionsPage() {
                                     orders.map((order) => (
                                         <TableRow key={order.id} className="hover:bg-muted/30">
                                             <TableCell className="font-medium">
-                                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-mono text-lg font-bold">
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-mono ">
                                                     {order.queue_number}
                                                 </div>
                                             </TableCell>
@@ -286,22 +300,54 @@ function TransactionsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-bold font-mono text-base">
-                                                {formatRupiah(order.payment_amount || 0)}
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <span>{formatRupiah(order.net_total || 0)}</span>
+                                                    {order.is_paid ? (
+                                                        <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200">
+                                                            LUNAS
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-[10px] h-5 bg-yellow-50 text-yellow-700 border-yellow-200">
+                                                            BELUM BAYAR
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge
-                                                    variant={order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'default' : order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled ? 'destructive' : 'secondary'}
-                                                    className={`capitalize ${order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                <Select
+                                                    value={order.status}
+                                                    onValueChange={(val) => {
+                                                        if (val === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid) {
+                                                            handleOpenPayment(order)
+                                                        } else if (val === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) {
+                                                            // TODO: Handle cancellation dialog
+                                                            toast.info("Gunakan tombol 'Batalkan' di detail order (Coming Soon)")
+                                                        } else {
+                                                            if (order.id) {
+                                                                handleStatusUpdate(order.id, val as POSKasirInternalRepositoryOrderStatus)
+                                                            }
+                                                        }
+                                                    }}
                                                 >
-                                                    {order.status ? t(`transactions.status.${order.status}`) : order.status}
-                                                </Badge>
+                                                    <SelectTrigger className="w-[140px] h-8 border-none bg-transparent hover:bg-muted focus:ring-0 p-0">
+                                                        <Badge
+                                                            variant={order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'default' : order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled ? 'destructive' : 'secondary'}
+                                                            className={`capitalize cursor-pointer w-full justify-center ${order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                        >
+                                                            {order.status ? t(`transactions.status.${order.status}`) : order.status}
+                                                        </Badge>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen}>{t('transactions.status.open')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress}>{t('transactions.status.in_progress')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed}>{t('transactions.status.served')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusPaid}>{t('transactions.status.paid')}</SelectItem>
+                                                        {/* Cancelled option omitted to enforce proper cancellation flow or added as disabled? */}
+                                                    </SelectContent>
+                                                </Select>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {(order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) && (
-                                                    <Button size="sm" onClick={() => handleOpenPayment(order)} className="gap-2">
-                                                        <CreditCard className="h-4 w-4" /> {t('transactions.pay_button')}
-                                                    </Button>
-                                                )}
+                                                {/* Action button removed as functionality is moved to Status Dropdown */}
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -348,11 +394,11 @@ function TransactionsPage() {
                     <div className="py-4">
                         <div className="mb-6 flex flex-col items-center justify-center rounded-lg border bg-muted/30 p-4">
                             <span className="text-sm text-muted-foreground">{t('transactions.payment_dialog.total_amount')}</span>
-                            <span className="text-3xl font-bold text-foreground">{formatRupiah(selectedOrder?.payment_amount || 0)}</span>
+                            <span className="text-3xl font-bold text-foreground">{formatRupiah(selectedOrder?.net_total || 0)}</span>
                         </div>
 
                         <label className="text-sm font-medium mb-2 block">{t('transactions.payment_dialog.select_method')}</label>
-                        <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : undefined} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
+                        <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : ""} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
                             <TabsList className="grid grid-cols-3 h-auto gap-2 bg-transparent p-0 mb-4">
                                 {paymentMethods?.map((method: any) => (
                                     <TabsTrigger
@@ -390,8 +436,8 @@ function TransactionsPage() {
                                             </div>
                                             <div className="flex justify-between items-center bg-background p-3 rounded border ">
                                                 <span className="text-sm font-medium text-muted-foreground">{t('transactions.payment_dialog.change_due')}</span>
-                                                <span className={`text-xl font-bold ${Number(cashReceived) >= (selectedOrder?.payment_amount || 0) ? 'text-green-600' : 'text-red-500'}`}>
-                                                    {formatRupiah(Math.max(0, Number(cashReceived) - (selectedOrder?.payment_amount || 0)))}
+                                                <span className={`text-xl font-bold ${Number(cashReceived) >= (selectedOrder?.net_total || 0) ? 'text-green-600' : 'text-red-500'}`}>
+                                                    {formatRupiah(Math.max(0, Number(cashReceived) - (selectedOrder?.net_total || 0)))}
                                                 </span>
                                             </div>
                                         </div>

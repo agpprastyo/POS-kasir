@@ -124,6 +124,8 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoListProductsResponse](docs/POSKasirInternalDtoListProductsResponse.md)
  - [POSKasirInternalDtoLoginRequest](docs/POSKasirInternalDtoLoginRequest.md)
  - [POSKasirInternalDtoLoginResponse](docs/POSKasirInternalDtoLoginResponse.md)
+ - [POSKasirInternalDtoOrderItemOptionResponse](docs/POSKasirInternalDtoOrderItemOptionResponse.md)
+ - [POSKasirInternalDtoOrderItemResponse](docs/POSKasirInternalDtoOrderItemResponse.md)
  - [POSKasirInternalDtoOrderListResponse](docs/POSKasirInternalDtoOrderListResponse.md)
  - [POSKasirInternalDtoPagedOrderResponse](docs/POSKasirInternalDtoPagedOrderResponse.md)
  - [POSKasirInternalDtoPaymentMethodResponse](docs/POSKasirInternalDtoPaymentMethodResponse.md)

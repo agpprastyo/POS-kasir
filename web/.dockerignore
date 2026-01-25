@@ -1,0 +1,9 @@
+node_modules
+dist
+.output
+.git
+.idea
+.vscode
+*.log
+.env
+.env.local

@@ -236,14 +236,46 @@ definitions:
       refresh_token:
         type: string
     type: object
+  POS-kasir_internal_dto.OrderItemOptionResponse:
+    properties:
+      price_at_sale:
+        type: integer
+      product_option_id:
+        type: string
+    type: object
+  POS-kasir_internal_dto.OrderItemResponse:
+    properties:
+      id:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.OrderItemOptionResponse'
+        type: array
+      price_at_sale:
+        type: integer
+      product_id:
+        type: string
+      product_name:
+        type: string
+      quantity:
+        type: integer
+      subtotal:
+        type: integer
+    type: object
   POS-kasir_internal_dto.OrderListResponse:
     properties:
       created_at:
         type: string
       id:
         type: string
+      items:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.OrderItemResponse'
+        type: array
       net_total:
         type: integer
+      queue_number:
+        type: string
       status:
         $ref: '#/definitions/POS-kasir_internal_repository.OrderStatus'
       type:

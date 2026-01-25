@@ -3,6 +3,7 @@ package orders
 import (
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/dto"
+	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"errors"
@@ -290,6 +291,31 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 
 	h.log.Infof("List orders request", "request", req)
 
+	
+	currentRoleRaw := c.Locals("role")
+	currentRole, ok := currentRoleRaw.(repository.UserRole)
+	if !ok {
+		roleStr, okStr := currentRoleRaw.(string)
+		if okStr {
+			currentRole = repository.UserRole(roleStr)
+		} else {
+			h.log.Errorf("Failed to retrieve role from context. Type: %T", currentRoleRaw)
+			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{Message: "Unauthorized"})
+		}
+	}
+
+	currentUserIDRaw := c.Locals("user_id")
+	currentUserID, ok := currentUserIDRaw.(uuid.UUID)
+	if !ok {
+		h.log.Errorf("Failed to retrieve user_id from context. Type: %T", currentUserIDRaw)
+		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{Message: "Unauthorized"})
+	}
+
+	
+	if currentRole == repository.UserRoleCashier {
+		req.UserID = &currentUserID
+	}
+	
 	pagedResponse, err := h.orderService.ListOrders(c.Context(), req)
 	if err != nil {
 		h.log.Errorf("Failed to list orders from service", "error", err)

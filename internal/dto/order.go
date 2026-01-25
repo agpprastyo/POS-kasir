@@ -29,10 +29,10 @@ type CreateOrderRequest struct {
 }
 
 type ListOrdersRequest struct {
-	Page   *int                    `form:"page"`
-	Limit  *int                    `form:"limit"`
-	Status *repository.OrderStatus `form:"status" validate:"omitempty,oneof=open in_progress served paid cancelled"`
-	UserID *uuid.UUID              `form:"user_id"`
+	Page   *int                    `query:"page"`
+	Limit  *int                    `query:"limit"`
+	Status *repository.OrderStatus `query:"status" validate:"omitempty,oneof=open in_progress served paid cancelled"`
+	UserID *uuid.UUID              `query:"user_id"`
 }
 
 type CancelOrderRequest struct {
@@ -78,6 +78,7 @@ type OrderItemOptionResponse struct {
 type OrderItemResponse struct {
 	ID          uuid.UUID                 `json:"id"`
 	ProductID   uuid.UUID                 `json:"product_id"`
+	ProductName string                    `json:"product_name,omitempty"`
 	Quantity    int32                     `json:"quantity"`
 	PriceAtSale int64                     `json:"price_at_sale"`
 	Subtotal    int64                     `json:"subtotal"`
@@ -100,12 +101,15 @@ type OrderDetailResponse struct {
 }
 
 type OrderListResponse struct {
-	ID        uuid.UUID              `json:"id"`
-	UserID    *uuid.UUID             `json:"user_id,omitempty"`
-	Type      repository.OrderType   `json:"type"`
-	Status    repository.OrderStatus `json:"status"`
-	NetTotal  int64                  `json:"net_total"`
-	CreatedAt time.Time              `json:"created_at"`
+	ID          uuid.UUID              `json:"id"`
+	UserID      *uuid.UUID             `json:"user_id,omitempty"`
+	Type        repository.OrderType   `json:"type"`
+	Status      repository.OrderStatus `json:"status"`
+	NetTotal    int64                  `json:"net_total"`
+	CreatedAt   time.Time              `json:"created_at"`
+	Items       []OrderItemResponse    `json:"items,omitempty"`
+	QueueNumber string                 `json:"queue_number,omitempty"`
+	IsPaid      bool                   `json:"is_paid"`
 }
 
 type PagedOrderResponse struct {

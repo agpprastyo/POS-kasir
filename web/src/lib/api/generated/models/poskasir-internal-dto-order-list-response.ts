@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { POSKasirInternalDtoOrderItemResponse } from './poskasir-internal-dto-order-item-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { POSKasirInternalRepositoryOrderStatus } from './poskasir-internal-repository-order-status';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -23,7 +26,9 @@ import type { POSKasirInternalRepositoryOrderType } from './poskasir-internal-re
 export interface POSKasirInternalDtoOrderListResponse {
     'created_at'?: string;
     'id'?: string;
+    'items'?: Array<POSKasirInternalDtoOrderItemResponse>;
     'net_total'?: number;
+    'queue_number'?: string;
     'status'?: POSKasirInternalRepositoryOrderStatus;
     'type'?: POSKasirInternalRepositoryOrderType;
     'user_id'?: string;

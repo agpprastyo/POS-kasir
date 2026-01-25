@@ -842,7 +842,7 @@ SET
     cash_received = $3,
     change_due = $4
 WHERE
-    id = $1 AND status = 'open'
+    id = $1
 RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes
 `
 

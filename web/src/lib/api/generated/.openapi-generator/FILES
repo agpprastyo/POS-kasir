@@ -44,6 +44,8 @@ docs/POSKasirInternalDtoCreateUserRequest.md
 docs/POSKasirInternalDtoListProductsResponse.md
 docs/POSKasirInternalDtoLoginRequest.md
 docs/POSKasirInternalDtoLoginResponse.md
+docs/POSKasirInternalDtoOrderItemOptionResponse.md
+docs/POSKasirInternalDtoOrderItemResponse.md
 docs/POSKasirInternalDtoOrderListResponse.md
 docs/POSKasirInternalDtoPagedOrderResponse.md
 docs/POSKasirInternalDtoPaymentMethodResponse.md
@@ -102,6 +104,8 @@ models/poskasir-internal-dto-create-user-request.ts
 models/poskasir-internal-dto-list-products-response.ts
 models/poskasir-internal-dto-login-request.ts
 models/poskasir-internal-dto-login-response.ts
+models/poskasir-internal-dto-order-item-option-response.ts
+models/poskasir-internal-dto-order-item-response.ts
 models/poskasir-internal-dto-order-list-response.ts
 models/poskasir-internal-dto-paged-order-response.ts
 models/poskasir-internal-dto-payment-method-response.ts

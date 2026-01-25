@@ -2876,6 +2876,46 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.OrderItemOptionResponse": {
+            "type": "object",
+            "properties": {
+                "price_at_sale": {
+                    "type": "integer"
+                },
+                "product_option_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.OrderItemResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.OrderItemOptionResponse"
+                    }
+                },
+                "price_at_sale": {
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "subtotal": {
+                    "type": "integer"
+                }
+            }
+        },
         "POS-kasir_internal_dto.OrderListResponse": {
             "type": "object",
             "properties": {
@@ -2885,8 +2925,17 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.OrderItemResponse"
+                    }
+                },
                 "net_total": {
                     "type": "integer"
+                },
+                "queue_number": {
+                    "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/POS-kasir_internal_repository.OrderStatus"

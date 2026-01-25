@@ -26,6 +26,8 @@ export * from './poskasir-internal-dto-create-user-request';
 export * from './poskasir-internal-dto-list-products-response';
 export * from './poskasir-internal-dto-login-request';
 export * from './poskasir-internal-dto-login-response';
+export * from './poskasir-internal-dto-order-item-option-response';
+export * from './poskasir-internal-dto-order-item-response';
 export * from './poskasir-internal-dto-order-list-response';
 export * from './poskasir-internal-dto-paged-order-response';
 export * from './poskasir-internal-dto-payment-method-response';

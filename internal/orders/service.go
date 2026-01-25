@@ -51,12 +51,28 @@ func NewOrderService(store repository.Store, midtransService payment.IMidtrans, 
 }
 
 var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderStatus]bool{
-	repository.OrderStatusPaid: {
+	repository.OrderStatusOpen: {
 		repository.OrderStatusInProgress: true,
 		repository.OrderStatusServed:     true,
+		repository.OrderStatusPaid:       true,
+		repository.OrderStatusCancelled:  true,
 	},
 	repository.OrderStatusInProgress: {
-		repository.OrderStatusServed: true,
+		repository.OrderStatusServed:    true,
+		repository.OrderStatusPaid:      true,
+		repository.OrderStatusCancelled: true,
+		repository.OrderStatusOpen:      true, // Allow correction
+	},
+	repository.OrderStatusServed: {
+		repository.OrderStatusPaid:       true,
+		repository.OrderStatusInProgress: true, // Allow correction
+		repository.OrderStatusCancelled:  true,
+		repository.OrderStatusOpen:       true, // Allow correction
+	},
+	repository.OrderStatusPaid: {
+		repository.OrderStatusServed:     true,
+		repository.OrderStatusInProgress: true,
+		repository.OrderStatusOpen:       true, // Allow correction (e.g. wrong payment)
 	},
 }
 
@@ -184,7 +200,7 @@ func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.U
 			return err
 		}
 
-		if order.Status != repository.OrderStatusOpen {
+		if order.Status == repository.OrderStatusCancelled {
 			return common.ErrOrderNotModifiable
 		}
 
@@ -564,13 +580,72 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 	for _, order := range orders {
 		netTotal := order.NetTotal
 
+		// Fetch items for each order to display in list
+		// Note: Ideally this should be a batch query or JOIN, but for generic sqlc usage, this is acceptable for small page sizes
+		items, err := s.store.GetOrderItemsByOrderID(ctx, order.ID)
+		if err != nil {
+			s.log.Error("Failed to fetch items for order list", "orderID", order.ID, "error", err)
+			continue
+		}
+
+		var productIDs []uuid.UUID
+		for _, item := range items {
+			productIDs = append(productIDs, item.ProductID)
+		}
+
+		var productMap map[uuid.UUID]string
+		if len(productIDs) > 0 {
+			products, err := s.store.GetProductsByIDs(ctx, productIDs)
+			if err != nil {
+				s.log.Error("Failed to fetch products for order list items", "error", err)
+				// Continue without names
+			} else {
+				productMap = make(map[uuid.UUID]string)
+				for _, p := range products {
+					productMap[p.ID] = p.Name
+				}
+			}
+		}
+
+		var itemResponses []dto.OrderItemResponse
+		for _, item := range items {
+			name := ""
+			if productMap != nil {
+				if n, ok := productMap[item.ProductID]; ok {
+					name = n
+				}
+			}
+
+			itemResponses = append(itemResponses, dto.OrderItemResponse{
+				ID:          item.ID,
+				ProductID:   item.ProductID,
+				ProductName: name,
+				Quantity:    item.Quantity,
+				PriceAtSale: item.PriceAtSale,
+				Subtotal:    item.Subtotal,
+			})
+		}
+
+		// Generate a simple Queue Number (e.g. last 4 digits of ID or a daily counter if available)
+		// Since we don't have a real queue system, we'll use a visual hash
+		queueNumber := order.ID.String()[len(order.ID.String())-4:]
+
+		// Check if order is paid (has payment method ID)
+		isPaid := false
+		if order.PaymentMethodID != nil {
+			isPaid = true
+		}
+
 		ordersResponse = append(ordersResponse, dto.OrderListResponse{
-			ID:        order.ID,
-			UserID:    utils.NullableUUIDToPointer(order.UserID),
-			Type:      order.Type,
-			Status:    order.Status,
-			NetTotal:  netTotal,
-			CreatedAt: order.CreatedAt.Time,
+			ID:          order.ID,
+			UserID:      utils.NullableUUIDToPointer(order.UserID),
+			Type:        order.Type,
+			Status:      order.Status,
+			NetTotal:    netTotal,
+			CreatedAt:   order.CreatedAt.Time,
+			Items:       itemResponses,
+			QueueNumber: "#" + queueNumber,
+			IsPaid:      isPaid,
 		})
 	}
 

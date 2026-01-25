@@ -66,7 +66,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	//api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
 	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
 	api.Post("/orders/:id/complete-manual-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
-	api.Patch("/orders/:id/status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)

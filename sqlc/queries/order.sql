@@ -195,7 +195,7 @@ SET
     cash_received = $3,
     change_due = $4
 WHERE
-    id = $1 AND status = 'open'
+    id = $1
 RETURNING *;
 
 -- name: UpdateOrderStatus :one

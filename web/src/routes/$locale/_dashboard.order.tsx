@@ -18,7 +18,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { useCreateOrderMutation, useCompleteManualPaymentMutation } from '@/lib/api/query/orders'
+import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery } from '@/lib/api/query/orders'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { POSKasirInternalDtoProductOptionResponse, POSKasirInternalRepositoryOrderType } from '@/lib/api/generated'
@@ -89,6 +89,8 @@ function OrderPage() {
 
     const createOrderMutation = useCreateOrderMutation()
     const completeManualPaymentMutation = useCompleteManualPaymentMutation()
+
+    const { data: createdOrder, isLoading: isLoadingCreatedOrder } = useOrderDetailQuery(createdOrderId || '')
 
 
     const addToCart = async (product: Product) => {
@@ -202,7 +204,7 @@ function OrderPage() {
             return
         }
 
-        const totalAmount = calculateTotal()
+        const totalAmount = createdOrder?.net_total || 0
 
         const method = paymentMethods?.find(m => m.id === selectedPaymentMethod)
         const isCash = method?.name?.toLowerCase().includes('cash')
@@ -430,87 +432,97 @@ function OrderPage() {
                     <DialogHeader>
                         <DialogTitle>{t('order.payment_dialog.title')}</DialogTitle>
                         <DialogDescription>
-                            {t('order.payment_dialog.desc')} <span className="font-bold text-foreground">{formatRupiah(calculateTotal())}</span>
+                            {t('order.payment_dialog.desc')} <span className="font-bold text-foreground">
+                                {isLoadingCreatedOrder ? <Loader2 className="h-4 w-4 animate-spin inline" /> : formatRupiah(createdOrder?.net_total || 0)}
+                            </span>
                         </DialogDescription>
                     </DialogHeader>
 
-                    <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : undefined} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
-                        <TabsList className="flex flex-wrap h-auto w-full gap-2 bg-transparent p-0">
-                            {paymentMethods?.map(method => (
-                                <TabsTrigger
-                                    key={method.id}
-                                    value={String(method.id)}
-                                    className="flex-1 min-w-[100px] border data-[state=active]:border-primary data-[state=active]:bg-primary/5"
-                                >
-                                    {method.name}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                        <div className="py-4">
-                            {paymentMethods?.map(method => (
-                                <TabsContent key={method.id} value={String(method.id)} className="mt-0">
-                                    <div className="flex flex-col items-center justify-center gap-4 py-4 border-2 border-dashed rounded-lg bg-muted/50">
-                                        <Banknote className="h-10 w-10 text-muted-foreground" />
-                                        <p className="text-sm text-muted-foreground">{t('order.payment_dialog.process_via')} {method.name}</p>
-
-                                        {method.name?.toLowerCase().includes('cash') && (
-                                            <div className="w-full max-w-xs space-y-4 pt-2">
-                                                <div className="space-y-2">
-                                                    <label className="text-sm font-medium">{t('order.payment_dialog.cash_received')}</label>
-                                                    <Input
-                                                        autoFocus
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={cashReceived ? Number(cashReceived).toLocaleString('id-ID') : ''}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.replace(/\D/g, '')
-                                                            setCashReceived(val)
-                                                        }}
-                                                        className="text-center text-xl font-bold h-12"
-                                                        placeholder={t('order.payment_dialog.enter_amount')}
-                                                    />
-                                                </div>
-                                                <div className="flex justify-between items-center text-sm py-3  rounded-lg ">
-                                                    <span className="text-muted-foreground">{t('order.payment_dialog.change')}</span>
-                                                    <span className="font-bold text-lg text-primary">
-                                                        {formatRupiah(Math.max(0, Number(cashReceived) - calculateTotal()))}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Simple placeholder for QRIS if name matches */}
-                                        {method.name?.toLowerCase().includes('qris') && (
-                                            <div className="h-32 w-32 bg-white p-2 rounded-lg mt-2">
-                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${createdOrderId}`} alt="QR Code" className="w-full h-full" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </TabsContent>
-                            ))}
+                    {isLoadingCreatedOrder ? (
+                        <div className="h-48 flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
-                    </Tabs>
+                    ) : (
+                        <>
+                            <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : undefined} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
+                                <TabsList className="flex flex-wrap h-auto w-full gap-2 bg-transparent p-0">
+                                    {paymentMethods?.map(method => (
+                                        <TabsTrigger
+                                            key={method.id}
+                                            value={String(method.id)}
+                                            className="flex-1 min-w-[100px] border data-[state=active]:border-primary data-[state=active]:bg-primary/5"
+                                        >
+                                            {method.name}
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                                <div className="py-4">
+                                    {paymentMethods?.map(method => (
+                                        <TabsContent key={method.id} value={String(method.id)} className="mt-0">
+                                            <div className="flex flex-col items-center justify-center gap-4 py-4 border-2 border-dashed rounded-lg bg-muted/50">
+                                                <Banknote className="h-10 w-10 text-muted-foreground" />
+                                                <p className="text-sm text-muted-foreground">{t('order.payment_dialog.process_via')} {method.name}</p>
 
-                    <DialogFooter className="gap-2 sm:justify-between">
-                        <div className="flex gap-2 w-full">
-                            <Button type="button" variant="outline" className="flex-1" onClick={() => setIsPaymentOpen(false)}>
-                                {t('order.payment_dialog.cancel')}
-                            </Button>
-                            {selectedOrderType === POSKasirInternalRepositoryOrderType.OrderTypeDineIn && (
-                                <Button type="button" variant="secondary" className="flex-1" onClick={() => {
-                                    setIsPaymentOpen(false)
-                                    setCart([])
-                                    setCreatedOrderId(null)
-                                    toast.success(t('order.success.saved'))
-                                }}>
-                                    {t('order.payment_dialog.pay_later')}
-                                </Button>
-                            )}
-                            <Button type="button" className="flex-1" onClick={handlePayment}>
-                                {t('order.payment_dialog.complete')}
-                            </Button>
-                        </div>
-                    </DialogFooter>
+                                                {method.name?.toLowerCase().includes('cash') && (
+                                                    <div className="w-full max-w-xs space-y-4 pt-2">
+                                                        <div className="space-y-2">
+                                                            <label className="text-sm font-medium">{t('order.payment_dialog.cash_received')}</label>
+                                                            <Input
+                                                                autoFocus
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                value={cashReceived ? Number(cashReceived).toLocaleString('id-ID') : ''}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.replace(/\D/g, '')
+                                                                    setCashReceived(val)
+                                                                }}
+                                                                className="text-center text-xl font-bold h-12"
+                                                                placeholder={t('order.payment_dialog.enter_amount')}
+                                                            />
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm py-3  rounded-lg ">
+                                                            <span className="text-muted-foreground">{t('order.payment_dialog.change')}</span>
+                                                            <span className="font-bold text-lg text-primary">
+                                                                {formatRupiah(Math.max(0, Number(cashReceived) - (createdOrder?.net_total || 0)))}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Simple placeholder for QRIS if name matches */}
+                                                {method.name?.toLowerCase().includes('qris') && (
+                                                    <div className="h-32 w-32 bg-white p-2 rounded-lg mt-2">
+                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${createdOrderId}`} alt="QR Code" className="w-full h-full" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TabsContent>
+                                    ))}
+                                </div>
+                            </Tabs>
+
+                            <DialogFooter className="gap-2 sm:justify-between">
+                                <div className="flex gap-2 w-full">
+                                    <Button type="button" variant="outline" className="flex-1" onClick={() => setIsPaymentOpen(false)}>
+                                        {t('order.payment_dialog.cancel')}
+                                    </Button>
+                                    {selectedOrderType === POSKasirInternalRepositoryOrderType.OrderTypeDineIn && (
+                                        <Button type="button" variant="secondary" className="flex-1" onClick={() => {
+                                            setIsPaymentOpen(false)
+                                            setCart([])
+                                            setCreatedOrderId(null)
+                                            toast.success(t('order.success.saved'))
+                                        }}>
+                                            {t('order.payment_dialog.pay_later')}
+                                        </Button>
+                                    )}
+                                    <Button type="button" className="flex-1" onClick={handlePayment}>
+                                        {t('order.payment_dialog.complete')}
+                                    </Button>
+                                </div>
+                            </DialogFooter>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
             {/* Variant Selection Dialog */}

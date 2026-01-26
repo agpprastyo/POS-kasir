@@ -342,7 +342,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 		h.log.Warnf("Cannot parse create order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
-	h.log.Infof("CreateOrderHandler payload: %+v", req)
+	h.log.Infof("CreateOrderHandler payload 1: %+v", req)
 
 	if err := h.validate.Validate(req); err != nil {
 		h.log.Warnf("Create order request validation failed", "error", err)

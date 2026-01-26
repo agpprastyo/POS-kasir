@@ -18,7 +18,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery } from '@/lib/api/query/orders'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery, useCancelOrderMutation } from '@/lib/api/query/orders'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { POSKasirInternalDtoProductOptionResponse, POSKasirInternalRepositoryOrderType } from '@/lib/api/generated'
@@ -89,6 +99,9 @@ function OrderPage() {
 
     const createOrderMutation = useCreateOrderMutation()
     const completeManualPaymentMutation = useCompleteManualPaymentMutation()
+    const cancelOrderMutation = useCancelOrderMutation()
+
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
 
     const { data: createdOrder, isLoading: isLoadingCreatedOrder } = useOrderDetailQuery(createdOrderId || '')
 
@@ -195,8 +208,16 @@ function OrderPage() {
     useEffect(() => {
         if (isPaymentOpen) {
             setCashReceived('')
+            if (!selectedPaymentMethod && paymentMethods) {
+                const cashMethod = paymentMethods.find((m: any) => m.name?.toLowerCase().includes('cash'))
+                if (cashMethod) {
+                    setSelectedPaymentMethod(cashMethod.id)
+                } else if (paymentMethods.length > 0) {
+                    setSelectedPaymentMethod(paymentMethods[0].id)
+                }
+            }
         }
-    }, [isPaymentOpen])
+    }, [isPaymentOpen, paymentMethods, selectedPaymentMethod])
 
     const handlePayment = async () => {
         if (!createdOrderId || !selectedPaymentMethod) {
@@ -252,6 +273,40 @@ function OrderPage() {
         } catch (error) {
             console.error(error)
             toast.error(t('order.errors.payment_failed'))
+        }
+    }
+
+
+    const handleAttemptClosePayment = (open: boolean) => {
+        if (!open) {
+            // User is trying to close the dialog
+            if (createdOrderId) {
+                setCancelDialogOpen(true)
+            } else {
+                setIsPaymentOpen(false)
+            }
+        } else {
+            setIsPaymentOpen(true)
+        }
+    }
+
+    const handleConfirmCancel = async () => {
+        if (!createdOrderId) return
+
+        try {
+            await cancelOrderMutation.mutateAsync({
+                id: createdOrderId,
+                body: {
+                    cancellation_reason_id: 1, // Default reason
+                    cancellation_notes: 'Cancelled by user from payment screen'
+                }
+            })
+            setIsPaymentOpen(false)
+            setCreatedOrderId(null)
+            setCancelDialogOpen(false)
+        } catch (error) {
+            console.error(error)
+            // Error handling is done in mutation
         }
     }
 
@@ -367,7 +422,7 @@ function OrderPage() {
                                     </div>
                                 ) : (
                                     cart.map((item) => (
-                                        <div key={item.product.id} className="flex gap-3 bg-background p-3 rounded-lg border group">
+                                        <div key={`${item.product.id}-${item.variant?.id || 'base'}`} className="flex gap-3 bg-background p-3 rounded-lg border group">
                                             <div className="h-12 w-12 rounded-md bg-muted overflow-hidden shrink-0">
                                                 {item.product.image_url && <img src={item.product.image_url} className="h-full w-full object-cover" />}
                                             </div>
@@ -427,7 +482,7 @@ function OrderPage() {
                 </div>
             </div>
             {/* Payment Dialog */}
-            <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+            <Dialog open={isPaymentOpen} onOpenChange={handleAttemptClosePayment}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>{t('order.payment_dialog.title')}</DialogTitle>
@@ -444,7 +499,7 @@ function OrderPage() {
                         </div>
                     ) : (
                         <>
-                            <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : undefined} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
+                            <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : ''} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
                                 <TabsList className="flex flex-wrap h-auto w-full gap-2 bg-transparent p-0">
                                     {paymentMethods?.map(method => (
                                         <TabsTrigger
@@ -503,7 +558,7 @@ function OrderPage() {
 
                             <DialogFooter className="gap-2 sm:justify-between">
                                 <div className="flex gap-2 w-full">
-                                    <Button type="button" variant="outline" className="flex-1" onClick={() => setIsPaymentOpen(false)}>
+                                    <Button type="button" variant="outline" className="flex-1" onClick={() => handleAttemptClosePayment(false)}>
                                         {t('order.payment_dialog.cancel')}
                                     </Button>
                                     {selectedOrderType === POSKasirInternalRepositoryOrderType.OrderTypeDineIn && (
@@ -582,6 +637,21 @@ function OrderPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('order.cancel_confirm.title', 'Cancel Order?')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('order.cancel_confirm.desc', 'Are you sure you want to cancel this order? This action cannot be undone.')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.no', 'No')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmCancel}>{t('common.yes', 'Yes, Cancel Order')}</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

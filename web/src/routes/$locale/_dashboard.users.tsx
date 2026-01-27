@@ -162,9 +162,9 @@ function UsersPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">{t('users.role_all')}</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Admin}>Admin</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Manager}>Manager</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Admin}>{t('users.roles.admin')}</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Manager}>{t('users.roles.manager')}</SelectItem>
+                            <SelectItem value={UsersGetRoleEnum.Cashier}>{t('users.roles.cashier')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -202,7 +202,7 @@ function UsersPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="capitalize">{user.role}</Badge>
+                                        <Badge variant="outline" className="capitalize">{t(`users.roles.${user.role}`)}</Badge>
                                     </TableCell>
                                     <TableCell>
                                         <Badge
@@ -255,7 +255,7 @@ function UserActions({ user, onEdit }: { user: POSKasirInternalDtoProfileRespons
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">{t('users.actions.open_menu')}</span>
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
@@ -435,9 +435,9 @@ function UserFormDialog({ open, onOpenChange, userToEdit }: {
                                         <SelectValue placeholder={t('users.form.select_role')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value={UsersGetRoleEnum.Admin}>Admin</SelectItem>
-                                        <SelectItem value={UsersGetRoleEnum.Manager}>Manager</SelectItem>
-                                        <SelectItem value={UsersGetRoleEnum.Cashier}>Cashier</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Admin}>{t('users.roles.admin')}</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Manager}>{t('users.roles.manager')}</SelectItem>
+                                        <SelectItem value={UsersGetRoleEnum.Cashier}>{t('users.roles.cashier')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

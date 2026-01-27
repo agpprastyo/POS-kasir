@@ -7,7 +7,9 @@
         "edit": "Edit",
         "actions": "Actions",
         "logout": "Logout",
-        "confirm": "Confirm"
+        "confirm": "Confirm",
+        "yes": "Yes",
+        "no": "No"
     },
     "auth": {
         "welcome_back": "Welcome back",
@@ -35,6 +37,11 @@
         "title": "Transactions",
         "subtitle": "Monitor orders and manage payments.",
         "filter_user": "All Cashiers",
+        "tabs": {
+            "active": "Active",
+            "history": "History",
+            "cancelled": "Cancelled"
+        },
         "status": {
             "open": "Open",
             "in_progress": "Process",
@@ -42,6 +49,10 @@
             "paid": "Paid",
             "cancelled": "Cancel",
             "all": "All"
+        },
+        "status_badge": {
+            "paid": "PAID",
+            "unpaid": "UNPAID"
         },
         "table": {
             "queue": "Queue",
@@ -53,7 +64,21 @@
             "action": "Action",
             "no_data": "No transactions found for this filter."
         },
-        "pay_button": "Pay",
+        "actions_button": {
+            "pay": "Pay",
+            "complete": "Complete",
+            "cancel": "Cancel"
+        },
+        "cancellation_dialog": {
+            "title": "Cancel Order",
+            "description": "Please select a reason for cancelling order",
+            "reason_label": "Reason",
+            "reason_placeholder": "Select a reason",
+            "notes_label": "Additional Notes",
+            "notes_placeholder": "Optional details...",
+            "confirm": "Cancel Order",
+            "cancel": "Back"
+        },
         "payment_dialog": {
             "title": "Complete Payment",
             "description": "Process payment for Queue",
@@ -71,7 +96,15 @@
         "total_revenue": "Total Revenue",
         "active_users": "Active Users",
         "sales": "Sales",
-        "active_now": "Active Now"
+        "active_now": "Active Now",
+        "brand_name": "Acme Inc",
+        "toggle_nav": "Toggle navigation menu",
+        "stats": {
+            "from_last_month": "from last month",
+            "since_last_hour": "since last hour"
+        },
+        "secret_reports": "Secret Reports Page (Admin Only)",
+        "placeholder_content": "Other content can be placed here..."
     },
     "account": {
         "title": "Account",
@@ -165,6 +198,11 @@
         "search_placeholder": "Search user...",
         "role_filter": "Role",
         "role_all": "All Roles",
+        "roles": {
+            "admin": "Admin",
+            "manager": "Manager",
+            "cashier": "Cashier"
+        },
         "table": {
             "avatar": "Avatar",
             "user": "User",
@@ -178,6 +216,7 @@
             "inactive": "Inactive"
         },
         "actions": {
+            "open_menu": "Open menu",
             "edit": "Edit Details",
             "activate": "Activate Account",
             "deactivate": "Deactivate Account",
@@ -323,6 +362,24 @@
             "desc": "Choose an option for",
             "original": "Original",
             "no_image": "No Image"
-        }
+        },
+        "cancel_confirm": {
+            "title": "Cancel Order?",
+            "desc": "Are you sure you want to cancel this order? This action cannot be undone.",
+            "yes": "Yes, Cancel Order"
+        },
+        "qr_code_alt": "QR Code"
+    },
+    "errors": {
+        "unexpected_error": {
+            "title": "Oops...",
+            "desc": "An unexpected error occurred while loading this page."
+        },
+        "not_found": {
+            "title": "404",
+            "desc": "Page not found"
+        },
+        "go_home": "Go home",
+        "default_message": "Something went wrong"
     }
 }

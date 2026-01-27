@@ -8,6 +8,7 @@
     "serve": "vite preview",
     "test": "vitest run",
     "api:gen": "openapi-generator-cli generate",
+    "check:i18n": "bun run scripts/scan-i18n.ts",
     "debug:java": "echo PATH=$PATH && which java && java -version"
   },
   "dependencies": {

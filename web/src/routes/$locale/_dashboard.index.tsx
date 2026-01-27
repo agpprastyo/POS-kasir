@@ -22,7 +22,7 @@ function DashboardIndex() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">$45,231.89</div>
-                        <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                        <p className="text-xs text-muted-foreground">+20.1% {t('dashboard.stats.from_last_month')}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -32,7 +32,7 @@ function DashboardIndex() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">+2350</div>
-                        <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+                        <p className="text-xs text-muted-foreground">+180.1% {t('dashboard.stats.from_last_month')}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -42,7 +42,7 @@ function DashboardIndex() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">+12,234</div>
-                        <p className="text-xs text-muted-foreground">+19% from last month</p>
+                        <p className="text-xs text-muted-foreground">+19% {t('dashboard.stats.from_last_month')}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -52,13 +52,13 @@ function DashboardIndex() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">+573</div>
-                        <p className="text-xs text-muted-foreground">+201 since last hour</p>
+                        <p className="text-xs text-muted-foreground">+201 {t('dashboard.stats.since_last_hour')}</p>
                     </CardContent>
                 </Card>
             </div>
 
             <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-                Content lainnya bisa ditaruh di sini...
+                {t('dashboard.placeholder_content')}
             </div>
         </div>
     )

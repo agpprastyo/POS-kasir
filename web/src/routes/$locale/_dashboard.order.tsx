@@ -188,8 +188,8 @@ function OrderPage() {
         const orderData = {
             items: cart.map(item => ({
                 product_id: item.product.id!,
-                product_option_id: item.variant?.id,
-                quantity: item.quantity
+                quantity: item.quantity,
+                options: item.variant ? [{ product_option_id: item.variant.id }] : []
             })),
             type: selectedOrderType
         }
@@ -306,7 +306,7 @@ function OrderPage() {
             setCancelDialogOpen(false)
         } catch (error) {
             console.error(error)
-            // Error handling is done in mutation
+
         }
     }
 
@@ -547,7 +547,7 @@ function OrderPage() {
                                                 {/* Simple placeholder for QRIS if name matches */}
                                                 {method.name?.toLowerCase().includes('qris') && (
                                                     <div className="h-32 w-32 bg-white p-2 rounded-lg mt-2">
-                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${createdOrderId}`} alt="QR Code" className="w-full h-full" />
+                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${createdOrderId}`} alt={t('order.qr_code_alt')} className="w-full h-full" />
                                                     </div>
                                                 )}
                                             </div>
@@ -641,14 +641,14 @@ function OrderPage() {
             <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>{t('order.cancel_confirm.title', 'Cancel Order?')}</AlertDialogTitle>
+                        <AlertDialogTitle>{t('order.cancel_confirm.title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {t('order.cancel_confirm.desc', 'Are you sure you want to cancel this order? This action cannot be undone.')}
+                            {t('order.cancel_confirm.desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.no', 'No')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmCancel}>{t('common.yes', 'Yes, Cancel Order')}</AlertDialogAction>
+                        <AlertDialogCancel>{t('common.no')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmCancel}>{t('order.cancel_confirm.yes', 'Yes, Cancel Order')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

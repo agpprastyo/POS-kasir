@@ -102,7 +102,7 @@ function LoginPage() {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="you@example.com"
+                                placeholder={t('auth.email_placeholder')}
                                 type="email"
                                 required
                             />
@@ -117,7 +117,7 @@ function LoginPage() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                placeholder="Your password"
+                                placeholder={t('auth.password_placeholder')}
                                 type="password"
                                 required
                             />

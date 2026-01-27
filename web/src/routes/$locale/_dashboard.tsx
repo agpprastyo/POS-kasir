@@ -164,7 +164,7 @@ function DashboardLayout() {
                             className="flex items-center gap-2 font-semibold"
                         >
                             <Zap className="h-8 w-8" />
-                            <span className="text-2xl">Acme Inc</span>
+                            <span className="text-2xl">{t('dashboard.brand_name')}</span>
                         </Link>
                     </div>
                     <div className="flex-1">
@@ -234,7 +234,7 @@ function DashboardLayout() {
                                 className="shrink-0 md:hidden absolute left-4 top-4 z-10"
                             >
                                 <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle navigation menu</span>
+                                <span className="sr-only">{t('dashboard.toggle_nav')}</span>
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
@@ -245,7 +245,7 @@ function DashboardLayout() {
                                     className="flex items-center gap-2 text-lg font-semibold mb-4"
                                 >
                                     <Zap className="h-6 w-6" />
-                                    <span className="sr-only">Acme Inc</span>
+                                    <span className="sr-only">{t('dashboard.brand_name')}</span>
                                 </Link>
                                 <div className="mb-4">
                                     <LanguageSwitcher />

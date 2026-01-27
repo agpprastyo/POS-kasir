@@ -1,4 +1,5 @@
 import { createFileRoute, redirect, RegisteredRouter, } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
 import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
@@ -28,6 +29,7 @@ export const Route = createFileRoute('/$locale/_dashboard/reports' as FileRouteB
 })
 
 function ReportsPage() {
-    return <div>Halaman Laporan Rahasia (Admin Only)</div>
+    const { t } = useTranslation()
+    return <div>{t('dashboard.secret_reports')}</div>
 }
 

@@ -16,7 +16,7 @@ i18n
         fallbackLng: 'id',
         supportedLngs: ['id', 'en'],
         interpolation: {
-            escapeValue: false, // react already safes from xss
+            escapeValue: false, 
         },
         detection: {
             order: ['path', 'localStorage', 'navigator'],

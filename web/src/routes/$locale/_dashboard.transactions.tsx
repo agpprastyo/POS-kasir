@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { ordersListQueryOptions, useCompleteManualPaymentMutation, useUpdateOrderStatusMutation } from '@/lib/api/query/orders'
+import { ordersListQueryOptions, useCompleteManualPaymentMutation, useUpdateOrderStatusMutation, useCancelOrderMutation } from '@/lib/api/query/orders'
 import { usersListQueryOptions } from '@/lib/api/query/user'
+import { useCancellationReasonsListQuery } from '@/lib/api/query/cancel-reason'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatRupiah } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useState, useMemo } from 'react'
-import { Loader2, Utensils, ShoppingBag, CreditCard, User as UserIcon, Banknote, CheckCircle } from 'lucide-react'
+import { Loader2, Utensils, ShoppingBag, CreditCard, User as UserIcon, Banknote, CheckCircle, XCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
     Dialog,
     DialogContent,
@@ -117,9 +119,17 @@ function TransactionsPage() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | undefined>(undefined)
     const [cashReceived, setCashReceived] = useState<string>('')
 
+    // Cancellation Dialog State
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+    const [orderToCancel, setOrderToCancel] = useState<OrderWithItems | null>(null)
+    const [cancelReasonId, setCancelReasonId] = useState<string>('')
+    const [cancelNotes, setCancelNotes] = useState('')
+
     const { data: paymentMethods } = usePaymentMethodsListQuery()
+    const { data: cancellationReasons } = useCancellationReasonsListQuery()
     const completeManualPaymentMutation = useCompleteManualPaymentMutation()
     const updateOrderStatusMutation = useUpdateOrderStatusMutation()
+    const cancelOrderMutation = useCancelOrderMutation()
 
     const handleStatusUpdate = async (id: string, newStatus: POSKasirInternalRepositoryOrderStatus) => {
         try {
@@ -139,12 +149,38 @@ function TransactionsPage() {
         setSelectedPaymentMethod(undefined)
     }
 
+    const handleOpenCancel = (order: OrderWithItems) => {
+        setOrderToCancel(order)
+        setCancelReasonId('')
+        setCancelNotes('')
+        setIsCancelDialogOpen(true)
+    }
+
+    const handleConfirmCancel = async () => {
+        if (!orderToCancel?.id || !cancelReasonId) return;
+
+        try {
+            await cancelOrderMutation.mutateAsync({
+                id: orderToCancel.id,
+                body: {
+                    cancellation_reason_id: Number(cancelReasonId),
+                    cancellation_notes: cancelNotes
+                }
+            })
+            // Success toast handled by mutation
+            setIsCancelDialogOpen(false)
+            setOrderToCancel(null)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     const handleFinish = async (order: OrderWithItems) => {
         if (!order.id) return;
         // Optional: Confirm dialog?
         try {
             await handleStatusUpdate(order.id, POSKasirInternalRepositoryOrderStatus.OrderStatusPaid)
-            toast.success("Order finished and moved to history.")
+            toast.success(t('transactions.messages.order_finished'))
         } catch (e) {
             console.error(e)
         }
@@ -171,7 +207,7 @@ function TransactionsPage() {
 
     const handlePayment = async () => {
         if (!selectedOrder || !selectedPaymentMethod) {
-            toast.error("Please select a payment method")
+            toast.error(t('transactions.messages.select_payment_method'))
             return
         }
         if (!selectedOrder.id) return;
@@ -243,9 +279,9 @@ function TransactionsPage() {
             <div className="space-y-4">
                 <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                     <TabsList className="flex w-full overflow-x-auto justify-start h-auto p-1 gap-2 bg-muted/20">
-                        <TabsTrigger value="active" className="flex-shrink-0">Proses (Open)</TabsTrigger>
-                        <TabsTrigger value="paid" className="flex-shrink-0">Selesai (History)</TabsTrigger>
-                        <TabsTrigger value="cancelled" className="flex-shrink-0">Dibatalkan</TabsTrigger>
+                        <TabsTrigger value="active" className="flex-shrink-0">{t('transactions.tabs.active')}</TabsTrigger>
+                        <TabsTrigger value="paid" className="flex-shrink-0">{t('transactions.tabs.history')}</TabsTrigger>
+                        <TabsTrigger value="cancelled" className="flex-shrink-0">{t('transactions.tabs.cancelled')}</TabsTrigger>
                         <TabsTrigger value="all" className="flex-shrink-0">{t('transactions.status.all')}</TabsTrigger>
                     </TabsList>
                 </Tabs>
@@ -321,11 +357,11 @@ function TransactionsPage() {
                                                     <span>{formatRupiah(order.net_total || 0)}</span>
                                                     {order.is_paid ? (
                                                         <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200">
-                                                            LUNAS
+                                                            {t('transactions.status_badge.paid')}
                                                         </Badge>
                                                     ) : (
                                                         <Badge variant="outline" className="text-[10px] h-5 bg-yellow-50 text-yellow-700 border-yellow-200">
-                                                            BELUM BAYAR
+                                                            {t('transactions.status_badge.unpaid')}
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -338,8 +374,8 @@ function TransactionsPage() {
                                                         if (order.id && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) {
                                                             handleStatusUpdate(order.id, val as POSKasirInternalRepositoryOrderStatus)
                                                         } else {
-                                                            
-                                                            toast.info("Gunakan tombol aksi di sebelah kanan")
+
+                                                            toast.info(t('transactions.messages.use_action_button'))
                                                         }
                                                     }}
                                                 >
@@ -363,13 +399,19 @@ function TransactionsPage() {
                                                     {!order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
                                                         <Button size="sm" variant="default" className="h-8 gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleOpenPayment(order)}>
                                                             <Banknote className="h-3.5 w-3.5" />
-                                                            Bayar
+                                                            {t('transactions.actions_button.pay')}
                                                         </Button>
                                                     )}
                                                     {order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
                                                         <Button size="sm" variant="outline" className="h-8 gap-1 border-green-600 text-green-600 hover:bg-green-50" onClick={() => handleFinish(order)}>
                                                             <CheckCircle className="h-3.5 w-3.5" />
-                                                            Selesai
+                                                            {t('transactions.actions_button.complete')}
+                                                        </Button>
+                                                    )}
+                                                    {(!order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid) && (
+                                                        <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleOpenCancel(order)}>
+                                                            <XCircle className="h-3.5 w-3.5" />
+                                                            {t('transactions.actions_button.cancel')}
                                                         </Button>
                                                     )}
                                                 </div>
@@ -391,16 +433,16 @@ function TransactionsPage() {
                             onClick={() => handlePageChange(Math.max(1, page - 1))}
                             disabled={page === 1}
                         >
-                            Previous
+                            {t('pagination.previous')}
                         </Button>
-                        <div className="text-sm font-medium">Page {page} of {pagination.total_pages}</div>
+                        <div className="text-sm font-medium">{t('pagination.page_info', { current: page, total: pagination.total_pages })}</div>
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handlePageChange(Math.min(pagination.total_pages, page + 1))}
                             disabled={page === pagination.total_pages}
                         >
-                            Next
+                            {t('pagination.next')}
                         </Button>
                     </div>
                 )}
@@ -481,7 +523,55 @@ function TransactionsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+
+            {/* Cancellation Dialog */}
+            <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('transactions.cancellation_dialog.title')}</DialogTitle>
+                        <DialogDescription>
+                            {t('transactions.cancellation_dialog.description')} <b>#{orderToCancel?.queue_number}</b>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">{t('transactions.cancellation_dialog.reason_label')}</label>
+                            <Select value={cancelReasonId} onValueChange={setCancelReasonId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t('transactions.cancellation_dialog.reason_placeholder')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {cancellationReasons?.map((reason) => (
+                                        <SelectItem key={reason.id} value={String(reason.id)}>
+                                            {reason.reason}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">{t('transactions.cancellation_dialog.notes_label')}</label>
+                            <Textarea
+                                value={cancelNotes}
+                                onChange={(e) => setCancelNotes(e.target.value)}
+                                placeholder={t('transactions.cancellation_dialog.notes_placeholder')}
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCancelDialogOpen(false)}>{t('transactions.cancellation_dialog.cancel')}</Button>
+                        <Button variant="destructive" onClick={handleConfirmCancel} disabled={!cancelReasonId || cancelOrderMutation.isPending}>
+                            {cancelOrderMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t('transactions.cancellation_dialog.confirm')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+        </div >
     )
 }
 

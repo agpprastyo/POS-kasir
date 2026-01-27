@@ -7,7 +7,9 @@
         "edit": "Ubah",
         "actions": "Aksi",
         "logout": "Keluar",
-        "confirm": "Konfirmasi"
+        "confirm": "Konfirmasi",
+        "yes": "Ya",
+        "no": "Tidak"
     },
     "auth": {
         "welcome_back": "Selamat Datang Kembali",
@@ -19,7 +21,9 @@
         "dont_have_account": "Belum punya akun?",
         "register": "Daftar",
         "forgot_password": "Lupa kata sandi?",
-        "login_failed": "Gagal masuk. Silakan periksa kredensial Anda."
+        "login_failed": "Gagal masuk. Silakan periksa kredensial Anda.",
+        "email_placeholder": "anda@contoh.com",
+        "password_placeholder": "Kata sandi anda"
     },
     "sidebar": {
         "summary": "Ringkasan",
@@ -35,6 +39,11 @@
         "title": "Transaksi",
         "subtitle": "Pantau pesanan dan kelola pembayaran.",
         "filter_user": "Semua Kasir",
+        "tabs": {
+            "active": "Aktif",
+            "history": "Riwayat",
+            "cancelled": "Dibatalkan"
+        },
         "status": {
             "open": "Buka",
             "in_progress": "Proses",
@@ -42,6 +51,10 @@
             "paid": "Dibayar",
             "cancelled": "Batal",
             "all": "Semua"
+        },
+        "status_badge": {
+            "paid": "LUNAS",
+            "unpaid": "BELUM BAYAR"
         },
         "table": {
             "queue": "Antrian",
@@ -53,7 +66,21 @@
             "action": "Aksi",
             "no_data": "Tidak ada transaksi ditemukan untuk filter ini."
         },
-        "pay_button": "Bayar",
+        "actions_button": {
+            "pay": "Bayar",
+            "complete": "Selesai",
+            "cancel": "Batalkan"
+        },
+        "cancellation_dialog": {
+            "title": "Batalkan Pesanan",
+            "description": "Silakan pilih alasan pembatalan pesanan",
+            "reason_label": "Alasan",
+            "reason_placeholder": "Pilih alasan",
+            "notes_label": "Catatan Tambahan",
+            "notes_placeholder": "Detail opsional...",
+            "confirm": "Batalkan Pesanan",
+            "cancel": "Kembali"
+        },
         "payment_dialog": {
             "title": "Selesaikan Pembayaran",
             "description": "Proses pembayaran untuk Antrian",
@@ -71,7 +98,15 @@
         "total_revenue": "Total Pendapatan",
         "active_users": "Pengguna Aktif",
         "sales": "Penjualan",
-        "active_now": "Aktif Sekarang"
+        "active_now": "Aktif Sekarang",
+        "brand_name": "Acme Inc",
+        "toggle_nav": "Buka menu navigasi",
+        "stats": {
+            "from_last_month": "dari bulan lalu",
+            "since_last_hour": "sejak satu jam terakhir"
+        },
+        "secret_reports": "Halaman Laporan Rahasia (Khusus Admin)",
+        "placeholder_content": "Content lainnya bisa ditaruh di sini..."
     },
     "account": {
         "title": "Akun",
@@ -165,6 +200,11 @@
         "search_placeholder": "Cari pengguna...",
         "role_filter": "Peran",
         "role_all": "Semua Peran",
+        "roles": {
+            "admin": "Admin",
+            "manager": "Manajer",
+            "cashier": "Kasir"
+        },
         "table": {
             "avatar": "Avatar",
             "user": "Pengguna",
@@ -178,6 +218,7 @@
             "inactive": "Tidak Aktif"
         },
         "actions": {
+            "open_menu": "Buka menu",
             "edit": "Edit Detail",
             "activate": "Aktifkan Akun",
             "deactivate": "Nonaktifkan Akun",
@@ -323,6 +364,24 @@
             "desc": "Pilih opsi untuk",
             "original": "Original",
             "no_image": "Tidak Ada Gambar"
-        }
+        },
+        "cancel_confirm": {
+            "title": "Batalkan Pesanan?",
+            "desc": "Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.",
+            "yes": "Ya, Batalkan Pesanan"
+        },
+        "qr_code_alt": "Kode QR"
+    },
+    "errors": {
+        "unexpected_error": {
+            "title": "Ups...",
+            "desc": "Terjadi kesalahan tak terduga saat memuat halaman ini."
+        },
+        "not_found": {
+            "title": "404",
+            "desc": "Halaman tidak ditemukan"
+        },
+        "go_home": "Ke Beranda",
+        "default_message": "Ada yang salah"
     }
 }

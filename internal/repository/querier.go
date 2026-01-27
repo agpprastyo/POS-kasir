@@ -35,6 +35,8 @@ type Querier interface {
 	// Counts total products for pagination, respecting filters.
 	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
 	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
+	CountPromotions(ctx context.Context) (int64, error)
+	CountTrashPromotions(ctx context.Context) (int64, error)
 	// Menghitung pengguna dengan filter status.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
@@ -56,6 +58,9 @@ type Querier interface {
 	// Queries for Product Options (Variants)
 	// Creates a new option for a specific product.
 	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
+	CreatePromotion(ctx context.Context, arg CreatePromotionParams) (Promotion, error)
+	CreatePromotionRule(ctx context.Context, arg CreatePromotionRuleParams) (PromotionRule, error)
+	CreatePromotionTarget(ctx context.Context, arg CreatePromotionTargetParams) (PromotionTarget, error)
 	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Mengurangi stok produk.
@@ -68,10 +73,14 @@ type Querier interface {
 	DeleteOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) error
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
+	DeletePromotion(ctx context.Context, id uuid.UUID) error
+	DeletePromotionRulesByPromotionID(ctx context.Context, promotionID uuid.UUID) error
+	DeletePromotionTargetsByPromotionID(ctx context.Context, promotionID uuid.UUID) error
 	// Mengubah DELETE menjadi UPDATE untuk soft delete.
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	// Memeriksa apakah kategori dengan ID tertentu ada.
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
+	GetActivePromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
 	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
 	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
 	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)
@@ -142,10 +151,13 @@ type Querier interface {
 	// Lists products with filtering and pagination.
 	// Does not include variants for performance reasons on a list view.
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)
+	ListPromotions(ctx context.Context, arg ListPromotionsParams) ([]Promotion, error)
+	ListTrashPromotions(ctx context.Context, arg ListTrashPromotionsParams) ([]Promotion, error)
 	// Mengambil daftar pengguna dengan filter, pagination, dan status (aktif/dihapus/semua).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	RestoreProduct(ctx context.Context, id uuid.UUID) error
 	RestoreProductsBulk(ctx context.Context, dollar_1 []uuid.UUID) error
+	RestorePromotion(ctx context.Context, id uuid.UUID) error
 	SoftDeleteProduct(ctx context.Context, id uuid.UUID) error
 	// Deletes a single product option.
 	SoftDeleteProductOption(ctx context.Context, id uuid.UUID) error
@@ -173,6 +185,7 @@ type Querier interface {
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
 	// Updates a specific product option.
 	UpdateProductOption(ctx context.Context, arg UpdateProductOptionParams) (ProductOption, error)
+	UpdatePromotion(ctx context.Context, arg UpdatePromotionParams) (Promotion, error)
 	// Memperbarui refresh token pengguna (Single Session Enforcement).
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
 	// Memperbarui pengguna aktif.

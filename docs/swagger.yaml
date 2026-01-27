@@ -178,6 +178,65 @@ definitions:
     - price
     - stock
     type: object
+  POS-kasir_internal_dto.CreatePromotionRequest:
+    properties:
+      description:
+        type: string
+      discount_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.DiscountType'
+      discount_value:
+        type: integer
+      end_date:
+        type: string
+      is_active:
+        type: boolean
+      max_discount_amount:
+        type: integer
+      name:
+        minLength: 3
+        type: string
+      rules:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreatePromotionRuleRequest'
+        type: array
+      scope:
+        $ref: '#/definitions/POS-kasir_internal_repository.PromotionScope'
+      start_date:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreatePromotionTargetRequest'
+        type: array
+    required:
+    - discount_type
+    - discount_value
+    - end_date
+    - name
+    - scope
+    - start_date
+    type: object
+  POS-kasir_internal_dto.CreatePromotionRuleRequest:
+    properties:
+      description:
+        type: string
+      rule_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.PromotionRuleType'
+      rule_value:
+        type: string
+    required:
+    - rule_type
+    - rule_value
+    type: object
+  POS-kasir_internal_dto.CreatePromotionTargetRequest:
+    properties:
+      target_id:
+        type: string
+      target_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.PromotionTargetType'
+    required:
+    - target_id
+    - target_type
+    type: object
   POS-kasir_internal_dto.CreateUserRequest:
     properties:
       email:
@@ -421,6 +480,7 @@ definitions:
         enum:
         - in_progress
         - served
+        - paid
     required:
     - status
     type: object
@@ -462,6 +522,43 @@ definitions:
         minimum: 0
         type: integer
     type: object
+  POS-kasir_internal_dto.UpdatePromotionRequest:
+    properties:
+      description:
+        type: string
+      discount_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.DiscountType'
+      discount_value:
+        type: integer
+      end_date:
+        type: string
+      is_active:
+        type: boolean
+      max_discount_amount:
+        type: integer
+      name:
+        minLength: 3
+        type: string
+      rules:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreatePromotionRuleRequest'
+        type: array
+      scope:
+        $ref: '#/definitions/POS-kasir_internal_repository.PromotionScope'
+      start_date:
+        type: string
+      targets:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreatePromotionTargetRequest'
+        type: array
+    required:
+    - discount_type
+    - discount_value
+    - end_date
+    - name
+    - scope
+    - start_date
+    type: object
   POS-kasir_internal_dto.UpdateUserRequest:
     properties:
       email:
@@ -490,6 +587,14 @@ definitions:
           $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
         type: array
     type: object
+  POS-kasir_internal_repository.DiscountType:
+    enum:
+    - percentage
+    - fixed_amount
+    type: string
+    x-enum-varnames:
+    - DiscountTypePercentage
+    - DiscountTypeFixedAmount
   POS-kasir_internal_repository.OrderStatus:
     enum:
     - open
@@ -512,6 +617,36 @@ definitions:
     x-enum-varnames:
     - OrderTypeDineIn
     - OrderTypeTakeaway
+  POS-kasir_internal_repository.PromotionRuleType:
+    enum:
+    - MINIMUM_ORDER_AMOUNT
+    - REQUIRED_PRODUCT
+    - REQUIRED_CATEGORY
+    - ALLOWED_PAYMENT_METHOD
+    - ALLOWED_ORDER_TYPE
+    type: string
+    x-enum-varnames:
+    - PromotionRuleTypeMINIMUMORDERAMOUNT
+    - PromotionRuleTypeREQUIREDPRODUCT
+    - PromotionRuleTypeREQUIREDCATEGORY
+    - PromotionRuleTypeALLOWEDPAYMENTMETHOD
+    - PromotionRuleTypeALLOWEDORDERTYPE
+  POS-kasir_internal_repository.PromotionScope:
+    enum:
+    - ORDER
+    - ITEM
+    type: string
+    x-enum-varnames:
+    - PromotionScopeORDER
+    - PromotionScopeITEM
+  POS-kasir_internal_repository.PromotionTargetType:
+    enum:
+    - PRODUCT
+    - CATEGORY
+    type: string
+    x-enum-varnames:
+    - PromotionTargetTypePRODUCT
+    - PromotionTargetTypeCATEGORY
   POS-kasir_internal_repository.UserRole:
     enum:
     - admin
@@ -1836,6 +1971,193 @@ paths:
       summary: Bulk restore deleted products
       tags:
       - Products
+  /promotions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Show trash items
+        in: query
+        name: trash
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List all promotions
+      tags:
+      - Promotions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Promotion details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreatePromotionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a new promotion
+      tags:
+      - Promotions
+  /promotions/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Promotion ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Delete (deactivate) a promotion
+      tags:
+      - Promotions
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Promotion ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get a promotion by ID
+      tags:
+      - Promotions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Promotion ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Promotion details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdatePromotionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update a promotion
+      tags:
+      - Promotions
+  /promotions/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Promotion ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Restore a deleted promotion
+      tags:
+      - Promotions
   /users:
     get:
       consumes:

@@ -7,6 +7,8 @@ import (
 	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
+	"strconv"
+	"time"
 
 	"POS-kasir/pkg/payment"
 	"POS-kasir/pkg/utils"
@@ -93,6 +95,39 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return common.ErrNotFound
 		}
 
+		// 1. Validate Basic Requirements
+		now := time.Now()
+		if !promo.IsActive {
+			return fmt.Errorf("%w: promotion is not active", common.ErrPromotionNotApplicable)
+		}
+		if now.Before(promo.StartDate.Time) {
+			return fmt.Errorf("%w: promotion has not started yet", common.ErrPromotionNotApplicable)
+		}
+		if now.After(promo.EndDate.Time) {
+			return fmt.Errorf("%w: promotion has expired", common.ErrPromotionNotApplicable)
+		}
+
+		// 2. Validate Rules
+		rules, err := qtx.GetPromotionRules(ctx, promo.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get promotion rules: %w", err)
+		}
+
+		for _, rule := range rules {
+			switch rule.RuleType {
+			case repository.PromotionRuleTypeMINIMUMORDERAMOUNT:
+				minAmount, err := strconv.ParseInt(rule.RuleValue, 10, 64)
+				if err != nil {
+					s.log.Warnf("Invalid rule value for MINIMUM_ORDER_AMOUNT: %s", rule.RuleValue)
+					continue // Logic error in rule definition, skip or fail? safe to skip but log
+				}
+				if order.GrossTotal < minAmount {
+					return fmt.Errorf("%w: minimum order amount not met (min: %d)", common.ErrPromotionNotApplicable, minAmount)
+				}
+				// Future: Add other rule validations here
+			}
+		}
+
 		var discountAmount int64
 		grossTotal := order.GrossTotal
 
@@ -120,6 +155,9 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			DiscountAmount: discountAmount,
 			NetTotal:       netTotal,
 		})
+		if err != nil {
+			return err
+		}
 
 		err = qtx.UpdateOrderAppliedPromotion(ctx, repository.UpdateOrderAppliedPromotionParams{
 			ID:                 orderID,
@@ -547,11 +585,11 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 	listParams := repository.ListOrdersParams{
 		Limit:    int32(limit),
 		Offset:   int32(offset),
-		Statuses: statusStrings, 
+		Statuses: statusStrings,
 		UserID:   nullUserID,
 	}
 	countParams := repository.CountOrdersParams{
-		Statuses: statusStrings, 
+		Statuses: statusStrings,
 		UserID:   nullUserID,
 	}
 	var wg sync.WaitGroup
@@ -602,7 +640,7 @@ func (s *OrderService) ListOrders(ctx context.Context, req dto.ListOrdersRequest
 			products, err := s.store.GetProductsByIDs(ctx, productIDs)
 			if err != nil {
 				s.log.Error("Failed to fetch products for order list items", "error", err)
-				
+
 			} else {
 				productMap = make(map[uuid.UUID]string)
 				for _, p := range products {

@@ -28,6 +28,7 @@
         "pos": "POS",
         "transactions": "Transactions",
         "product": "Product",
+        "promotions": "Promotions",
         "reports": "Reports",
         "users": "Users",
         "settings": "Settings",
@@ -312,6 +313,56 @@
             "success_update": "Product updated!",
             "error_category": "Please select a category",
             "error_delete_variant": "Cannot delete existing variants (API limitation)"
+        }
+    },
+    "promotions": {
+        "title": "Promotions",
+        "description": "Manage promotions and discounts for customers.",
+        "add_button": "Add Promotion",
+        "table": {
+            "name": "Promotion Name",
+            "scope": "Scope",
+            "discount": "Discount",
+            "period": "Period",
+            "status": "Status",
+            "actions": "Actions",
+            "empty": "No promotions yet."
+        },
+        "form": {
+            "title_create": "Create New Promotion",
+            "title_edit": "Edit Promotion",
+            "desc": "Fill in the promotion details below.",
+            "name": "Promotion Name",
+            "name_placeholder": "e.g. Year End Sale",
+            "description": "Description",
+            "scope": "Scope",
+            "discount_type": "Discount Type",
+            "discount_value": "Discount Value",
+            "max_discount": "Max Discount Amount",
+            "start_date": "Start Date",
+            "end_date": "End Date",
+            "is_active": "Activate Promotion",
+            "rules": "Promotion Rules",
+            "add_rule": "Add Rule",
+            "rule_type": "Rule Type",
+            "rule_value": "Rule Value",
+            "rule_desc": "Rule Description",
+            "targets": "Promotion Targets",
+            "add_target": "Add Target",
+            "target_type": "Target Type",
+            "target_id": "Target ID",
+            "save": "Save Promotion",
+            "saving": "Saving...",
+            "success_create": "Promotion created successfully!",
+            "success_update": "Promotion updated successfully!"
+        },
+        "types": {
+            "percentage": "Percentage",
+            "fixed_amount": "Fixed Amount"
+        },
+        "scope": {
+            "ORDER": "Order",
+            "ITEM": "Item"
         }
     },
     "order": {

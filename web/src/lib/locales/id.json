@@ -30,6 +30,7 @@
         "pos": "Kasir",
         "transactions": "Transaksi",
         "product": "Produk",
+        "promotions": "Promosi",
         "reports": "Laporan",
         "users": "Pengguna",
         "settings": "Pengaturan",
@@ -314,6 +315,56 @@
             "success_update": "Produk berhasil diperbarui!",
             "error_category": "Silakan pilih kategori",
             "error_delete_variant": "Tidak dapat menghapus varian yang sudah ada (Batasan API)"
+        }
+    },
+    "promotions": {
+        "title": "Promosi",
+        "description": "Kelola promosi dan diskon untuk pelanggan.",
+        "add_button": "Tambah Promosi",
+        "table": {
+            "name": "Nama Promosi",
+            "scope": "Cakupan",
+            "discount": "Diskon",
+            "period": "Periode",
+            "status": "Status",
+            "actions": "Aksi",
+            "empty": "Belum ada promosi."
+        },
+        "form": {
+            "title_create": "Buat Promosi Baru",
+            "title_edit": "Edit Promosi",
+            "desc": "Isi detail promosi di bawah ini.",
+            "name": "Nama Promosi",
+            "name_placeholder": "misal. Diskon Akhir Tahun",
+            "description": "Deskripsi",
+            "scope": "Cakupan Promosi",
+            "discount_type": "Tipe Diskon",
+            "discount_value": "Nilai Diskon",
+            "max_discount": "Maksimal Potongan",
+            "start_date": "Tanggal Mulai",
+            "end_date": "Tanggal Berakhir",
+            "is_active": "Aktifkan Promosi",
+            "rules": "Aturan Promosi",
+            "add_rule": "Tambah Aturan",
+            "rule_type": "Tipe Aturan",
+            "rule_value": "Nilai Aturan",
+            "rule_desc": "Deskripsi Aturan",
+            "targets": "Target Promosi",
+            "add_target": "Tambah Target",
+            "target_type": "Tipe Target",
+            "target_id": "ID Target",
+            "save": "Simpan Promosi",
+            "saving": "Menyimpan...",
+            "success_create": "Promosi berhasil dibuat!",
+            "success_update": "Promosi berhasil diperbarui!"
+        },
+        "types": {
+            "percentage": "Persentase",
+            "fixed_amount": "Nominal Tetap"
+        },
+        "scope": {
+            "ORDER": "Pesanan",
+            "ITEM": "Item"
         }
     },
     "order": {

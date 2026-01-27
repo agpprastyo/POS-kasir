@@ -2098,6 +2098,292 @@ const docTemplate = `{
                 }
             }
         },
+        "/promotions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "List all promotions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show trash items",
+                        "name": "trash",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Create a new promotion",
+                "parameters": [
+                    {
+                        "description": "Promotion details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CreatePromotionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/promotions/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Get a promotion by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Update a promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Promotion details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdatePromotionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Delete (deactivate) a promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/promotions/{id}/restore": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Restore a deleted promotion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Promotion ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of users with pagination, filtering, and sorting",
@@ -2794,6 +3080,92 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.CreatePromotionRequest": {
+            "type": "object",
+            "required": [
+                "discount_type",
+                "discount_value",
+                "end_date",
+                "name",
+                "scope",
+                "start_date"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "discount_type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.DiscountType"
+                },
+                "discount_value": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_discount_amount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 3
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreatePromotionRuleRequest"
+                    }
+                },
+                "scope": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.PromotionScope"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreatePromotionTargetRequest"
+                    }
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreatePromotionRuleRequest": {
+            "type": "object",
+            "required": [
+                "rule_type",
+                "rule_value"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "rule_type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.PromotionRuleType"
+                },
+                "rule_value": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CreatePromotionTargetRequest": {
+            "type": "object",
+            "required": [
+                "target_id",
+                "target_type"
+            ],
+            "properties": {
+                "target_id": {
+                    "type": "string"
+                },
+                "target_type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.PromotionTargetType"
+                }
+            }
+        },
         "POS-kasir_internal_dto.CreateUserRequest": {
             "type": "object",
             "required": [
@@ -3156,7 +3528,8 @@ const docTemplate = `{
                 "status": {
                     "enum": [
                         "in_progress",
-                        "served"
+                        "served",
+                        "paid"
                     ],
                     "allOf": [
                         {
@@ -3219,6 +3592,59 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.UpdatePromotionRequest": {
+            "type": "object",
+            "required": [
+                "discount_type",
+                "discount_value",
+                "end_date",
+                "name",
+                "scope",
+                "start_date"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "discount_type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.DiscountType"
+                },
+                "discount_value": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_discount_amount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 3
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreatePromotionRuleRequest"
+                    }
+                },
+                "scope": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.PromotionScope"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreatePromotionTargetRequest"
+                    }
+                }
+            }
+        },
         "POS-kasir_internal_dto.UpdateUserRequest": {
             "type": "object",
             "properties": {
@@ -3262,6 +3688,17 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_repository.DiscountType": {
+            "type": "string",
+            "enum": [
+                "percentage",
+                "fixed_amount"
+            ],
+            "x-enum-varnames": [
+                "DiscountTypePercentage",
+                "DiscountTypeFixedAmount"
+            ]
+        },
         "POS-kasir_internal_repository.OrderStatus": {
             "type": "string",
             "enum": [
@@ -3288,6 +3725,45 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "OrderTypeDineIn",
                 "OrderTypeTakeaway"
+            ]
+        },
+        "POS-kasir_internal_repository.PromotionRuleType": {
+            "type": "string",
+            "enum": [
+                "MINIMUM_ORDER_AMOUNT",
+                "REQUIRED_PRODUCT",
+                "REQUIRED_CATEGORY",
+                "ALLOWED_PAYMENT_METHOD",
+                "ALLOWED_ORDER_TYPE"
+            ],
+            "x-enum-varnames": [
+                "PromotionRuleTypeMINIMUMORDERAMOUNT",
+                "PromotionRuleTypeREQUIREDPRODUCT",
+                "PromotionRuleTypeREQUIREDCATEGORY",
+                "PromotionRuleTypeALLOWEDPAYMENTMETHOD",
+                "PromotionRuleTypeALLOWEDORDERTYPE"
+            ]
+        },
+        "POS-kasir_internal_repository.PromotionScope": {
+            "type": "string",
+            "enum": [
+                "ORDER",
+                "ITEM"
+            ],
+            "x-enum-varnames": [
+                "PromotionScopeORDER",
+                "PromotionScopeITEM"
+            ]
+        },
+        "POS-kasir_internal_repository.PromotionTargetType": {
+            "type": "string",
+            "enum": [
+                "PRODUCT",
+                "CATEGORY"
+            ],
+            "x-enum-varnames": [
+                "PromotionTargetTypePRODUCT",
+                "PromotionTargetTypeCATEGORY"
             ]
         },
         "POS-kasir_internal_repository.UserRole": {

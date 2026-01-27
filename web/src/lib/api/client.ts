@@ -7,6 +7,7 @@ import {
     OrdersApi,
     PaymentMethodsApi,
     ProductsApi,
+    PromotionsApi,
     UsersApi
 } from "@/lib/api/generated";
 
@@ -28,15 +29,14 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-
                 await axiosInstance.post('/auth/refresh');
-
-
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
                 console.error("Token refresh failed. Redirecting to login...", refreshError);
                 if (!window.location.pathname.includes('/login')) {
-                    window.location.href = '/login';
+                    const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                    const locale = (pathSegments.length > 0 && pathSegments[0].length === 2) ? pathSegments[0] : 'id';
+                    window.location.href = `/${locale}/login`;
                 }
                 return Promise.reject(refreshError);
             }
@@ -45,7 +45,9 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
 
             if (!originalRequest.url?.includes('/auth/refresh')) {
-                window.location.href = '/login';
+                const pathSegments = window.location.pathname.split('/').filter(Boolean);
+                const locale = (pathSegments.length > 0 && pathSegments[0].length === 2) ? pathSegments[0] : 'id';
+                window.location.href = `/${locale}/login`;
             }
         }
 
@@ -68,4 +70,5 @@ export const categoriesApi = new CategoriesApi(config, undefined, axiosInstance)
 export const productsApi = new ProductsApi(config, undefined, axiosInstance)
 export const ordersApi = new OrdersApi(config, undefined, axiosInstance)
 export const paymentMethodsApi = new PaymentMethodsApi(config, undefined, axiosInstance)
+export const promotionsApi = new PromotionsApi(config, undefined, axiosInstance)
 

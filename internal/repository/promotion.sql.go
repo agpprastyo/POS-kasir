@@ -9,11 +9,219 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countPromotions = `-- name: CountPromotions :one
+SELECT COUNT(*) FROM promotions WHERE deleted_at IS NULL
+`
+
+func (q *Queries) CountPromotions(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countPromotions)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countTrashPromotions = `-- name: CountTrashPromotions :one
+SELECT COUNT(*) FROM promotions WHERE deleted_at IS NOT NULL
+`
+
+func (q *Queries) CountTrashPromotions(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countTrashPromotions)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createPromotion = `-- name: CreatePromotion :one
+INSERT INTO promotions (
+    name,
+    description,
+    scope,
+    discount_type,
+    discount_value,
+    max_discount_amount,
+    start_date,
+    end_date,
+    is_active
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at
+`
+
+type CreatePromotionParams struct {
+	Name              string             `json:"name"`
+	Description       *string            `json:"description"`
+	Scope             PromotionScope     `json:"scope"`
+	DiscountType      DiscountType       `json:"discount_type"`
+	DiscountValue     pgtype.Numeric     `json:"discount_value"`
+	MaxDiscountAmount pgtype.Numeric     `json:"max_discount_amount"`
+	StartDate         pgtype.Timestamptz `json:"start_date"`
+	EndDate           pgtype.Timestamptz `json:"end_date"`
+	IsActive          bool               `json:"is_active"`
+}
+
+func (q *Queries) CreatePromotion(ctx context.Context, arg CreatePromotionParams) (Promotion, error) {
+	row := q.db.QueryRow(ctx, createPromotion,
+		arg.Name,
+		arg.Description,
+		arg.Scope,
+		arg.DiscountType,
+		arg.DiscountValue,
+		arg.MaxDiscountAmount,
+		arg.StartDate,
+		arg.EndDate,
+		arg.IsActive,
+	)
+	var i Promotion
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Scope,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.MaxDiscountAmount,
+		&i.StartDate,
+		&i.EndDate,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const createPromotionRule = `-- name: CreatePromotionRule :one
+INSERT INTO promotion_rules (
+    promotion_id,
+    rule_type,
+    rule_value,
+    description
+) VALUES (
+    $1, $2, $3, $4
+) RETURNING id, promotion_id, rule_type, rule_value, description, created_at, updated_at
+`
+
+type CreatePromotionRuleParams struct {
+	PromotionID uuid.UUID         `json:"promotion_id"`
+	RuleType    PromotionRuleType `json:"rule_type"`
+	RuleValue   string            `json:"rule_value"`
+	Description *string           `json:"description"`
+}
+
+func (q *Queries) CreatePromotionRule(ctx context.Context, arg CreatePromotionRuleParams) (PromotionRule, error) {
+	row := q.db.QueryRow(ctx, createPromotionRule,
+		arg.PromotionID,
+		arg.RuleType,
+		arg.RuleValue,
+		arg.Description,
+	)
+	var i PromotionRule
+	err := row.Scan(
+		&i.ID,
+		&i.PromotionID,
+		&i.RuleType,
+		&i.RuleValue,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createPromotionTarget = `-- name: CreatePromotionTarget :one
+INSERT INTO promotion_targets (
+    promotion_id,
+    target_type,
+    target_id
+) VALUES (
+    $1, $2, $3
+) RETURNING id, promotion_id, target_type, target_id, created_at, updated_at
+`
+
+type CreatePromotionTargetParams struct {
+	PromotionID uuid.UUID           `json:"promotion_id"`
+	TargetType  PromotionTargetType `json:"target_type"`
+	TargetID    string              `json:"target_id"`
+}
+
+func (q *Queries) CreatePromotionTarget(ctx context.Context, arg CreatePromotionTargetParams) (PromotionTarget, error) {
+	row := q.db.QueryRow(ctx, createPromotionTarget, arg.PromotionID, arg.TargetType, arg.TargetID)
+	var i PromotionTarget
+	err := row.Scan(
+		&i.ID,
+		&i.PromotionID,
+		&i.TargetType,
+		&i.TargetID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deletePromotion = `-- name: DeletePromotion :exec
+UPDATE promotions
+SET deleted_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) DeletePromotion(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePromotion, id)
+	return err
+}
+
+const deletePromotionRulesByPromotionID = `-- name: DeletePromotionRulesByPromotionID :exec
+DELETE FROM promotion_rules
+WHERE promotion_id = $1
+`
+
+func (q *Queries) DeletePromotionRulesByPromotionID(ctx context.Context, promotionID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePromotionRulesByPromotionID, promotionID)
+	return err
+}
+
+const deletePromotionTargetsByPromotionID = `-- name: DeletePromotionTargetsByPromotionID :exec
+DELETE FROM promotion_targets
+WHERE promotion_id = $1
+`
+
+func (q *Queries) DeletePromotionTargetsByPromotionID(ctx context.Context, promotionID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deletePromotionTargetsByPromotionID, promotionID)
+	return err
+}
+
+const getActivePromotionByID = `-- name: GetActivePromotionByID :one
+SELECT id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at FROM promotions
+WHERE id = $1 AND is_active = true AND deleted_at IS NULL AND start_date <= NOW() AND end_date >= NOW()
+LIMIT 1
+`
+
+func (q *Queries) GetActivePromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error) {
+	row := q.db.QueryRow(ctx, getActivePromotionByID, id)
+	var i Promotion
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Scope,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.MaxDiscountAmount,
+		&i.StartDate,
+		&i.EndDate,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getPromotionByID = `-- name: GetPromotionByID :one
-SELECT id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at FROM promotions
-WHERE id = $1 AND is_active = true AND start_date <= NOW() AND end_date >= NOW()
+SELECT id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at FROM promotions
+WHERE id = $1
 LIMIT 1
 `
 
@@ -34,6 +242,7 @@ func (q *Queries) GetPromotionByID(ctx context.Context, id uuid.UUID) (Promotion
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -103,4 +312,169 @@ func (q *Queries) GetPromotionTargets(ctx context.Context, promotionID uuid.UUID
 		return nil, err
 	}
 	return items, nil
+}
+
+const listPromotions = `-- name: ListPromotions :many
+SELECT id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at FROM promotions
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListPromotionsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListPromotions(ctx context.Context, arg ListPromotionsParams) ([]Promotion, error) {
+	rows, err := q.db.Query(ctx, listPromotions, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Promotion{}
+	for rows.Next() {
+		var i Promotion
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Scope,
+			&i.DiscountType,
+			&i.DiscountValue,
+			&i.MaxDiscountAmount,
+			&i.StartDate,
+			&i.EndDate,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTrashPromotions = `-- name: ListTrashPromotions :many
+SELECT id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at FROM promotions
+WHERE deleted_at IS NOT NULL
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListTrashPromotionsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListTrashPromotions(ctx context.Context, arg ListTrashPromotionsParams) ([]Promotion, error) {
+	rows, err := q.db.Query(ctx, listTrashPromotions, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Promotion{}
+	for rows.Next() {
+		var i Promotion
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Scope,
+			&i.DiscountType,
+			&i.DiscountValue,
+			&i.MaxDiscountAmount,
+			&i.StartDate,
+			&i.EndDate,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const restorePromotion = `-- name: RestorePromotion :exec
+UPDATE promotions
+SET deleted_at = NULL
+WHERE id = $1
+`
+
+func (q *Queries) RestorePromotion(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, restorePromotion, id)
+	return err
+}
+
+const updatePromotion = `-- name: UpdatePromotion :one
+UPDATE promotions
+SET
+    name = $2,
+    description = $3,
+    scope = $4,
+    discount_type = $5,
+    discount_value = $6,
+    max_discount_amount = $7,
+    start_date = $8,
+    end_date = $9,
+    is_active = $10,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING id, name, description, scope, discount_type, discount_value, max_discount_amount, start_date, end_date, is_active, created_at, updated_at, deleted_at
+`
+
+type UpdatePromotionParams struct {
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	Description       *string            `json:"description"`
+	Scope             PromotionScope     `json:"scope"`
+	DiscountType      DiscountType       `json:"discount_type"`
+	DiscountValue     pgtype.Numeric     `json:"discount_value"`
+	MaxDiscountAmount pgtype.Numeric     `json:"max_discount_amount"`
+	StartDate         pgtype.Timestamptz `json:"start_date"`
+	EndDate           pgtype.Timestamptz `json:"end_date"`
+	IsActive          bool               `json:"is_active"`
+}
+
+func (q *Queries) UpdatePromotion(ctx context.Context, arg UpdatePromotionParams) (Promotion, error) {
+	row := q.db.QueryRow(ctx, updatePromotion,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Scope,
+		arg.DiscountType,
+		arg.DiscountValue,
+		arg.MaxDiscountAmount,
+		arg.StartDate,
+		arg.EndDate,
+		arg.IsActive,
+	)
+	var i Promotion
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Scope,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.MaxDiscountAmount,
+		&i.StartDate,
+		&i.EndDate,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }

@@ -9,6 +9,7 @@ import (
 	"POS-kasir/internal/orders"
 	"POS-kasir/internal/payment_methods"
 	"POS-kasir/internal/products"
+	"POS-kasir/internal/promotions"
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/user"
@@ -58,6 +59,7 @@ type AppContainer struct {
 	PaymentMethodHandler      payment_methods.IPaymentMethodHandler
 	CancellationReasonHandler cancellation_reasons.ICancellationReasonHandler
 	ReportHandler             report.IRptHandler
+	PromotionHandler          promotions.IPromotionHandler
 }
 
 func InitApp() *App {
@@ -142,6 +144,10 @@ func BuildAppContainer(app *App) *AppContainer {
 	reportService := report.NewRptService(app.Store, activityService, app.Logger)
 	reportHandler := report.NewRptHandler(reportService, app.Logger)
 
+	// Promotion Module
+	promotionService := promotions.NewPromotionService(app.Store, app.Logger)
+	promotionHandler := promotions.NewPromotionHandler(promotionService, app.Logger, app.Validator)
+
 	return &AppContainer{
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
@@ -151,6 +157,7 @@ func BuildAppContainer(app *App) *AppContainer {
 		PaymentMethodHandler:      paymentMethodHandler,
 		CancellationReasonHandler: cancellationReasonHandler,
 		ReportHandler:             reportHandler,
+		PromotionHandler:          promotionHandler,
 	}
 }
 

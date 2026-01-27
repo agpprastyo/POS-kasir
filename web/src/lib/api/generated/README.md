@@ -86,6 +86,12 @@ Class | Method | HTTP request | Description
 *ProductsApi* | [**productsTrashIdGet**](docs/ProductsApi.md#productstrashidget) | **GET** /products/trash/{id} | Get a deleted product
 *ProductsApi* | [**productsTrashIdRestorePost**](docs/ProductsApi.md#productstrashidrestorepost) | **POST** /products/trash/{id}/restore | Restore a deleted product
 *ProductsApi* | [**productsTrashRestoreBulkPost**](docs/ProductsApi.md#productstrashrestorebulkpost) | **POST** /products/trash/restore-bulk | Bulk restore deleted products
+*PromotionsApi* | [**promotionsGet**](docs/PromotionsApi.md#promotionsget) | **GET** /promotions | List all promotions
+*PromotionsApi* | [**promotionsIdDelete**](docs/PromotionsApi.md#promotionsiddelete) | **DELETE** /promotions/{id} | Delete (deactivate) a promotion
+*PromotionsApi* | [**promotionsIdGet**](docs/PromotionsApi.md#promotionsidget) | **GET** /promotions/{id} | Get a promotion by ID
+*PromotionsApi* | [**promotionsIdPut**](docs/PromotionsApi.md#promotionsidput) | **PUT** /promotions/{id} | Update a promotion
+*PromotionsApi* | [**promotionsIdRestorePost**](docs/PromotionsApi.md#promotionsidrestorepost) | **POST** /promotions/{id}/restore | Restore a deleted promotion
+*PromotionsApi* | [**promotionsPost**](docs/PromotionsApi.md#promotionspost) | **POST** /promotions | Create a new promotion
 *UsersApi* | [**usersGet**](docs/UsersApi.md#usersget) | **GET** /users | Get all users
 *UsersApi* | [**usersIdDelete**](docs/UsersApi.md#usersiddelete) | **DELETE** /users/{id} | Delete user
 *UsersApi* | [**usersIdGet**](docs/UsersApi.md#usersidget) | **GET** /users/{id} | Get user by ID
@@ -120,6 +126,9 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoCreateProductOptionRequest](docs/POSKasirInternalDtoCreateProductOptionRequest.md)
  - [POSKasirInternalDtoCreateProductOptionRequestStandalone](docs/POSKasirInternalDtoCreateProductOptionRequestStandalone.md)
  - [POSKasirInternalDtoCreateProductRequest](docs/POSKasirInternalDtoCreateProductRequest.md)
+ - [POSKasirInternalDtoCreatePromotionRequest](docs/POSKasirInternalDtoCreatePromotionRequest.md)
+ - [POSKasirInternalDtoCreatePromotionRuleRequest](docs/POSKasirInternalDtoCreatePromotionRuleRequest.md)
+ - [POSKasirInternalDtoCreatePromotionTargetRequest](docs/POSKasirInternalDtoCreatePromotionTargetRequest.md)
  - [POSKasirInternalDtoCreateUserRequest](docs/POSKasirInternalDtoCreateUserRequest.md)
  - [POSKasirInternalDtoListProductsResponse](docs/POSKasirInternalDtoListProductsResponse.md)
  - [POSKasirInternalDtoLoginRequest](docs/POSKasirInternalDtoLoginRequest.md)
@@ -139,10 +148,15 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoUpdatePasswordRequest](docs/POSKasirInternalDtoUpdatePasswordRequest.md)
  - [POSKasirInternalDtoUpdateProductOptionRequest](docs/POSKasirInternalDtoUpdateProductOptionRequest.md)
  - [POSKasirInternalDtoUpdateProductRequest](docs/POSKasirInternalDtoUpdateProductRequest.md)
+ - [POSKasirInternalDtoUpdatePromotionRequest](docs/POSKasirInternalDtoUpdatePromotionRequest.md)
  - [POSKasirInternalDtoUpdateUserRequest](docs/POSKasirInternalDtoUpdateUserRequest.md)
  - [POSKasirInternalDtoUsersResponse](docs/POSKasirInternalDtoUsersResponse.md)
+ - [POSKasirInternalRepositoryDiscountType](docs/POSKasirInternalRepositoryDiscountType.md)
  - [POSKasirInternalRepositoryOrderStatus](docs/POSKasirInternalRepositoryOrderStatus.md)
  - [POSKasirInternalRepositoryOrderType](docs/POSKasirInternalRepositoryOrderType.md)
+ - [POSKasirInternalRepositoryPromotionRuleType](docs/POSKasirInternalRepositoryPromotionRuleType.md)
+ - [POSKasirInternalRepositoryPromotionScope](docs/POSKasirInternalRepositoryPromotionScope.md)
+ - [POSKasirInternalRepositoryPromotionTargetType](docs/POSKasirInternalRepositoryPromotionTargetType.md)
  - [POSKasirInternalRepositoryUserRole](docs/POSKasirInternalRepositoryUserRole.md)
  - [PaymentMethodsGet200Response](docs/PaymentMethodsGet200Response.md)
  - [ProductsGet200Response](docs/ProductsGet200Response.md)

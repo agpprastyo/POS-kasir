@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, Outlet, redirect, useRouter, useParams } from '@tanstack/react-router'
-import { FileText, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, User as UserIcon, Zap, Receipt } from 'lucide-react'
+import { FileText, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, User as UserIcon, Zap, Receipt, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
@@ -104,6 +104,15 @@ function DashboardLayout() {
             label: t('sidebar.product'),
             icon: Package,
             to: '/$locale/product',
+            allowedRoles: [
+                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalRepositoryUserRole.UserRoleManager
+            ]
+        },
+        {
+            label: t('sidebar.promotions'),
+            icon: Tag,
+            to: '/$locale/promotions',
             allowedRoles: [
                 POSKasirInternalRepositoryUserRole.UserRoleAdmin,
                 POSKasirInternalRepositoryUserRole.UserRoleManager

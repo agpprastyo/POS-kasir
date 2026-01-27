@@ -18,6 +18,7 @@ import { Route as LocaleDashboardUsersRouteImport } from './routes/$locale/_dash
 import { Route as LocaleDashboardTransactionsRouteImport } from './routes/$locale/_dashboard.transactions'
 import { Route as LocaleDashboardSettingsRouteImport } from './routes/$locale/_dashboard.settings'
 import { Route as LocaleDashboardReportsRouteImport } from './routes/$locale/_dashboard.reports'
+import { Route as LocaleDashboardPromotionsRouteImport } from './routes/$locale/_dashboard.promotions'
 import { Route as LocaleDashboardProductRouteImport } from './routes/$locale/_dashboard.product'
 import { Route as LocaleDashboardOrderRouteImport } from './routes/$locale/_dashboard.order'
 import { Route as LocaleDashboardAccountRouteImport } from './routes/$locale/_dashboard.account'
@@ -67,6 +68,12 @@ const LocaleDashboardReportsRoute = LocaleDashboardReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => LocaleDashboardRoute,
 } as any)
+const LocaleDashboardPromotionsRoute =
+  LocaleDashboardPromotionsRouteImport.update({
+    id: '/promotions',
+    path: '/promotions',
+    getParentRoute: () => LocaleDashboardRoute,
+  } as any)
 const LocaleDashboardProductRoute = LocaleDashboardProductRouteImport.update({
   id: '/product',
   path: '/product',
@@ -90,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/$locale/account': typeof LocaleDashboardAccountRoute
   '/$locale/order': typeof LocaleDashboardOrderRoute
   '/$locale/product': typeof LocaleDashboardProductRoute
+  '/$locale/promotions': typeof LocaleDashboardPromotionsRoute
   '/$locale/reports': typeof LocaleDashboardReportsRoute
   '/$locale/settings': typeof LocaleDashboardSettingsRoute
   '/$locale/transactions': typeof LocaleDashboardTransactionsRoute
@@ -103,6 +111,7 @@ export interface FileRoutesByTo {
   '/$locale/account': typeof LocaleDashboardAccountRoute
   '/$locale/order': typeof LocaleDashboardOrderRoute
   '/$locale/product': typeof LocaleDashboardProductRoute
+  '/$locale/promotions': typeof LocaleDashboardPromotionsRoute
   '/$locale/reports': typeof LocaleDashboardReportsRoute
   '/$locale/settings': typeof LocaleDashboardSettingsRoute
   '/$locale/transactions': typeof LocaleDashboardTransactionsRoute
@@ -117,6 +126,7 @@ export interface FileRoutesById {
   '/$locale/_dashboard/account': typeof LocaleDashboardAccountRoute
   '/$locale/_dashboard/order': typeof LocaleDashboardOrderRoute
   '/$locale/_dashboard/product': typeof LocaleDashboardProductRoute
+  '/$locale/_dashboard/promotions': typeof LocaleDashboardPromotionsRoute
   '/$locale/_dashboard/reports': typeof LocaleDashboardReportsRoute
   '/$locale/_dashboard/settings': typeof LocaleDashboardSettingsRoute
   '/$locale/_dashboard/transactions': typeof LocaleDashboardTransactionsRoute
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/$locale/account'
     | '/$locale/order'
     | '/$locale/product'
+    | '/$locale/promotions'
     | '/$locale/reports'
     | '/$locale/settings'
     | '/$locale/transactions'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/$locale/account'
     | '/$locale/order'
     | '/$locale/product'
+    | '/$locale/promotions'
     | '/$locale/reports'
     | '/$locale/settings'
     | '/$locale/transactions'
@@ -158,6 +170,7 @@ export interface FileRouteTypes {
     | '/$locale/_dashboard/account'
     | '/$locale/_dashboard/order'
     | '/$locale/_dashboard/product'
+    | '/$locale/_dashboard/promotions'
     | '/$locale/_dashboard/reports'
     | '/$locale/_dashboard/settings'
     | '/$locale/_dashboard/transactions'
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleDashboardReportsRouteImport
       parentRoute: typeof LocaleDashboardRoute
     }
+    '/$locale/_dashboard/promotions': {
+      id: '/$locale/_dashboard/promotions'
+      path: '/promotions'
+      fullPath: '/$locale/promotions'
+      preLoaderRoute: typeof LocaleDashboardPromotionsRouteImport
+      parentRoute: typeof LocaleDashboardRoute
+    }
     '/$locale/_dashboard/product': {
       id: '/$locale/_dashboard/product'
       path: '/product'
@@ -263,6 +283,7 @@ interface LocaleDashboardRouteChildren {
   LocaleDashboardAccountRoute: typeof LocaleDashboardAccountRoute
   LocaleDashboardOrderRoute: typeof LocaleDashboardOrderRoute
   LocaleDashboardProductRoute: typeof LocaleDashboardProductRoute
+  LocaleDashboardPromotionsRoute: typeof LocaleDashboardPromotionsRoute
   LocaleDashboardReportsRoute: typeof LocaleDashboardReportsRoute
   LocaleDashboardSettingsRoute: typeof LocaleDashboardSettingsRoute
   LocaleDashboardTransactionsRoute: typeof LocaleDashboardTransactionsRoute
@@ -274,6 +295,7 @@ const LocaleDashboardRouteChildren: LocaleDashboardRouteChildren = {
   LocaleDashboardAccountRoute: LocaleDashboardAccountRoute,
   LocaleDashboardOrderRoute: LocaleDashboardOrderRoute,
   LocaleDashboardProductRoute: LocaleDashboardProductRoute,
+  LocaleDashboardPromotionsRoute: LocaleDashboardPromotionsRoute,
   LocaleDashboardReportsRoute: LocaleDashboardReportsRoute,
   LocaleDashboardSettingsRoute: LocaleDashboardSettingsRoute,
   LocaleDashboardTransactionsRoute: LocaleDashboardTransactionsRoute,

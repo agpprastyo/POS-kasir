@@ -93,22 +93,24 @@ func SetupRoutes(app *App, container *AppContainer) {
 	//	masterDataGroup.Put("/cancellation-reasons/:id", container.CancellationReasonHandler.UpdateCancellationReasonHandler)
 	//}
 	//
-	//// --- RUTE TAMBAHAN UNTUK MANAJEMEN PROMOSI ---
-	//// CRUD lengkap untuk mengelola promosi.
-	//// Dibutuhkan peran: Admin / Manager
-	//promotionsGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
-	//{
-	//	// Membuat promosi baru beserta aturan dan targetnya.
-	//	promotionsGroup.Post("/", container.PromotionHandler.CreatePromotionHandler)
-	//	// Mendapatkan daftar semua promosi.
-	//	promotionsGroup.Get("/", container.PromotionHandler.ListPromotionsHandler)
-	//	// Mendapatkan detail satu promosi, termasuk aturan dan targetnya.
-	//	promotionsGroup.Get("/:id", container.PromotionHandler.GetPromotionHandler)
-	//	// Memperbarui promosi, aturan, dan targetnya.
-	//	promotionsGroup.Put("/:id", container.PromotionHandler.UpdatePromotionHandler)
-	//	// Menghapus promosi.
-	//	promotionsGroup.Delete("/:id", container.PromotionHandler.DeletePromotionHandler)
-	//}
+	// --- RUTE TAMBAHAN UNTUK MANAJEMEN PROMOSI ---
+	// CRUD lengkap untuk mengelola promosi.
+	// Dibutuhkan peran: Admin / Manager
+	promotionsGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
+	{
+		// Membuat promosi baru beserta aturan dan targetnya.
+		promotionsGroup.Post("/", container.PromotionHandler.CreatePromotionHandler)
+		// Mendapatkan daftar semua promosi.
+		promotionsGroup.Get("/", container.PromotionHandler.ListPromotionsHandler)
+		// Mendapatkan detail satu promosi, termasuk aturan dan targetnya.
+		promotionsGroup.Get("/:id", container.PromotionHandler.GetPromotionHandler)
+		// Memperbarui promosi, aturan, dan targetnya.
+		promotionsGroup.Put("/:id", container.PromotionHandler.UpdatePromotionHandler)
+		// Menghapus promosi.
+		promotionsGroup.Delete("/:id", container.PromotionHandler.DeletePromotionHandler)
+		// Memulihkan promosi yang dihapus.
+		promotionsGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
+	}
 	//
 	//// --- RUTE TAMBAHAN UNTUK DASHBOARD & REPORTING ---
 	//// Rute ini penting untuk insight bisnis dan biasanya hanya untuk Manajer/Admin.

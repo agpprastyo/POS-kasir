@@ -15,15 +15,22 @@ func Int64ToNumeric(v int64) pgtype.Numeric {
 }
 
 func NumericToInt64(n pgtype.Numeric) int64 {
-	if !n.Valid {
-		return 0
+	// Use Float64Value to handle exponent scaling (e.g. 400 * 10^-2 = 4)
+	f, _ := n.Float64Value()
+	return int64(f.Float64)
+}
+
+func Int64PtrToNumeric(v *int64) pgtype.Numeric {
+	if v == nil {
+		return pgtype.Numeric{Valid: false}
 	}
-	// Simplified conversion: assume scale is 0 or handle basic cases
-	// For price/currency usually stored as integer (cents/minor units), Exp is often 0
-	val := n.Int.Int64()
-	// Adjust for exponent if necessary (e.g. if Exp is -2, divide by 100)
-	// database/sql stores numeric as string usually, pgx uses big.Int + Exp.
-	// If Exp > 0, multiply by 10^Exp. If Exp < 0, divide by 10^(-Exp)
-	// For this context assuming Exp=0 for int64 prices is safe if consistency is maintained.
-	return val
+	return Int64ToNumeric(*v)
+}
+
+func NumericToInt64Ptr(n pgtype.Numeric) *int64 {
+	if !n.Valid {
+		return nil
+	}
+	val := NumericToInt64(n)
+	return &val
 }

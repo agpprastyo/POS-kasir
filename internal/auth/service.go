@@ -18,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// AthService is a concrete implementation of IAuthService.
 type AthService struct {
 	Repo           repository.Store
 	Log            logger.ILogger
@@ -37,7 +36,7 @@ func NewAuthService(repo repository.Store, log logger.ILogger, tokenManager util
 	}
 }
 
-// IAuthService defines authentication IActivityService methods.
+
 type IAuthService interface {
 	Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error)
 	Register(ctx context.Context, req dto.RegisterRequest) (*dto.ProfileResponse, error)

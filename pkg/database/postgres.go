@@ -35,8 +35,12 @@ func NewDatabase(cfg *config.AppConfig, log logger.ILogger, migrationFS fs.FS) (
 
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Host,
-		cfg.DB.Port, cfg.DB.DBName, cfg.DB.SSLMode,
+		cfg.DB.User,
+		cfg.DB.Password,
+		cfg.DB.Host,
+		cfg.DB.Port,
+		cfg.DB.DBName,
+		cfg.DB.SSLMode,
 	)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)

@@ -38,7 +38,6 @@ func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
 		return nil, err
 	}
 
-	// Verify bucket exists
 	exists, err := client.BucketExists(context.Background(), cfg.CloudflareR2.Bucket)
 	if err != nil {
 		log.Errorf("Failed to check if R2 bucket exists: %v", err)
@@ -46,8 +45,6 @@ func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
 	}
 	if !exists {
 		log.Warnf("R2 Bucket %s does not exist. (Note: Automatic creation might not be supported or permitted)", cfg.CloudflareR2.Bucket)
-		// Usually we don't auto-create R2 buckets from app, but mimicking minio behavior if needed.
-		// For now, just logging warning.
 	}
 
 	log.Println("Created Cloudflare R2 client")
@@ -74,12 +71,11 @@ func (r *CloudflareR2) BucketExists(ctx context.Context) (bool, error) {
 }
 
 func (r *CloudflareR2) GetFileShareLink(ctx context.Context, objectName string) (string, error) {
-	// If PublicDomain is set, return the public URL directly
+	
 	if r.Cfg.CloudflareR2.PublicDomain != "" {
 		return fmt.Sprintf("%s/%s", r.Cfg.CloudflareR2.PublicDomain, objectName), nil
 	}
 
-	// Falls back to presigned URL if no public domain is configured
 	presignedURL, err := r.Client.PresignedGetObject(
 		ctx,
 		r.Cfg.CloudflareR2.Bucket,

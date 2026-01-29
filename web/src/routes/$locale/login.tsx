@@ -15,7 +15,7 @@ import { meQueryOptions } from "@/lib/api/query/auth.ts";
 import { useAuth } from "@/lib/auth/AuthContext.tsx";
 import { queryClient } from "@/lib/queryClient.ts";
 import { useTranslation } from 'react-i18next'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import {SettingsPanel} from "@/components/SettingsPanel.tsx";
 
 export const Route = createFileRoute('/$locale/login')({
     ssr: false,
@@ -23,7 +23,6 @@ export const Route = createFileRoute('/$locale/login')({
         try {
             const me = await queryClient.ensureQueryData(meQueryOptions())
             if (me) {
-
                 throw redirect({
                     to: '/$locale',
                     params: { locale: params.locale }
@@ -84,7 +83,7 @@ function LoginPage() {
     return (
         <div className="min-h-screen flex items-center justify-center p-6 relative">
             <div className="absolute top-4 right-4">
-                <LanguageSwitcher />
+                <SettingsPanel />
             </div>
             <Card className="w-full max-w-md">
                 <CardHeader>

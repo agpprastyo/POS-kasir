@@ -2,9 +2,9 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { ThemeProvider } from 'next-themes'
 
 import appCss from '../styles.css?url'
-import React from 'react'
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/lib/auth/AuthContext'
@@ -32,24 +32,26 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: any) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <HeadContent />
             </head>
             <body>
                 <QueryClientProvider client={queryClient}>
-                    <AuthProvider>
-                        {children}
-                    </AuthProvider>
-                    <TanStackDevtools
-                        config={{ position: 'bottom-right' }}
-                        plugins={[
-                            {
-                                name: 'Tanstack Router',
-                                render: () => <TanStackRouterDevtoolsPanel />,
-                            },
-                        ]}
-                    />
+                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                        <AuthProvider>
+                            {children}
+                        </AuthProvider>
+                        <TanStackDevtools
+                            config={{ position: 'bottom-right' }}
+                            plugins={[
+                                {
+                                    name: 'Tanstack Router',
+                                    render: () => <TanStackRouterDevtoolsPanel />,
+                                },
+                            ]}
+                        />
+                    </ThemeProvider>
                 </QueryClientProvider>
                 <Scripts />
                 <Toaster />

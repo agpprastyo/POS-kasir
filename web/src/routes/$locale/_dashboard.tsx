@@ -10,7 +10,7 @@ import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
 import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
 import { useTranslation } from 'react-i18next'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import {SettingsPanel} from "@/components/SettingsPanel.tsx";
 
 
 export const Route = createFileRoute('/$locale/_dashboard')({
@@ -203,7 +203,7 @@ function DashboardLayout() {
                     </div>
                     <div className="mt-auto p-4">
                         <div className="hidden md:block mb-4">
-                            <LanguageSwitcher />
+                            <SettingsPanel />
                         </div>
 
                         <div className="rounded-2xl w-full flex items-center justify-between px-2 gap-2 pl-4 aspect-auto h-12 border">
@@ -266,7 +266,7 @@ function DashboardLayout() {
                                     <span className="sr-only">{t('dashboard.brand_name')}</span>
                                 </Link>
                                 <div className="mb-4">
-                                    <LanguageSwitcher />
+                                    <SettingsPanel />
                                 </div>
                                 {/* Mobile Menu Filtered */}
                                 {filteredMenu.map((item) => (

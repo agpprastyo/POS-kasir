@@ -51,6 +51,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*ActivityLogsApi* | [**activityLogsGet**](docs/ActivityLogsApi.md#activitylogsget) | **GET** /activity-logs | Get activity logs
 *AuthApi* | [**authLoginPost**](docs/AuthApi.md#authloginpost) | **POST** /auth/login | Login
 *AuthApi* | [**authLogoutPost**](docs/AuthApi.md#authlogoutpost) | **POST** /auth/logout | Logout
 *AuthApi* | [**authMeAvatarPut**](docs/AuthApi.md#authmeavatarput) | **PUT** /auth/me/avatar | Update avatar
@@ -92,6 +93,12 @@ Class | Method | HTTP request | Description
 *PromotionsApi* | [**promotionsIdPut**](docs/PromotionsApi.md#promotionsidput) | **PUT** /promotions/{id} | Update a promotion
 *PromotionsApi* | [**promotionsIdRestorePost**](docs/PromotionsApi.md#promotionsidrestorepost) | **POST** /promotions/{id}/restore | Restore a deleted promotion
 *PromotionsApi* | [**promotionsPost**](docs/PromotionsApi.md#promotionspost) | **POST** /promotions | Create a new promotion
+*ReportsApi* | [**reportsCancellationsGet**](docs/ReportsApi.md#reportscancellationsget) | **GET** /reports/cancellations | Get cancellation reports
+*ReportsApi* | [**reportsCashierPerformanceGet**](docs/ReportsApi.md#reportscashierperformanceget) | **GET** /reports/cashier-performance | Get cashier performance
+*ReportsApi* | [**reportsDashboardSummaryGet**](docs/ReportsApi.md#reportsdashboardsummaryget) | **GET** /reports/dashboard-summary | Get dashboard summary
+*ReportsApi* | [**reportsPaymentMethodsGet**](docs/ReportsApi.md#reportspaymentmethodsget) | **GET** /reports/payment-methods | Get payment method performance
+*ReportsApi* | [**reportsProductsGet**](docs/ReportsApi.md#reportsproductsget) | **GET** /reports/products | Get product performance
+*ReportsApi* | [**reportsSalesGet**](docs/ReportsApi.md#reportssalesget) | **GET** /reports/sales | Get sales reports
 *UsersApi* | [**usersGet**](docs/UsersApi.md#usersget) | **GET** /users | Get all users
 *UsersApi* | [**usersIdDelete**](docs/UsersApi.md#usersiddelete) | **DELETE** /users/{id} | Delete user
 *UsersApi* | [**usersIdGet**](docs/UsersApi.md#usersidget) | **GET** /users/{id} | Get user by ID
@@ -102,6 +109,7 @@ Class | Method | HTTP request | Description
 
 ### Documentation For Models
 
+ - [ActivityLogsGet200Response](docs/ActivityLogsGet200Response.md)
  - [AuthLoginPost200Response](docs/AuthLoginPost200Response.md)
  - [AuthLogoutPost200Response](docs/AuthLogoutPost200Response.md)
  - [AuthMeGet200Response](docs/AuthMeGet200Response.md)
@@ -113,9 +121,13 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalCommonErrorResponse](docs/POSKasirInternalCommonErrorResponse.md)
  - [POSKasirInternalCommonPaginationPagination](docs/POSKasirInternalCommonPaginationPagination.md)
  - [POSKasirInternalCommonSuccessResponse](docs/POSKasirInternalCommonSuccessResponse.md)
+ - [POSKasirInternalDtoActivityLogListResponse](docs/POSKasirInternalDtoActivityLogListResponse.md)
+ - [POSKasirInternalDtoActivityLogResponse](docs/POSKasirInternalDtoActivityLogResponse.md)
  - [POSKasirInternalDtoApplyPromotionRequest](docs/POSKasirInternalDtoApplyPromotionRequest.md)
  - [POSKasirInternalDtoCancelOrderRequest](docs/POSKasirInternalDtoCancelOrderRequest.md)
  - [POSKasirInternalDtoCancellationReasonResponse](docs/POSKasirInternalDtoCancellationReasonResponse.md)
+ - [POSKasirInternalDtoCancellationReportResponse](docs/POSKasirInternalDtoCancellationReportResponse.md)
+ - [POSKasirInternalDtoCashierPerformanceResponse](docs/POSKasirInternalDtoCashierPerformanceResponse.md)
  - [POSKasirInternalDtoCategoryResponse](docs/POSKasirInternalDtoCategoryResponse.md)
  - [POSKasirInternalDtoCategoryWithCountResponse](docs/POSKasirInternalDtoCategoryWithCountResponse.md)
  - [POSKasirInternalDtoCompleteManualPaymentRequest](docs/POSKasirInternalDtoCompleteManualPaymentRequest.md)
@@ -130,6 +142,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoCreatePromotionRuleRequest](docs/POSKasirInternalDtoCreatePromotionRuleRequest.md)
  - [POSKasirInternalDtoCreatePromotionTargetRequest](docs/POSKasirInternalDtoCreatePromotionTargetRequest.md)
  - [POSKasirInternalDtoCreateUserRequest](docs/POSKasirInternalDtoCreateUserRequest.md)
+ - [POSKasirInternalDtoDashboardSummaryResponse](docs/POSKasirInternalDtoDashboardSummaryResponse.md)
  - [POSKasirInternalDtoListProductsResponse](docs/POSKasirInternalDtoListProductsResponse.md)
  - [POSKasirInternalDtoLoginRequest](docs/POSKasirInternalDtoLoginRequest.md)
  - [POSKasirInternalDtoLoginResponse](docs/POSKasirInternalDtoLoginResponse.md)
@@ -137,13 +150,16 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoOrderItemResponse](docs/POSKasirInternalDtoOrderItemResponse.md)
  - [POSKasirInternalDtoOrderListResponse](docs/POSKasirInternalDtoOrderListResponse.md)
  - [POSKasirInternalDtoPagedOrderResponse](docs/POSKasirInternalDtoPagedOrderResponse.md)
+ - [POSKasirInternalDtoPaymentMethodPerformanceResponse](docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md)
  - [POSKasirInternalDtoPaymentMethodResponse](docs/POSKasirInternalDtoPaymentMethodResponse.md)
  - [POSKasirInternalDtoProductListResponse](docs/POSKasirInternalDtoProductListResponse.md)
  - [POSKasirInternalDtoProductOptionResponse](docs/POSKasirInternalDtoProductOptionResponse.md)
+ - [POSKasirInternalDtoProductPerformanceResponse](docs/POSKasirInternalDtoProductPerformanceResponse.md)
  - [POSKasirInternalDtoProductResponse](docs/POSKasirInternalDtoProductResponse.md)
  - [POSKasirInternalDtoProfileResponse](docs/POSKasirInternalDtoProfileResponse.md)
  - [POSKasirInternalDtoRegisterRequest](docs/POSKasirInternalDtoRegisterRequest.md)
  - [POSKasirInternalDtoRestoreBulkRequest](docs/POSKasirInternalDtoRestoreBulkRequest.md)
+ - [POSKasirInternalDtoSalesReport](docs/POSKasirInternalDtoSalesReport.md)
  - [POSKasirInternalDtoUpdateOrderStatusRequest](docs/POSKasirInternalDtoUpdateOrderStatusRequest.md)
  - [POSKasirInternalDtoUpdatePasswordRequest](docs/POSKasirInternalDtoUpdatePasswordRequest.md)
  - [POSKasirInternalDtoUpdateProductOptionRequest](docs/POSKasirInternalDtoUpdateProductOptionRequest.md)
@@ -152,6 +168,8 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoUpdateUserRequest](docs/POSKasirInternalDtoUpdateUserRequest.md)
  - [POSKasirInternalDtoUsersResponse](docs/POSKasirInternalDtoUsersResponse.md)
  - [POSKasirInternalRepositoryDiscountType](docs/POSKasirInternalRepositoryDiscountType.md)
+ - [POSKasirInternalRepositoryLogActionType](docs/POSKasirInternalRepositoryLogActionType.md)
+ - [POSKasirInternalRepositoryLogEntityType](docs/POSKasirInternalRepositoryLogEntityType.md)
  - [POSKasirInternalRepositoryOrderStatus](docs/POSKasirInternalRepositoryOrderStatus.md)
  - [POSKasirInternalRepositoryOrderType](docs/POSKasirInternalRepositoryOrderType.md)
  - [POSKasirInternalRepositoryPromotionRuleType](docs/POSKasirInternalRepositoryPromotionRuleType.md)
@@ -162,6 +180,12 @@ Class | Method | HTTP request | Description
  - [ProductsGet200Response](docs/ProductsGet200Response.md)
  - [ProductsPost201Response](docs/ProductsPost201Response.md)
  - [ProductsProductIdOptionsPost201Response](docs/ProductsProductIdOptionsPost201Response.md)
+ - [ReportsCancellationsGet200Response](docs/ReportsCancellationsGet200Response.md)
+ - [ReportsCashierPerformanceGet200Response](docs/ReportsCashierPerformanceGet200Response.md)
+ - [ReportsDashboardSummaryGet200Response](docs/ReportsDashboardSummaryGet200Response.md)
+ - [ReportsPaymentMethodsGet200Response](docs/ReportsPaymentMethodsGet200Response.md)
+ - [ReportsProductsGet200Response](docs/ReportsProductsGet200Response.md)
+ - [ReportsSalesGet200Response](docs/ReportsSalesGet200Response.md)
  - [UsersGet200Response](docs/UsersGet200Response.md)
 
 

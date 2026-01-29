@@ -12,6 +12,28 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countActivityLogs = `-- name: CountActivityLogs :one
+SELECT COUNT(*)
+FROM activity_logs al
+WHERE
+    ($1::uuid IS NULL OR al.user_id = $1)
+    AND ($2::timestamptz IS NULL OR al.created_at >= $2)
+    AND ($3::timestamptz IS NULL OR al.created_at <= $3)
+`
+
+type CountActivityLogsParams struct {
+	UserID    pgtype.UUID        `json:"user_id"`
+	StartDate pgtype.Timestamptz `json:"start_date"`
+	EndDate   pgtype.Timestamptz `json:"end_date"`
+}
+
+func (q *Queries) CountActivityLogs(ctx context.Context, arg CountActivityLogsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countActivityLogs, arg.UserID, arg.StartDate, arg.EndDate)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createActivityLog = `-- name: CreateActivityLog :one
 INSERT INTO activity_logs (
     user_id,
@@ -43,4 +65,78 @@ func (q *Queries) CreateActivityLog(ctx context.Context, arg CreateActivityLogPa
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getActivityLogs = `-- name: GetActivityLogs :many
+SELECT
+    al.id,
+    al.user_id,
+    u.username as user_name,
+    al.action_type,
+    al.entity_type,
+    al.entity_id,
+    al.details,
+    al.created_at
+FROM activity_logs al
+LEFT JOIN users u ON al.user_id = u.id
+WHERE
+    ($3::uuid IS NULL OR al.user_id = $3)
+    AND ($4::timestamptz IS NULL OR al.created_at >= $4)
+    AND ($5::timestamptz IS NULL OR al.created_at <= $5)
+ORDER BY al.created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetActivityLogsParams struct {
+	Limit     int32              `json:"limit"`
+	Offset    int32              `json:"offset"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	StartDate pgtype.Timestamptz `json:"start_date"`
+	EndDate   pgtype.Timestamptz `json:"end_date"`
+}
+
+type GetActivityLogsRow struct {
+	ID         uuid.UUID          `json:"id"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	UserName   *string            `json:"user_name"`
+	ActionType LogActionType      `json:"action_type"`
+	EntityType LogEntityType      `json:"entity_type"`
+	EntityID   string             `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetActivityLogs(ctx context.Context, arg GetActivityLogsParams) ([]GetActivityLogsRow, error) {
+	rows, err := q.db.Query(ctx, getActivityLogs,
+		arg.Limit,
+		arg.Offset,
+		arg.UserID,
+		arg.StartDate,
+		arg.EndDate,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetActivityLogsRow{}
+	for rows.Next() {
+		var i GetActivityLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.UserName,
+			&i.ActionType,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Details,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

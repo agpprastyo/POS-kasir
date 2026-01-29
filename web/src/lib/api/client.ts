@@ -1,5 +1,6 @@
 import axios from "axios"
 import {
+    ActivityLogsApi,
     AuthApi,
     CancellationReasonsApi,
     CategoriesApi,
@@ -8,6 +9,7 @@ import {
     PaymentMethodsApi,
     ProductsApi,
     PromotionsApi,
+    ReportsApi,
     UsersApi
 } from "@/lib/api/generated";
 
@@ -71,4 +73,6 @@ export const productsApi = new ProductsApi(config, undefined, axiosInstance)
 export const ordersApi = new OrdersApi(config, undefined, axiosInstance)
 export const paymentMethodsApi = new PaymentMethodsApi(config, undefined, axiosInstance)
 export const promotionsApi = new PromotionsApi(config, undefined, axiosInstance)
+export const reportsApi = new ReportsApi(config, undefined, axiosInstance)
+export const activityLogsApi = new ActivityLogsApi(config, undefined, axiosInstance)
 

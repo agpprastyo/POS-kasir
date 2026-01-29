@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useProductsListQuery, Product, productDetailQueryOptions } from '@/lib/api/query/products'
 import { ProductCard } from '@/components/ProductCard'
 import { Input } from '@/components/ui/input'
-import { Search, ShoppingCart, Trash2, Banknote, Minus, Plus, Loader2 } from 'lucide-react'
+import { Search, ShoppingCart, Trash2, Banknote, Minus, Plus, Loader2, TicketPercent } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { formatRupiah } from '@/lib/utils'
@@ -28,11 +28,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery, useCancelOrderMutation } from '@/lib/api/query/orders'
+import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery, useCancelOrderMutation, useApplyPromotionMutation } from '@/lib/api/query/orders'
+import { usePromotionsListQuery } from '@/lib/api/query/promotions'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { POSKasirInternalDtoProductOptionResponse, POSKasirInternalRepositoryOrderType } from '@/lib/api/generated'
 import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 
 const orderSearchSchema = z.object({
@@ -92,6 +94,11 @@ function OrderPage() {
     const [cashReceived, setCashReceived] = useState<string>('')
     const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
     const [isLoadingDetailsId, setIsLoadingDetailsId] = useState<string | null>(null)
+
+    // Promotions
+    const { data: promotionsData } = usePromotionsListQuery({ limit: 100, trash: false })
+    const activePromotions = useMemo(() => promotionsData?.promotions?.filter(p => p.is_active) || [], [promotionsData])
+    const applyPromotionMutation = useApplyPromotionMutation()
 
 
     const [variantSelectionOpen, setVariantSelectionOpen] = useState(false)
@@ -189,7 +196,7 @@ function OrderPage() {
             items: cart.map(item => ({
                 product_id: item.product.id!,
                 quantity: item.quantity,
-                options: item.variant ? [{ product_option_id: item.variant.id }] : []
+                options: item.variant && item.variant.id ? [{ product_option_id: item.variant.id }] : []
             })),
             type: selectedOrderType
         }
@@ -205,11 +212,23 @@ function OrderPage() {
         })
     }
 
+    const handleApplyPromotion = (promoId: string) => {
+        if (!createdOrderId) return
+        toast.promise(applyPromotionMutation.mutateAsync({
+            id: createdOrderId,
+            body: { promotion_id: promoId }
+        }), {
+            loading: 'Menerapkan promosi...',
+            success: 'Promosi diterapkan!',
+            error: (err) => err?.response?.data?.message || 'Gagal menerapkan promosi'
+        })
+    }
+
     useEffect(() => {
         if (isPaymentOpen) {
             setCashReceived('')
             if (!selectedPaymentMethod && paymentMethods) {
-                const cashMethod = paymentMethods.find((m: any) => m.name?.toLowerCase().includes('cash'))
+                const cashMethod = paymentMethods.find(m => m.name?.toLowerCase().includes('cash'))
                 if (cashMethod) {
                     setSelectedPaymentMethod(cashMethod.id)
                 } else if (paymentMethods.length > 0) {
@@ -279,7 +298,6 @@ function OrderPage() {
 
     const handleAttemptClosePayment = (open: boolean) => {
         if (!open) {
-            // User is trying to close the dialog
             if (createdOrderId) {
                 setCancelDialogOpen(true)
             } else {
@@ -297,7 +315,7 @@ function OrderPage() {
             await cancelOrderMutation.mutateAsync({
                 id: createdOrderId,
                 body: {
-                    cancellation_reason_id: 1, // Default reason
+                    cancellation_reason_id: 1, 
                     cancellation_notes: 'Cancelled by user from payment screen'
                 }
             })
@@ -487,9 +505,7 @@ function OrderPage() {
                     <DialogHeader>
                         <DialogTitle>{t('order.payment_dialog.title')}</DialogTitle>
                         <DialogDescription>
-                            {t('order.payment_dialog.desc')} <span className="font-bold text-foreground">
-                                {isLoadingCreatedOrder ? <Loader2 className="h-4 w-4 animate-spin inline" /> : formatRupiah(createdOrder?.net_total || 0)}
-                            </span>
+                            {t('order.payment_dialog.desc')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -499,6 +515,38 @@ function OrderPage() {
                         </div>
                     ) : (
                         <>
+                            {/* Order Summary & Promotion */}
+                            <div className="bg-muted/30 p-4 rounded-lg space-y-3 mb-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span>{formatRupiah(createdOrder?.gross_total || 0)}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground flex items-center gap-1"><TicketPercent className="w-3 h-3" /> Diskon</span>
+                                    <span className="text-green-600">-{formatRupiah(createdOrder?.discount_amount || 0)}</span>
+                                </div>
+
+                                <div className="pt-2">
+                                    <Select onValueChange={handleApplyPromotion} value={createdOrder?.applied_promotion_id || ""}>
+                                        <SelectTrigger className="w-full h-9 text-sm">
+                                            <SelectValue placeholder="Pilih Promo / Diskon" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {activePromotions.map(promo => (
+                                                <SelectItem key={promo.id} value={promo.id}>
+                                                    {promo.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="flex justify-between items-center text-lg font-bold border-t pt-2 mt-2">
+                                    <span>Total Tagihan</span>
+                                    <span className="text-primary text-xl">{formatRupiah(createdOrder?.net_total || 0)}</span>
+                                </div>
+                            </div>
+
                             <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : ''} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
                                 <TabsList className="flex flex-wrap h-auto w-full gap-2 bg-transparent p-0">
                                     {paymentMethods?.map(method => (

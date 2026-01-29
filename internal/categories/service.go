@@ -199,7 +199,7 @@ func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryR
 		UpdatedAt: category.UpdatedAt.Time,
 	}
 
-	// Log the activity of creating a category
+	
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
 		s.log.Warnf("CreateCategory | Actor user ID not found in context for activity logging")

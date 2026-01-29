@@ -140,6 +140,7 @@ CREATE TABLE public.promotions (
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  deleted_at timestamp with time zone,
   CONSTRAINT promotions_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.schema_migrations (

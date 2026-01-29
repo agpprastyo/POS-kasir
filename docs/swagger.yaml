@@ -24,6 +24,41 @@ definitions:
       total_page:
         type: integer
     type: object
+  POS-kasir_internal_dto.ActivityLogListResponse:
+    properties:
+      limit:
+        type: integer
+      logs:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.ActivityLogResponse'
+        type: array
+      page:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  POS-kasir_internal_dto.ActivityLogResponse:
+    properties:
+      action_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.LogActionType'
+      created_at:
+        type: string
+      details:
+        additionalProperties: true
+        type: object
+      entity_id:
+        type: string
+      entity_type:
+        $ref: '#/definitions/POS-kasir_internal_repository.LogEntityType'
+      id:
+        type: string
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
   POS-kasir_internal_dto.ApplyPromotionRequest:
     properties:
       promotion_id:
@@ -52,6 +87,26 @@ definitions:
       is_active:
         type: boolean
       reason:
+        type: string
+    type: object
+  POS-kasir_internal_dto.CancellationReportResponse:
+    properties:
+      cancelled_orders:
+        type: integer
+      reason:
+        type: string
+      reason_id:
+        type: integer
+    type: object
+  POS-kasir_internal_dto.CashierPerformanceResponse:
+    properties:
+      order_count:
+        type: integer
+      total_sales:
+        type: number
+      user_id:
+        type: string
+      username:
         type: string
     type: object
   POS-kasir_internal_dto.CategoryResponse:
@@ -265,6 +320,17 @@ definitions:
     - role
     - username
     type: object
+  POS-kasir_internal_dto.DashboardSummaryResponse:
+    properties:
+      total_orders:
+        type: integer
+      total_products:
+        type: integer
+      total_sales:
+        type: number
+      unique_cashier:
+        type: integer
+    type: object
   POS-kasir_internal_dto.ListProductsResponse:
     properties:
       pagination:
@@ -353,6 +419,17 @@ definitions:
       pagination:
         $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
     type: object
+  POS-kasir_internal_dto.PaymentMethodPerformanceResponse:
+    properties:
+      order_count:
+        type: integer
+      payment_method_id:
+        type: integer
+      payment_method_name:
+        type: string
+      total_sales:
+        type: number
+    type: object
   POS-kasir_internal_dto.PaymentMethodResponse:
     properties:
       created_at:
@@ -393,6 +470,17 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  POS-kasir_internal_dto.ProductPerformanceResponse:
+    properties:
+      product_id:
+        type: string
+      product_name:
+        type: string
+      total_quantity:
+        type: integer
+      total_revenue:
+        type: number
     type: object
   POS-kasir_internal_dto.ProductResponse:
     properties:
@@ -471,6 +559,15 @@ definitions:
         type: array
     required:
     - product_ids
+    type: object
+  POS-kasir_internal_dto.SalesReport:
+    properties:
+      date:
+        type: string
+      order_count:
+        type: integer
+      total_sales:
+        type: number
     type: object
   POS-kasir_internal_dto.UpdateOrderStatusRequest:
     properties:
@@ -595,6 +692,46 @@ definitions:
     x-enum-varnames:
     - DiscountTypePercentage
     - DiscountTypeFixedAmount
+  POS-kasir_internal_repository.LogActionType:
+    enum:
+    - CREATE
+    - UPDATE
+    - DELETE
+    - CANCEL
+    - APPLY_PROMOTION
+    - PROCESS_PAYMENT
+    - REGISTER
+    - UPDATE_PASSWORD
+    - UPDATE_AVATAR
+    - LOGIN_SUCCESS
+    - LOGIN_FAILED
+    type: string
+    x-enum-varnames:
+    - LogActionTypeCREATE
+    - LogActionTypeUPDATE
+    - LogActionTypeDELETE
+    - LogActionTypeCANCEL
+    - LogActionTypeAPPLYPROMOTION
+    - LogActionTypePROCESSPAYMENT
+    - LogActionTypeREGISTER
+    - LogActionTypeUPDATEPASSWORD
+    - LogActionTypeUPDATEAVATAR
+    - LogActionTypeLOGINSUCCESS
+    - LogActionTypeLOGINFAILED
+  POS-kasir_internal_repository.LogEntityType:
+    enum:
+    - PRODUCT
+    - CATEGORY
+    - PROMOTION
+    - ORDER
+    - USER
+    type: string
+    x-enum-varnames:
+    - LogEntityTypePRODUCT
+    - LogEntityTypeCATEGORY
+    - LogEntityTypePROMOTION
+    - LogEntityTypeORDER
+    - LogEntityTypeUSER
   POS-kasir_internal_repository.OrderStatus:
     enum:
     - open
@@ -664,6 +801,69 @@ info:
   title: POS Kasir API
   version: "1.0"
 paths:
+  /activity-logs:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of activity logs with filtering and pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      - description: Entity Type
+        in: query
+        name: entity_type
+        type: string
+      - description: Action Type
+        in: query
+        name: action_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ActivityLogListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get activity logs
+      tags:
+      - ActivityLogs
   /auth/login:
     post:
       consumes:
@@ -2158,6 +2358,229 @@ paths:
       summary: Restore a deleted promotion
       tags:
       - Promotions
+  /reports/cancellations:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.CancellationReportResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get cancellation reports
+      tags:
+      - Reports
+  /reports/cashier-performance:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.CashierPerformanceResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get cashier performance
+      tags:
+      - Reports
+  /reports/dashboard-summary:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.DashboardSummaryResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get dashboard summary
+      tags:
+      - Reports
+  /reports/payment-methods:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.PaymentMethodPerformanceResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get payment method performance
+      tags:
+      - Reports
+  /reports/products:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.ProductPerformanceResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get product performance
+      tags:
+      - Reports
+  /reports/sales:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.SalesReport'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get sales reports
+      tags:
+      - Reports
   /users:
     get:
       consumes:

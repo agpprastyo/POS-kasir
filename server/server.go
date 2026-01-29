@@ -60,6 +60,7 @@ type AppContainer struct {
 	CancellationReasonHandler cancellation_reasons.ICancellationReasonHandler
 	ReportHandler             report.IRptHandler
 	PromotionHandler          promotions.IPromotionHandler
+	ActivityLogHandler        *activitylog.ActivityLogHandler
 }
 
 func InitApp() *App {
@@ -109,6 +110,7 @@ func InitApp() *App {
 func BuildAppContainer(app *App) *AppContainer {
 	// Activity Log IActivityService
 	activityService := activitylog.NewActivityService(app.Store, app.Logger)
+	activityLogHandler := activitylog.NewActivityLogHandler(activityService, app.Logger, app.Validator)
 
 	// Auth Module
 	authRepo := auth.NewAuthRepo(app.Logger, app.R2)
@@ -158,6 +160,7 @@ func BuildAppContainer(app *App) *AppContainer {
 		CancellationReasonHandler: cancellationReasonHandler,
 		ReportHandler:             reportHandler,
 		PromotionHandler:          promotionHandler,
+		ActivityLogHandler:        activityLogHandler,
 	}
 }
 

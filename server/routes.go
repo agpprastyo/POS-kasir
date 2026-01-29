@@ -56,6 +56,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Get("/payment-methods", authMiddleware, container.PaymentMethodHandler.ListPaymentMethodsHandler)
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
+	api.Get("/activity-logs", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ActivityLogHandler.GetActivityLogs)
 
 	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CreateOrderHandler)
 	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
@@ -63,7 +64,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Patch("/orders/:id/items", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOrderItemsHandler)
 
 	api.Post("/orders/:id/cancel", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CancelOrderHandler)
-	//api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
+	api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
 	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
 	api.Post("/orders/:id/complete-manual-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
@@ -71,31 +72,10 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
 	api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesReportsHandler)
-	api.Get("/reports/products?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetProductPerformanceHandler)
-	api.Get("/reports/payment-methods?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetPaymentMethodPerformanceHandler)
-	api.Get("/reports/cashier-performance?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetCashierPerformanceHandler)
-	api.Get("/reports/cancellations?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
-
-	////api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesSummaryHandler)
-	////api.Get("/reports/products", authMiddleware, container.ReportHandler.GetSalesDetailHandler)
-	//
-	//// --- RUTE TAMBAHAN UNTUK MANAJEMEN DATA MASTER ---
-	//// CRUD untuk mengelola data master seperti metode pembayaran dan alasan pembatalan.
-	//// Dibutuhkan peran: Admin
-	//masterDataGroup := api.Group("/", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin))
-	//{
-	//	// Payment Methods
-	//	masterDataGroup.Post("/payment-methods", container.PaymentMethodHandler.CreatePaymentMethodHandler)
-	//	masterDataGroup.Put("/payment-methods/:id", container.PaymentMethodHandler.UpdatePaymentMethodHandler)
-	//
-	//	// Cancellation Reasons
-	//	masterDataGroup.Post("/cancellation-reasons", container.CancellationReasonHandler.CreateCancellationReasonHandler)
-	//	masterDataGroup.Put("/cancellation-reasons/:id", container.CancellationReasonHandler.UpdateCancellationReasonHandler)
-	//}
-	//
-	// --- RUTE TAMBAHAN UNTUK MANAJEMEN PROMOSI ---
-	// CRUD lengkap untuk mengelola promosi.
-	// Dibutuhkan peran: Admin / Manager
+	api.Get("/reports/products", authMiddleware, container.ReportHandler.GetProductPerformanceHandler)
+	api.Get("/reports/payment-methods", authMiddleware, container.ReportHandler.GetPaymentMethodPerformanceHandler)
+	api.Get("/reports/cashier-performance", authMiddleware, container.ReportHandler.GetCashierPerformanceHandler)
+	api.Get("/reports/cancellations", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
 	promotionsGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
 	{
 		// Membuat promosi baru beserta aturan dan targetnya.
@@ -111,22 +91,4 @@ func SetupRoutes(app *App, container *AppContainer) {
 		// Memulihkan promosi yang dihapus.
 		promotionsGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
 	}
-	//
-	//// --- RUTE TAMBAHAN UNTUK DASHBOARD & REPORTING ---
-	//// Rute ini penting untuk insight bisnis dan biasanya hanya untuk Manajer/Admin.
-	//reportingGroup := api.Group("/reports", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
-	//{
-	//	// Mendapatkan data ringkasan untuk dashboard utama.
-	//	// Contoh: total penjualan hari ini, jumlah transaksi, produk terlaris.
-	//	// GET /api/v1/reports/dashboard-summary
-	//	reportingGroup.Get("/dashboard-summary", container.ReportHandler.GetDashboardSummaryHandler)
-	//
-	//	// Mendapatkan laporan penjualan dengan rentang tanggal.
-	//	// GET /api/v1/reports/sales?start_date=2025-07-01&end_date=2025-07-18
-	//	reportingGroup.Get("/sales", container.ReportHandler.GetSalesReportsHandler)
-	//
-	//	// Mendapatkan laporan performa produk.
-	//	// GET /api/v1/reports/products
-	//	reportingGroup.Get("/products", container.ReportHandler.GetProductPerformanceHandler)
-	//}
 }

@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	dto "POS-kasir/internal/dto"
 	repository "POS-kasir/internal/repository"
 	context "context"
 	reflect "reflect"
@@ -40,6 +41,21 @@ func NewMockIActivityService(ctrl *gomock.Controller) *MockIActivityService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIActivityService) EXPECT() *MockIActivityServiceMockRecorder {
 	return m.recorder
+}
+
+// GetActivityLogs mocks base method.
+func (m *MockIActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivityLogsRequest) (*dto.ActivityLogListResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActivityLogs", ctx, req)
+	ret0, _ := ret[0].(*dto.ActivityLogListResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActivityLogs indicates an expected call of GetActivityLogs.
+func (mr *MockIActivityServiceMockRecorder) GetActivityLogs(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivityLogs", reflect.TypeOf((*MockIActivityService)(nil).GetActivityLogs), ctx, req)
 }
 
 // Log mocks base method.

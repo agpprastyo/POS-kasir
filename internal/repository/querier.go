@@ -25,6 +25,7 @@ type Querier interface {
 	CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error)
 	// Hanya menghitung pengguna yang aktif dan belum dihapus.
 	CountActiveUsers(ctx context.Context) (int64, error)
+	CountActivityLogs(ctx context.Context, arg CountActivityLogsParams) (int64, error)
 	// Menghitung total jumlah kategori, berguna untuk pagination.
 	CountCategories(ctx context.Context) (int64, error)
 	CountDeletedProducts(ctx context.Context, arg CountDeletedProductsParams) (int64, error)
@@ -81,6 +82,7 @@ type Querier interface {
 	// Memeriksa apakah kategori dengan ID tertentu ada.
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	GetActivePromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
+	GetActivityLogs(ctx context.Context, arg GetActivityLogsParams) ([]GetActivityLogsRow, error)
 	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
 	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
 	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)

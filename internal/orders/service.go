@@ -90,6 +90,12 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return common.ErrOrderNotModifiable
 		}
 
+		// Fetch order items for rule validation and discount calculation
+		orderItems, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
+		if err != nil {
+			return fmt.Errorf("failed to get order items: %w", err)
+		}
+
 		promo, err := qtx.GetPromotionByID(ctx, req.PromotionID)
 		if err != nil {
 			return common.ErrNotFound
@@ -113,36 +119,139 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return fmt.Errorf("failed to get promotion rules: %w", err)
 		}
 
+		// Cache for product details if needed (for category checks)
+		productCache := make(map[uuid.UUID]repository.GetProductByIDRow)
+		getProduct := func(id uuid.UUID) (repository.GetProductByIDRow, error) {
+			if p, ok := productCache[id]; ok {
+				return p, nil
+			}
+			p, err := qtx.GetProductByID(ctx, id)
+			if err != nil {
+				return repository.GetProductByIDRow{}, err
+			}
+			productCache[id] = p
+			return p, nil
+		}
+
 		for _, rule := range rules {
 			switch rule.RuleType {
 			case repository.PromotionRuleTypeMINIMUMORDERAMOUNT:
 				minAmount, err := strconv.ParseInt(rule.RuleValue, 10, 64)
 				if err != nil {
 					s.log.Warnf("Invalid rule value for MINIMUM_ORDER_AMOUNT: %s", rule.RuleValue)
-					continue // Logic error in rule definition, skip or fail? safe to skip but log
+					continue
 				}
 				if order.GrossTotal < minAmount {
 					return fmt.Errorf("%w: minimum order amount not met (min: %d)", common.ErrPromotionNotApplicable, minAmount)
 				}
-				// Future: Add other rule validations here
+
+			case repository.PromotionRuleTypeREQUIREDPRODUCT:
+				requiredProductID, err := uuid.Parse(rule.RuleValue)
+				if err != nil {
+					s.log.Warnf("Invalid rule value for REQUIRED_PRODUCT: %s", rule.RuleValue)
+					continue
+				}
+				found := false
+				for _, item := range orderItems {
+					if item.ProductID == requiredProductID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return fmt.Errorf("%w: required product not found in order", common.ErrPromotionNotApplicable)
+				}
+
+			case repository.PromotionRuleTypeREQUIREDCATEGORY:
+				requiredCategoryID, err := strconv.Atoi(rule.RuleValue)
+				if err != nil {
+					s.log.Warnf("Invalid rule value for REQUIRED_CATEGORY: %s", rule.RuleValue)
+					continue
+				}
+				found := false
+				for _, item := range orderItems {
+					prod, err := getProduct(item.ProductID)
+					if err != nil {
+						continue
+					}
+					if prod.CategoryID != nil && int(*prod.CategoryID) == requiredCategoryID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return fmt.Errorf("%w: required category item not found in order", common.ErrPromotionNotApplicable)
+				}
 			}
 		}
 
+		// 3. Calculate Discount
 		var discountAmount int64
 		grossTotal := order.GrossTotal
 
-		if promo.DiscountType == repository.DiscountTypePercentage {
-			percentage := utils.NumericToInt64(promo.DiscountValue)
-			discountAmount = (grossTotal * percentage) / 100
-
-			maxDisc := utils.NumericToInt64(promo.MaxDiscountAmount)
-			if maxDisc > 0 && discountAmount > maxDisc {
-				discountAmount = maxDisc
+		if promo.Scope == repository.PromotionScopeITEM {
+			targets, err := qtx.GetPromotionTargets(ctx, promo.ID)
+			if err != nil {
+				return fmt.Errorf("failed to get promotion targets: %w", err)
 			}
+
+			// Identify eligible items total
+			var eligibleTotal int64
+			for _, item := range orderItems {
+				isEligible := false
+				for _, target := range targets {
+					if target.TargetType == repository.PromotionTargetTypePRODUCT {
+						if target.TargetID == item.ProductID.String() {
+							isEligible = true
+							break
+						}
+					} else if target.TargetType == repository.PromotionTargetTypeCATEGORY {
+						prod, err := getProduct(item.ProductID)
+						if err != nil {
+							continue
+						}
+						// Convert TargetID string to int for category comparison
+						targetCatID, _ := strconv.Atoi(target.TargetID)
+						if prod.CategoryID != nil && int(*prod.CategoryID) == targetCatID {
+							isEligible = true
+							break
+						}
+					}
+				}
+				if isEligible {
+					eligibleTotal += item.Subtotal // Use Subtotal (Price * Qty)
+				}
+			}
+
+			if eligibleTotal > 0 {
+				if promo.DiscountType == repository.DiscountTypePercentage {
+					percentage := utils.NumericToInt64(promo.DiscountValue)
+					discountAmount = (eligibleTotal * percentage) / 100
+				} else {
+					// Fixed amount for items? Usually per item or total fixed off eligible items?
+					// Assuming fixed amount off the specific items' total, or once per order if triggered?
+					// Simple implementation: Fixed amount off the eligible total, capped at eligible total.
+					discountAmount = utils.NumericToInt64(promo.DiscountValue)
+				}
+			}
+
 		} else {
-			discountAmount = utils.NumericToInt64(promo.DiscountValue)
+			// ORDER Scope (Global Discount)
+			if promo.DiscountType == repository.DiscountTypePercentage {
+				percentage := utils.NumericToInt64(promo.DiscountValue)
+				discountAmount = (grossTotal * percentage) / 100
+			} else {
+				discountAmount = utils.NumericToInt64(promo.DiscountValue)
+			}
 		}
 
+		// Apply Max Discount Cap
+		maxDisc := utils.NumericToInt64(promo.MaxDiscountAmount)
+		if maxDisc > 0 && discountAmount > maxDisc {
+			discountAmount = maxDisc
+		}
+
+		// Ensure we don't discount more than total
 		if discountAmount > grossTotal {
 			discountAmount = grossTotal
 		}
@@ -454,6 +563,7 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(orderWithDetails 
 		NetTotal:                orderWithDetails.NetTotal,
 		PaymentMethodID:         orderWithDetails.PaymentMethodID,
 		PaymentGatewayReference: orderWithDetails.PaymentGatewayReference,
+		AppliedPromotionID:      utils.NullableUUIDToPointer(orderWithDetails.AppliedPromotionID),
 		CreatedAt:               orderWithDetails.CreatedAt.Time,
 		UpdatedAt:               orderWithDetails.UpdatedAt.Time,
 		Items:                   itemResponses,

@@ -9,7 +9,8 @@
         "logout": "Logout",
         "confirm": "Confirm",
         "yes": "Yes",
-        "no": "No"
+        "no": "No",
+        "no_data": "No data available"
     },
     "auth": {
         "welcome_back": "Welcome back",
@@ -32,7 +33,8 @@
         "reports": "Reports",
         "users": "Users",
         "settings": "Settings",
-        "account": "Account"
+        "account": "Account",
+        "activity_logs": "Activity Logs"
     },
     "transactions": {
         "title": "Transactions",
@@ -94,18 +96,70 @@
     },
     "dashboard": {
         "title": "Dashboard Summary",
+        "toggle_nav": "Toggle navigation menu",
+        "widgets": {
+            "sales_trend": "Sales Trend (Last 30 Days)",
+            "top_products": "Top Products",
+            "quantity": "Quantity",
+            "revenue": "Revenue",
+            "payment_distribution": "Payment Methods",
+            "cashier_performance": "Cashier Performance"
+        },
+        "stats": {
+            "from_last_month": "from last month",
+            "since_last_hour": "since last hour",
+            "today_sales": "Today's Sales",
+            "today_orders": "Today's Orders",
+            "active_today": "Active Today",
+            "all_time": "All Time"
+        },
         "total_revenue": "Total Revenue",
+        "total_orders": "Total Orders",
+        "active_cashiers": "Active Cashiers",
+        "total_products": "Total Products",
         "active_users": "Active Users",
         "sales": "Sales",
         "active_now": "Active Now",
         "brand_name": "Acme Inc",
-        "toggle_nav": "Toggle navigation menu",
-        "stats": {
-            "from_last_month": "from last month",
-            "since_last_hour": "since last hour"
-        },
         "secret_reports": "Secret Reports Page (Admin Only)",
         "placeholder_content": "Other content can be placed here..."
+    },
+    "reports": {
+        "title": "Reports Analytics",
+        "subtitle": "Comprehensive insights into your business performance.",
+        "tabs": {
+            "sales": "Sales",
+            "products": "Products",
+            "performance": "Performance",
+            "cancellations": "Cancellations"
+        },
+        "sales": {
+            "title": "Sales Overview",
+            "description": "Daily sales revenue and order counts over time.",
+            "revenue": "Total Revenue",
+            "orders": "Order Count"
+        },
+        "products": {
+            "title": "Product Performance",
+            "description": "Top selling products by quantity and revenue.",
+            "product": "Product",
+            "quantity": "Quantity Sold",
+            "revenue": "Total Revenue"
+        },
+        "performance": {
+            "payment_methods": "Payment Method Distribution",
+            "cashier": "Cashier Leaderboard",
+            "staff": "Staff Member",
+            "orders": "Total Orders",
+            "sales": "Total Sales"
+        },
+        "cancellations": {
+            "title": "Cancellation Report",
+            "description": "Analysis of cancelled orders and reasons.",
+            "reason": "Reason",
+            "date": "Date",
+            "count": "Total Count"
+        }
     },
     "account": {
         "title": "Account",
@@ -432,5 +486,18 @@
         },
         "go_home": "Go home",
         "default_message": "Something went wrong"
+    },
+    "activity_logs": {
+        "title": "Activity Logs",
+        "description": "View and filter system activity logs.",
+        "list_title": "System Activities",
+        "search_placeholder": "Search details or entity ID...",
+        "columns": {
+            "date": "Date",
+            "user": "User",
+            "action": "Action",
+            "entity": "Entity",
+            "details": "Details"
+        }
     }
 }

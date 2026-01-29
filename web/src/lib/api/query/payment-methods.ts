@@ -2,12 +2,13 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { paymentMethodsApi } from "../client"
 import {
     POSKasirInternalCommonErrorResponse,
+    POSKasirInternalDtoPaymentMethodResponse,
 } from "../generated"
 import { AxiosError } from "axios"
 
 export const paymentMethodsListQueryOptions = () =>
     queryOptions<
-        any,
+        POSKasirInternalDtoPaymentMethodResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['payment-methods', 'list'],

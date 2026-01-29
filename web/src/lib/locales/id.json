@@ -9,7 +9,8 @@
         "logout": "Keluar",
         "confirm": "Konfirmasi",
         "yes": "Ya",
-        "no": "Tidak"
+        "no": "Tidak",
+        "no_data": "Tidak ada data tersedia"
     },
     "auth": {
         "welcome_back": "Selamat Datang Kembali",
@@ -34,7 +35,8 @@
         "reports": "Laporan",
         "users": "Pengguna",
         "settings": "Pengaturan",
-        "account": "Akun"
+        "account": "Akun",
+        "activity_logs": "Log Aktivitas"
     },
     "transactions": {
         "title": "Transaksi",
@@ -96,18 +98,70 @@
     },
     "dashboard": {
         "title": "Ringkasan Dashboard",
+        "toggle_nav": "Buka menu navigasi",
+        "widgets": {
+            "sales_trend": "Tren Penjualan (30 Hari Terakhir)",
+            "top_products": "Produk Terlaris",
+            "quantity": "Jumlah",
+            "revenue": "Pendapatan",
+            "payment_distribution": "Metode Pembayaran",
+            "cashier_performance": "Performa Kasir"
+        },
+        "stats": {
+            "from_last_month": "dari bulan lalu",
+            "since_last_hour": "sejak satu jam terakhir",
+            "today_sales": "Penjualan Hari Ini",
+            "today_orders": "Pesanan Hari Ini",
+            "active_today": "Aktif Hari Ini",
+            "all_time": "Sepanjang Waktu"
+        },
         "total_revenue": "Total Pendapatan",
+        "total_orders": "Total Pesanan",
+        "active_cashiers": "Kasir Aktif",
+        "total_products": "Total Produk",
         "active_users": "Pengguna Aktif",
         "sales": "Penjualan",
         "active_now": "Aktif Sekarang",
         "brand_name": "Acme Inc",
-        "toggle_nav": "Buka menu navigasi",
-        "stats": {
-            "from_last_month": "dari bulan lalu",
-            "since_last_hour": "sejak satu jam terakhir"
-        },
         "secret_reports": "Halaman Laporan Rahasia (Khusus Admin)",
         "placeholder_content": "Content lainnya bisa ditaruh di sini..."
+    },
+    "reports": {
+        "title": "Analitik Laporan",
+        "subtitle": "Wawasan komprehensif tentang kinerja bisnis Anda.",
+        "tabs": {
+            "sales": "Penjualan",
+            "products": "Produk",
+            "performance": "Performa",
+            "cancellations": "Pembatalan"
+        },
+        "sales": {
+            "title": "Ringkasan Penjualan",
+            "description": "Pendapatan penjualan harian dan jumlah pesanan dari waktu ke waktu.",
+            "revenue": "Total Pendapatan",
+            "orders": "Jumlah Pesanan"
+        },
+        "products": {
+            "title": "Performa Produk",
+            "description": "Produk terlaris berdasarkan kuantitas dan pendapatan.",
+            "product": "Produk",
+            "quantity": "Terjual",
+            "revenue": "Total Pendapatan"
+        },
+        "performance": {
+            "payment_methods": "Distribusi Metode Pembayaran",
+            "cashier": "Peringkat Kasir",
+            "staff": "Anggota Staf",
+            "orders": "Total Pesanan",
+            "sales": "Total Penjualan"
+        },
+        "cancellations": {
+            "title": "Laporan Pembatalan",
+            "description": "Analisis pesanan yang dibatalkan dan alasannya.",
+            "reason": "Alasan",
+            "date": "Tanggal",
+            "count": "Total Jumlah"
+        }
     },
     "account": {
         "title": "Akun",
@@ -434,5 +488,18 @@
         },
         "go_home": "Ke Beranda",
         "default_message": "Ada yang salah"
+    },
+    "activity_logs": {
+        "title": "Log Aktivitas",
+        "description": "Lihat dan filter log aktivitas sistem.",
+        "list_title": "Aktivitas Sistem",
+        "search_placeholder": "Cari detail atau ID entitas...",
+        "columns": {
+            "date": "Tanggal",
+            "user": "Pengguna",
+            "action": "Aksi",
+            "entity": "Entitas",
+            "details": "Detail"
+        }
     }
 }

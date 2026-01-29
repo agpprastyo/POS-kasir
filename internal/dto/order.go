@@ -95,6 +95,7 @@ type OrderDetailResponse struct {
 	NetTotal                int64                  `json:"net_total"`
 	PaymentMethodID         *int32                 `json:"payment_method_id,omitempty"`
 	PaymentGatewayReference *string                `json:"payment_gateway_reference,omitempty"`
+	AppliedPromotionID      *uuid.UUID             `json:"applied_promotion_id,omitempty"`
 	CreatedAt               time.Time              `json:"created_at"`
 	UpdatedAt               time.Time              `json:"updated_at"`
 	Items                   []OrderItemResponse    `json:"items"`

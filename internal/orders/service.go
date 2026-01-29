@@ -63,18 +63,18 @@ var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderSt
 		repository.OrderStatusServed:    true,
 		repository.OrderStatusPaid:      true,
 		repository.OrderStatusCancelled: true,
-		repository.OrderStatusOpen:      true, // Allow correction
+		repository.OrderStatusOpen:      true, 
 	},
 	repository.OrderStatusServed: {
 		repository.OrderStatusPaid:       true,
-		repository.OrderStatusInProgress: true, // Allow correction
+		repository.OrderStatusInProgress: true,
 		repository.OrderStatusCancelled:  true,
-		repository.OrderStatusOpen:       true, // Allow correction
+		repository.OrderStatusOpen:       true, 
 	},
 	repository.OrderStatusPaid: {
 		repository.OrderStatusServed:     true,
 		repository.OrderStatusInProgress: true,
-		repository.OrderStatusOpen:       true, // Allow correction (e.g. wrong payment)
+		repository.OrderStatusOpen:       true, 
 	},
 }
 
@@ -101,7 +101,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return common.ErrNotFound
 		}
 
-		// 1. Validate Basic Requirements
+		
 		now := time.Now()
 		if !promo.IsActive {
 			return fmt.Errorf("%w: promotion is not active", common.ErrPromotionNotApplicable)
@@ -113,13 +113,13 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return fmt.Errorf("%w: promotion has expired", common.ErrPromotionNotApplicable)
 		}
 
-		// 2. Validate Rules
+		
 		rules, err := qtx.GetPromotionRules(ctx, promo.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get promotion rules: %w", err)
 		}
 
-		// Cache for product details if needed (for category checks)
+		
 		productCache := make(map[uuid.UUID]repository.GetProductByIDRow)
 		getProduct := func(id uuid.UUID) (repository.GetProductByIDRow, error) {
 			if p, ok := productCache[id]; ok {
@@ -185,7 +185,6 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			}
 		}
 
-		// 3. Calculate Discount
 		var discountAmount int64
 		grossTotal := order.GrossTotal
 
@@ -195,7 +194,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 				return fmt.Errorf("failed to get promotion targets: %w", err)
 			}
 
-			// Identify eligible items total
+			
 			var eligibleTotal int64
 			for _, item := range orderItems {
 				isEligible := false
@@ -210,7 +209,6 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 						if err != nil {
 							continue
 						}
-						// Convert TargetID string to int for category comparison
 						targetCatID, _ := strconv.Atoi(target.TargetID)
 						if prod.CategoryID != nil && int(*prod.CategoryID) == targetCatID {
 							isEligible = true
@@ -219,7 +217,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 					}
 				}
 				if isEligible {
-					eligibleTotal += item.Subtotal // Use Subtotal (Price * Qty)
+					eligibleTotal += item.Subtotal 
 				}
 			}
 
@@ -228,15 +226,12 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 					percentage := utils.NumericToInt64(promo.DiscountValue)
 					discountAmount = (eligibleTotal * percentage) / 100
 				} else {
-					// Fixed amount for items? Usually per item or total fixed off eligible items?
-					// Assuming fixed amount off the specific items' total, or once per order if triggered?
-					// Simple implementation: Fixed amount off the eligible total, capped at eligible total.
 					discountAmount = utils.NumericToInt64(promo.DiscountValue)
 				}
 			}
 
 		} else {
-			// ORDER Scope (Global Discount)
+			
 			if promo.DiscountType == repository.DiscountTypePercentage {
 				percentage := utils.NumericToInt64(promo.DiscountValue)
 				discountAmount = (grossTotal * percentage) / 100
@@ -245,13 +240,11 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			}
 		}
 
-		// Apply Max Discount Cap
 		maxDisc := utils.NumericToInt64(promo.MaxDiscountAmount)
 		if maxDisc > 0 && discountAmount > maxDisc {
 			discountAmount = maxDisc
 		}
 
-		// Ensure we don't discount more than total
 		if discountAmount > grossTotal {
 			discountAmount = grossTotal
 		}

@@ -5,12 +5,16 @@ import { Ban } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { useTranslation } from 'react-i18next';
+import type { POSKasirInternalDtoCancellationReasonResponse } from '@/lib/api/generated/models/poskasir-internal-dto-cancellation-reason-response';
 
 
 export function CancellationReasonsCard() {
     const { t } = useTranslation()
     const { data: reasons } = useSuspenseQuery(cancellationReasonsListQueryOptions())
-    const reasonsList = Array.isArray(reasons) ? reasons : (reasons as any)?.data || []
+    const reasonsList: POSKasirInternalDtoCancellationReasonResponse[] =
+        Array.isArray(reasons)
+            ? (reasons as POSKasirInternalDtoCancellationReasonResponse[])
+            : ((reasons as { data?: POSKasirInternalDtoCancellationReasonResponse[] })?.data ?? [])
 
     return (
         <Card>
@@ -40,8 +44,8 @@ export function CancellationReasonsCard() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                reasonsList.map((item) => (
-                                    <TableRow key={item.id}>
+                                reasonsList.map((item: POSKasirInternalDtoCancellationReasonResponse) => (
+                                     <TableRow key={item.id}>
                                         <TableCell className="font-medium">{item.reason}</TableCell>
                                         <TableCell>{item.description || '-'}</TableCell>
                                         <TableCell>

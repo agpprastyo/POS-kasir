@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation } from '@/lib/api/query/products'
 import { categoriesListQueryOptions } from '@/lib/api/query/categories'
@@ -271,8 +271,8 @@ function ProductsPage() {
                     )}
 
                     {products.length > 0 && (
-                        <NewPagination pagination={pagination} onClick={() => handlePageChange((pagination.current_page || 1) - 1)}
-                            onClick1={() => handlePageChange((pagination.current_page || 1) + 1)} />
+                        <NewPagination pagination={pagination} onClickPrev={() => handlePageChange((pagination.current_page || 1) - 1)}
+                            onClickNext={() => handlePageChange((pagination.current_page || 1) + 1)} />
                     )}
                 </TabsContent>
 
@@ -356,8 +356,8 @@ function ProductsPage() {
                     )}
 
                     {trashProducts.length > 0 && (
-                        <NewPagination pagination={trashPagination} onClick={() => handlePageChange((trashPagination.current_page || 1) - 1)}
-                            onClick1={() => handlePageChange((trashPagination.current_page || 1) + 1)} />
+                        <NewPagination pagination={trashPagination} onClickPrev={() => handlePageChange((trashPagination.current_page || 1) - 1)}
+                            onClickNext={() => handlePageChange((trashPagination.current_page || 1) + 1)} />
                     )}
                 </TabsContent>
             </Tabs>

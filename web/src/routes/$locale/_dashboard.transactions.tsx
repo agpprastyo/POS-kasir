@@ -39,6 +39,7 @@ import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
 import { toast } from 'sonner'
 import { POSKasirInternalDtoOrderListResponse, POSKasirInternalRepositoryOrderStatus } from '@/lib/api/generated'
 import { useTranslation } from 'react-i18next'
+import {NewPagination} from "@/components/pagination.tsx";
 
 const transactionsSearchSchema = z.object({
     page: z.number().catch(1),
@@ -136,7 +137,7 @@ function TransactionsPage() {
             await updateOrderStatusMutation.mutateAsync({
                 id,
                 body: { status: newStatus }
-            }) // Toast handled by mutation onSuccess
+            })
         } catch (error) {
             console.error(error)
         }
@@ -177,7 +178,6 @@ function TransactionsPage() {
 
     const handleFinish = async (order: OrderWithItems) => {
         if (!order.id) return;
-        // Optional: Confirm dialog?
         try {
             await handleStatusUpdate(order.id, POSKasirInternalRepositoryOrderStatus.OrderStatusPaid)
             toast.success(t('transactions.messages.order_finished'))
@@ -279,10 +279,10 @@ function TransactionsPage() {
             <div className="space-y-4">
                 <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                     <TabsList className="flex w-full overflow-x-auto justify-start h-auto p-1 gap-2 bg-muted/20">
-                        <TabsTrigger value="active" className="flex-shrink-0">{t('transactions.tabs.active')}</TabsTrigger>
-                        <TabsTrigger value="paid" className="flex-shrink-0">{t('transactions.tabs.history')}</TabsTrigger>
-                        <TabsTrigger value="cancelled" className="flex-shrink-0">{t('transactions.tabs.cancelled')}</TabsTrigger>
-                        <TabsTrigger value="all" className="flex-shrink-0">{t('transactions.status.all')}</TabsTrigger>
+                        <TabsTrigger value="active" className="shrink-0">{t('transactions.tabs.active')}</TabsTrigger>
+                        <TabsTrigger value="paid" className="shrink-0">{t('transactions.tabs.history')}</TabsTrigger>
+                        <TabsTrigger value="cancelled" className="shrink-0">{t('transactions.tabs.cancelled')}</TabsTrigger>
+                        <TabsTrigger value="all" className="shrink-0">{t('transactions.status.all')}</TabsTrigger>
                     </TabsList>
                 </Tabs>
 
@@ -424,27 +424,12 @@ function TransactionsPage() {
                     )}
                 </div>
 
-                {/* Pagination */}
-                {pagination.total_pages > 1 && (
-                    <div className="flex items-center justify-end gap-2 pt-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(Math.max(1, page - 1))}
-                            disabled={page === 1}
-                        >
-                            {t('pagination.previous')}
-                        </Button>
-                        <div className="text-sm font-medium">{t('pagination.page_info', { current: page, total: pagination.total_pages })}</div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(Math.min(pagination.total_pages, page + 1))}
-                            disabled={page === pagination.total_pages}
-                        >
-                            {t('pagination.next')}
-                        </Button>
-                    </div>
+                {pagination && (
+                    <NewPagination
+                        pagination={pagination}
+                        onClickPrev={() => handlePageChange((pagination.current_page || 1) - 1)}
+                        onClickNext={() => handlePageChange((pagination.current_page || 1) + 1)}
+                    />
                 )}
             </div>
 

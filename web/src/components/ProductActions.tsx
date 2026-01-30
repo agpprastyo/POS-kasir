@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { List, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {  Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,

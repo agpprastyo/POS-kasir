@@ -149,8 +149,8 @@ function PromotionsPage() {
             {promotions.length > 0 && pagination && (
                 <NewPagination
                     pagination={pagination}
-                    onClick={() => handlePageChange(((pagination as any).current_page || 1) - 1)}
-                    onClick1={() => handlePageChange(((pagination as any).current_page || 1) + 1)}
+                    onClickPrev={() => handlePageChange(((pagination as any).current_page || 1) - 1)}
+                    onClickNext={() => handlePageChange(((pagination as any).current_page || 1) + 1)}
                 />
             )}
 

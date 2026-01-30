@@ -1,59 +1,21 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { z } from 'zod'
-import React, { useEffect, useState } from 'react'
-import {
-    useCreateUserMutation,
-    useDeleteUserMutation,
-    usersListQueryOptions,
-    useToggleUserStatusMutation,
-    useUpdateUserMutation
-} from '@/lib/api/query/user'
-import {
-    POSKasirInternalDtoCreateUserRequest,
-    POSKasirInternalDtoProfileResponse,
-    POSKasirInternalDtoUpdateUserRequest,
-    UsersGetRoleEnum,
-    UsersGetStatusEnum
-} from '@/lib/api/generated'
-import { queryClient } from '@/lib/queryClient'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Label } from '@/components/ui/label'
-import { Loader2, MoreHorizontal, Pencil, Plus, Power, Search, Trash2 } from 'lucide-react'
-import { toast } from "sonner"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from "@/components/ui/alert-dialog.tsx";
-import { NewPagination } from "@/components/pagination.tsx";
-import { useTranslation } from 'react-i18next'
+import {createFileRoute, useNavigate} from '@tanstack/react-router'
+import {useSuspenseQuery} from '@tanstack/react-query'
+import {z} from 'zod'
+import  {useState} from 'react'
+import {usersListQueryOptions} from '@/lib/api/query/user'
+import {POSKasirInternalDtoProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum} from '@/lib/api/generated'
+import {queryClient} from '@/lib/queryClient'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
+import {Badge} from '@/components/ui/badge'
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
+import {Plus, Search} from 'lucide-react'
+import {NewPagination} from "@/components/pagination.tsx";
+import {useTranslation} from 'react-i18next'
+import {UserActions} from "@/components/userActions.tsx";
+import {UserFormDialog} from "@/components/userFormDialog.tsx";
 
 
 const usersSearchSchema = z.object({
@@ -174,7 +136,7 @@ function UsersPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px]">{t('users.table.avatar')}</TableHead>
+                            <TableHead className="w-20">{t('users.table.avatar')}</TableHead>
                             <TableHead>{t('users.table.user')}</TableHead>
                             <TableHead>{t('users.table.role')}</TableHead>
                             <TableHead>{t('users.table.status')}</TableHead>
@@ -223,8 +185,13 @@ function UsersPage() {
             </div>
 
 
-            <NewPagination pagination={pagination} onClick={() => handlePageChange((pagination.current_page || 1) - 1)}
-                onClick1={() => handlePageChange((pagination.current_page || 1) + 1)} />
+            {pagination && (
+                <NewPagination
+                    pagination={pagination}
+                    onClickPrev={() => handlePageChange((pagination.current_page || 1) - 1)}
+                    onClickNext={() => handlePageChange((pagination.current_page || 1) + 1)}
+                />
+            )}
 
             <UserFormDialog
                 open={isDialogOpen}
@@ -235,238 +202,3 @@ function UsersPage() {
     )
 }
 
-// --- ACTION DROPDOWN ---
-function UserActions({ user, onEdit }: { user: POSKasirInternalDtoProfileResponse, onEdit: () => void }) {
-    const { t } = useTranslation()
-    const deleteMutation = useDeleteUserMutation()
-    const toggleMutation = useToggleUserStatusMutation()
-
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.preventDefault()
-
-        deleteMutation.mutate(user.id!)
-        setShowDeleteDialog(false)
-    }
-
-    return (
-        <>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">{t('users.actions.open_menu')}</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{t('users.table.actions')}</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> {t('users.actions.edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleMutation.mutate(user.id!)}>
-                        <Power className="mr-2 h-4 w-4" />
-                        {user.is_active ? t('users.actions.deactivate') : t('users.actions.activate')}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                        onSelect={(e) => {
-                            e.preventDefault()
-                            setShowDeleteDialog(true)
-                        }}
-                        className="text-red-600 focus:text-red-600 cursor-pointer"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('users.actions.delete')}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('users.actions.delete_title')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t('users.actions.delete_desc')}
-                            <span className="font-bold text-foreground"> "{user.username}" </span>
-                            {t('users.actions.delete_desc_2')}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('users.actions.cancel')}</AlertDialogCancel>
-
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={deleteMutation.isPending}
-                            className="bg-red-600 focus:ring-red-600 hover:bg-red-700"
-                        >
-                            {deleteMutation.isPending ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {t('users.actions.deleting')}
-                                </>
-                            ) : (
-                                t('users.actions.delete_confirm')
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    )
-}
-
-// --- FORM DIALOG (CREATE / EDIT) ---
-function UserFormDialog({ open, onOpenChange, userToEdit }: {
-    open: boolean,
-    onOpenChange: (open: boolean) => void,
-    userToEdit: POSKasirInternalDtoProfileResponse | null
-}) {
-    const { t } = useTranslation()
-    const createMutation = useCreateUserMutation()
-    const updateMutation = useUpdateUserMutation()
-
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: '',
-        role: UsersGetRoleEnum.Cashier as UsersGetRoleEnum
-    })
-
-    useEffect(() => {
-        if (open) {
-            if (userToEdit) {
-                setFormData({
-                    username: userToEdit.username || '',
-                    email: userToEdit.email || '',
-                    password: '',
-                    role: (userToEdit.role as UsersGetRoleEnum) || UsersGetRoleEnum.Cashier
-                })
-            } else {
-
-                setFormData({
-                    username: '',
-                    email: '',
-                    password: '',
-                    role: UsersGetRoleEnum.Cashier
-                })
-            }
-        }
-    }, [open, userToEdit])
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        try {
-            if (userToEdit) {
-                const payload: POSKasirInternalDtoUpdateUserRequest = {
-                    username: formData.username,
-                    email: formData.email,
-                    role: formData.role,
-
-                }
-
-                await updateMutation.mutateAsync({ id: userToEdit.id!, body: payload })
-                toast.success(t('users.form.success_update'))
-            } else {
-                // --- CREATE LOGIC ---
-                const payload: POSKasirInternalDtoCreateUserRequest = {
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password,
-                    role: formData.role,
-                    is_active: true
-                }
-                await createMutation.mutateAsync(payload)
-                toast.success(t('users.form.success_create'))
-            }
-            onOpenChange(false)
-        } catch (error) {
-            console.error(error)
-            toast.error(t('users.form.error_save'))
-        }
-    }
-
-    const isSubmitting = createMutation.isPending || updateMutation.isPending
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>{userToEdit ? t('users.form.title_edit') : t('users.form.title_create')}</DialogTitle>
-                    <DialogDescription>
-                        {userToEdit ? t('users.form.desc_edit') : t('users.form.desc_create')}
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
-                        {/* Username */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="username" className="text-right">{t('users.form.username')}</Label>
-                            <Input
-                                id="username"
-                                value={formData.username}
-                                onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        {/* Email */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">{t('users.form.email')}</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        {/* Role */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="role" className="text-right">{t('users.form.role')}</Label>
-                            <div className="col-span-3">
-                                <Select
-                                    value={formData.role}
-                                    onValueChange={(val: UsersGetRoleEnum) => setFormData({ ...formData, role: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={t('users.form.select_role')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value={UsersGetRoleEnum.Admin}>{t('users.roles.admin')}</SelectItem>
-                                        <SelectItem value={UsersGetRoleEnum.Manager}>{t('users.roles.manager')}</SelectItem>
-                                        <SelectItem value={UsersGetRoleEnum.Cashier}>{t('users.roles.cashier')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {!userToEdit && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="password" className="text-right">{t('users.form.password')}</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder={t('users.form.password_placeholder')}
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    className="col-span-3"
-                                    required
-                                    minLength={6}
-                                />
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {userToEdit ? t('users.form.save_changes') : t('users.form.create_user')}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    )
-}

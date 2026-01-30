@@ -113,7 +113,7 @@ export const useUpdatePasswordMutation = () => {
     >({
         mutationKey: ['auth', 'update-password'],
         mutationFn: async (payload) => {
-            const res = await authApi.authUpdatePasswordPost(payload)
+            const res = await authApi.authMeUpdatePasswordPost(payload)
             return (res.data as any).data;
         },
         onSuccess: async () => {

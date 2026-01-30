@@ -5,7 +5,7 @@ import {toast} from "sonner";
 
 export const queryClient = new QueryClient({
     queryCache: new QueryCache({
-        onError: (error: any, query) => {
+        onError: (error: any) => {
             if (error.response?.status === 401) return
             toast.error(`Gagal memuat data: ${error.message}`)
         },

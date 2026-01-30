@@ -2,7 +2,6 @@ package common
 
 import (
 	"errors"
-	"fmt"
 )
 
 // Common error variables
@@ -42,14 +41,6 @@ var (
 	ErrUploadAvatar            = errors.New("failed to upload avatar, please try again later")
 	ErrAvatarLink              = errors.New("failed to generate avatar link, please try again later")
 )
-
-// WrapError adds context to an error
-func WrapError(err error, message string) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf("%s: %w", message, err)
-}
 
 type ErrorResponse struct {
 	Message string      `json:"message"`

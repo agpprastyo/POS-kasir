@@ -1,12 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 
-// Configuration
-// We assume we run this from the 'web' directory or project root.
-// Adjusting path to point to 'src/routes'
 const CurrentDir = process.cwd();
-// Try to find the routes directory
+
 let SCAN_DIR = path.join(CurrentDir, 'src/routes');
 if (!fs.existsSync(SCAN_DIR)) {
     SCAN_DIR = path.join(CurrentDir, 'web/src/routes');
@@ -15,11 +11,11 @@ if (!fs.existsSync(SCAN_DIR)) {
 console.log(`[i18n-scanner] Scanning: ${SCAN_DIR}`);
 
 const IGNORE_PATTERNS = [
-    /^\s*$/,          // Empty lines
-    /^\d+$/,          // Numbers
-    /^[!@#$%^&*()_+=\-{}[\]|\\:;"'<>,.?/`~]+$/, // Just symbols
-    /^{.*}$/,         // JSX expressions {var}
-    /^&[a-z]+;$/,     // HTML entities like &nbsp;
+    /^\s*$/,
+    /^\d+$/,
+    /^[!@#$%^&*()_+=\-{}[\]|\\:;"'<>,.?/`~]+$/,
+    /^{.*}$/,
+    /^&[a-z]+;$/,
 ];
 
 const IGNORE_FILES = [
@@ -62,16 +58,12 @@ function run() {
         const content = fs.readFileSync(file, 'utf-8');
         const errors: string[] = [];
 
-        // Check for JSX Text
         let match;
-        // Reset regex state just in case, though usually fine in loop if re-instantiated or not global on same string
-        // Global regex state is tricky, so loop carefully.
+
 
         while ((match = JSX_TEXT_REGEX.exec(content)) !== null) {
             const text = match[1].trim();
             if (text && !IGNORE_PATTERNS.some(p => p.test(text))) {
-                // Check if it's inside a script or style tag (heuristic)
-                // For now, raw check
                 errors.push(`Line: ? | Text: "${text}"`);
             }
         }

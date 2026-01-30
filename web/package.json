@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && cp dist/client/_shell.html dist/client/index.html",
     "serve": "vite preview",
     "test": "vitest run",
     "api:gen": "openapi-generator-cli generate",

@@ -1,22 +1,23 @@
-# Git & IDE
+
 .git
 .vscode
 .idea
 
-# File environment lokal
-.env
-*.env
-*.env.local
 
-# Artifak build Go
 bin/
 *.exe
 *.test
 
-# Artifak build Frontend
+web/
 web/node_modules
 web/build
+web/dist
+web/.output
 web/.svelte-kit
+
+
+.env
+.env.local
 
 # File OS
 .DS_Store

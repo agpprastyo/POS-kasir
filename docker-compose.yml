@@ -1,46 +1,35 @@
 services:
-  # ==========================================
-  # Backend Service (Go)
-  # ==========================================
   backend:
     build:
       context: .
       dockerfile: dockerfile
     container_name: pos-backend
+    env_file:
+      - .env
     ports:
       - "${APP_PORT:-8080}:8080"
-    environment:
-      - APP_ENV=${APP_ENV:-development}
-      - APP_PORT=8080
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_SSLMODE=${DB_SSLMODE:-disable}
-      - JWT_SECRET=${JWT_SECRET}
-      - WEB_FRONTEND_CROSS_ORIGIN=true
     networks:
       - pos-network
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
-  # ==========================================
-  # Frontend Service (React + Vite + Nginx)
-  # ==========================================
   frontend:
     build:
       context: ./web
       dockerfile: Dockerfile
     container_name: pos-frontend
+    env_file:
+      - web/.env
     ports:
       - "3000:80"
     networks:
       - pos-network
     restart: always
 
-# ==========================================
-# Networks
-# ==========================================
 networks:
   pos-network:
     driver: bridge

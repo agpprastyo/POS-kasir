@@ -8,10 +8,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
   base: '/',
-
   plugins: [
     devtools(),
-
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),

@@ -1,8 +1,5 @@
-name = "pos-kasir-web"
-main = "dist/server/server.js"
-compatibility_date = "2024-04-01"
+name = "pos-kasir"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
-[assets]
-directory = "dist/client"
-binding = "ASSETS"
+pages_build_output_dir = "dist/client"

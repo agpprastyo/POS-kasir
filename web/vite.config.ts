@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 
 const config = defineConfig({
+  base: '/',
 
   plugins: [
     devtools(),

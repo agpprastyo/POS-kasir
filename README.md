@@ -4,7 +4,7 @@ A full-stack Point of Sales (POS) application built with performance, type safet
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 **POS Kasir** is designed to streamline retail operations, offering a seamless experience for cashiers and powerful insights for managers. It features real-time transaction processing, comprehensive inventory management, and deep analytics.
 

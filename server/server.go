@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -178,8 +179,14 @@ func StartServer(app *App) {
 }
 
 func SetupMiddleware(app *App) {
+
+	origins := strings.TrimSpace(app.Config.Server.CorsAllowOrigins)
+
+	if origins == "" {
+		log.Fatal("CORS_ALLOW_ORIGINS is empty or invalid")
+	}
 	app.FiberApp.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000, http://127.0.0.1:3000, http://100.72.137.78:3000, http://192.168.0.100:3000, http://172.18.0.1:3000",
+		AllowOrigins:     origins,
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		ExposeHeaders:    "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods",

@@ -1,24 +1,15 @@
-# **🛒 POS Kasir (Point of Sales System)**
+# **POS Kasir (Point of Sales System)**
 
-\<div align="center"\>
+<a href="https://pos-kasir.agprastyo.me/">
+  <img src="https://img.shields.io/badge/🚀_Live_Frontend-Visit_App-2ea44f?style=for-the-badge&logo=web" alt="Live Frontend">
+</a>
 
-\<\!-- Live Demo Buttons \--\>
+<a href="https://api-pos.agprastyo.me/api/v1/swagger/index.html">
+  <img src="https://img.shields.io/badge/⚙️_Live_API-Base_URL-orange?style=for-the-badge&logo=swagger" alt="Live API">
+</a>
 
-\<a href="https://pos-kasir.agprastyo.me/"\>
 
-\<img src="https://www.google.com/search?q=https://img.shields.io/badge/🚀\_Live\_Frontend-Visit\_App-2ea44f?style=for-the-badge\&logo=vercel" alt="Live Frontend"\>
-
-\</a\>
-
-\<a href="https://api-pos.agprastyo.me/api/v1"\>
-
-\<img src="https://www.google.com/search?q=https://img.shields.io/badge/⚙️\_Live\_API-Base\_URL-orange?style=for-the-badge\&logo=postman" alt="Live API"\>
-
-\</a\>
-
-\</div\>
-
-## **📖 Overview**
+## **Overview**
 
 **POS Kasir** is a modern, high-performance Fullstack Point of Sales application designed to streamline retail operations. It provides a robust solution for managing products, processing orders, handling payments (including Digital Payments via Midtrans), and analyzing sales performance.
 
@@ -26,16 +17,18 @@ Built with **scalability** and **type-safety** in mind, the backend leverages **
 
 **Note:** This project serves as a portfolio showcase demonstrating full-stack development capabilities, system architecture design, and integration of third-party services.
 
+
+
 ## **✨ Key Features**
 
-### **🏢 Core Functionality**
+### **Core Functionality**
 
 * **User Management & RBAC:** Secure authentication with JWT. Role-based access control for Admins and Cashiers.
 * **Inventory Management:** Create, update, and organize products with categories. Support for product variants/options.
 * **Order Processing:** Efficient cart system and order placement workflow.
 * **Transactions:** Detailed transaction history and receipt generation.
 
-### **🚀 Advanced Features**
+### **Advanced Features**
 
 * **Digital Payments:** Integrated with **Midtrans Payment Gateway** for seamless cashless transactions.
 * **Cloud Storage:** Integration with **Cloudflare R2** for efficient and scalable product image storage.
@@ -43,7 +36,19 @@ Built with **scalability** and **type-safety** in mind, the backend leverages **
 * **Activity Logging:** Complete audit trails for tracking system changes and user activities.
 * **Multi-language Support:** Frontend i18n support (English/Indonesian).
 
-## **🛠️ Tech Stack**
+> ⚠️ Payment integration is running in sandbox mode for demonstration purposes.
+
+
+## System Architecture
+
+Frontend (TanStack Start) communicates with the backend via RESTful API.
+The backend handles authentication, business logic, and integrations with third-party services such as Midtrans and Cloudflare R2.
+PostgreSQL is used as the primary relational database.
+
+Authentication is handled using JWT with role-based access control.
+
+
+## **Tech Stack**
 
 ### **Backend (API)**
 
@@ -53,7 +58,7 @@ Built with **scalability** and **type-safety** in mind, the backend leverages **
 * **ORM/Query Builder:** [sqlc](https://www.google.com/search?q=https://sqlc.dev/) \- For generating type-safe Go code from SQL.
 * **Migrations:** Golang Migrate.
 * **Docs:** Swagger (Swaggo).
-* **Utils:** Viper (Config), Zap (Logging).
+* **Utils:** air(hot-reload), Logrus (Logging).
 
 ### **Frontend (Web)**
 
@@ -70,7 +75,7 @@ Built with **scalability** and **type-safety** in mind, the backend leverages **
 * **Hot Reload:** Air (Backend).
 * **Automation:** Makefile.
 
-## **📂 Project Structure**
+## **Project Structure**
 
 .  
 ├── cmd/                \# Main applications entry points  
@@ -89,76 +94,54 @@ Built with **scalability** and **type-safety** in mind, the backend leverages **
 ├── docker-compose.yml  \# Docker orchestration  
 └── Makefile            \# Command runner
 
-## **🚀 Getting Started**
+## **Getting Started**
 
 ### **Prerequisites**
 
 * **Go** 1.22+
 * **Bun** 1.0+ (for frontend)
 * **Docker** & **Docker Compose**
-* **PostgreSQL** (if running locally without Docker)
 
 ### **1\. Clone the Repository**
-
-git clone \[https://github.com/agpprastyo/POS-kasir.git\](https://github.com/agpprastyo/POS-kasir.git)  
+```bash
+git clone https://github.com/agpprastyo/POS-kasir.git  
 cd POS-kasir
+```
 
-### **2\. Backend Setup**
+### **2\. Project Setup**
 
-**Using Docker (Recommended):**
+1. Copy environment files and configure your credentials:
+    ```bash
+    cp .env.example .env
+    cp web/.env.example web/.env
+    ```
+2. Update `.env` with your database, Midtrans, and Cloudflare R2 credentials.
+3. start docker containers:
+    ```bash
+    docker-compose up -d
+    ```
+4. Run database migrations:
+    ```bash
+    make migrate-up
+    ```
+5. (Optional) Seed the database with sample data:
+    ```bash
+    make seed
+    ```
+6. visit [http://localhost:3000](http://localhost:3000) for the frontend and [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) for the API docs.
 
-The project includes a Makefile to simplify commands.
-
-\# Start the database and backend services  
-make up
-
-\# Run database migrations  
-make migrate-up
-
-\# (Optional) Seed the database with dummy data  
-make seed
-
-**Manual Setup:**
-
-1. Copy .env.example to .env and configure your Database, Midtrans, and Cloudflare R2 credentials.
-2. Run go mod download.
-3. Run the server: go run cmd/app/main.go.
-
-### **3\. Frontend Setup**
-
-Navigate to the web directory:
-
-cd web
-
-\# Install dependencies  
-bun install
-
-\# Setup Environment Variables  
-cp .env.example .env  
-\# Ensure VITE\_API\_BASE\_URL points to your backend (default: http://localhost:8080)
-
-\# Run the development server  
-bun dev
-
-Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) to view the application.
-
-## **📸 Screenshots**
-
-\<\!-- Tip: Upload screenshots to your repo's 'assets' folder or an image host and link them here \--\>
-
-| Dashboard | Order Page |
+| API Documentation | Point of Sales |
 | :---- | :---- |
-|  |  |
+| ![API Documentation](screenshots/swagger.jpeg) | ![Point of Sales](screenshots/pos.jpeg) |
 
-| Product Management | Mobile View |
+| Product Management |  |
 | :---- | :---- |
-|  |  |
-
-## **🔌 API Documentation**
+| ![Product Management](screenshots/product.jpeg) |  |
+## **API Documentation**
 
 The backend includes auto-generated Swagger documentation.
 
-* **Live Specs:** [https://api-pos.agprastyo.me/swagger/index.html](https://www.google.com/search?q=https://api-pos.agprastyo.me/swagger/index.html) *(Assuming swagger is accessible publicly)*
+* **Live Specs:** [https://api-pos.agprastyo.me/swagger/index.html](https://www.google.com/search?q=https://api-pos.agprastyo.me/swagger/index.html)
 * **Live Base URL:** https://api-pos.agprastyo.me/api/v1
 
 **Running Locally:**
@@ -167,16 +150,14 @@ Once the local server is running, visit:
 
 http://localhost:8080/swagger/index.html
 
-## **🤝 Contribution**
-
-Contributions are welcome\! If you have suggestions or want to improve the codebase:
-
-1. Fork the repository.
-2. Create a feature branch (git checkout \-b feature/NewFeature).
-3. Commit your changes.
-4. Push to the branch.
-5. Open a Pull Request.
-
-## **📝 License**
+## **License**
 
 This project is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).
+
+## Author
+
+**Agung Prasetyo**
+
+- GitHub: https://github.com/agpprastyo
+- LinkedIn: https://www.linkedin.com/in/agprastyo
+- Portfolio: https://portfolio.agprastyo.me

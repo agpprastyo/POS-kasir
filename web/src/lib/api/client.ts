@@ -21,10 +21,6 @@ if (!BASE_PATH) {
     throw new Error('VITE_API_BASE is not defined')
 }
 
-
-console.log("BASE_PATH: ", BASE_PATH)
-
-
 export const axiosInstance = axios.create({
     baseURL: BASE_PATH,
 })
@@ -34,8 +30,9 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/login')) {
             originalRequest._retry = true;
+
             try {
                 await axiosInstance.post('/auth/refresh');
                 return axiosInstance(originalRequest);
@@ -50,7 +47,7 @@ axiosInstance.interceptors.response.use(
             }
         }
 
-        if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
+        if (error.response?.status === 401 && !window.location.pathname.includes('/login') && !originalRequest.url?.includes('/auth/login')) {
 
             if (!originalRequest.url?.includes('/auth/refresh')) {
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);

@@ -15,7 +15,7 @@ import {
 
 
 
-const BASE_PATH = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api/v1'
+const BASE_PATH = import.meta.env.VITE_API_BASE
 
 console.log("BASE_PATH: ", BASE_PATH)
 
@@ -29,10 +29,8 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-
         if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
             originalRequest._retry = true;
-
             try {
                 await axiosInstance.post('/auth/refresh');
                 return axiosInstance(originalRequest);

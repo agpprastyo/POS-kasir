@@ -1,164 +1,182 @@
-# POS Kasir - Modern Point of Sales System
+# **🛒 POS Kasir (Point of Sales System)**
 
-A full-stack Point of Sales (POS) application built with performance, type safety, and developer experience in mind. This project showcases a modern architecture connecting a high-performance Go backend with a responsive, optimistic React frontend.
+\<div align="center"\>
 
----
+\<\!-- Live Demo Buttons \--\>
 
-## Project Overview
+\<a href="https://pos-kasir.agprastyo.me/"\>
 
-**POS Kasir** is designed to streamline retail operations, offering a seamless experience for cashiers and powerful insights for managers. It features real-time transaction processing, comprehensive inventory management, and deep analytics.
+\<img src="https://www.google.com/search?q=https://img.shields.io/badge/🚀\_Live\_Frontend-Visit\_App-2ea44f?style=for-the-badge\&logo=vercel" alt="Live Frontend"\>
 
-**Why this technology?**
-The stack was chosen to demonstrate:
+\</a\>
 
-- **Performance**: Go and Fiber provide near-instant API responses.
-- **Type Safety**: End-to-end type generation from SQL queries (`sqlc`) to Frontend API clients (`openapi-generator`).
-- **UX/UI**: A "premium feel" interface using Shadcn/UI and framer-motion, with TanStack Query handling caching and background updates.
+\<a href="https://api-pos.agprastyo.me/api/v1"\>
 
-## 🛠 Tech Stack
+\<img src="https://www.google.com/search?q=https://img.shields.io/badge/⚙️\_Live\_API-Base\_URL-orange?style=for-the-badge\&logo=postman" alt="Live API"\>
 
-### Backend
+\</a\>
 
-- **Language**: [Go (Golang)](https://go.dev/) 1.22+
-- **Framework**: [Fiber](https://gofiber.io/) (Express-inspired, zero allocation)
-- **Database**: PostgreSQL
-- **ORM-ish**: [SQLc](https://sqlc.dev/) (Generate type-safe Go code from pure SQL)
-- **Authentication**: JWT with Role-Based Access Control (RBAC)
-- **Documentation**: Swagger/OpenAPI (Auto-generated)
+\</div\>
 
-### Frontend
+## **📖 Overview**
 
-- **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **Routing**: [TanStack Router](https://tanstack.com/router) (Type-safe routing)
-- **State/Data**: [TanStack Query](https://tanstack.com/query) (Async state management)
-- **UI Component**: [Shadcn/UI](https://ui.shadcn.com/) + Tailwind CSS
-- **Runtime**: [Bun](https://bun.sh/)
+**POS Kasir** is a modern, high-performance Fullstack Point of Sales application designed to streamline retail operations. It provides a robust solution for managing products, processing orders, handling payments (including Digital Payments via Midtrans), and analyzing sales performance.
 
-### Development Workflow
+Built with **scalability** and **type-safety** in mind, the backend leverages **Golang** with **Fiber** and **sqlc**, while the frontend offers a seamless user experience using the bleeding-edge **TanStack Start** framework powered by **Bun**.
 
-This project follows a strict **Type-Safe / Contract-First** development flow:
+**Note:** This project serves as a portfolio showcase demonstrating full-stack development capabilities, system architecture design, and integration of third-party services.
 
-```mermaid
-graph TD
-    A[Write SQL Query] -->|sqlc generate| B(Go Repository Interface)
-    B --> C{Service Layer}
-    C -->|DTOs| D[HTTP Handler]
-    D --> E[Route Definition]
-    D -->|Swagger| F[Frontend API Client]
-    F --> G[React Components]
-```
+## **✨ Key Features**
 
-1. **Database First**: Define schema and queries in SQL.
-2. **Generate Code**: `sqlc` generates Go struct and interfaces.
-3. **Implement Logic**: Services handle business rules; Handlers manage HTTP transport.
-4. **Sync Frontend**: OpenAPI generator creates typed TypeScript clients for the frontend, ensuring the UI is always in sync with API changes.
+### **🏢 Core Functionality**
 
-## ✨ Key Features
+* **User Management & RBAC:** Secure authentication with JWT. Role-based access control for Admins and Cashiers.
+* **Inventory Management:** Create, update, and organize products with categories. Support for product variants/options.
+* **Order Processing:** Efficient cart system and order placement workflow.
+* **Transactions:** Detailed transaction history and receipt generation.
 
-- **🔐 Authentication & Security**: Secure JWT login with role-based protection (Admin, Cashier).
-- **🛒 Point of Sales (POS)**: Fast, keyboard-friendly checkout interface with cart management, discounts, and tax calculation.
-- **📦 Inventory Management**: CRUD operations for products and categories with image uploading.
-- **📊 Reports & Analytics**:
-  - Sales trends (Last 30 days).
-  - Top-selling products.
-  - Cashier performance leaderboards.
-  - Payment method distribution.
-- **📑 Activity Logging**: Comprehensive audit trail of all system actions (Admin only).
-- **🌍 Localization**: Full English and Indonesian (Bahasa Indonesia) support.
+### **🚀 Advanced Features**
 
-## 📂 Architecture & Folder Structure
+* **Digital Payments:** Integrated with **Midtrans Payment Gateway** for seamless cashless transactions.
+* **Cloud Storage:** Integration with **Cloudflare R2** for efficient and scalable product image storage.
+* **Dashboard & Analytics:** Comprehensive reports on sales, cashier performance, and popular products.
+* **Activity Logging:** Complete audit trails for tracking system changes and user activities.
+* **Multi-language Support:** Frontend i18n support (English/Indonesian).
 
-```
-.
-├── cmd/                # Application entry points
-├── internal/
-│   ├── activitylog/    # Activity Logging Module
-│   ├── auth/           # Authentication Module
-│   ├── common/         # Shared utilities and response wrappers
-│   ├── config/         # Environment configuration
-│   ├── database/       # Database connection setup
-│   ├── dto/            # Data Transfer Objects (Request/Response structs)
-│   ├── middleware/     # Fiber middlewares (Auth, Logger, CORS)
-│   ├── orders/         # Order Management Module
-│   ├── product/        # Product & Category Module
-│   ├── reports/        # Reporting Module
-│   ├── repository/     # SQLc generated code (Data Access Layer)
-│   └── user/           # User Management Module
-├── sqlc/               # SQL queries and configuration
-├── web/                # Frontend React Application
-│   ├── src/
-│   │   ├── components/ # Reusable UI components
-│   │   ├── lib/api/    # Generated API Clients & Query Hooks
-│   │   └── routes/     # TanStack Router File-based routing
-└── README.md
-```
+## **🛠️ Tech Stack**
 
-## 📸 Screenshots
+### **Backend (API)**
 
-*(Add screenshots here to your portfolio)*
+* **Language:** [Go (Golang)](https://www.google.com/search?q=https://go.dev/)
+* **Framework:** [Fiber v2](https://www.google.com/search?q=https://gofiber.io/) \- High-performance web framework.
+* **Database:** PostgreSQL.
+* **ORM/Query Builder:** [sqlc](https://www.google.com/search?q=https://sqlc.dev/) \- For generating type-safe Go code from SQL.
+* **Migrations:** Golang Migrate.
+* **Docs:** Swagger (Swaggo).
+* **Utils:** Viper (Config), Zap (Logging).
 
-| **Login** | **Dashboard** |
-|:---:|:---:|
-| ![Login Page](https://via.placeholder.com/400x250?text=Login+Page) | ![Dashboard](https://via.placeholder.com/400x250?text=Dashboard+Analytics) |
+### **Frontend (Web)**
 
-| **POS Interface** | **Reports** |
-|:---:|:---:|
-| ![POS](https://via.placeholder.com/400x250?text=POS+System) | ![Reports](https://via.placeholder.com/400x250?text=Sales+Reports) |
+* **Runtime:** [Bun](https://www.google.com/search?q=https://bun.sh/)
+* **Framework:** [TanStack Start](https://www.google.com/search?q=https://tanstack.com/start/latest) (React).
+* **State & Data Fetching:** [TanStack Query](https://www.google.com/search?q=https://tanstack.com/query/latest).
+* **UI Component:** [Shadcn UI](https://www.google.com/search?q=https://ui.shadcn.com/) \+ Tailwind CSS.
+* **Form Handling:** React Hook Form \+ Zod.
+* **API Client:** OpenAPI Generator (generated from Backend Swagger).
 
-> **Suggested Screenshots for Showcase:**
->
-> 1. **Login Page**: Demonstrating clean design and security.
-> 2. **Dashboard**: Showing the "Wow" factor with charts and summary widgets.
-> 3. **POS Interface**: The main working area with grid layout and cart.
-> 4. **Transactions History**: Showing list views and status badges.
-> 5. **Activity Logs**: Demonstrating admin capabilities.
+### **Infrastructure & Tools**
 
-## 🚀 Getting Started
+* **Containerization:** Docker & Docker Compose.
+* **Hot Reload:** Air (Backend).
+* **Automation:** Makefile.
 
-### Prerequisites
+## **📂 Project Structure**
 
-- [Go](https://go.dev/) 1.22+
-- [Bun](https://bun.sh/) (for frontend)
-- [Docker](https://www.docker.com/) (for Database)
+.  
+├── cmd/                \# Main applications entry points  
+│   ├── app/            \# Main server application  
+│   └── seeder/         \# Database seeder  
+├── config/             \# Configuration loading logic  
+├── internal/           \# Private application and business logic  
+│   ├── auth/           \# Authentication logic  
+│   ├── orders/         \# Order processing  
+│   ├── products/       \# Product management  
+│   ├── repository/     \# Generated sqlc code  
+│   └── ...  
+├── pkg/                \# Public library code (Logger, Midtrans, R2, Utils)  
+├── sqlc/               \# SQL queries and schema  
+├── web/                \# Frontend application (TanStack Start)  
+├── docker-compose.yml  \# Docker orchestration  
+└── Makefile            \# Command runner
 
-### Installation
+## **🚀 Getting Started**
 
-1. **Clone the repository**
+### **Prerequisites**
 
-    ```bash
-    git clone https://github.com/yourusername/pos-kasir.git
-    cd pos-kasir
-    ```
+* **Go** 1.22+
+* **Bun** 1.0+ (for frontend)
+* **Docker** & **Docker Compose**
+* **PostgreSQL** (if running locally without Docker)
 
-2. **Setup Database**
+### **1\. Clone the Repository**
 
-    ```bash
-    docker-compose up -d postgres
-    # Ensure migrations are applied (if using golang-migrate or similar)
-    ```
+git clone \[https://github.com/agpprastyo/POS-kasir.git\](https://github.com/agpprastyo/POS-kasir.git)  
+cd POS-kasir
 
-3. **Run Backend**
+### **2\. Backend Setup**
 
-    ```bash
-    go mod download
-    go run main.go
-    # Server starts on http://localhost:8080
-    ```
+**Using Docker (Recommended):**
 
-4. **Run Frontend**
+The project includes a Makefile to simplify commands.
 
-    ```bash
-    cd web
-    bun install
-    bun dev
-    # UI starts on http://localhost:5173
-    ```
+\# Start the database and backend services  
+make up
 
-## 🔮 Future Improvements
+\# Run database migrations  
+make migrate-up
 
-- [ ] WebSocket integration for real-time order updates to kitchen display.
-- [ ] Hardware integration (Thermal Printers, Barcode Scanners).
-- [ ] Offline support using PWA capabilities.
+\# (Optional) Seed the database with dummy data  
+make seed
 
----
-*Built with ❤️ by [Your Name]*
+**Manual Setup:**
+
+1. Copy .env.example to .env and configure your Database, Midtrans, and Cloudflare R2 credentials.
+2. Run go mod download.
+3. Run the server: go run cmd/app/main.go.
+
+### **3\. Frontend Setup**
+
+Navigate to the web directory:
+
+cd web
+
+\# Install dependencies  
+bun install
+
+\# Setup Environment Variables  
+cp .env.example .env  
+\# Ensure VITE\_API\_BASE\_URL points to your backend (default: http://localhost:8080)
+
+\# Run the development server  
+bun dev
+
+Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) to view the application.
+
+## **📸 Screenshots**
+
+\<\!-- Tip: Upload screenshots to your repo's 'assets' folder or an image host and link them here \--\>
+
+| Dashboard | Order Page |
+| :---- | :---- |
+|  |  |
+
+| Product Management | Mobile View |
+| :---- | :---- |
+|  |  |
+
+## **🔌 API Documentation**
+
+The backend includes auto-generated Swagger documentation.
+
+* **Live Specs:** [https://api-pos.agprastyo.me/swagger/index.html](https://www.google.com/search?q=https://api-pos.agprastyo.me/swagger/index.html) *(Assuming swagger is accessible publicly)*
+* **Live Base URL:** https://api-pos.agprastyo.me/api/v1
+
+**Running Locally:**
+
+Once the local server is running, visit:
+
+http://localhost:8080/swagger/index.html
+
+## **🤝 Contribution**
+
+Contributions are welcome\! If you have suggestions or want to improve the codebase:
+
+1. Fork the repository.
+2. Create a feature branch (git checkout \-b feature/NewFeature).
+3. Commit your changes.
+4. Push to the branch.
+5. Open a Pull Request.
+
+## **📝 License**
+
+This project is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).

@@ -15,7 +15,12 @@ import {
 
 
 
-const BASE_PATH = import.meta.env.VITE_API_BASE
+const BASE_PATH = import.meta.env.VITE_API_BASE!
+
+if (!BASE_PATH) {
+    throw new Error('VITE_API_BASE is not defined')
+}
+
 
 console.log("BASE_PATH: ", BASE_PATH)
 

@@ -16,11 +16,14 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-      tanstackStart({
-          spa: {
-              enabled: true,
-          },
-      }),
+    tanstackStart({
+      spa: {
+        enabled: true,
+      },
+      prerender: {
+        enabled: false,
+      },
+    }),
     viteReact(),
     cloudflare()
 

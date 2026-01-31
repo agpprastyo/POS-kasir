@@ -161,7 +161,12 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		MaxAge:   int(time.Until(resp.ExpiredAt).Seconds()),
 		HTTPOnly: true,
 		Secure:   h.cfg.Server.Env == "production",
-		SameSite: fiber.CookieSameSiteLaxMode,
+		SameSite: func() string {
+			if h.cfg.Server.Env == "production" {
+				return fiber.CookieSameSiteNoneMode
+			}
+			return fiber.CookieSameSiteLaxMode
+		}(),
 	}
 
 	refreshCookie := &fiber.Cookie{
@@ -173,7 +178,12 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 		MaxAge:   int(h.cfg.JWT.RefreshTokenDuration.Seconds()),
 		HTTPOnly: true,
 		Secure:   h.cfg.Server.Env == "production",
-		SameSite: fiber.CookieSameSiteLaxMode,
+		SameSite: func() string {
+			if h.cfg.Server.Env == "production" {
+				return fiber.CookieSameSiteNoneMode
+			}
+			return fiber.CookieSameSiteLaxMode
+		}(),
 	}
 
 	if h.cfg.Server.WebFrontendCrossOrigin {

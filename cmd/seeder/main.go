@@ -9,14 +9,20 @@ import (
 	"POS-kasir/sqlc/migrations"
 	"context"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load()
+	envFile := ".env"
+	if len(os.Args) > 1 {
+		envFile = os.Args[1]
+	}
+
+	err := godotenv.Load(envFile)
 	if err != nil {
-		panic("Error loading .env file")
+		log.Printf("Warning: Error loading %s file: %v", envFile, err)
 	}
 
 	cfg := config.Load()

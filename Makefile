@@ -58,3 +58,6 @@ swag:
 	@swag init -g ./cmd/app/main.go -o ./docs --parseDependency --parseInternal
 	@swag init -g ./cmd/app/main.go -o web/api-docs --parseDependency --parseInternal --outputTypes json
 	@cd web && npm run api:gen
+
+docker-be:
+	docker compose -f docker-compose.backend.yml up -d --build backend

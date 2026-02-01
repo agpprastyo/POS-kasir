@@ -22,7 +22,8 @@
         "dont_have_account": "Don't have an account?",
         "register": "Register",
         "forgot_password": "Forgot password?",
-        "login_failed": "Login failed. Please check your credentials."
+        "login_failed": "Login failed. Please check your credentials.",
+        "demo_account": "Use demo account:"
     },
     "sidebar": {
         "summary": "Summary",

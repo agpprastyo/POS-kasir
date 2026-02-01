@@ -74,8 +74,6 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
     useEffect(() => {
         if (open) {
             if (productToEdit) {
-                console.log("DEBUG: Editing Product", { list: productToEdit, detail: detailProduct })
-
                 setFormData({
                     name: detailProduct?.name ?? productToEdit.name ?? '',
                     category_id: detailProduct?.category_id ?? productToEdit.category_id ?? 0,

@@ -55,7 +55,6 @@ export const productDetailQueryOptions = (id: string) =>
         queryKey: ['products', 'detail', id],
         queryFn: async () => {
             const res = await productsApi.productsIdGet(id)
-            console.info("Product detail :", res.data)
             return (res.data as any).data;
         },
         enabled: !!id,

@@ -24,7 +24,8 @@
         "forgot_password": "Lupa kata sandi?",
         "login_failed": "Gagal masuk. Silakan periksa kredensial Anda.",
         "email_placeholder": "anda@contoh.com",
-        "password_placeholder": "Kata sandi anda"
+        "password_placeholder": "Kata sandi anda",
+        "demo_account": "Gunakan akun demo:"
     },
     "sidebar": {
         "summary": "Ringkasan",

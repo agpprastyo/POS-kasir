@@ -6,7 +6,7 @@ import {
     CardHeader,
     CardTitle,
     CardDescription,
-    CardContent,
+    CardContent, CardFooter,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -80,6 +80,11 @@ function LoginPage() {
         }
     }
 
+    const demoAccount = {
+        email: 'admin@example.com',
+        password: 'passwordrahasia'
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center p-6 relative">
             <div className="absolute top-4 right-4">
@@ -139,6 +144,13 @@ function LoginPage() {
                     </form>
                 </CardContent>
 
+                <CardFooter>
+                    <div className="w-full text-center text-sm text-muted-foreground">
+                        <p>{t('auth.demo_account')}:</p>
+                        <p>{t('auth.email')}: <code>{demoAccount.email}</code></p>
+                        <p>{t('auth.password')}: <code>{demoAccount.password}</code></p>
+                    </div>
+                </CardFooter>
             </Card>
         </div>
     )

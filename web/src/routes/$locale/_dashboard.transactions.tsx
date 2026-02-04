@@ -1,16 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { ordersListQueryOptions, useCompleteManualPaymentMutation, useUpdateOrderStatusMutation, useCancelOrderMutation } from '@/lib/api/query/orders'
+import { ordersListQueryOptions, useUpdateOrderStatusMutation, useCancelOrderMutation } from '@/lib/api/query/orders'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { useCancellationReasonsListQuery } from '@/lib/api/query/cancel-reason'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatRupiah } from '@/lib/utils'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useState, useMemo } from 'react'
-import { Loader2, Utensils, ShoppingBag, CreditCard, User as UserIcon, Banknote, CheckCircle, XCircle } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Loader2, Utensils, ShoppingBag, User as UserIcon, Banknote, CheckCircle, XCircle } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import {
     Dialog,
@@ -35,11 +34,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
 import { toast } from 'sonner'
 import { POSKasirInternalDtoOrderListResponse, POSKasirInternalRepositoryOrderStatus } from '@/lib/api/generated'
 import { useTranslation } from 'react-i18next'
-import {NewPagination} from "@/components/pagination.tsx";
+import { NewPagination } from "@/components/pagination.tsx";
+import { PaymentDialog } from "@/components/payment/PaymentDialog"
 
 const transactionsSearchSchema = z.object({
     page: z.number().catch(1),
@@ -117,8 +116,6 @@ function TransactionsPage() {
     // Payment Dialog State
     const [isPaymentOpen, setIsPaymentOpen] = useState(false)
     const [selectedOrder, setSelectedOrder] = useState<OrderWithItems | null>(null)
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | undefined>(undefined)
-    const [cashReceived, setCashReceived] = useState<string>('')
 
     // Cancellation Dialog State
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
@@ -126,9 +123,7 @@ function TransactionsPage() {
     const [cancelReasonId, setCancelReasonId] = useState<string>('')
     const [cancelNotes, setCancelNotes] = useState('')
 
-    const { data: paymentMethods } = usePaymentMethodsListQuery()
     const { data: cancellationReasons } = useCancellationReasonsListQuery()
-    const completeManualPaymentMutation = useCompleteManualPaymentMutation()
     const updateOrderStatusMutation = useUpdateOrderStatusMutation()
     const cancelOrderMutation = useCancelOrderMutation()
 
@@ -146,8 +141,6 @@ function TransactionsPage() {
     const handleOpenPayment = (order: OrderWithItems) => {
         setSelectedOrder(order)
         setIsPaymentOpen(true)
-        setCashReceived('')
-        setSelectedPaymentMethod(undefined)
     }
 
     const handleOpenCancel = (order: OrderWithItems) => {
@@ -204,52 +197,6 @@ function TransactionsPage() {
             search: (prev) => ({ ...prev, page: newPage })
         })
     }
-
-    const handlePayment = async () => {
-        if (!selectedOrder || !selectedPaymentMethod) {
-            toast.error(t('transactions.messages.select_payment_method'))
-            return
-        }
-        if (!selectedOrder.id) return;
-
-        const method = paymentMethods?.find((m: any) => m.id === selectedPaymentMethod)
-        const isCash = method?.name?.toLowerCase().includes('cash')
-        const totalAmount = selectedOrder.net_total || 0
-
-        let payload: any = {
-            payment_method_id: selectedPaymentMethod
-        }
-
-        let finalCashReceived = 0
-
-        if (isCash) {
-            const inputCash = Number(cashReceived)
-            if (inputCash < totalAmount) {
-                toast.error(t('transactions.payment_dialog.money_insufficient'))
-                return
-            }
-            finalCashReceived = inputCash
-            payload.cash_received = finalCashReceived
-        }
-
-        try {
-            await completeManualPaymentMutation.mutateAsync({
-                id: selectedOrder.id,
-                body: payload
-            })
-
-            setIsPaymentOpen(false)
-            setSelectedOrder(null)
-
-            if (isCash) {
-                const change = finalCashReceived - totalAmount
-                toast.success(`${t('transactions.payment_dialog.success')} ${formatRupiah(change)}`)
-            }
-        } catch (error) {
-            console.error(error)
-        }
-    }
-
 
     return (
         <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
@@ -402,7 +349,7 @@ function TransactionsPage() {
                                                             {t('transactions.actions_button.pay')}
                                                         </Button>
                                                     )}
-                                                    {order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
+                                                    {order.is_paid && order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusServed && (
                                                         <Button size="sm" variant="outline" className="h-8 gap-1 border-green-600 text-green-600 hover:bg-green-50" onClick={() => handleFinish(order)}>
                                                             <CheckCircle className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.complete')}
@@ -433,81 +380,21 @@ function TransactionsPage() {
                 )}
             </div>
 
-            {/* Payment Dialog */}
-            <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{t('transactions.payment_dialog.title')}</DialogTitle>
-                        <DialogDescription>
-                            {t('transactions.payment_dialog.description')} <b>#{selectedOrder?.queue_number}</b>
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="py-4">
-                        <div className="mb-6 flex flex-col items-center justify-center rounded-lg border bg-muted/30 p-4">
-                            <span className="text-sm text-muted-foreground">{t('transactions.payment_dialog.total_amount')}</span>
-                            <span className="text-3xl font-bold text-foreground">{formatRupiah(selectedOrder?.net_total || 0)}</span>
-                        </div>
-
-                        <label className="text-sm font-medium mb-2 block">{t('transactions.payment_dialog.select_method')}</label>
-                        <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : ""} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
-                            <TabsList className="grid grid-cols-3 h-auto gap-2 bg-transparent p-0 mb-4">
-                                {paymentMethods?.map((method: any) => (
-                                    <TabsTrigger
-                                        key={method.id}
-                                        value={String(method.id)}
-                                        className="h-20 flex flex-col items-center justify-center gap-2 border data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:text-primary"
-                                    >
-                                        <CreditCard className="h-5 w-5 opacity-70" />
-                                        <span className="text-xs text-wrap text-center">{method.name}</span>
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-
-                            {paymentMethods?.map((method: any) => (
-                                <TabsContent key={method.id} value={String(method.id)} className="mt-0">
-                                    {method.name?.toLowerCase().includes('cash') && (
-                                        <div className="space-y-4 rounded-lg border border-dashed p-4 bg-muted/30 animate-in fade-in-0 zoom-in-95">
-                                            <div className="space-y-2">
-                                                <label className="text-sm font-medium">{t('transactions.payment_dialog.cash_received')}</label>
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">Rp</span>
-                                                    <Input
-                                                        autoFocus
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={cashReceived ? Number(cashReceived).toLocaleString('id-ID') : ''}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.replace(/\D/g, '')
-                                                            setCashReceived(val)
-                                                        }}
-                                                        className="pl-10 text-lg font-bold h-12"
-                                                        placeholder="0"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-center bg-background p-3 rounded border ">
-                                                <span className="text-sm font-medium text-muted-foreground">{t('transactions.payment_dialog.change_due')}</span>
-                                                <span className={`text-xl font-bold ${Number(cashReceived) >= (selectedOrder?.net_total || 0) ? 'text-green-600' : 'text-red-500'}`}>
-                                                    {formatRupiah(Math.max(0, Number(cashReceived) - (selectedOrder?.net_total || 0)))}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </TabsContent>
-                            ))}
-                        </Tabs>
-                    </div>
-
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsPaymentOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handlePayment} disabled={!selectedPaymentMethod || completeManualPaymentMutation.isPending}>
-                            {completeManualPaymentMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {t('transactions.payment_dialog.confirm')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Payment Dialog Component */}
+            <PaymentDialog
+                open={isPaymentOpen}
+                onOpenChange={setIsPaymentOpen}
+                orderId={selectedOrder?.id || null}
+                onPaymentSuccess={() => {
+                    setIsPaymentOpen(false);
+                    setSelectedOrder(null);
+                }}
+                mode="payment"
+                onCancelOrder={() => {
+                    setIsPaymentOpen(false)
+                    if (selectedOrder) handleOpenCancel(selectedOrder)
+                }}
+            />
 
             {/* Cancellation Dialog */}
             <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>

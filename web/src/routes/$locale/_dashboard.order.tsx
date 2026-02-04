@@ -1,15 +1,16 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { useProductsListQuery, Product, productDetailQueryOptions } from '@/lib/api/query/products'
 import { ProductCard } from '@/components/ProductCard'
 import { Input } from '@/components/ui/input'
-import { Search, ShoppingCart, Trash2, Banknote, Minus, Plus, Loader2, TicketPercent } from 'lucide-react'
+import { Search, ShoppingCart, Trash2, Minus, Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { formatRupiah } from '@/lib/utils'
+import { PaymentDialog } from "@/components/payment/PaymentDialog"
 import {
     Dialog,
     DialogContent,
@@ -18,24 +19,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { useCreateOrderMutation, useCompleteManualPaymentMutation, useOrderDetailQuery, useCancelOrderMutation, useApplyPromotionMutation } from '@/lib/api/query/orders'
-import { usePromotionsListQuery } from '@/lib/api/query/promotions'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { useCreateOrderMutation } from '@/lib/api/query/orders'
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { POSKasirInternalDtoProductOptionResponse, POSKasirInternalRepositoryOrderType } from '@/lib/api/generated'
-import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
 
 const orderSearchSchema = z.object({
     category: z.string().optional().catch('all'),
@@ -89,28 +76,20 @@ function OrderPage() {
 
     const [cart, setCart] = useState<CartItem[]>([])
     const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-    const { data: paymentMethods } = usePaymentMethodsListQuery()
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | undefined>(undefined)
-    const [cashReceived, setCashReceived] = useState<string>('')
     const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
     const [isLoadingDetailsId, setIsLoadingDetailsId] = useState<string | null>(null)
-
-    // Promotions
-    const { data: promotionsData } = usePromotionsListQuery({ limit: 100, trash: false })
-    const activePromotions = useMemo(() => promotionsData?.promotions?.filter(p => p.is_active) || [], [promotionsData])
-    const applyPromotionMutation = useApplyPromotionMutation()
-
 
     const [variantSelectionOpen, setVariantSelectionOpen] = useState(false)
     const [productForVariantSelection, setProductForVariantSelection] = useState<Product | null>(null)
 
     const createOrderMutation = useCreateOrderMutation()
-    const completeManualPaymentMutation = useCompleteManualPaymentMutation()
-    const cancelOrderMutation = useCancelOrderMutation()
 
-    const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+    // We still fetch order details here just to verify existence/status if needed, or we can rely on PaymentDialog
+    // Actually, we might not need this here if PaymentDialog is the only one caring about the created order details
+    // But let's keep it simple. If we don't display order details in the background while dialog is open, we don't need it.
+    // However, the payment dialog is a modal.
 
-    const { data: createdOrder, isLoading: isLoadingCreatedOrder } = useOrderDetailQuery(createdOrderId || '')
+    // logic A: User clicks "Charge" -> createOrderMutation -> setCreatedOrderId -> setIsPaymentOpen(true) -> PaymentDialog opens and fetches data.
 
 
     const addToCart = async (product: Product) => {
@@ -120,9 +99,7 @@ function OrderPage() {
         }
         setIsLoadingDetailsId(product.id || null)
         try {
-
             const detail = await queryClient.fetchQuery(productDetailQueryOptions(product.id!))
-
             if (detail.options && detail.options.length > 0) {
                 setProductForVariantSelection(detail)
                 setVariantSelectionOpen(true)
@@ -204,130 +181,13 @@ function OrderPage() {
         toast.promise(createOrderMutation.mutateAsync(orderData), {
             loading: t('order.success.creating'),
             success: (data) => {
-                setCreatedOrderId(data.id)
+                setCreatedOrderId(data.id || null)
                 setIsPaymentOpen(true)
                 return t('order.success.created')
             },
             error: t('order.errors.create_failed')
         })
     }
-
-    const handleApplyPromotion = (promoId: string) => {
-        if (!createdOrderId) return
-        toast.promise(applyPromotionMutation.mutateAsync({
-            id: createdOrderId,
-            body: { promotion_id: promoId }
-        }), {
-            loading: 'Menerapkan promosi...',
-            success: 'Promosi diterapkan!',
-            error: (err) => err?.response?.data?.message || 'Gagal menerapkan promosi'
-        })
-    }
-
-    useEffect(() => {
-        if (isPaymentOpen) {
-            setCashReceived('')
-            if (!selectedPaymentMethod && paymentMethods) {
-                const cashMethod = paymentMethods.find(m => m.name?.toLowerCase().includes('cash'))
-                if (cashMethod) {
-                    setSelectedPaymentMethod(cashMethod.id)
-                } else if (paymentMethods.length > 0) {
-                    setSelectedPaymentMethod(paymentMethods[0].id)
-                }
-            }
-        }
-    }, [isPaymentOpen, paymentMethods, selectedPaymentMethod])
-
-    const handlePayment = async () => {
-        if (!createdOrderId || !selectedPaymentMethod) {
-            if (!selectedPaymentMethod) toast.error(t('order.errors.select_payment'))
-            return
-        }
-
-        const totalAmount = createdOrder?.net_total || 0
-
-        const method = paymentMethods?.find(m => m.id === selectedPaymentMethod)
-        const isCash = method?.name?.toLowerCase().includes('cash')
-
-        let payload: any = {
-            payment_method_id: selectedPaymentMethod
-        }
-
-        let finalCashReceived = 0
-
-        if (isCash) {
-            const inputCash = Number(cashReceived)
-            if (inputCash < totalAmount) {
-                toast.error(t('order.errors.cash_insufficient'))
-                return
-            }
-            finalCashReceived = inputCash
-            payload.cash_received = finalCashReceived
-        }
-
-        try {
-            await completeManualPaymentMutation.mutateAsync({
-                id: createdOrderId,
-                body: payload
-            })
-
-            await queryClient.invalidateQueries({ queryKey: ['products', 'list'] })
-
-            setIsPaymentOpen(false)
-            setCart([])
-            setCreatedOrderId(null)
-
-            if (isCash) {
-                const change = finalCashReceived - totalAmount
-                toast.success(`${t('order.success.payment_success')} ${formatRupiah(change)}`, {
-                    duration: 5000,
-                    description: `${t('order.success.received')}: ${formatRupiah(finalCashReceived)} | ${t('order.total')}: ${formatRupiah(totalAmount)}`,
-                    closeButton: true,
-                    position: 'top-center',
-                    style: { background: '#10B981', color: 'white', border: 'none' }
-                })
-            } else {
-                toast.success(t('order.success.payment_complete'))
-            }
-        } catch (error) {
-            console.error(error)
-            toast.error(t('order.errors.payment_failed'))
-        }
-    }
-
-
-    const handleAttemptClosePayment = (open: boolean) => {
-        if (!open) {
-            if (createdOrderId) {
-                setCancelDialogOpen(true)
-            } else {
-                setIsPaymentOpen(false)
-            }
-        } else {
-            setIsPaymentOpen(true)
-        }
-    }
-
-    const handleConfirmCancel = async () => {
-        if (!createdOrderId) return
-
-        try {
-            await cancelOrderMutation.mutateAsync({
-                id: createdOrderId,
-                body: {
-                    cancellation_reason_id: 1, 
-                    cancellation_notes: 'Cancelled by user from payment screen'
-                }
-            })
-            setIsPaymentOpen(false)
-            setCreatedOrderId(null)
-            setCancelDialogOpen(false)
-        } catch (error) {
-            console.error(error)
-
-        }
-    }
-
 
     return (
         <div className="flex  h-[calc(100vh-4rem)] gap-2 ">
@@ -499,135 +359,19 @@ function OrderPage() {
                     </Button>
                 </div>
             </div>
-            {/* Payment Dialog */}
-            <Dialog open={isPaymentOpen} onOpenChange={handleAttemptClosePayment}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{t('order.payment_dialog.title')}</DialogTitle>
-                        <DialogDescription>
-                            {t('order.payment_dialog.desc')}
-                        </DialogDescription>
-                    </DialogHeader>
 
-                    {isLoadingCreatedOrder ? (
-                        <div className="h-48 flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        </div>
-                    ) : (
-                        <>
-                            {/* Order Summary & Promotion */}
-                            <div className="bg-muted/30 p-4 rounded-lg space-y-3 mb-2">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{formatRupiah(createdOrder?.gross_total || 0)}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground flex items-center gap-1"><TicketPercent className="w-3 h-3" /> Diskon</span>
-                                    <span className="text-green-600">-{formatRupiah(createdOrder?.discount_amount || 0)}</span>
-                                </div>
+            {/* Payment Dialog Component */}
+            <PaymentDialog
+                open={isPaymentOpen}
+                onOpenChange={setIsPaymentOpen}
+                orderId={createdOrderId}
+                onPaymentSuccess={() => {
+                    setCart([])
+                    setCreatedOrderId(null)
+                    // setIsPaymentOpen(false) // Handled by component usually, but parent state needs to sync? PaymentDialog calls onOpenChange(false) automatically.
+                }}
+            />
 
-                                <div className="pt-2">
-                                    <Select onValueChange={handleApplyPromotion} value={createdOrder?.applied_promotion_id || ""}>
-                                        <SelectTrigger className="w-full h-9 text-sm">
-                                            <SelectValue placeholder="Pilih Promo / Diskon" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {activePromotions.map(promo => (
-                                                <SelectItem key={promo.id} value={promo.id}>
-                                                    {promo.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="flex justify-between items-center text-lg font-bold border-t pt-2 mt-2">
-                                    <span>Total Tagihan</span>
-                                    <span className="text-primary text-xl">{formatRupiah(createdOrder?.net_total || 0)}</span>
-                                </div>
-                            </div>
-
-                            <Tabs value={selectedPaymentMethod ? String(selectedPaymentMethod) : ''} onValueChange={(v) => setSelectedPaymentMethod(Number(v))} className="w-full">
-                                <TabsList className="flex flex-wrap h-auto w-full gap-2 bg-transparent p-0">
-                                    {paymentMethods?.map(method => (
-                                        <TabsTrigger
-                                            key={method.id}
-                                            value={String(method.id)}
-                                            className="flex-1 min-w-[100px] border data-[state=active]:border-primary data-[state=active]:bg-primary/5"
-                                        >
-                                            {method.name}
-                                        </TabsTrigger>
-                                    ))}
-                                </TabsList>
-                                <div className="py-4">
-                                    {paymentMethods?.map(method => (
-                                        <TabsContent key={method.id} value={String(method.id)} className="mt-0">
-                                            <div className="flex flex-col items-center justify-center gap-4 py-4 border-2 border-dashed rounded-lg bg-muted/50">
-                                                <Banknote className="h-10 w-10 text-muted-foreground" />
-                                                <p className="text-sm text-muted-foreground">{t('order.payment_dialog.process_via')} {method.name}</p>
-
-                                                {method.name?.toLowerCase().includes('cash') && (
-                                                    <div className="w-full max-w-xs space-y-4 pt-2">
-                                                        <div className="space-y-2">
-                                                            <label className="text-sm font-medium">{t('order.payment_dialog.cash_received')}</label>
-                                                            <Input
-                                                                autoFocus
-                                                                type="text"
-                                                                inputMode="numeric"
-                                                                value={cashReceived ? Number(cashReceived).toLocaleString('id-ID') : ''}
-                                                                onChange={(e) => {
-                                                                    const val = e.target.value.replace(/\D/g, '')
-                                                                    setCashReceived(val)
-                                                                }}
-                                                                className="text-center text-xl font-bold h-12"
-                                                                placeholder={t('order.payment_dialog.enter_amount')}
-                                                            />
-                                                        </div>
-                                                        <div className="flex justify-between items-center text-sm py-3  rounded-lg ">
-                                                            <span className="text-muted-foreground">{t('order.payment_dialog.change')}</span>
-                                                            <span className="font-bold text-lg text-primary">
-                                                                {formatRupiah(Math.max(0, Number(cashReceived) - (createdOrder?.net_total || 0)))}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Simple placeholder for QRIS if name matches */}
-                                                {method.name?.toLowerCase().includes('qris') && (
-                                                    <div className="h-32 w-32 bg-white p-2 rounded-lg mt-2">
-                                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${createdOrderId}`} alt={t('order.qr_code_alt')} className="w-full h-full" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </TabsContent>
-                                    ))}
-                                </div>
-                            </Tabs>
-
-                            <DialogFooter className="gap-2 sm:justify-between">
-                                <div className="flex gap-2 w-full">
-                                    <Button type="button" variant="outline" className="flex-1" onClick={() => handleAttemptClosePayment(false)}>
-                                        {t('order.payment_dialog.cancel')}
-                                    </Button>
-                                    {selectedOrderType === POSKasirInternalRepositoryOrderType.OrderTypeDineIn && (
-                                        <Button type="button" variant="secondary" className="flex-1" onClick={() => {
-                                            setIsPaymentOpen(false)
-                                            setCart([])
-                                            setCreatedOrderId(null)
-                                            toast.success(t('order.success.saved'))
-                                        }}>
-                                            {t('order.payment_dialog.pay_later')}
-                                        </Button>
-                                    )}
-                                    <Button type="button" className="flex-1" onClick={handlePayment}>
-                                        {t('order.payment_dialog.complete')}
-                                    </Button>
-                                </div>
-                            </DialogFooter>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
             {/* Variant Selection Dialog */}
             <Dialog open={variantSelectionOpen} onOpenChange={setVariantSelectionOpen}>
                 <DialogContent className="sm:max-w-md">
@@ -685,21 +429,6 @@ function OrderPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('order.cancel_confirm.title')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t('order.cancel_confirm.desc')}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.no')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmCancel}>{t('order.cancel_confirm.yes', 'Yes, Cancel Order')}</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     )
 }

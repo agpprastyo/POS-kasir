@@ -966,7 +966,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1009,7 +1021,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1067,7 +1091,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1149,8 +1185,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/{id}/complete-manual-payment": {
-            "post": {
+        "/orders/{id}/items": {
+            "put": {
                 "consumes": [
                     "application/json"
                 ],
@@ -1160,7 +1196,7 @@ const docTemplate = `{
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Complete manual payment for an order",
+                "summary": "Update items in an order",
                 "parameters": [
                     {
                         "type": "string",
@@ -1170,12 +1206,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Manual payment details",
+                        "description": "Update order items",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_dto.CompleteManualPaymentRequest"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/POS-kasir_internal_dto.UpdateOrderItemRequest"
+                            }
                         }
                     }
                 ],
@@ -1183,7 +1222,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1207,7 +1258,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/orders/{id}/process-payment": {
+        "/orders/{id}/pay/manual": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -1218,7 +1269,77 @@ const docTemplate = `{
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Process payment for an order",
+                "summary": "Confirm manual payment for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Manual payment details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.ConfirmManualPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/orders/{id}/pay/midtrans": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Initiate Midtrans payment for an order",
                 "parameters": [
                     {
                         "type": "string",
@@ -1232,7 +1353,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.MidtransPaymentResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1290,7 +1423,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -3480,7 +3625,7 @@ const docTemplate = `{
                 }
             }
         },
-        "POS-kasir_internal_dto.CompleteManualPaymentRequest": {
+        "POS-kasir_internal_dto.ConfirmManualPaymentRequest": {
             "type": "object",
             "required": [
                 "payment_method_id"
@@ -3817,6 +3962,79 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.MidtransPaymentResponse": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.PaymentAction"
+                    }
+                },
+                "expiry_time": {
+                    "type": "string"
+                },
+                "gross_amount": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "string"
+                },
+                "qr_string": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.OrderDetailResponse": {
+            "type": "object",
+            "properties": {
+                "applied_promotion_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "discount_amount": {
+                    "type": "integer"
+                },
+                "gross_total": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.OrderItemResponse"
+                    }
+                },
+                "net_total": {
+                    "type": "integer"
+                },
+                "payment_gateway_reference": {
+                    "type": "string"
+                },
+                "payment_method_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.OrderStatus"
+                },
+                "type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.OrderType"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.OrderItemOptionResponse": {
             "type": "object",
             "properties": {
@@ -3903,6 +4121,20 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.PaymentAction": {
+            "type": "object",
+            "properties": {
+                "method": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -4129,6 +4361,27 @@ const docTemplate = `{
                 },
                 "total_sales": {
                     "type": "number"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdateOrderItemRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity"
+            ],
+            "properties": {
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.CreateOrderItemOptionRequest"
+                    }
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
                 }
             }
         },

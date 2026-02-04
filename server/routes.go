@@ -65,8 +65,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Post("/orders/:id/cancel", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CancelOrderHandler)
 	api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
-	api.Post("/orders/:id/pay", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ProcessPaymentHandler)
-	api.Post("/orders/:id/complete-manual-payment", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CompleteManualPaymentHandler)
+	api.Post("/orders/:id/pay/midtrans", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.InitiateMidtransPaymentHandler)
+	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 

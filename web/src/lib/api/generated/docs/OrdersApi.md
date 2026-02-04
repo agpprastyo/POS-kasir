@@ -7,9 +7,10 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**ordersGet**](#ordersget) | **GET** /orders | List orders|
 |[**ordersIdApplyPromotionPost**](#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order|
 |[**ordersIdCancelPost**](#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order|
-|[**ordersIdCompleteManualPaymentPost**](#ordersidcompletemanualpaymentpost) | **POST** /orders/{id}/complete-manual-payment | Complete manual payment for an order|
 |[**ordersIdGet**](#ordersidget) | **GET** /orders/{id} | Get an order by ID|
-|[**ordersIdProcessPaymentPost**](#ordersidprocesspaymentpost) | **POST** /orders/{id}/process-payment | Process payment for an order|
+|[**ordersIdItemsPut**](#ordersiditemsput) | **PUT** /orders/{id}/items | Update items in an order|
+|[**ordersIdPayManualPost**](#ordersidpaymanualpost) | **POST** /orders/{id}/pay/manual | Confirm manual payment for an order|
+|[**ordersIdPayMidtransPost**](#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order|
 |[**ordersIdUpdateStatusPost**](#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status|
 |[**ordersPost**](#orderspost) | **POST** /orders | Create an order|
 
@@ -75,7 +76,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdApplyPromotionPost**
-> POSKasirInternalCommonSuccessResponse ordersIdApplyPromotionPost(request)
+> OrdersPost201Response ordersIdApplyPromotionPost(request)
 
 
 ### Example
@@ -109,7 +110,7 @@ const { status, data } = await apiInstance.ordersIdApplyPromotionPost(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -188,65 +189,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **ordersIdCompleteManualPaymentPost**
-> POSKasirInternalCommonSuccessResponse ordersIdCompleteManualPaymentPost(request)
-
-
-### Example
-
-```typescript
-import {
-    OrdersApi,
-    Configuration,
-    POSKasirInternalDtoCompleteManualPaymentRequest
-} from 'restClient';
-
-const configuration = new Configuration();
-const apiInstance = new OrdersApi(configuration);
-
-let id: string; //Order ID (default to undefined)
-let request: POSKasirInternalDtoCompleteManualPaymentRequest; //Manual payment details
-
-const { status, data } = await apiInstance.ordersIdCompleteManualPaymentPost(
-    id,
-    request
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoCompleteManualPaymentRequest**| Manual payment details | |
-| **id** | [**string**] | Order ID | defaults to undefined|
-
-
-### Return type
-
-**POSKasirInternalCommonSuccessResponse**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **ordersIdGet**
-> POSKasirInternalCommonSuccessResponse ordersIdGet()
+> OrdersPost201Response ordersIdGet()
 
 
 ### Example
@@ -276,7 +220,7 @@ const { status, data } = await apiInstance.ordersIdGet(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -298,8 +242,121 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **ordersIdProcessPaymentPost**
-> POSKasirInternalCommonSuccessResponse ordersIdProcessPaymentPost()
+# **ordersIdItemsPut**
+> OrdersPost201Response ordersIdItemsPut(request)
+
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let id: string; //Order ID (default to undefined)
+let request: Array<POSKasirInternalDtoUpdateOrderItemRequest>; //Update order items
+
+const { status, data } = await apiInstance.ordersIdItemsPut(
+    id,
+    request
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **request** | **Array<POSKasirInternalDtoUpdateOrderItemRequest>**| Update order items | |
+| **id** | [**string**] | Order ID | defaults to undefined|
+
+
+### Return type
+
+**OrdersPost201Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**404** | Not Found |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ordersIdPayManualPost**
+> OrdersPost201Response ordersIdPayManualPost(request)
+
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration,
+    POSKasirInternalDtoConfirmManualPaymentRequest
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let id: string; //Order ID (default to undefined)
+let request: POSKasirInternalDtoConfirmManualPaymentRequest; //Manual payment details
+
+const { status, data } = await apiInstance.ordersIdPayManualPost(
+    id,
+    request
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **request** | **POSKasirInternalDtoConfirmManualPaymentRequest**| Manual payment details | |
+| **id** | [**string**] | Order ID | defaults to undefined|
+
+
+### Return type
+
+**OrdersPost201Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**404** | Not Found |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ordersIdPayMidtransPost**
+> OrdersIdPayMidtransPost200Response ordersIdPayMidtransPost()
 
 
 ### Example
@@ -315,7 +372,7 @@ const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
 
-const { status, data } = await apiInstance.ordersIdProcessPaymentPost(
+const { status, data } = await apiInstance.ordersIdPayMidtransPost(
     id
 );
 ```
@@ -329,7 +386,7 @@ const { status, data } = await apiInstance.ordersIdProcessPaymentPost(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**OrdersIdPayMidtransPost200Response**
 
 ### Authorization
 
@@ -352,7 +409,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdUpdateStatusPost**
-> POSKasirInternalCommonSuccessResponse ordersIdUpdateStatusPost(request)
+> OrdersPost201Response ordersIdUpdateStatusPost(request)
 
 
 ### Example
@@ -386,7 +443,7 @@ const { status, data } = await apiInstance.ordersIdUpdateStatusPost(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -409,7 +466,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersPost**
-> POSKasirInternalCommonSuccessResponse ordersPost(request)
+> OrdersPost201Response ordersPost(request)
 
 
 ### Example
@@ -440,7 +497,7 @@ const { status, data } = await apiInstance.ordersPost(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**OrdersPost201Response**
 
 ### Authorization
 

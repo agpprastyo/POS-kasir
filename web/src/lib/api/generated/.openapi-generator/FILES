@@ -29,6 +29,8 @@ docs/CategoriesGet200Response.md
 docs/CategoriesPost201Response.md
 docs/OrdersApi.md
 docs/OrdersGet200Response.md
+docs/OrdersIdPayMidtransPost200Response.md
+docs/OrdersPost201Response.md
 docs/POSKasirInternalCommonErrorResponse.md
 docs/POSKasirInternalCommonPaginationPagination.md
 docs/POSKasirInternalCommonSuccessResponse.md
@@ -41,7 +43,7 @@ docs/POSKasirInternalDtoCancellationReportResponse.md
 docs/POSKasirInternalDtoCashierPerformanceResponse.md
 docs/POSKasirInternalDtoCategoryResponse.md
 docs/POSKasirInternalDtoCategoryWithCountResponse.md
-docs/POSKasirInternalDtoCompleteManualPaymentRequest.md
+docs/POSKasirInternalDtoConfirmManualPaymentRequest.md
 docs/POSKasirInternalDtoCreateCategoryRequest.md
 docs/POSKasirInternalDtoCreateOrderItemOptionRequest.md
 docs/POSKasirInternalDtoCreateOrderItemRequest.md
@@ -57,10 +59,13 @@ docs/POSKasirInternalDtoDashboardSummaryResponse.md
 docs/POSKasirInternalDtoListProductsResponse.md
 docs/POSKasirInternalDtoLoginRequest.md
 docs/POSKasirInternalDtoLoginResponse.md
+docs/POSKasirInternalDtoMidtransPaymentResponse.md
+docs/POSKasirInternalDtoOrderDetailResponse.md
 docs/POSKasirInternalDtoOrderItemOptionResponse.md
 docs/POSKasirInternalDtoOrderItemResponse.md
 docs/POSKasirInternalDtoOrderListResponse.md
 docs/POSKasirInternalDtoPagedOrderResponse.md
+docs/POSKasirInternalDtoPaymentAction.md
 docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md
 docs/POSKasirInternalDtoPaymentMethodResponse.md
 docs/POSKasirInternalDtoProductListResponse.md
@@ -71,6 +76,7 @@ docs/POSKasirInternalDtoProfileResponse.md
 docs/POSKasirInternalDtoRegisterRequest.md
 docs/POSKasirInternalDtoRestoreBulkRequest.md
 docs/POSKasirInternalDtoSalesReport.md
+docs/POSKasirInternalDtoUpdateOrderItemRequest.md
 docs/POSKasirInternalDtoUpdateOrderStatusRequest.md
 docs/POSKasirInternalDtoUpdatePasswordRequest.md
 docs/POSKasirInternalDtoUpdateProductOptionRequest.md
@@ -115,6 +121,8 @@ models/categories-get200-response.ts
 models/categories-post201-response.ts
 models/index.ts
 models/orders-get200-response.ts
+models/orders-id-pay-midtrans-post200-response.ts
+models/orders-post201-response.ts
 models/payment-methods-get200-response.ts
 models/poskasir-internal-common-error-response.ts
 models/poskasir-internal-common-pagination-pagination.ts
@@ -128,7 +136,7 @@ models/poskasir-internal-dto-cancellation-report-response.ts
 models/poskasir-internal-dto-cashier-performance-response.ts
 models/poskasir-internal-dto-category-response.ts
 models/poskasir-internal-dto-category-with-count-response.ts
-models/poskasir-internal-dto-complete-manual-payment-request.ts
+models/poskasir-internal-dto-confirm-manual-payment-request.ts
 models/poskasir-internal-dto-create-category-request.ts
 models/poskasir-internal-dto-create-order-item-option-request.ts
 models/poskasir-internal-dto-create-order-item-request.ts
@@ -144,10 +152,13 @@ models/poskasir-internal-dto-dashboard-summary-response.ts
 models/poskasir-internal-dto-list-products-response.ts
 models/poskasir-internal-dto-login-request.ts
 models/poskasir-internal-dto-login-response.ts
+models/poskasir-internal-dto-midtrans-payment-response.ts
+models/poskasir-internal-dto-order-detail-response.ts
 models/poskasir-internal-dto-order-item-option-response.ts
 models/poskasir-internal-dto-order-item-response.ts
 models/poskasir-internal-dto-order-list-response.ts
 models/poskasir-internal-dto-paged-order-response.ts
+models/poskasir-internal-dto-payment-action.ts
 models/poskasir-internal-dto-payment-method-performance-response.ts
 models/poskasir-internal-dto-payment-method-response.ts
 models/poskasir-internal-dto-product-list-response.ts
@@ -158,6 +169,7 @@ models/poskasir-internal-dto-profile-response.ts
 models/poskasir-internal-dto-register-request.ts
 models/poskasir-internal-dto-restore-bulk-request.ts
 models/poskasir-internal-dto-sales-report.ts
+models/poskasir-internal-dto-update-order-item-request.ts
 models/poskasir-internal-dto-update-order-status-request.ts
 models/poskasir-internal-dto-update-password-request.ts
 models/poskasir-internal-dto-update-product-option-request.ts

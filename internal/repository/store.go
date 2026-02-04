@@ -3,6 +3,7 @@ package repository
 import (
 	"POS-kasir/pkg/logger"
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,16 +35,14 @@ func (store *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) erro
 	}
 	defer func(tx pgx.Tx, ctx context.Context) {
 		err := tx.Rollback(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, pgx.ErrTxClosed) {
 			store.log.Errorf("ExecTx | Failed to rollback transaction: %v", err)
 		}
 	}(tx, ctx)
-
 	q := New(tx)
 	err = fn(q)
 	if err != nil {
 		return err
 	}
-
 	return tx.Commit(ctx)
 }

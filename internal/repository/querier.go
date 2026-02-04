@@ -176,6 +176,8 @@ type Querier interface {
 	UpdateOrderManualPayment(ctx context.Context, arg UpdateOrderManualPaymentParams) (Order, error)
 	// Menyimpan referensi pembayaran dari payment gateway dan metode pembayaran.
 	UpdateOrderPaymentInfo(ctx context.Context, arg UpdateOrderPaymentInfoParams) error
+	// Menyimpan URL pembayaran (QR string atau deep link) dan token.
+	UpdateOrderPaymentUrl(ctx context.Context, arg UpdateOrderPaymentUrlParams) error
 	// Memperbarui status operasional sebuah pesanan.
 	// Validasi transisi status dilakukan di level aplikasi/service.
 	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)

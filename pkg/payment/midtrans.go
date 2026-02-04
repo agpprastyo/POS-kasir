@@ -7,13 +7,16 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/coreapi"
 )
 
 type IMidtrans interface {
 	CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error)
+	GetQRISCharge(orderID string) (*coreapi.TransactionStatusResponse, error)
 	VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error
+	CancelTransaction(orderID string) (*coreapi.CancelResponse, error)
 }
 
 type MidtransService struct {
@@ -51,10 +54,9 @@ func NewMidtransService(cfg *config.AppConfig, log logger.ILogger) IMidtrans {
 
 // VerifyNotificationSignature memvalidasi signature key dari payload notifikasi.
 func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error {
-	// 1. Buat string sumber sesuai dokumentasi Midtrans: order_id + status_code + gross_amount + server_key
+
 	sourceString := payload.OrderID + payload.StatusCode + payload.GrossAmount + s.config.Midtrans.ServerKey
 
-	// 2. Hitung hash SHA-512 dari string sumber
 	hasher := sha512.New()
 	_, err := hasher.Write([]byte(sourceString))
 	if err != nil {
@@ -64,7 +66,6 @@ func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotifi
 
 	computedSignature := hex.EncodeToString(hasher.Sum(nil))
 
-	// 3. Bandingkan signature yang dihitung dengan yang diterima dari Midtrans
 	if computedSignature != payload.SignatureKey {
 		s.log.Warnf("Invalid Midtrans notification signature", "orderID", payload.OrderID, "computed", computedSignature, "received", payload.SignatureKey)
 		return fmt.Errorf("invalid signature for order %s", payload.OrderID)
@@ -77,8 +78,7 @@ func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotifi
 func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error) {
 
 	chargeReq := &coreapi.ChargeReq{
-
-		PaymentType: coreapi.PaymentTypeQris,
+		PaymentType: coreapi.PaymentTypeGopay,
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  orderID,
 			GrossAmt: amount,
@@ -99,4 +99,26 @@ func (s *MidtransService) CreateQRISCharge(orderID string, amount int64) (*corea
 	s.log.Infof("Successfully created QRIS charge for Order ID: %s. Transaction ID: %s", orderID, chargeResp.TransactionID)
 
 	return chargeResp, nil
+}
+
+func (s *MidtransService) GetQRISCharge(orderID string) (*coreapi.TransactionStatusResponse, error) {
+	resp, err := s.client.CheckTransaction(orderID)
+	if err != nil {
+		s.log.Errorf("Failed to check transaction status for Order ID: %s. Error: %v", orderID, err)
+		return nil, err
+	}
+
+	s.log.Infof("Successfully retrieved transaction status for Order ID: %s. Status: %s", orderID, resp.TransactionStatus)
+	return resp, nil
+}
+
+func (s *MidtransService) CancelTransaction(orderID string) (*coreapi.CancelResponse, error) {
+	resp, err := s.client.CancelTransaction(orderID)
+	if err != nil {
+		s.log.Errorf("Failed to cancel transaction for Order ID: %s. Error: %v", orderID, err)
+		return nil, err
+	}
+
+	s.log.Infof("Successfully cancelled transaction for Order ID: %s. Status: %s", orderID, resp.TransactionStatus)
+	return resp, nil
 }

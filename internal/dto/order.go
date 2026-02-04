@@ -46,7 +46,7 @@ type UpdateOrderItemRequest struct {
 	Options   []CreateOrderItemOptionRequest `json:"options" validate:"dive"`
 }
 
-type CompleteManualPaymentRequest struct {
+type ConfirmManualPaymentRequest struct {
 	PaymentMethodID int32 `json:"payment_method_id" validate:"required,gt=0"`
 	CashReceived    int64 `json:"cash_received" validate:"omitempty,gte=0"`
 }
@@ -118,10 +118,17 @@ type PagedOrderResponse struct {
 	Pagination pagination.Pagination `json:"pagination"`
 }
 
-type QRISResponse struct {
-	OrderID       string `json:"order_id"`
-	TransactionID string `json:"transaction_id"`
-	GrossAmount   string `json:"gross_amount"`
-	QRString      string `json:"qr_string"`
-	ExpiryTime    string `json:"expiry_time"`
+type MidtransPaymentResponse struct {
+	OrderID       string          `json:"order_id"`
+	TransactionID string          `json:"transaction_id"`
+	GrossAmount   string          `json:"gross_amount"`
+	QRString      string          `json:"qr_string"`
+	ExpiryTime    string          `json:"expiry_time"`
+	Actions       []PaymentAction `json:"actions"`
+}
+
+type PaymentAction struct {
+	Name   string `json:"name"`
+	Method string `json:"method"`
+	URL    string `json:"url"`
 }

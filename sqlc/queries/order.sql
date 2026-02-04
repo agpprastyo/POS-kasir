@@ -260,3 +260,12 @@ INSERT INTO order_item_options (
 ) VALUES (
     $1, $2, $3
 );
+
+-- name: UpdateOrderPaymentUrl :exec
+-- Menyimpan URL pembayaran (QR string atau deep link) dan token.
+UPDATE orders
+SET
+    payment_url = $2,
+    payment_token = $3
+WHERE
+    id = $1;

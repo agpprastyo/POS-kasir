@@ -461,7 +461,22 @@
             "change": "Change",
             "cancel": "Cancel",
             "pay_later": "Pay Later",
-            "complete": "Complete Payment"
+            "payment_complete": "Payment complete",
+            "complete": "Complete Payment",
+            "midtrans_auto_confirm": "Payment automatically confirmed by Midtrans/Server",
+            "cancelled_by_user": "Cancelled by user from payment screen",
+            "scan_qr_static": "Scan Static QRIS (Placeholder)",
+            "confirm_payment": "Confirm Payment",
+            "scan_qr_dynamic": "Scan QRIS to pay",
+            "generate_qris_failed": "Failed to generate QRIS code from Midtrans",
+            "qris_generated": "QRIS Generated",
+            "click_to_generate": "Click button above to generate QR code",
+            "generate_qris": "Generate QRIS",
+            "discount": "Discount",
+            "select_promo": "Select Promo",
+            "no_promo": "No promo",
+            "cancel_order_btn": "Cancel Order",
+            "close": "Close"
         },
         "variant_dialog": {
             "title": "Select Variant",

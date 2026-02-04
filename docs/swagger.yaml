@@ -133,7 +133,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  POS-kasir_internal_dto.CompleteManualPaymentRequest:
+  POS-kasir_internal_dto.ConfirmManualPaymentRequest:
     properties:
       cash_received:
         minimum: 0
@@ -361,6 +361,54 @@ definitions:
       refresh_token:
         type: string
     type: object
+  POS-kasir_internal_dto.MidtransPaymentResponse:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.PaymentAction'
+        type: array
+      expiry_time:
+        type: string
+      gross_amount:
+        type: string
+      order_id:
+        type: string
+      qr_string:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  POS-kasir_internal_dto.OrderDetailResponse:
+    properties:
+      applied_promotion_id:
+        type: string
+      created_at:
+        type: string
+      discount_amount:
+        type: integer
+      gross_total:
+        type: integer
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.OrderItemResponse'
+        type: array
+      net_total:
+        type: integer
+      payment_gateway_reference:
+        type: string
+      payment_method_id:
+        type: integer
+      status:
+        $ref: '#/definitions/POS-kasir_internal_repository.OrderStatus'
+      type:
+        $ref: '#/definitions/POS-kasir_internal_repository.OrderType'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   POS-kasir_internal_dto.OrderItemOptionResponse:
     properties:
       price_at_sale:
@@ -418,6 +466,15 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+    type: object
+  POS-kasir_internal_dto.PaymentAction:
+    properties:
+      method:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
     type: object
   POS-kasir_internal_dto.PaymentMethodPerformanceResponse:
     properties:
@@ -568,6 +625,20 @@ definitions:
         type: integer
       total_sales:
         type: number
+    type: object
+  POS-kasir_internal_dto.UpdateOrderItemRequest:
+    properties:
+      options:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.CreateOrderItemOptionRequest'
+        type: array
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    required:
+    - product_id
+    - quantity
     type: object
   POS-kasir_internal_dto.UpdateOrderStatusRequest:
     properties:
@@ -1391,7 +1462,12 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1419,7 +1495,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1457,7 +1538,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1511,7 +1597,52 @@ paths:
       summary: Cancel an order
       tags:
       - Orders
-  /orders/{id}/complete-manual-payment:
+  /orders/{id}/items:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update order items
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/POS-kasir_internal_dto.UpdateOrderItemRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update items in an order
+      tags:
+      - Orders
+  /orders/{id}/pay/manual:
     post:
       consumes:
       - application/json
@@ -1526,14 +1657,19 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/POS-kasir_internal_dto.CompleteManualPaymentRequest'
+          $ref: '#/definitions/POS-kasir_internal_dto.ConfirmManualPaymentRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1546,10 +1682,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Complete manual payment for an order
+      summary: Confirm manual payment for an order
       tags:
       - Orders
-  /orders/{id}/process-payment:
+  /orders/{id}/pay/midtrans:
     post:
       consumes:
       - application/json
@@ -1565,7 +1701,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.MidtransPaymentResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -1578,7 +1719,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Process payment for an order
+      summary: Initiate Midtrans payment for an order
       tags:
       - Orders
   /orders/{id}/update-status:
@@ -1603,7 +1744,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.OrderDetailResponse'
+              type: object
         "400":
           description: Bad Request
           schema:

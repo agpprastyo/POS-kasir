@@ -26,12 +26,14 @@ import (
 type IOrderService interface {
 	CreateOrder(ctx context.Context, req dto.CreateOrderRequest) (*dto.OrderDetailResponse, error)
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.OrderDetailResponse, error)
-	ProcessPayment(ctx context.Context, orderID uuid.UUID) (*dto.QRISResponse, error)
+	// InitiateMidtransPayment initiates a QRIS/Gopay payment via Midtrans
+	InitiateMidtransPayment(ctx context.Context, orderID uuid.UUID) (*dto.MidtransPaymentResponse, error)
 	HandleMidtransNotification(ctx context.Context, payload dto.MidtransNotificationPayload) error
 	ListOrders(ctx context.Context, req dto.ListOrdersRequest) (*dto.PagedOrderResponse, error)
 	CancelOrder(ctx context.Context, orderID uuid.UUID, req dto.CancelOrderRequest) error
-	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error)
-	CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error)
+	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error)
+	// ConfirmManualPayment completes a manual payment (Cash/Static QR)
+	ConfirmManualPayment(ctx context.Context, orderID uuid.UUID, req dto.ConfirmManualPaymentRequest) (*dto.OrderDetailResponse, error)
 	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error)
 	ApplyPromotion(ctx context.Context, orderID uuid.UUID, req dto.ApplyPromotionRequest) (*dto.OrderDetailResponse, error)
 }
@@ -63,18 +65,18 @@ var allowedStatusTransitions = map[repository.OrderStatus]map[repository.OrderSt
 		repository.OrderStatusServed:    true,
 		repository.OrderStatusPaid:      true,
 		repository.OrderStatusCancelled: true,
-		repository.OrderStatusOpen:      true, 
+		repository.OrderStatusOpen:      true,
 	},
 	repository.OrderStatusServed: {
 		repository.OrderStatusPaid:       true,
 		repository.OrderStatusInProgress: true,
 		repository.OrderStatusCancelled:  true,
-		repository.OrderStatusOpen:       true, 
+		repository.OrderStatusOpen:       true,
 	},
 	repository.OrderStatusPaid: {
 		repository.OrderStatusServed:     true,
 		repository.OrderStatusInProgress: true,
-		repository.OrderStatusOpen:       true, 
+		repository.OrderStatusOpen:       true,
 	},
 }
 
@@ -101,7 +103,6 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return common.ErrNotFound
 		}
 
-		
 		now := time.Now()
 		if !promo.IsActive {
 			return fmt.Errorf("%w: promotion is not active", common.ErrPromotionNotApplicable)
@@ -113,13 +114,11 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return fmt.Errorf("%w: promotion has expired", common.ErrPromotionNotApplicable)
 		}
 
-		
 		rules, err := qtx.GetPromotionRules(ctx, promo.ID)
 		if err != nil {
 			return fmt.Errorf("failed to get promotion rules: %w", err)
 		}
 
-		
 		productCache := make(map[uuid.UUID]repository.GetProductByIDRow)
 		getProduct := func(id uuid.UUID) (repository.GetProductByIDRow, error) {
 			if p, ok := productCache[id]; ok {
@@ -194,7 +193,6 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 				return fmt.Errorf("failed to get promotion targets: %w", err)
 			}
 
-			
 			var eligibleTotal int64
 			for _, item := range orderItems {
 				isEligible := false
@@ -217,7 +215,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 					}
 				}
 				if isEligible {
-					eligibleTotal += item.Subtotal 
+					eligibleTotal += item.Subtotal
 				}
 			}
 
@@ -231,7 +229,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			}
 
 		} else {
-			
+
 			if promo.DiscountType == repository.DiscountTypePercentage {
 				percentage := utils.NumericToInt64(promo.DiscountValue)
 				discountAmount = (grossTotal * percentage) / 100
@@ -328,7 +326,7 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 
 	return s.GetOrder(ctx, orderID)
 }
-func (s *OrderService) CompleteManualPayment(ctx context.Context, orderID uuid.UUID, req dto.CompleteManualPaymentRequest) (*dto.OrderDetailResponse, error) {
+func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UUID, req dto.ConfirmManualPaymentRequest) (*dto.OrderDetailResponse, error) {
 	var finalOrder repository.GetOrderWithDetailsRow
 
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
@@ -573,6 +571,24 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 			}
 			s.log.Error("Failed to get order details for cancellation", "error", err)
 			return err
+		}
+
+		if orderWithDetails.Status != repository.OrderStatusOpen {
+			s.log.Warn("Attempted to cancel an order that is not in 'open' state", "orderID", orderID, "currentStatus", orderWithDetails.Status)
+			return common.ErrOrderNotCancellable
+		}
+
+		// Cancel Midtrans Transaction if exists
+		if orderWithDetails.PaymentGatewayReference != nil && *orderWithDetails.PaymentGatewayReference != "" {
+			s.log.Infof("Cancelling Midtrans transaction for order %s", orderID)
+			_, err := s.midtransService.CancelTransaction(orderID.String())
+			if err != nil {
+				// We log the error but we might want to proceed or block.
+				// Given safety first: if we cannot cancel the payment, we should probably not cancel the order locally
+				// to avoid a state where user pays for a cancelled order.
+				s.log.Errorf("Failed to cancel Midtrans transaction for order %s: %v", orderID, err)
+				return fmt.Errorf("failed to cancel payment gateway transaction: %w", err)
+			}
 		}
 
 		_, err = qtx.CancelOrder(ctx, repository.CancelOrderParams{
@@ -994,17 +1010,55 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.Or
 	return s.buildOrderDetailResponseFromQueryResult(orderWithDetails)
 }
 
-func (s *OrderService) ProcessPayment(ctx context.Context, orderID uuid.UUID) (*dto.QRISResponse, error) {
+func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid.UUID) (*dto.MidtransPaymentResponse, error) {
 	order, err := s.store.GetOrderWithDetails(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
 
+	// 1. Cek apakah sudah ada transaksi yang aktif
+	if order.PaymentGatewayReference != nil {
+		s.log.Infof("Order %s already has payment reference: %s. Returning existing.", orderID, *order.PaymentGatewayReference)
+
+		// Coba kembalikan data dari cache database (PaymentURL menyimpan JSON actions)
+		if order.PaymentUrl != nil && *order.PaymentUrl != "" {
+			var actions []dto.PaymentAction
+			if err := json.Unmarshal([]byte(*order.PaymentUrl), &actions); err == nil {
+				return &dto.MidtransPaymentResponse{
+					OrderID:       order.ID.String(),
+					TransactionID: *order.PaymentGatewayReference,
+					GrossAmount:   fmt.Sprintf("%d.00", order.NetTotal), // Approximation
+					Actions:       actions,
+				}, nil
+			}
+		}
+		// Jika tidak ada di DB, kita bisa coba fetch status dari Midtrans,
+		// tapi usually Midtrans check status tidak mengembalikan `actions` lengkap untuk generate QR ulang.
+		// Jadi best effort adalah return apa yang ada atau buat user cancel & re-order jika expired.
+	}
+
+	// 2. Create New Charge
 	chargeResp, err := s.midtransService.CreateQRISCharge(order.ID.String(), order.NetTotal)
 	if err != nil {
 		return nil, err
 	}
 
+	s.log.Infof("QRIS charge created successfully for Order ID: %s. Transaction ID: %s", order.ID.String(), chargeResp.TransactionID)
+	s.log.Infof("QRIS charge response: %+v", chargeResp)
+
+	// 3. Map Actions
+	var paymentActions []dto.PaymentAction
+	for _, act := range chargeResp.Actions {
+		paymentActions = append(paymentActions, dto.PaymentAction{
+			Name:   act.Name,
+			Method: act.Method,
+			URL:    act.URL,
+		})
+	}
+
+	actionsJSON, _ := json.Marshal(paymentActions)
+
+	// 4. Update Database
 	err = s.store.UpdateOrderPaymentInfo(ctx, repository.UpdateOrderPaymentInfoParams{
 		ID:                      order.ID,
 		PaymentMethodID:         utils.Int32Ptr(2),
@@ -1014,6 +1068,20 @@ func (s *OrderService) ProcessPayment(ctx context.Context, orderID uuid.UUID) (*
 		return nil, err
 	}
 
+	// Simpan payment_url (actions) dan payment_token (jika ada)
+	// Kita gunakan query kustom yang baru ditambahkan
+	paymentUrlStr := string(actionsJSON)
+	err = s.store.UpdateOrderPaymentUrl(ctx, repository.UpdateOrderPaymentUrlParams{
+		ID:           order.ID,
+		PaymentUrl:   &paymentUrlStr,
+		PaymentToken: nil, // Token tidak selalu ada di response ini
+	})
+	if err != nil {
+		s.log.Warnf("Failed to update payment url for order %s: %v", order.ID, err)
+		// Non-blocking error
+	}
+
+	// 5. Audit Log
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
 	s.activityService.Log(
 		ctx,
@@ -1028,12 +1096,13 @@ func (s *OrderService) ProcessPayment(ctx context.Context, orderID uuid.UUID) (*
 		},
 	)
 
-	response := &dto.QRISResponse{
+	response := &dto.MidtransPaymentResponse{
 		OrderID:       chargeResp.OrderID,
 		TransactionID: chargeResp.TransactionID,
 		GrossAmount:   chargeResp.GrossAmount,
 		QRString:      chargeResp.QRString,
 		ExpiryTime:    chargeResp.ExpiryTime,
+		Actions:       paymentActions,
 	}
 
 	return response, nil
@@ -1047,13 +1116,19 @@ func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload d
 		return fmt.Errorf("signature verification failed")
 	}
 
-	order, err := s.store.GetOrderByGatewayRef(ctx, &payload.TransactionID)
+	orderIDFromPayload, err := uuid.Parse(payload.OrderID)
+	if err != nil {
+		s.log.Error("Invalid order ID in notification", "orderID", payload.OrderID)
+		return common.ErrNotFound
+	}
+
+	order, err := s.store.GetOrderWithDetails(ctx, orderIDFromPayload)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			s.log.Warn("Order not found for Midtrans notification", "transactionID", payload.TransactionID)
+			s.log.Warn("Order not found for Midtrans notification", "orderID", payload.OrderID)
 			return common.ErrNotFound
 		}
-		s.log.Error("Failed to get order by gateway reference", "error", err)
+		s.log.Error("Failed to get order for notification", "error", err)
 		return err
 	}
 

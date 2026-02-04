@@ -463,7 +463,21 @@
             "change": "Kembalian",
             "cancel": "Batal",
             "pay_later": "Bayar Nanti",
-            "complete": "Selesaikan Pembayaran"
+            "complete": "Selesaikan Pembayaran",
+            "midtrans_auto_confirm": "Pembayaran terkonfirmasi otomatis dari Midtrans/Server",
+            "cancelled_by_user": "Dibatalkan oleh pengguna dari layar pembayaran",
+            "scan_qr_static": "Scan QRIS Static (Placeholder)",
+            "confirm_payment": "Konfirmasi Pembayaran",
+            "scan_qr_dynamic": "Scan QRIS untuk membayar",
+            "generate_qris_failed": "Gagal mendapatkan kode QRIS dari Midtrans",
+            "qris_generated": "QRIS Berhasil Dibuat",
+            "click_to_generate": "Klik tombol di atas untuk membuat kode QR",
+            "generate_qris": "Buat QRIS",
+            "discount": "Diskon",
+            "select_promo": "Pilih Promo",
+            "no_promo": "Tidak ada promo",
+            "cancel_order_btn": "Batalkan Pesanan",
+            "close": "Tutup"
         },
         "variant_dialog": {
             "title": "Pilih Varian",

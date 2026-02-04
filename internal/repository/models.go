@@ -537,6 +537,8 @@ type Order struct {
 	ChangeDue               *int64             `json:"change_due"`
 	CancellationReasonID    *int32             `json:"cancellation_reason_id"`
 	CancellationNotes       *string            `json:"cancellation_notes"`
+	PaymentUrl              *string            `json:"payment_url"`
+	PaymentToken            *string            `json:"payment_token"`
 }
 
 type OrderItem struct {

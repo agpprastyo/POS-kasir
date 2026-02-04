@@ -15,12 +15,12 @@ import (
 type IOrderHandler interface {
 	CreateOrderHandler(c *fiber.Ctx) error
 	GetOrderHandler(c *fiber.Ctx) error
-	ProcessPaymentHandler(c *fiber.Ctx) error
+	InitiateMidtransPaymentHandler(c *fiber.Ctx) error
 	MidtransNotificationHandler(c *fiber.Ctx) error
 	ListOrdersHandler(c *fiber.Ctx) error
 	CancelOrderHandler(c *fiber.Ctx) error
 	UpdateOrderItemsHandler(c *fiber.Ctx) error
-	CompleteManualPaymentHandler(c *fiber.Ctx) error
+	ConfirmManualPaymentHandler(c *fiber.Ctx) error
 	UpdateOperationalStatusHandler(c *fiber.Ctx) error
 	ApplyPromotionHandler(c *fiber.Ctx) error
 }
@@ -46,7 +46,7 @@ func NewOrderHandler(orderService IOrderService, log logger.ILogger, validate va
 // @Produce json
 // @Param id path string true "Order ID"
 // @Param request body dto.ApplyPromotionRequest true "Promotion details"
-// @Success 200 {object} common.SuccessResponse
+// @Success 200 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
@@ -94,7 +94,7 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param id path string true "Order ID"
 // @Param request body dto.UpdateOrderStatusRequest true "Order status details"
-// @Success 200 {object} common.SuccessResponse
+// @Success 200 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
@@ -137,19 +137,19 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 	})
 }
 
-// CompleteManualPaymentHandler is a placeholder for completing manual payment
-// @Summary Complete manual payment for an order
+// ConfirmManualPaymentHandler confirms manual payment for an order
+// @Summary Confirm manual payment for an order
 // @Tags Orders
 // @Accept json
 // @Produce json
 // @Param id path string true "Order ID"
-// @Param request body dto.CompleteManualPaymentRequest true "Manual payment details"
-// @Success 200 {object} common.SuccessResponse
+// @Param request body dto.ConfirmManualPaymentRequest true "Manual payment details"
+// @Success 200 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
-// @Router /orders/{id}/complete-manual-payment [post]
-func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
+// @Router /orders/{id}/pay/manual [post]
+func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -158,7 +158,7 @@ func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	var req dto.CompleteManualPaymentRequest
+	var req dto.ConfirmManualPaymentRequest
 	if err := c.BodyParser(&req); err != nil {
 		h.log.Warnf("Cannot parse complete manual payment request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -169,7 +169,7 @@ func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	orderResponse, err := h.orderService.CompleteManualPayment(c.Context(), orderID, req)
+	orderResponse, err := h.orderService.ConfirmManualPayment(c.Context(), orderID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
@@ -187,6 +187,18 @@ func (h *OrderHandler) CompleteManualPaymentHandler(c *fiber.Ctx) error {
 	})
 }
 
+// UpdateOrderItemsHandler updates items in an order
+// @Summary Update items in an order
+// @Tags Orders
+// @Accept json
+// @Produce json
+// @Param id path string true "Order ID"
+// @Param request body []dto.UpdateOrderItemRequest true "Update order items"
+// @Success 200 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 404 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /orders/{id}/items [put]
 func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -332,7 +344,7 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param request body dto.CreateOrderRequest true "Create order details"
-// @Success 201 {object} common.SuccessResponse
+// @Success 201 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /orders [post]
@@ -367,7 +379,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Order ID"
-// @Success 200 {object} common.SuccessResponse
+// @Success 200 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
@@ -397,18 +409,18 @@ func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 	})
 }
 
-// ProcessPaymentHandler is a placeholder for processing payment for an order
-// @Summary Process payment for an order
+// InitiateMidtransPaymentHandler initiates midtrans payment for an order
+// @Summary Initiate Midtrans payment for an order
 // @Tags Orders
 // @Accept json
 // @Produce json
 // @Param id path string true "Order ID"
-// @Success 200 {object} common.SuccessResponse
+// @Success 200 {object} common.SuccessResponse{data=dto.MidtransPaymentResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
-// @Router /orders/{id}/process-payment [post]
-func (h *OrderHandler) ProcessPaymentHandler(c *fiber.Ctx) error {
+// @Router /orders/{id}/pay/midtrans [post]
+func (h *OrderHandler) InitiateMidtransPaymentHandler(c *fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -417,13 +429,13 @@ func (h *OrderHandler) ProcessPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	qrisResponse, err := h.orderService.ProcessPayment(c.Context(), orderID)
+	qrisResponse, err := h.orderService.InitiateMidtransPayment(c.Context(), orderID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
 		}
 		h.log.Errorf("Failed to process payment in service", "error", err, "orderID", orderID)
-		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to process payment"})
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to process payment: " + err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{

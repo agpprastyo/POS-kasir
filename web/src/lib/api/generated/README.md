@@ -68,9 +68,10 @@ Class | Method | HTTP request | Description
 *OrdersApi* | [**ordersGet**](docs/OrdersApi.md#ordersget) | **GET** /orders | List orders
 *OrdersApi* | [**ordersIdApplyPromotionPost**](docs/OrdersApi.md#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order
 *OrdersApi* | [**ordersIdCancelPost**](docs/OrdersApi.md#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order
-*OrdersApi* | [**ordersIdCompleteManualPaymentPost**](docs/OrdersApi.md#ordersidcompletemanualpaymentpost) | **POST** /orders/{id}/complete-manual-payment | Complete manual payment for an order
 *OrdersApi* | [**ordersIdGet**](docs/OrdersApi.md#ordersidget) | **GET** /orders/{id} | Get an order by ID
-*OrdersApi* | [**ordersIdProcessPaymentPost**](docs/OrdersApi.md#ordersidprocesspaymentpost) | **POST** /orders/{id}/process-payment | Process payment for an order
+*OrdersApi* | [**ordersIdItemsPut**](docs/OrdersApi.md#ordersiditemsput) | **PUT** /orders/{id}/items | Update items in an order
+*OrdersApi* | [**ordersIdPayManualPost**](docs/OrdersApi.md#ordersidpaymanualpost) | **POST** /orders/{id}/pay/manual | Confirm manual payment for an order
+*OrdersApi* | [**ordersIdPayMidtransPost**](docs/OrdersApi.md#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order
 *OrdersApi* | [**ordersIdUpdateStatusPost**](docs/OrdersApi.md#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status
 *OrdersApi* | [**ordersPost**](docs/OrdersApi.md#orderspost) | **POST** /orders | Create an order
 *PaymentMethodsApi* | [**paymentMethodsGet**](docs/PaymentMethodsApi.md#paymentmethodsget) | **GET** /payment-methods | List payment methods
@@ -118,6 +119,8 @@ Class | Method | HTTP request | Description
  - [CategoriesGet200Response](docs/CategoriesGet200Response.md)
  - [CategoriesPost201Response](docs/CategoriesPost201Response.md)
  - [OrdersGet200Response](docs/OrdersGet200Response.md)
+ - [OrdersIdPayMidtransPost200Response](docs/OrdersIdPayMidtransPost200Response.md)
+ - [OrdersPost201Response](docs/OrdersPost201Response.md)
  - [POSKasirInternalCommonErrorResponse](docs/POSKasirInternalCommonErrorResponse.md)
  - [POSKasirInternalCommonPaginationPagination](docs/POSKasirInternalCommonPaginationPagination.md)
  - [POSKasirInternalCommonSuccessResponse](docs/POSKasirInternalCommonSuccessResponse.md)
@@ -130,7 +133,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoCashierPerformanceResponse](docs/POSKasirInternalDtoCashierPerformanceResponse.md)
  - [POSKasirInternalDtoCategoryResponse](docs/POSKasirInternalDtoCategoryResponse.md)
  - [POSKasirInternalDtoCategoryWithCountResponse](docs/POSKasirInternalDtoCategoryWithCountResponse.md)
- - [POSKasirInternalDtoCompleteManualPaymentRequest](docs/POSKasirInternalDtoCompleteManualPaymentRequest.md)
+ - [POSKasirInternalDtoConfirmManualPaymentRequest](docs/POSKasirInternalDtoConfirmManualPaymentRequest.md)
  - [POSKasirInternalDtoCreateCategoryRequest](docs/POSKasirInternalDtoCreateCategoryRequest.md)
  - [POSKasirInternalDtoCreateOrderItemOptionRequest](docs/POSKasirInternalDtoCreateOrderItemOptionRequest.md)
  - [POSKasirInternalDtoCreateOrderItemRequest](docs/POSKasirInternalDtoCreateOrderItemRequest.md)
@@ -146,10 +149,13 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoListProductsResponse](docs/POSKasirInternalDtoListProductsResponse.md)
  - [POSKasirInternalDtoLoginRequest](docs/POSKasirInternalDtoLoginRequest.md)
  - [POSKasirInternalDtoLoginResponse](docs/POSKasirInternalDtoLoginResponse.md)
+ - [POSKasirInternalDtoMidtransPaymentResponse](docs/POSKasirInternalDtoMidtransPaymentResponse.md)
+ - [POSKasirInternalDtoOrderDetailResponse](docs/POSKasirInternalDtoOrderDetailResponse.md)
  - [POSKasirInternalDtoOrderItemOptionResponse](docs/POSKasirInternalDtoOrderItemOptionResponse.md)
  - [POSKasirInternalDtoOrderItemResponse](docs/POSKasirInternalDtoOrderItemResponse.md)
  - [POSKasirInternalDtoOrderListResponse](docs/POSKasirInternalDtoOrderListResponse.md)
  - [POSKasirInternalDtoPagedOrderResponse](docs/POSKasirInternalDtoPagedOrderResponse.md)
+ - [POSKasirInternalDtoPaymentAction](docs/POSKasirInternalDtoPaymentAction.md)
  - [POSKasirInternalDtoPaymentMethodPerformanceResponse](docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md)
  - [POSKasirInternalDtoPaymentMethodResponse](docs/POSKasirInternalDtoPaymentMethodResponse.md)
  - [POSKasirInternalDtoProductListResponse](docs/POSKasirInternalDtoProductListResponse.md)
@@ -160,6 +166,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoRegisterRequest](docs/POSKasirInternalDtoRegisterRequest.md)
  - [POSKasirInternalDtoRestoreBulkRequest](docs/POSKasirInternalDtoRestoreBulkRequest.md)
  - [POSKasirInternalDtoSalesReport](docs/POSKasirInternalDtoSalesReport.md)
+ - [POSKasirInternalDtoUpdateOrderItemRequest](docs/POSKasirInternalDtoUpdateOrderItemRequest.md)
  - [POSKasirInternalDtoUpdateOrderStatusRequest](docs/POSKasirInternalDtoUpdateOrderStatusRequest.md)
  - [POSKasirInternalDtoUpdatePasswordRequest](docs/POSKasirInternalDtoUpdatePasswordRequest.md)
  - [POSKasirInternalDtoUpdateProductOptionRequest](docs/POSKasirInternalDtoUpdateProductOptionRequest.md)

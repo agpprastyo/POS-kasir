@@ -4,9 +4,12 @@ import {
     POSKasirInternalCommonErrorResponse,
     POSKasirInternalDtoApplyPromotionRequest,
     POSKasirInternalDtoCancelOrderRequest,
-    POSKasirInternalDtoCompleteManualPaymentRequest,
+    POSKasirInternalDtoConfirmManualPaymentRequest,
     POSKasirInternalDtoCreateOrderRequest,
     POSKasirInternalDtoUpdateOrderStatusRequest,
+    POSKasirInternalDtoUpdateOrderItemRequest,
+    POSKasirInternalDtoOrderDetailResponse,
+    POSKasirInternalDtoMidtransPaymentResponse,
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -53,14 +56,19 @@ export const orderDetailQueryOptions = (id: string) =>
         enabled: !!id,
     })
 
-export const useOrderDetailQuery = (id: string) =>
-    useQuery(orderDetailQueryOptions(id))
+import { UseQueryOptions } from '@tanstack/react-query'
+
+export const useOrderDetailQuery = (id: string, options?: Omit<UseQueryOptions<any, AxiosError<POSKasirInternalCommonErrorResponse>>, 'queryKey' | 'queryFn'>) =>
+    useQuery({
+        ...orderDetailQueryOptions(id),
+        ...options
+    })
 
 export const useApplyPromotionMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        any,
+        POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoApplyPromotionRequest }
     >({
@@ -106,17 +114,17 @@ export const useCancelOrderMutation = () => {
     })
 }
 
-export const useCompleteManualPaymentMutation = () => {
+export const useConfirmManualPaymentMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        any,
+        POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoCompleteManualPaymentRequest }
+        { id: string; body: POSKasirInternalDtoConfirmManualPaymentRequest }
     >({
         mutationKey: ['orders', 'complete-manual-payment'],
         mutationFn: async ({ id, body }) => {
-            const res = await ordersApi.ordersIdCompleteManualPaymentPost(id, body)
+            const res = await ordersApi.ordersIdPayManualPost(id, body)
             return (res.data as any).data;
         },
         onSuccess: (_, variables) => {
@@ -131,17 +139,17 @@ export const useCompleteManualPaymentMutation = () => {
     })
 }
 
-export const useProcessPaymentMutation = () => {
+export const useInitiateMidtransPaymentMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        any,
+        POSKasirInternalDtoMidtransPaymentResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string }
     >({
         mutationKey: ['orders', 'process-payment'],
         mutationFn: async ({ id }) => {
-            const res = await ordersApi.ordersIdProcessPaymentPost(id)
+            const res = await ordersApi.ordersIdPayMidtransPost(id)
             return (res.data as any).data;
         },
         onSuccess: (_, variables) => {
@@ -160,7 +168,7 @@ export const useUpdateOrderStatusMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        any,
+        POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoUpdateOrderStatusRequest }
     >({
@@ -185,7 +193,7 @@ export const useCreateOrderMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        any,
+        POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         POSKasirInternalDtoCreateOrderRequest
     >({
@@ -200,6 +208,31 @@ export const useCreateOrderMutation = () => {
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal membuat order"
+            toast.error(msg)
+        }
+    })
+}
+
+export const useUpdateOrderItemsMutation = () => {
+    const qc = useQueryClient()
+
+    return useMutation<
+        POSKasirInternalDtoOrderDetailResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        { id: string; body: POSKasirInternalDtoUpdateOrderItemRequest[] }
+    >({
+        mutationKey: ['orders', 'update-items'],
+        mutationFn: async ({ id, body }) => {
+            const res = await ordersApi.ordersIdItemsPut(id, body)
+            return (res.data as any).data
+        },
+        onSuccess: (_, variables) => {
+            qc.invalidateQueries({ queryKey: ['orders', 'list'] })
+            qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
+            toast.success("Item order berhasil diperbarui")
+        },
+        onError: (error) => {
+            const msg = error.response?.data?.message || "Gagal memperbarui item order"
             toast.error(msg)
         }
     })

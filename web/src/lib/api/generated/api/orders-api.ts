@@ -24,6 +24,10 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { OrdersGet200Response } from '../models';
 // @ts-ignore
+import type { OrdersIdPayMidtransPost200Response } from '../models';
+// @ts-ignore
+import type { OrdersPost201Response } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
@@ -32,9 +36,11 @@ import type { POSKasirInternalDtoApplyPromotionRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalDtoCancelOrderRequest } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoCompleteManualPaymentRequest } from '../models';
+import type { POSKasirInternalDtoConfirmManualPaymentRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalDtoCreateOrderRequest } from '../models';
+// @ts-ignore
+import type { POSKasirInternalDtoUpdateOrderItemRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalDtoUpdateOrderStatusRequest } from '../models';
 /**
@@ -174,46 +180,6 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
-         * @summary Complete manual payment for an order
-         * @param {string} id Order ID
-         * @param {POSKasirInternalDtoCompleteManualPaymentRequest} request Manual payment details
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ordersIdCompleteManualPaymentPost: async (id: string, request: POSKasirInternalDtoCompleteManualPaymentRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('ordersIdCompleteManualPaymentPost', 'id', id)
-            // verify required parameter 'request' is not null or undefined
-            assertParamExists('ordersIdCompleteManualPaymentPost', 'request', request)
-            const localVarPath = `/orders/{id}/complete-manual-payment`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @summary Get an order by ID
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
@@ -248,15 +214,95 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
-         * @summary Process payment for an order
+         * @summary Update items in an order
+         * @param {string} id Order ID
+         * @param {Array<POSKasirInternalDtoUpdateOrderItemRequest>} request Update order items
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdItemsPut: async (id: string, request: Array<POSKasirInternalDtoUpdateOrderItemRequest>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('ordersIdItemsPut', 'id', id)
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('ordersIdItemsPut', 'request', request)
+            const localVarPath = `/orders/{id}/items`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Confirm manual payment for an order
+         * @param {string} id Order ID
+         * @param {POSKasirInternalDtoConfirmManualPaymentRequest} request Manual payment details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdPayManualPost: async (id: string, request: POSKasirInternalDtoConfirmManualPaymentRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('ordersIdPayManualPost', 'id', id)
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('ordersIdPayManualPost', 'request', request)
+            const localVarPath = `/orders/{id}/pay/manual`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Initiate Midtrans payment for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdProcessPaymentPost: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ordersIdPayMidtransPost: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('ordersIdProcessPaymentPost', 'id', id)
-            const localVarPath = `/orders/{id}/process-payment`
+            assertParamExists('ordersIdPayMidtransPost', 'id', id)
+            const localVarPath = `/orders/{id}/pay/midtrans`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -389,7 +435,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdApplyPromotionPost(id: string, request: POSKasirInternalDtoApplyPromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async ordersIdApplyPromotionPost(id: string, request: POSKasirInternalDtoApplyPromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdApplyPromotionPost(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdApplyPromotionPost']?.[localVarOperationServerIndex]?.url;
@@ -411,26 +457,12 @@ export const OrdersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Complete manual payment for an order
-         * @param {string} id Order ID
-         * @param {POSKasirInternalDtoCompleteManualPaymentRequest} request Manual payment details
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async ordersIdCompleteManualPaymentPost(id: string, request: POSKasirInternalDtoCompleteManualPaymentRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdCompleteManualPaymentPost(id, request, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdCompleteManualPaymentPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
          * @summary Get an order by ID
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async ordersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdGet']?.[localVarOperationServerIndex]?.url;
@@ -438,15 +470,43 @@ export const OrdersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Process payment for an order
+         * @summary Update items in an order
+         * @param {string} id Order ID
+         * @param {Array<POSKasirInternalDtoUpdateOrderItemRequest>} request Update order items
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersIdItemsPut(id: string, request: Array<POSKasirInternalDtoUpdateOrderItemRequest>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdItemsPut(id, request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdItemsPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Confirm manual payment for an order
+         * @param {string} id Order ID
+         * @param {POSKasirInternalDtoConfirmManualPaymentRequest} request Manual payment details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersIdPayManualPost(id: string, request: POSKasirInternalDtoConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdPayManualPost(id, request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdPayManualPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Initiate Midtrans payment for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdProcessPaymentPost(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdProcessPaymentPost(id, options);
+        async ordersIdPayMidtransPost(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersIdPayMidtransPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdPayMidtransPost(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdProcessPaymentPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdPayMidtransPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -457,7 +517,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdUpdateStatusPost(id: string, request: POSKasirInternalDtoUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async ordersIdUpdateStatusPost(id: string, request: POSKasirInternalDtoUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdUpdateStatusPost(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdUpdateStatusPost']?.[localVarOperationServerIndex]?.url;
@@ -470,7 +530,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersPost(request: POSKasirInternalDtoCreateOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async ordersPost(request: POSKasirInternalDtoCreateOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersPost']?.[localVarOperationServerIndex]?.url;
@@ -506,7 +566,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdApplyPromotionPost(id: string, request: POSKasirInternalDtoApplyPromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        ordersIdApplyPromotionPost(id: string, request: POSKasirInternalDtoApplyPromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
             return localVarFp.ordersIdApplyPromotionPost(id, request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -522,34 +582,45 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
         },
         /**
          * 
-         * @summary Complete manual payment for an order
-         * @param {string} id Order ID
-         * @param {POSKasirInternalDtoCompleteManualPaymentRequest} request Manual payment details
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        ordersIdCompleteManualPaymentPost(id: string, request: POSKasirInternalDtoCompleteManualPaymentRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
-            return localVarFp.ordersIdCompleteManualPaymentPost(id, request, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @summary Get an order by ID
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        ordersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
             return localVarFp.ordersIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Process payment for an order
+         * @summary Update items in an order
+         * @param {string} id Order ID
+         * @param {Array<POSKasirInternalDtoUpdateOrderItemRequest>} request Update order items
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdItemsPut(id: string, request: Array<POSKasirInternalDtoUpdateOrderItemRequest>, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+            return localVarFp.ordersIdItemsPut(id, request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Confirm manual payment for an order
+         * @param {string} id Order ID
+         * @param {POSKasirInternalDtoConfirmManualPaymentRequest} request Manual payment details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdPayManualPost(id: string, request: POSKasirInternalDtoConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+            return localVarFp.ordersIdPayManualPost(id, request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Initiate Midtrans payment for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdProcessPaymentPost(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
-            return localVarFp.ordersIdProcessPaymentPost(id, options).then((request) => request(axios, basePath));
+        ordersIdPayMidtransPost(id: string, options?: RawAxiosRequestConfig): AxiosPromise<OrdersIdPayMidtransPost200Response> {
+            return localVarFp.ordersIdPayMidtransPost(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -559,7 +630,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdUpdateStatusPost(id: string, request: POSKasirInternalDtoUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        ordersIdUpdateStatusPost(id: string, request: POSKasirInternalDtoUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
             return localVarFp.ordersIdUpdateStatusPost(id, request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -569,7 +640,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersPost(request: POSKasirInternalDtoCreateOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        ordersPost(request: POSKasirInternalDtoCreateOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
             return localVarFp.ordersPost(request, options).then((request) => request(axios, basePath));
         },
     };
@@ -619,18 +690,6 @@ export class OrdersApi extends BaseAPI {
 
     /**
      * 
-     * @summary Complete manual payment for an order
-     * @param {string} id Order ID
-     * @param {POSKasirInternalDtoCompleteManualPaymentRequest} request Manual payment details
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public ordersIdCompleteManualPaymentPost(id: string, request: POSKasirInternalDtoCompleteManualPaymentRequest, options?: RawAxiosRequestConfig) {
-        return OrdersApiFp(this.configuration).ordersIdCompleteManualPaymentPost(id, request, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
      * @summary Get an order by ID
      * @param {string} id Order ID
      * @param {*} [options] Override http request option.
@@ -642,13 +701,37 @@ export class OrdersApi extends BaseAPI {
 
     /**
      * 
-     * @summary Process payment for an order
+     * @summary Update items in an order
+     * @param {string} id Order ID
+     * @param {Array<POSKasirInternalDtoUpdateOrderItemRequest>} request Update order items
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersIdItemsPut(id: string, request: Array<POSKasirInternalDtoUpdateOrderItemRequest>, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersIdItemsPut(id, request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Confirm manual payment for an order
+     * @param {string} id Order ID
+     * @param {POSKasirInternalDtoConfirmManualPaymentRequest} request Manual payment details
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersIdPayManualPost(id: string, request: POSKasirInternalDtoConfirmManualPaymentRequest, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersIdPayManualPost(id, request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Initiate Midtrans payment for an order
      * @param {string} id Order ID
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public ordersIdProcessPaymentPost(id: string, options?: RawAxiosRequestConfig) {
-        return OrdersApiFp(this.configuration).ordersIdProcessPaymentPost(id, options).then((request) => request(this.axios, this.basePath));
+    public ordersIdPayMidtransPost(id: string, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersIdPayMidtransPost(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

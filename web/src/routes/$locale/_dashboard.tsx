@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute, Link, Outlet, redirect, useRouter, useParams } from '@tanstack/react-router'
 import { FileText, LayoutDashboard, LogOut, Menu, Package, Settings, ShoppingCart, User as UserIcon, Zap, Receipt, Tag, ActivityIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,8 @@ import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
 import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
 import { useTranslation } from 'react-i18next'
-import {SettingsPanel} from "@/components/SettingsPanel.tsx";
+import { SettingsPanel } from "@/components/SettingsPanel.tsx";
+import { useBrandingSettingsQuery } from '@/lib/api/query/settings'
 
 
 export const Route = createFileRoute('/$locale/_dashboard')({
@@ -38,6 +39,13 @@ function DashboardLayout() {
     const auth = useAuth()
     const router = useRouter()
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+    const { data: branding } = useBrandingSettingsQuery()
+
+    useEffect(() => {
+        if (branding?.app_name) {
+            document.title = branding.app_name
+        }
+    }, [branding?.app_name])
 
     const user = auth.user
     const userRole = user?.role
@@ -181,8 +189,12 @@ function DashboardLayout() {
                             params={{ locale }}
                             className="flex items-center gap-2 font-semibold"
                         >
-                            <Zap className="h-8 w-8" />
-                            <span className="text-2xl">{t('dashboard.brand_name')}</span>
+                            {branding?.app_logo ? (
+                                <img src={branding.app_logo} alt="Logo" className="h-8 w-8 object-contain" />
+                            ) : (
+                                <Zap className="h-8 w-8" />
+                            )}
+                            <span className="text-2xl">{branding?.app_name || t('dashboard.brand_name')}</span>
                         </Link>
                     </div>
                     <div className="flex-1">
@@ -262,8 +274,12 @@ function DashboardLayout() {
                                     params={{ locale }}
                                     className="flex items-center gap-2 text-lg font-semibold mb-4"
                                 >
-                                    <Zap className="h-6 w-6" />
-                                    <span className="sr-only">{t('dashboard.brand_name')}</span>
+                                    {branding?.app_logo ? (
+                                        <img src={branding.app_logo} alt="Logo" className="h-6 w-6 object-contain" />
+                                    ) : (
+                                        <Zap className="h-6 w-6" />
+                                    )}
+                                    <span className="sr-only">{branding?.app_name || t('dashboard.brand_name')}</span>
                                 </Link>
                                 <div className="mb-4">
                                     <SettingsPanel />

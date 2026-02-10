@@ -1383,6 +1383,35 @@
                 }
             }
         },
+        "/orders/{id}/print": {
+            "post": {
+                "description": "Trigger printing of invoice for a specific order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Print invoice for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/orders/{id}/update-status": {
             "post": {
                 "consumes": [
@@ -2987,6 +3016,165 @@
                 }
             }
         },
+        "/settings/branding": {
+            "get": {
+                "description": "Get branding settings like app name, logo, footer text",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get branding settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update branding settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update branding settings",
+                "parameters": [
+                    {
+                        "description": "Update Branding Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdateBrandingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/branding/logo": {
+            "post": {
+                "description": "Upload and update app logo",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update app logo",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Logo image file",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/printer": {
+            "get": {
+                "description": "Get printer settings like connection string, paper width",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get printer settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update printer settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update printer settings",
+                "parameters": [
+                    {
+                        "description": "Update Printer Settings Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdatePrinterSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/printer/test": {
+            "post": {
+                "description": "Send a test print command to the configured printer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Test printer connection",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of users with pagination, filtering, and sorting",
@@ -3512,6 +3700,26 @@
             ],
             "properties": {
                 "promotion_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.BrandingSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "app_logo": {
+                    "type": "string"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "footer_text": {
+                    "type": "string"
+                },
+                "theme_color": {
+                    "type": "string"
+                },
+                "theme_color_dark": {
                     "type": "string"
                 }
             }
@@ -4166,6 +4374,20 @@
                 }
             }
         },
+        "POS-kasir_internal_dto.PrinterSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "auto_print": {
+                    "type": "boolean"
+                },
+                "connection": {
+                    "type": "string"
+                },
+                "paper_width": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.ProductListResponse": {
             "type": "object",
             "properties": {
@@ -4358,6 +4580,27 @@
                 }
             }
         },
+        "POS-kasir_internal_dto.UpdateBrandingRequest": {
+            "type": "object",
+            "properties": {
+                "app_logo": {
+                    "description": "URL or empty",
+                    "type": "string"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "footer_text": {
+                    "type": "string"
+                },
+                "theme_color": {
+                    "type": "string"
+                },
+                "theme_color_dark": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.UpdateOrderItemRequest": {
             "type": "object",
             "required": [
@@ -4415,6 +4658,20 @@
                     "type": "string",
                     "maxLength": 32,
                     "minLength": 8
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdatePrinterSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "auto_print": {
+                    "type": "boolean"
+                },
+                "connection": {
+                    "type": "string"
+                },
+                "paper_width": {
+                    "type": "string"
                 }
             }
         },

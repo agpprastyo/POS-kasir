@@ -8,9 +8,11 @@ api/cancellation-reasons-api.ts
 api/categories-api.ts
 api/orders-api.ts
 api/payment-methods-api.ts
+api/printer-api.ts
 api/products-api.ts
 api/promotions-api.ts
 api/reports-api.ts
+api/settings-api.ts
 api/users-api.ts
 base.ts
 common.ts
@@ -37,6 +39,7 @@ docs/POSKasirInternalCommonSuccessResponse.md
 docs/POSKasirInternalDtoActivityLogListResponse.md
 docs/POSKasirInternalDtoActivityLogResponse.md
 docs/POSKasirInternalDtoApplyPromotionRequest.md
+docs/POSKasirInternalDtoBrandingSettingsResponse.md
 docs/POSKasirInternalDtoCancelOrderRequest.md
 docs/POSKasirInternalDtoCancellationReasonResponse.md
 docs/POSKasirInternalDtoCancellationReportResponse.md
@@ -68,6 +71,7 @@ docs/POSKasirInternalDtoPagedOrderResponse.md
 docs/POSKasirInternalDtoPaymentAction.md
 docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md
 docs/POSKasirInternalDtoPaymentMethodResponse.md
+docs/POSKasirInternalDtoPrinterSettingsResponse.md
 docs/POSKasirInternalDtoProductListResponse.md
 docs/POSKasirInternalDtoProductOptionResponse.md
 docs/POSKasirInternalDtoProductPerformanceResponse.md
@@ -76,9 +80,11 @@ docs/POSKasirInternalDtoProfileResponse.md
 docs/POSKasirInternalDtoRegisterRequest.md
 docs/POSKasirInternalDtoRestoreBulkRequest.md
 docs/POSKasirInternalDtoSalesReport.md
+docs/POSKasirInternalDtoUpdateBrandingRequest.md
 docs/POSKasirInternalDtoUpdateOrderItemRequest.md
 docs/POSKasirInternalDtoUpdateOrderStatusRequest.md
 docs/POSKasirInternalDtoUpdatePasswordRequest.md
+docs/POSKasirInternalDtoUpdatePrinterSettingsRequest.md
 docs/POSKasirInternalDtoUpdateProductOptionRequest.md
 docs/POSKasirInternalDtoUpdateProductRequest.md
 docs/POSKasirInternalDtoUpdatePromotionRequest.md
@@ -95,6 +101,7 @@ docs/POSKasirInternalRepositoryPromotionTargetType.md
 docs/POSKasirInternalRepositoryUserRole.md
 docs/PaymentMethodsApi.md
 docs/PaymentMethodsGet200Response.md
+docs/PrinterApi.md
 docs/ProductsApi.md
 docs/ProductsGet200Response.md
 docs/ProductsPost201Response.md
@@ -107,6 +114,7 @@ docs/ReportsDashboardSummaryGet200Response.md
 docs/ReportsPaymentMethodsGet200Response.md
 docs/ReportsProductsGet200Response.md
 docs/ReportsSalesGet200Response.md
+docs/SettingsApi.md
 docs/UsersApi.md
 docs/UsersGet200Response.md
 git_push.sh
@@ -130,6 +138,7 @@ models/poskasir-internal-common-success-response.ts
 models/poskasir-internal-dto-activity-log-list-response.ts
 models/poskasir-internal-dto-activity-log-response.ts
 models/poskasir-internal-dto-apply-promotion-request.ts
+models/poskasir-internal-dto-branding-settings-response.ts
 models/poskasir-internal-dto-cancel-order-request.ts
 models/poskasir-internal-dto-cancellation-reason-response.ts
 models/poskasir-internal-dto-cancellation-report-response.ts
@@ -161,6 +170,7 @@ models/poskasir-internal-dto-paged-order-response.ts
 models/poskasir-internal-dto-payment-action.ts
 models/poskasir-internal-dto-payment-method-performance-response.ts
 models/poskasir-internal-dto-payment-method-response.ts
+models/poskasir-internal-dto-printer-settings-response.ts
 models/poskasir-internal-dto-product-list-response.ts
 models/poskasir-internal-dto-product-option-response.ts
 models/poskasir-internal-dto-product-performance-response.ts
@@ -169,9 +179,11 @@ models/poskasir-internal-dto-profile-response.ts
 models/poskasir-internal-dto-register-request.ts
 models/poskasir-internal-dto-restore-bulk-request.ts
 models/poskasir-internal-dto-sales-report.ts
+models/poskasir-internal-dto-update-branding-request.ts
 models/poskasir-internal-dto-update-order-item-request.ts
 models/poskasir-internal-dto-update-order-status-request.ts
 models/poskasir-internal-dto-update-password-request.ts
+models/poskasir-internal-dto-update-printer-settings-request.ts
 models/poskasir-internal-dto-update-product-option-request.ts
 models/poskasir-internal-dto-update-product-request.ts
 models/poskasir-internal-dto-update-promotion-request.ts

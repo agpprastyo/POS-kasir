@@ -625,6 +625,13 @@ type PromotionTarget struct {
 	UpdatedAt   pgtype.Timestamptz  `json:"updated_at"`
 }
 
+type Setting struct {
+	Key         string           `json:"key"`
+	Value       string           `json:"value"`
+	Description *string          `json:"description"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
 type User struct {
 	ID           uuid.UUID          `json:"id"`
 	Username     string             `json:"username"`

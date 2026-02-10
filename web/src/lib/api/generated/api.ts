@@ -20,8 +20,10 @@ export * from './api/cancellation-reasons-api';
 export * from './api/categories-api';
 export * from './api/orders-api';
 export * from './api/payment-methods-api';
+export * from './api/printer-api';
 export * from './api/products-api';
 export * from './api/promotions-api';
 export * from './api/reports-api';
+export * from './api/settings-api';
 export * from './api/users-api';
 

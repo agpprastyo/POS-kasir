@@ -75,6 +75,8 @@ Class | Method | HTTP request | Description
 *OrdersApi* | [**ordersIdUpdateStatusPost**](docs/OrdersApi.md#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status
 *OrdersApi* | [**ordersPost**](docs/OrdersApi.md#orderspost) | **POST** /orders | Create an order
 *PaymentMethodsApi* | [**paymentMethodsGet**](docs/PaymentMethodsApi.md#paymentmethodsget) | **GET** /payment-methods | List payment methods
+*PrinterApi* | [**ordersIdPrintPost**](docs/PrinterApi.md#ordersidprintpost) | **POST** /orders/{id}/print | Print invoice for an order
+*PrinterApi* | [**settingsPrinterTestPost**](docs/PrinterApi.md#settingsprintertestpost) | **POST** /settings/printer/test | Test printer connection
 *ProductsApi* | [**productsGet**](docs/ProductsApi.md#productsget) | **GET** /products | List products
 *ProductsApi* | [**productsIdDelete**](docs/ProductsApi.md#productsiddelete) | **DELETE** /products/{id} | Delete a product
 *ProductsApi* | [**productsIdGet**](docs/ProductsApi.md#productsidget) | **GET** /products/{id} | Get a product by ID
@@ -100,6 +102,11 @@ Class | Method | HTTP request | Description
 *ReportsApi* | [**reportsPaymentMethodsGet**](docs/ReportsApi.md#reportspaymentmethodsget) | **GET** /reports/payment-methods | Get payment method performance
 *ReportsApi* | [**reportsProductsGet**](docs/ReportsApi.md#reportsproductsget) | **GET** /reports/products | Get product performance
 *ReportsApi* | [**reportsSalesGet**](docs/ReportsApi.md#reportssalesget) | **GET** /reports/sales | Get sales reports
+*SettingsApi* | [**settingsBrandingGet**](docs/SettingsApi.md#settingsbrandingget) | **GET** /settings/branding | Get branding settings
+*SettingsApi* | [**settingsBrandingLogoPost**](docs/SettingsApi.md#settingsbrandinglogopost) | **POST** /settings/branding/logo | Update app logo
+*SettingsApi* | [**settingsBrandingPut**](docs/SettingsApi.md#settingsbrandingput) | **PUT** /settings/branding | Update branding settings
+*SettingsApi* | [**settingsPrinterGet**](docs/SettingsApi.md#settingsprinterget) | **GET** /settings/printer | Get printer settings
+*SettingsApi* | [**settingsPrinterPut**](docs/SettingsApi.md#settingsprinterput) | **PUT** /settings/printer | Update printer settings
 *UsersApi* | [**usersGet**](docs/UsersApi.md#usersget) | **GET** /users | Get all users
 *UsersApi* | [**usersIdDelete**](docs/UsersApi.md#usersiddelete) | **DELETE** /users/{id} | Delete user
 *UsersApi* | [**usersIdGet**](docs/UsersApi.md#usersidget) | **GET** /users/{id} | Get user by ID
@@ -127,6 +134,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoActivityLogListResponse](docs/POSKasirInternalDtoActivityLogListResponse.md)
  - [POSKasirInternalDtoActivityLogResponse](docs/POSKasirInternalDtoActivityLogResponse.md)
  - [POSKasirInternalDtoApplyPromotionRequest](docs/POSKasirInternalDtoApplyPromotionRequest.md)
+ - [POSKasirInternalDtoBrandingSettingsResponse](docs/POSKasirInternalDtoBrandingSettingsResponse.md)
  - [POSKasirInternalDtoCancelOrderRequest](docs/POSKasirInternalDtoCancelOrderRequest.md)
  - [POSKasirInternalDtoCancellationReasonResponse](docs/POSKasirInternalDtoCancellationReasonResponse.md)
  - [POSKasirInternalDtoCancellationReportResponse](docs/POSKasirInternalDtoCancellationReportResponse.md)
@@ -158,6 +166,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoPaymentAction](docs/POSKasirInternalDtoPaymentAction.md)
  - [POSKasirInternalDtoPaymentMethodPerformanceResponse](docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md)
  - [POSKasirInternalDtoPaymentMethodResponse](docs/POSKasirInternalDtoPaymentMethodResponse.md)
+ - [POSKasirInternalDtoPrinterSettingsResponse](docs/POSKasirInternalDtoPrinterSettingsResponse.md)
  - [POSKasirInternalDtoProductListResponse](docs/POSKasirInternalDtoProductListResponse.md)
  - [POSKasirInternalDtoProductOptionResponse](docs/POSKasirInternalDtoProductOptionResponse.md)
  - [POSKasirInternalDtoProductPerformanceResponse](docs/POSKasirInternalDtoProductPerformanceResponse.md)
@@ -166,9 +175,11 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoRegisterRequest](docs/POSKasirInternalDtoRegisterRequest.md)
  - [POSKasirInternalDtoRestoreBulkRequest](docs/POSKasirInternalDtoRestoreBulkRequest.md)
  - [POSKasirInternalDtoSalesReport](docs/POSKasirInternalDtoSalesReport.md)
+ - [POSKasirInternalDtoUpdateBrandingRequest](docs/POSKasirInternalDtoUpdateBrandingRequest.md)
  - [POSKasirInternalDtoUpdateOrderItemRequest](docs/POSKasirInternalDtoUpdateOrderItemRequest.md)
  - [POSKasirInternalDtoUpdateOrderStatusRequest](docs/POSKasirInternalDtoUpdateOrderStatusRequest.md)
  - [POSKasirInternalDtoUpdatePasswordRequest](docs/POSKasirInternalDtoUpdatePasswordRequest.md)
+ - [POSKasirInternalDtoUpdatePrinterSettingsRequest](docs/POSKasirInternalDtoUpdatePrinterSettingsRequest.md)
  - [POSKasirInternalDtoUpdateProductOptionRequest](docs/POSKasirInternalDtoUpdateProductOptionRequest.md)
  - [POSKasirInternalDtoUpdateProductRequest](docs/POSKasirInternalDtoUpdateProductRequest.md)
  - [POSKasirInternalDtoUpdatePromotionRequest](docs/POSKasirInternalDtoUpdatePromotionRequest.md)

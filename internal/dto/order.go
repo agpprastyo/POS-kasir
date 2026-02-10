@@ -72,6 +72,7 @@ type MidtransNotificationPayload struct {
 
 type OrderItemOptionResponse struct {
 	ProductOptionID uuid.UUID `json:"product_option_id"`
+	OptionName      string    `json:"option_name,omitempty"`
 	PriceAtSale     int64     `json:"price_at_sale"`
 }
 
@@ -95,6 +96,8 @@ type OrderDetailResponse struct {
 	NetTotal                int64                  `json:"net_total"`
 	PaymentMethodID         *int32                 `json:"payment_method_id,omitempty"`
 	PaymentGatewayReference *string                `json:"payment_gateway_reference,omitempty"`
+	CashReceived            *int64                 `json:"cash_received,omitempty"`
+	ChangeDue               *int64                 `json:"change_due,omitempty"`
 	AppliedPromotionID      *uuid.UUID             `json:"applied_promotion_id,omitempty"`
 	CreatedAt               time.Time              `json:"created_at"`
 	UpdatedAt               time.Time              `json:"updated_at"`

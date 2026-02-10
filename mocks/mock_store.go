@@ -1096,6 +1096,36 @@ func (mr *MockStoreMockRecorder) GetSalesSummary(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSalesSummary", reflect.TypeOf((*MockStore)(nil).GetSalesSummary), ctx, arg)
 }
 
+// GetSettingByKey mocks base method.
+func (m *MockStore) GetSettingByKey(ctx context.Context, key string) (repository.Setting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSettingByKey", ctx, key)
+	ret0, _ := ret[0].(repository.Setting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSettingByKey indicates an expected call of GetSettingByKey.
+func (mr *MockStoreMockRecorder) GetSettingByKey(ctx, key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettingByKey", reflect.TypeOf((*MockStore)(nil).GetSettingByKey), ctx, key)
+}
+
+// GetSettings mocks base method.
+func (m *MockStore) GetSettings(ctx context.Context) ([]repository.Setting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSettings", ctx)
+	ret0, _ := ret[0].([]repository.Setting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSettings indicates an expected call of GetSettings.
+func (mr *MockStoreMockRecorder) GetSettings(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettings", reflect.TypeOf((*MockStore)(nil).GetSettings), ctx)
+}
+
 // GetUserByEmail mocks base method.
 func (m *MockStore) GetUserByEmail(ctx context.Context, email string) (repository.User, error) {
 	m.ctrl.T.Helper()
@@ -1464,6 +1494,20 @@ func (mr *MockStoreMockRecorder) UpdateOrderPaymentInfo(ctx, arg any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrderPaymentInfo", reflect.TypeOf((*MockStore)(nil).UpdateOrderPaymentInfo), ctx, arg)
 }
 
+// UpdateOrderPaymentUrl mocks base method.
+func (m *MockStore) UpdateOrderPaymentUrl(ctx context.Context, arg repository.UpdateOrderPaymentUrlParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOrderPaymentUrl", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOrderPaymentUrl indicates an expected call of UpdateOrderPaymentUrl.
+func (mr *MockStoreMockRecorder) UpdateOrderPaymentUrl(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrderPaymentUrl", reflect.TypeOf((*MockStore)(nil).UpdateOrderPaymentUrl), ctx, arg)
+}
+
 // UpdateOrderStatus mocks base method.
 func (m *MockStore) UpdateOrderStatus(ctx context.Context, arg repository.UpdateOrderStatusParams) (repository.Order, error) {
 	m.ctrl.T.Helper()
@@ -1568,6 +1612,21 @@ func (mr *MockStoreMockRecorder) UpdateRefreshToken(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRefreshToken", reflect.TypeOf((*MockStore)(nil).UpdateRefreshToken), ctx, arg)
 }
 
+// UpdateSetting mocks base method.
+func (m *MockStore) UpdateSetting(ctx context.Context, arg repository.UpdateSettingParams) (repository.Setting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSetting", ctx, arg)
+	ret0, _ := ret[0].(repository.Setting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSetting indicates an expected call of UpdateSetting.
+func (mr *MockStoreMockRecorder) UpdateSetting(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSetting", reflect.TypeOf((*MockStore)(nil).UpdateSetting), ctx, arg)
+}
+
 // UpdateUser mocks base method.
 func (m *MockStore) UpdateUser(ctx context.Context, arg repository.UpdateUserParams) (repository.User, error) {
 	m.ctrl.T.Helper()
@@ -1610,4 +1669,19 @@ func (m *MockStore) UpdateUserRole(ctx context.Context, arg repository.UpdateUse
 func (mr *MockStoreMockRecorder) UpdateUserRole(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRole", reflect.TypeOf((*MockStore)(nil).UpdateUserRole), ctx, arg)
+}
+
+// UpsertSetting mocks base method.
+func (m *MockStore) UpsertSetting(ctx context.Context, arg repository.UpsertSettingParams) (repository.Setting, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertSetting", ctx, arg)
+	ret0, _ := ret[0].(repository.Setting)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpsertSetting indicates an expected call of UpsertSetting.
+func (mr *MockStoreMockRecorder) UpsertSetting(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertSetting", reflect.TypeOf((*MockStore)(nil).UpsertSetting), ctx, arg)
 }

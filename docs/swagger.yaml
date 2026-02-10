@@ -66,6 +66,19 @@ definitions:
     required:
     - promotion_id
     type: object
+  POS-kasir_internal_dto.BrandingSettingsResponse:
+    properties:
+      app_logo:
+        type: string
+      app_name:
+        type: string
+      footer_text:
+        type: string
+      theme_color:
+        type: string
+      theme_color_dark:
+        type: string
+    type: object
   POS-kasir_internal_dto.CancelOrderRequest:
     properties:
       cancellation_notes:
@@ -498,6 +511,15 @@ definitions:
       name:
         type: string
     type: object
+  POS-kasir_internal_dto.PrinterSettingsResponse:
+    properties:
+      auto_print:
+        type: boolean
+      connection:
+        type: string
+      paper_width:
+        type: string
+    type: object
   POS-kasir_internal_dto.ProductListResponse:
     properties:
       category_id:
@@ -626,6 +648,20 @@ definitions:
       total_sales:
         type: number
     type: object
+  POS-kasir_internal_dto.UpdateBrandingRequest:
+    properties:
+      app_logo:
+        description: URL or empty
+        type: string
+      app_name:
+        type: string
+      footer_text:
+        type: string
+      theme_color:
+        type: string
+      theme_color_dark:
+        type: string
+    type: object
   POS-kasir_internal_dto.UpdateOrderItemRequest:
     properties:
       options:
@@ -665,6 +701,15 @@ definitions:
     required:
     - new_password
     - old_password
+    type: object
+  POS-kasir_internal_dto.UpdatePrinterSettingsRequest:
+    properties:
+      auto_print:
+        type: boolean
+      connection:
+        type: string
+      paper_width:
+        type: string
     type: object
   POS-kasir_internal_dto.UpdateProductOptionRequest:
     properties:
@@ -1722,6 +1767,25 @@ paths:
       summary: Initiate Midtrans payment for an order
       tags:
       - Orders
+  /orders/{id}/print:
+    post:
+      description: Trigger printing of invoice for a specific order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+      summary: Print invoice for an order
+      tags:
+      - Printer
   /orders/{id}/update-status:
     post:
       consumes:
@@ -2727,6 +2791,110 @@ paths:
       summary: Get sales reports
       tags:
       - Reports
+  /settings/branding:
+    get:
+      description: Get branding settings like app name, logo, footer text
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse'
+      summary: Get branding settings
+      tags:
+      - Settings
+    put:
+      consumes:
+      - application/json
+      description: Update branding settings
+      parameters:
+      - description: Update Branding Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdateBrandingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse'
+      summary: Update branding settings
+      tags:
+      - Settings
+  /settings/branding/logo:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload and update app logo
+      parameters:
+      - description: Logo image file
+        in: formData
+        name: logo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update app logo
+      tags:
+      - Settings
+  /settings/printer:
+    get:
+      description: Get printer settings like connection string, paper width
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse'
+      summary: Get printer settings
+      tags:
+      - Settings
+    put:
+      consumes:
+      - application/json
+      description: Update printer settings
+      parameters:
+      - description: Update Printer Settings Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.UpdatePrinterSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse'
+      summary: Update printer settings
+      tags:
+      - Settings
+  /settings/printer/test:
+    post:
+      description: Send a test print command to the configured printer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+      summary: Test printer connection
+      tags:
+      - Printer
   /users:
     get:
       consumes:

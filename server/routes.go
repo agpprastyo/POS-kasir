@@ -68,6 +68,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Post("/orders/:id/pay/midtrans", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.InitiateMidtransPaymentHandler)
 	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
@@ -90,5 +92,17 @@ func SetupRoutes(app *App, container *AppContainer) {
 		promotionsGroup.Delete("/:id", container.PromotionHandler.DeletePromotionHandler)
 		// Memulihkan promosi yang dihapus.
 		promotionsGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
+		promotionsGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
+	}
+
+	settingsGroup := api.Group("/settings", authMiddleware)
+	{
+		settingsGroup.Get("/branding", container.SettingsHandler.GetBrandingHandler)
+		settingsGroup.Put("/branding", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdateBrandingHandler)
+		settingsGroup.Post("/branding/logo", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdateLogoHandler)
+
+		settingsGroup.Get("/printer", container.SettingsHandler.GetPrinterSettingsHandler)
+		settingsGroup.Put("/printer", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdatePrinterSettingsHandler)
+		settingsGroup.Post("/printer/test", middleware.RoleMiddleware(repository.UserRoleAdmin), container.PrinterHandler.TestPrintHandler)
 	}
 }

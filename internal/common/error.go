@@ -11,6 +11,7 @@ var (
 	ErrForbidden               = errors.New("forbidden")
 	ErrInvalidInput            = errors.New("invalid input")
 	ErrInternal                = errors.New("internal server error")
+	ErrBadRequest              = errors.New("bad request")
 	ErrInvalidCredentials      = errors.New("invalid credentials")
 	ErrUserExists              = errors.New("user already exists")
 	ErrUsernameExists          = errors.New("username already exists")

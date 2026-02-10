@@ -275,7 +275,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 		return nil, txErr
 	}
 
-	return s.buildOrderDetailResponseFromQueryResult(finalOrder)
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
 func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req dto.UpdateOrderStatusRequest) (*dto.OrderDetailResponse, error) {
@@ -391,7 +391,7 @@ func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UU
 		logDetails,
 	)
 
-	return s.buildOrderDetailResponseFromQueryResult(finalOrder)
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
 func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error) {
@@ -501,10 +501,10 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 		return nil, txErr
 	}
 
-	return s.buildOrderDetailResponseFromQueryResult(finalOrder)
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
-func (s *OrderService) buildOrderDetailResponseFromQueryResult(orderWithDetails repository.GetOrderWithDetailsRow) (*dto.OrderDetailResponse, error) {
+func (s *OrderService) buildOrderDetailResponseFromQueryResult(ctx context.Context, orderWithDetails repository.GetOrderWithDetailsRow) (*dto.OrderDetailResponse, error) {
 	var itemResponses []dto.OrderItemResponse
 
 	if orderWithDetails.Items != nil {
@@ -525,17 +525,56 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(orderWithDetails 
 			return nil, fmt.Errorf("could not parse order items")
 		}
 
+		// Collect IDs
+		var productIDs []uuid.UUID
+		var optionIDs []uuid.UUID
+		for _, tempItem := range tempItems {
+			productIDs = append(productIDs, tempItem.ProductID)
+			for _, opt := range tempItem.Options {
+				optionIDs = append(optionIDs, opt.ProductOptionID)
+			}
+		}
+
+		// Fetch Names
+		productNameMap := make(map[uuid.UUID]string)
+		if len(productIDs) > 0 {
+			products, err := s.store.GetProductsByIDs(ctx, productIDs)
+			if err == nil {
+				for _, p := range products {
+					productNameMap[p.ID] = p.Name
+				}
+			} else {
+				s.log.Warn("Failed to fetch product names for order detail", "error", err)
+			}
+		}
+
+		optionNameMap := make(map[uuid.UUID]string)
+		if len(optionIDs) > 0 {
+			options, err := s.store.GetProductOptionsByIDs(ctx, optionIDs)
+			if err == nil {
+				for _, o := range options {
+					optionNameMap[o.ID] = o.Name
+				}
+			} else {
+				s.log.Warn("Failed to fetch option names for order detail", "error", err)
+			}
+		}
+
 		for _, tempItem := range tempItems {
 			var optionResponses []dto.OrderItemOptionResponse
 			for _, opt := range tempItem.Options {
+				name := optionNameMap[opt.ProductOptionID]
 				optionResponses = append(optionResponses, dto.OrderItemOptionResponse{
 					ProductOptionID: opt.ProductOptionID,
+					OptionName:      name,
 					PriceAtSale:     opt.PriceAtSale,
 				})
 			}
+			pName := productNameMap[tempItem.ProductID]
 			itemResponses = append(itemResponses, dto.OrderItemResponse{
 				ID:          tempItem.ID,
 				ProductID:   tempItem.ProductID,
+				ProductName: pName,
 				Quantity:    tempItem.Quantity,
 				PriceAtSale: tempItem.PriceAtSale,
 				Subtotal:    tempItem.Subtotal,
@@ -554,6 +593,8 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(orderWithDetails 
 		NetTotal:                orderWithDetails.NetTotal,
 		PaymentMethodID:         orderWithDetails.PaymentMethodID,
 		PaymentGatewayReference: orderWithDetails.PaymentGatewayReference,
+		CashReceived:            orderWithDetails.CashReceived,
+		ChangeDue:               orderWithDetails.ChangeDue,
 		AppliedPromotionID:      utils.NullableUUIDToPointer(orderWithDetails.AppliedPromotionID),
 		CreatedAt:               orderWithDetails.CreatedAt.Time,
 		UpdatedAt:               orderWithDetails.UpdatedAt.Time,
@@ -992,7 +1033,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 		s.activityService.Log(context.Background(), actorID, repository.LogActionTypeCREATE, repository.LogEntityTypeORDER, newOrderID.String(), nil)
 	}()
 
-	return s.buildOrderDetailResponseFromQueryResult(finalOrder)
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
 func (s *OrderService) GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.OrderDetailResponse, error) {
@@ -1007,7 +1048,7 @@ func (s *OrderService) GetOrder(ctx context.Context, orderID uuid.UUID) (*dto.Or
 		return nil, err
 	}
 
-	return s.buildOrderDetailResponseFromQueryResult(orderWithDetails)
+	return s.buildOrderDetailResponseFromQueryResult(ctx, orderWithDetails)
 }
 
 func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid.UUID) (*dto.MidtransPaymentResponse, error) {

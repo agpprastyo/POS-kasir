@@ -132,6 +132,8 @@ type Querier interface {
 	// Mengambil semua target untuk sebuah promosi.
 	GetPromotionTargets(ctx context.Context, promotionID uuid.UUID) ([]PromotionTarget, error)
 	GetSalesSummary(ctx context.Context, arg GetSalesSummaryParams) ([]GetSalesSummaryRow, error)
+	GetSettingByKey(ctx context.Context, key string) (Setting, error)
+	GetSettings(ctx context.Context) ([]Setting, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.
@@ -192,6 +194,7 @@ type Querier interface {
 	UpdatePromotion(ctx context.Context, arg UpdatePromotionParams) (Promotion, error)
 	// Memperbarui refresh token pengguna (Single Session Enforcement).
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error
+	UpdateSetting(ctx context.Context, arg UpdateSettingParams) (Setting, error)
 	// Memperbarui pengguna aktif.
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	// Hanya bisa mengubah password pengguna aktif.
@@ -199,6 +202,7 @@ type Querier interface {
 	// Mengubah :exec menjadi :one dan menambahkan RETURNING untuk konfirmasi.
 	// Hanya bisa mengubah peran pengguna aktif.
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
+	UpsertSetting(ctx context.Context, arg UpsertSettingParams) (Setting, error)
 }
 
 var _ Querier = (*Queries)(nil)

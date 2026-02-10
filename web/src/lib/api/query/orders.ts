@@ -1,5 +1,5 @@
 import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ordersApi } from "../../api/client"
+import { ordersApi, printerApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
     POSKasirInternalDtoApplyPromotionRequest,
@@ -238,3 +238,24 @@ export const useUpdateOrderItemsMutation = () => {
     })
 }
 
+
+export const usePrintInvoiceMutation = () => {
+    return useMutation<
+        any,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        { id: string }
+    >({
+        mutationKey: ['orders', 'print'],
+        mutationFn: async ({ id }) => {
+            const res = await printerApi.ordersIdPrintPost(id)
+            return (res.data as any).data
+        },
+        onSuccess: () => {
+            toast.success("Printing invoice...")
+        },
+        onError: (error) => {
+            const msg = error.response?.data?.message || "Failed to print invoice"
+            toast.error(msg)
+        }
+    })
+}

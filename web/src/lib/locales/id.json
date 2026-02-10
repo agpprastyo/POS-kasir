@@ -10,7 +10,8 @@
         "confirm": "Konfirmasi",
         "yes": "Ya",
         "no": "Tidak",
-        "no_data": "Tidak ada data tersedia"
+        "no_data": "Tidak ada data tersedia",
+        "save_changes": "Simpan Perubahan"
     },
     "auth": {
         "welcome_back": "Selamat Datang Kembali",
@@ -196,7 +197,9 @@
         "tabs": {
             "cancellation": "Alasan Pembatalan",
             "category": "Kategori",
-            "payment_methods": "Metode Pembayaran"
+            "payment_methods": "Metode Pembayaran",
+            "branding": "Branding",
+            "printer": "Printer"
         },
         "cancellation": {
             "title": "Alasan Pembatalan",
@@ -247,6 +250,36 @@
             "title": "Metode Pembayaran",
             "description": "Metode pembayaran yang tersedia untuk transaksi POS.",
             "empty": "Tidak ada metode pembayaran ditemukan."
+        },
+        "branding": {
+            "title": "Branding Aplikasi",
+            "description": "Sesuaikan nama aplikasi, logo, dan footer.",
+            "app_name": "Nama Aplikasi",
+            "logo": "Logo Aplikasi",
+            "footer_text": "Teks Footer",
+            "theme_color": "Warna Tema (Mode Terang)",
+            "theme_color_dark": "Warna Tema (Mode Gelap)",
+            "update_success": "Pengaturan branding berhasil diperbarui!",
+            "update_error": "Gagal memperbarui branding",
+            "uploading": "Mengunggah logo...",
+            "upload_success": "Logo berhasil diunggah",
+            "upload_error": "Gagal mengunggah logo",
+            "no_logo": "Tidak Ada Logo",
+            "upload_button": "Unggah Logo Baru",
+            "remove_button": "Hapus/Bersihkan",
+            "logo_help": "Ukuran disarankan: 512x512px. Maks 5MB. Nilai diperbarui segera setelah unggah."
+        },
+        "printer": {
+            "title": "Pengaturan Printer",
+            "description": "Konfigurasi koneksi printer struk Anda.",
+            "connection": "URI Koneksi Printer",
+            "connection_placeholder": "socket://127.0.0.1:9100",
+            "paper_width": "Lebar Kertas",
+            "auto_print": "Cetak Otomatis saat Bayar",
+            "test_print": "Tes Print",
+            "update_success": "Pengaturan printer berhasil diperbarui!",
+            "update_error": "Gagal memperbarui pengaturan printer",
+            "help_text": "Gunakan socket://IP:PORT untuk printer jaringan (misal 192.168.1.100:9100)."
         }
     },
     "users": {

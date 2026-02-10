@@ -10,7 +10,9 @@ import {
     ProductsApi,
     PromotionsApi,
     ReportsApi,
-    UsersApi
+    SettingsApi,
+    UsersApi,
+    PrinterApi
 } from "@/lib/api/generated";
 
 
@@ -78,4 +80,5 @@ export const paymentMethodsApi = new PaymentMethodsApi(config, undefined, axiosI
 export const promotionsApi = new PromotionsApi(config, undefined, axiosInstance)
 export const reportsApi = new ReportsApi(config, undefined, axiosInstance)
 export const activityLogsApi = new ActivityLogsApi(config, undefined, axiosInstance)
-
+export const settingsApi = new SettingsApi(config, undefined, axiosInstance)
+export const printerApi = new PrinterApi(config, undefined, axiosInstance)

@@ -8,10 +8,12 @@ import (
 	"POS-kasir/internal/categories"
 	"POS-kasir/internal/orders"
 	"POS-kasir/internal/payment_methods"
+	"POS-kasir/internal/printer"
 	"POS-kasir/internal/products"
 	"POS-kasir/internal/promotions"
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
+	"POS-kasir/internal/settings"
 	"POS-kasir/internal/user"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
@@ -62,6 +64,8 @@ type AppContainer struct {
 	ReportHandler             report.IRptHandler
 	PromotionHandler          promotions.IPromotionHandler
 	ActivityLogHandler        *activitylog.ActivityLogHandler
+	SettingsHandler           *settings.SettingsHandler
+	PrinterHandler            *printer.PrinterHandler
 }
 
 func InitApp() *App {
@@ -151,6 +155,14 @@ func BuildAppContainer(app *App) *AppContainer {
 	promotionService := promotions.NewPromotionService(app.Store, app.Logger)
 	promotionHandler := promotions.NewPromotionHandler(promotionService, app.Logger, app.Validator)
 
+	// Settings Module
+	settingsService := settings.NewSettingsService(app.Store, app.R2, app.Logger)
+	settingsHandler := settings.NewSettingsHandler(settingsService)
+
+	// Printer Module
+	printerService := printer.NewPrinterService(orderService, settingsService, app.Store, app.Logger)
+	printerHandler := printer.NewPrinterHandler(printerService)
+
 	return &AppContainer{
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
@@ -162,6 +174,8 @@ func BuildAppContainer(app *App) *AppContainer {
 		ReportHandler:             reportHandler,
 		PromotionHandler:          promotionHandler,
 		ActivityLogHandler:        activityLogHandler,
+		SettingsHandler:           settingsHandler,
+		PrinterHandler:            printerHandler,
 	}
 }
 

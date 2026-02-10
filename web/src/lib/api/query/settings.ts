@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { settingsApi, printerApi } from '@/lib/api/client'
 import { POSKasirInternalDtoUpdateBrandingRequest, POSKasirInternalDtoUpdatePrinterSettingsRequest } from '../generated'
+import { useRBAC } from '@/lib/auth/rbac'
 
 export const brandingSettingsQueryKey = ['branding-settings']
 export const printerSettingsQueryKey = ['printer-settings']
@@ -19,7 +20,10 @@ export function useBrandingSettingsQuery() {
 
 export function useUpdateBrandingSettingsMutation() {
     const queryClient = useQueryClient()
-    return useMutation({
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('PUT', '/settings/branding')
+
+    const mutation = useMutation({
         mutationFn: async (data: POSKasirInternalDtoUpdateBrandingRequest) => {
             const res = await settingsApi.settingsBrandingPut(data)
             return (res.data as any).data
@@ -28,11 +32,16 @@ export function useUpdateBrandingSettingsMutation() {
             queryClient.invalidateQueries({ queryKey: brandingSettingsQueryKey })
         },
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export function useUpdateLogoMutation() {
     const queryClient = useQueryClient()
-    return useMutation({
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/settings/branding/logo')
+
+    const mutation = useMutation({
         mutationFn: async (file: File) => {
             // settingsBrandingLogoPost takes a File object directly as per generated code
             const res = await settingsApi.settingsBrandingLogoPost(file)
@@ -42,6 +51,8 @@ export function useUpdateLogoMutation() {
             queryClient.invalidateQueries({ queryKey: brandingSettingsQueryKey })
         },
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export function usePrinterSettingsQuery() {
@@ -56,7 +67,10 @@ export function usePrinterSettingsQuery() {
 
 export function useUpdatePrinterSettingsMutation() {
     const queryClient = useQueryClient()
-    return useMutation({
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('PUT', '/settings/printer')
+
+    const mutation = useMutation({
         mutationFn: async (data: POSKasirInternalDtoUpdatePrinterSettingsRequest) => {
             const res = await settingsApi.settingsPrinterPut(data)
             return (res.data as any).data
@@ -65,13 +79,20 @@ export function useUpdatePrinterSettingsMutation() {
             queryClient.invalidateQueries({ queryKey: printerSettingsQueryKey })
         },
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export function useTestPrintMutation() {
-    return useMutation({
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/settings/printer/test')
+
+    const mutation = useMutation({
         mutationFn: async () => {
             const res = await printerApi.settingsPrinterTestPost()
             return (res.data as any).data
         },
     })
+
+    return { ...mutation, isAllowed }
 }

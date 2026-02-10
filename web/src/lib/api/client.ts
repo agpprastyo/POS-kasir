@@ -25,6 +25,7 @@ if (!BASE_PATH) {
 
 export const axiosInstance = axios.create({
     baseURL: BASE_PATH,
+    withCredentials: true,
 })
 
 axiosInstance.interceptors.response.use(

@@ -298,6 +298,7 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param request body dto.RegisterRequest true "Register request"
+// @x-roles ["admin"]
 // @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse} "Success"
 // @Failure 400 {object} common.ErrorResponse "Bad Request"
 // @Failure 409 {object} common.ErrorResponse "Conflict"

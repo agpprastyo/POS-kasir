@@ -111,6 +111,45 @@ definitions:
       reason_id:
         type: integer
     type: object
+  POS-kasir_internal_dto.CashTransactionRequest:
+    properties:
+      amount:
+        minimum: 1
+        type: integer
+      category:
+        type: string
+      description:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/POS-kasir_internal_repository.CashTransactionType'
+        enum:
+        - cash_in
+        - cash_out
+    required:
+    - amount
+    - category
+    - type
+    type: object
+  POS-kasir_internal_dto.CashTransactionResponse:
+    properties:
+      amount:
+        type: integer
+      category:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      shift_id:
+        type: string
+      type:
+        $ref: '#/definitions/POS-kasir_internal_repository.CashTransactionType'
+      user_id:
+        type: string
+    type: object
   POS-kasir_internal_dto.CashierPerformanceResponse:
     properties:
       order_count:
@@ -344,6 +383,16 @@ definitions:
       unique_cashier:
         type: integer
     type: object
+  POS-kasir_internal_dto.EndShiftRequest:
+    properties:
+      actual_cash_end:
+        minimum: 0
+        type: integer
+      password:
+        type: string
+    required:
+    - password
+    type: object
   POS-kasir_internal_dto.ListProductsResponse:
     properties:
       pagination:
@@ -395,6 +444,10 @@ definitions:
     properties:
       applied_promotion_id:
         type: string
+      cash_received:
+        type: integer
+      change_due:
+        type: integer
       created_at:
         type: string
       discount_amount:
@@ -424,6 +477,8 @@ definitions:
     type: object
   POS-kasir_internal_dto.OrderItemOptionResponse:
     properties:
+      option_name:
+        type: string
       price_at_sale:
         type: integer
       product_option_id:
@@ -648,6 +703,38 @@ definitions:
       total_sales:
         type: number
     type: object
+  POS-kasir_internal_dto.ShiftResponse:
+    properties:
+      actual_cash_end:
+        type: integer
+      difference:
+        description: Actual - Expected
+        type: integer
+      end_time:
+        type: string
+      expected_cash_end:
+        type: integer
+      id:
+        type: string
+      start_cash:
+        type: integer
+      start_time:
+        type: string
+      status:
+        $ref: '#/definitions/POS-kasir_internal_repository.ShiftStatus'
+      user_id:
+        type: string
+    type: object
+  POS-kasir_internal_dto.StartShiftRequest:
+    properties:
+      password:
+        type: string
+      start_cash:
+        minimum: 0
+        type: integer
+    required:
+    - password
+    type: object
   POS-kasir_internal_dto.UpdateBrandingRequest:
     properties:
       app_logo:
@@ -800,6 +887,14 @@ definitions:
           $ref: '#/definitions/POS-kasir_internal_dto.ProfileResponse'
         type: array
     type: object
+  POS-kasir_internal_repository.CashTransactionType:
+    enum:
+    - cash_in
+    - cash_out
+    type: string
+    x-enum-varnames:
+    - CashTransactionTypeCashIn
+    - CashTransactionTypeCashOut
   POS-kasir_internal_repository.DiscountType:
     enum:
     - percentage
@@ -900,6 +995,14 @@ definitions:
     x-enum-varnames:
     - PromotionTargetTypePRODUCT
     - PromotionTargetTypeCATEGORY
+  POS-kasir_internal_repository.ShiftStatus:
+    enum:
+    - open
+    - closed
+    type: string
+    x-enum-varnames:
+    - ShiftStatusOpen
+    - ShiftStatusClosed
   POS-kasir_internal_repository.UserRole:
     enum:
     - admin
@@ -980,6 +1083,8 @@ paths:
       summary: Get activity logs
       tags:
       - ActivityLogs
+      x-roles:
+      - admin
   /auth/login:
     post:
       consumes:
@@ -1298,6 +1403,9 @@ paths:
       summary: Create a new category
       tags:
       - Categories
+      x-roles:
+      - admin
+      - manager
   /categories/{id}:
     delete:
       consumes:
@@ -1335,6 +1443,9 @@ paths:
       summary: Delete category by ID
       tags:
       - Categories
+      x-roles:
+      - admin
+      - manager
     get:
       consumes:
       - application/json
@@ -1372,6 +1483,9 @@ paths:
       summary: Get category by ID
       tags:
       - Categories
+      x-roles:
+      - admin
+      - manager
     put:
       consumes:
       - application/json
@@ -1414,6 +1528,9 @@ paths:
       summary: Update category by ID
       tags:
       - Categories
+      x-roles:
+      - admin
+      - manager
   /categories/count:
     get:
       consumes:
@@ -1491,6 +1608,10 @@ paths:
       summary: List orders
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
     post:
       consumes:
       - application/json
@@ -1524,6 +1645,10 @@ paths:
       summary: Create an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}:
     get:
       consumes:
@@ -1561,6 +1686,10 @@ paths:
       summary: Get an order by ID
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/apply-promotion:
     post:
       consumes:
@@ -1604,6 +1733,10 @@ paths:
       summary: Apply promotion to an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/cancel:
     post:
       consumes:
@@ -1642,6 +1775,10 @@ paths:
       summary: Cancel an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/items:
     put:
       consumes:
@@ -1687,6 +1824,10 @@ paths:
       summary: Update items in an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/pay/manual:
     post:
       consumes:
@@ -1730,6 +1871,10 @@ paths:
       summary: Confirm manual payment for an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/pay/midtrans:
     post:
       consumes:
@@ -1767,6 +1912,10 @@ paths:
       summary: Initiate Midtrans payment for an order
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/print:
     post:
       description: Trigger printing of invoice for a specific order
@@ -1786,6 +1935,10 @@ paths:
       summary: Print invoice for an order
       tags:
       - Printer
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /orders/{id}/update-status:
     post:
       consumes:
@@ -1829,6 +1982,10 @@ paths:
       summary: Update order operational status
       tags:
       - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /payment-methods:
     get:
       consumes:
@@ -1938,6 +2095,9 @@ paths:
       summary: Create a new product
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/{id}:
     delete:
       consumes:
@@ -1971,6 +2131,8 @@ paths:
       summary: Delete a product
       tags:
       - Products
+      x-roles:
+      - admin
     get:
       consumes:
       - application/json
@@ -2008,6 +2170,10 @@ paths:
       summary: Get a product by ID
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
+      - cashier
     patch:
       consumes:
       - application/json
@@ -2051,6 +2217,9 @@ paths:
       summary: Update a product
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/{id}/image:
     post:
       consumes:
@@ -2094,6 +2263,9 @@ paths:
       summary: Upload an image for a product
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/{product_id}/options:
     post:
       consumes:
@@ -2138,6 +2310,9 @@ paths:
       summary: Create a product option
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/{product_id}/options/{option_id}:
     patch:
       consumes:
@@ -2187,6 +2362,9 @@ paths:
       summary: Update a product option
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/{product_id}/options/{option_id}/image:
     post:
       consumes:
@@ -2235,6 +2413,9 @@ paths:
       summary: Upload product option image
       tags:
       - Products
+      x-roles:
+      - admin
+      - manager
   /products/trash:
     get:
       consumes:
@@ -2280,6 +2461,8 @@ paths:
       summary: List deleted products
       tags:
       - Products
+      x-roles:
+      - admin
   /products/trash/{id}:
     get:
       consumes:
@@ -2318,6 +2501,8 @@ paths:
       summary: Get a deleted product
       tags:
       - Products
+      x-roles:
+      - admin
   /products/trash/{id}/restore:
     post:
       consumes:
@@ -2351,6 +2536,8 @@ paths:
       summary: Restore a deleted product
       tags:
       - Products
+      x-roles:
+      - admin
   /products/trash/restore-bulk:
     post:
       consumes:
@@ -2381,6 +2568,8 @@ paths:
       summary: Bulk restore deleted products
       tags:
       - Products
+      x-roles:
+      - admin
   /promotions:
     get:
       consumes:
@@ -2416,6 +2605,10 @@ paths:
       summary: List all promotions
       tags:
       - Promotions
+      x-roles:
+      - cashier
+      - admin
+      - manager
     post:
       consumes:
       - application/json
@@ -2444,6 +2637,9 @@ paths:
       summary: Create a new promotion
       tags:
       - Promotions
+      x-roles:
+      - admin
+      - manager
   /promotions/{id}:
     delete:
       consumes:
@@ -2472,6 +2668,9 @@ paths:
       summary: Delete (deactivate) a promotion
       tags:
       - Promotions
+      x-roles:
+      - admin
+      - manager
     get:
       consumes:
       - application/json
@@ -2503,6 +2702,10 @@ paths:
       summary: Get a promotion by ID
       tags:
       - Promotions
+      x-roles:
+      - cashier
+      - admin
+      - manager
     put:
       consumes:
       - application/json
@@ -2540,6 +2743,9 @@ paths:
       summary: Update a promotion
       tags:
       - Promotions
+      x-roles:
+      - admin
+      - manager
   /promotions/{id}/restore:
     post:
       consumes:
@@ -2568,6 +2774,9 @@ paths:
       summary: Restore a deleted promotion
       tags:
       - Promotions
+      x-roles:
+      - admin
+      - manager
   /reports/cancellations:
     get:
       consumes:
@@ -2825,6 +3034,8 @@ paths:
       summary: Update branding settings
       tags:
       - Settings
+      x-roles:
+      - admin
   /settings/branding/logo:
     post:
       consumes:
@@ -2848,6 +3059,8 @@ paths:
       summary: Update app logo
       tags:
       - Settings
+      x-roles:
+      - admin
   /settings/printer:
     get:
       description: Get printer settings like connection string, paper width
@@ -2882,6 +3095,8 @@ paths:
       summary: Update printer settings
       tags:
       - Settings
+      x-roles:
+      - admin
   /settings/printer/test:
     post:
       description: Send a test print command to the configured printer
@@ -2895,6 +3110,149 @@ paths:
       summary: Test printer connection
       tags:
       - Printer
+      x-roles:
+      - admin
+  /shifts/cash-transaction:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Cash Transaction Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.CashTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.CashTransactionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: No open shift found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a cash transaction (Drop/Expense/In)
+      tags:
+      - Shifts
+  /shifts/current:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ShiftResponse'
+              type: object
+        "404":
+          description: No open shift found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get current open shift
+      tags:
+      - Shifts
+  /shifts/end:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: End Shift Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.EndShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ShiftResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: No open shift found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: End current shift
+      tags:
+      - Shifts
+  /shifts/start:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Shift Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/POS-kasir_internal_dto.StartShiftRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.ShiftResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: User already has an open shift
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Start a new shift
+      tags:
+      - Shifts
   /users:
     get:
       consumes:
@@ -3013,6 +3371,8 @@ paths:
       summary: Create user
       tags:
       - Users
+      x-roles:
+      - admin
   /users/{id}:
     delete:
       consumes:
@@ -3045,6 +3405,8 @@ paths:
       summary: Delete user
       tags:
       - Users
+      x-roles:
+      - admin
     get:
       consumes:
       - application/json
@@ -3081,6 +3443,9 @@ paths:
       summary: Get user by ID
       tags:
       - Users
+      x-roles:
+      - admin
+      - manager
     put:
       consumes:
       - application/json
@@ -3135,6 +3500,8 @@ paths:
       summary: Update user
       tags:
       - Users
+      x-roles:
+      - admin
   /users/{id}/toggle-status:
     post:
       consumes:
@@ -3167,4 +3534,6 @@ paths:
       summary: Toggle user status
       tags:
       - Users
+      x-roles:
+      - admin
 swagger: "2.0"

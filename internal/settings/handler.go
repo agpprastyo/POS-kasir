@@ -51,6 +51,7 @@ func (h *SettingsHandler) GetBrandingHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param request body dto.UpdateBrandingRequest true "Update Branding Request"
 // @Success 200 {object} dto.BrandingSettingsResponse
+// @x-roles ["admin"]
 // @Router /settings/branding [put]
 func (h *SettingsHandler) UpdateBrandingHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -85,6 +86,7 @@ func (h *SettingsHandler) UpdateBrandingHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param logo formData file true "Logo image file"
 // @Success 200 {object} map[string]string
+// @x-roles ["admin"]
 // @Router /settings/branding/logo [post]
 func (h *SettingsHandler) UpdateLogoHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -171,6 +173,7 @@ func (h *SettingsHandler) GetPrinterSettingsHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param request body dto.UpdatePrinterSettingsRequest true "Update Printer Settings Request"
 // @Success 200 {object} dto.PrinterSettingsResponse
+// @x-roles ["admin"]
 // @Router /settings/printer [put]
 func (h *SettingsHandler) UpdatePrinterSettingsHandler(c *fiber.Ctx) error {
 	ctx := c.Context()

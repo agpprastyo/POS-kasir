@@ -111,7 +111,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/auth/login": {
@@ -635,7 +638,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/categories/count": {
@@ -738,7 +745,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "description": "Update category by ID",
@@ -801,7 +812,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "delete": {
                 "description": "Delete category by ID",
@@ -855,7 +870,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/orders": {
@@ -938,7 +957,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             },
             "post": {
                 "consumes": [
@@ -993,7 +1017,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}": {
@@ -1054,7 +1083,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/apply-promotion": {
@@ -1124,7 +1158,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/cancel": {
@@ -1182,7 +1221,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/items": {
@@ -1255,7 +1299,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/pay/manual": {
@@ -1325,7 +1374,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/pay/midtrans": {
@@ -1386,7 +1440,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/print": {
@@ -1415,7 +1474,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/update-status": {
@@ -1485,7 +1549,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/payment-methods": {
@@ -1664,7 +1733,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/trash": {
@@ -1737,7 +1810,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/restore-bulk": {
@@ -1783,7 +1859,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/{id}": {
@@ -1845,7 +1924,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/{id}/restore": {
@@ -1895,7 +1977,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/{id}": {
@@ -1957,7 +2042,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             },
             "delete": {
                 "description": "Delete a product by ID",
@@ -2005,7 +2095,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             },
             "patch": {
                 "description": "Update a product by ID",
@@ -2074,7 +2167,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{id}/image": {
@@ -2143,7 +2240,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{product_id}/options": {
@@ -2214,7 +2315,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{product_id}/options/{option_id}": {
@@ -2292,7 +2397,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{product_id}/options/{option_id}/image": {
@@ -2368,7 +2477,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions": {
@@ -2422,7 +2535,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "cashier",
+                    "admin",
+                    "manager"
+                ]
             },
             "post": {
                 "consumes": [
@@ -2465,7 +2583,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions/{id}": {
@@ -2514,7 +2636,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "cashier",
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "consumes": [
@@ -2570,7 +2697,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "delete": {
                 "consumes": [
@@ -2611,7 +2742,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions/{id}/restore": {
@@ -2654,7 +2789,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/reports/cancellations": {
@@ -3071,7 +3210,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/settings/branding/logo": {
@@ -3106,7 +3248,10 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/settings/printer": {
@@ -3158,7 +3303,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/settings/printer/test": {
@@ -3176,6 +3324,244 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
+        "/shifts/cash-transaction": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Create a cash transaction (Drop/Expense/In)",
+                "parameters": [
+                    {
+                        "description": "Cash Transaction Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CashTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.CashTransactionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/current": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Get current open shift",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/end": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "End current shift",
+                "parameters": [
+                    {
+                        "description": "End Shift Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.EndShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/start": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Start a new shift",
+                "parameters": [
+                    {
+                        "description": "Start Shift Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.StartShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already has an open shift",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
                 }
@@ -3362,7 +3748,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/users/{id}": {
@@ -3423,7 +3812,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "consumes": [
@@ -3509,7 +3902,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             },
             "delete": {
                 "consumes": [
@@ -3556,7 +3952,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/users/{id}/toggle-status": {
@@ -3605,7 +4004,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         }
     },
@@ -3776,6 +4178,66 @@ const docTemplate = `{
                 },
                 "reason_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CashTransactionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "category",
+                "type"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "cash_in",
+                        "cash_out"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/POS-kasir_internal_repository.CashTransactionType"
+                        }
+                    ]
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CashTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "shift_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.CashTransactionType"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -4124,6 +4586,21 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.EndShiftRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "actual_cash_end": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.ListProductsResponse": {
             "type": "object",
             "properties": {
@@ -4202,6 +4679,12 @@ const docTemplate = `{
                 "applied_promotion_id": {
                     "type": "string"
                 },
+                "cash_received": {
+                    "type": "integer"
+                },
+                "change_due": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -4246,6 +4729,9 @@ const docTemplate = `{
         "POS-kasir_internal_dto.OrderItemOptionResponse": {
             "type": "object",
             "properties": {
+                "option_name": {
+                    "type": "string"
+                },
                 "price_at_sale": {
                     "type": "integer"
                 },
@@ -4586,6 +5072,54 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.ShiftResponse": {
+            "type": "object",
+            "properties": {
+                "actual_cash_end": {
+                    "type": "integer"
+                },
+                "difference": {
+                    "description": "Actual - Expected",
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "expected_cash_end": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_cash": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.ShiftStatus"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.StartShiftRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "start_cash": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "POS-kasir_internal_dto.UpdateBrandingRequest": {
             "type": "object",
             "properties": {
@@ -4811,6 +5345,17 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_repository.CashTransactionType": {
+            "type": "string",
+            "enum": [
+                "cash_in",
+                "cash_out"
+            ],
+            "x-enum-varnames": [
+                "CashTransactionTypeCashIn",
+                "CashTransactionTypeCashOut"
+            ]
+        },
         "POS-kasir_internal_repository.DiscountType": {
             "type": "string",
             "enum": [
@@ -4933,6 +5478,17 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "PromotionTargetTypePRODUCT",
                 "PromotionTargetTypeCATEGORY"
+            ]
+        },
+        "POS-kasir_internal_repository.ShiftStatus": {
+            "type": "string",
+            "enum": [
+                "open",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "ShiftStatusOpen",
+                "ShiftStatusClosed"
             ]
         },
         "POS-kasir_internal_repository.UserRole": {

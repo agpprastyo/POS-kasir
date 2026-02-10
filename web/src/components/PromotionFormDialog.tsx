@@ -57,20 +57,20 @@ import { useCategoriesListQuery } from '@/lib/api/query/categories'
 const promotionSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     description: z.string().optional(),
-    scope: z.nativeEnum(POSKasirInternalRepositoryPromotionScope),
-    discount_type: z.nativeEnum(POSKasirInternalRepositoryDiscountType),
+    scope: z.enum(POSKasirInternalRepositoryPromotionScope),
+    discount_type: z.enum(POSKasirInternalRepositoryDiscountType),
     discount_value: z.coerce.number().min(0),
     max_discount_amount: z.coerce.number().optional(),
     start_date: z.date(),
     end_date: z.date(),
     is_active: z.boolean().default(true),
     rules: z.array(z.object({
-        rule_type: z.nativeEnum(POSKasirInternalRepositoryPromotionRuleType),
+        rule_type: z.enum(POSKasirInternalRepositoryPromotionRuleType),
         rule_value: z.string().min(1, "Value required"),
         description: z.string().optional()
     })).default([]),
     targets: z.array(z.object({
-        target_type: z.nativeEnum(POSKasirInternalRepositoryPromotionTargetType),
+        target_type: z.enum(POSKasirInternalRepositoryPromotionTargetType),
         target_id: z.string().min(1, "ID required")
     })).default([])
 })

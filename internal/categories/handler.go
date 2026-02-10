@@ -43,6 +43,7 @@ type CtgHandler struct {
 // @Failure 404 {object} common.ErrorResponse "Category not found"
 // @Failure 409 {object} common.ErrorResponse "Category cannot be deleted because it is in use"
 // @Failure 500 {object} common.ErrorResponse "Failed to delete category"
+// @x-roles ["admin", "manager"]
 // @Router /categories/{id} [delete]
 func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -93,6 +94,7 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "Category not found"
 // @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
 // @Failure 500 {object} common.ErrorResponse "Failed to update category"
+// @x-roles ["admin", "manager"]
 // @Router /categories/{id} [put]
 func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -161,6 +163,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
 // @Failure 404 {object} common.ErrorResponse "Category not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve category"
+// @x-roles ["admin", "manager"]
 // @Router /categories/{id} [get]
 func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -210,6 +213,7 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
 // @Failure 500 {object} common.ErrorResponse "Failed to create category"
+// @x-roles ["admin", "manager"]
 // @Router /categories [post]
 func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()

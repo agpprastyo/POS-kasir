@@ -59,6 +59,7 @@ type PrdHandler struct {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to delete product option"
+// @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id} [delete]
 
 func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
@@ -103,6 +104,7 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to update product option"
+// @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id} [patch]
 func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 
@@ -161,6 +163,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid ID format or missing file"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to upload product image"
+// @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id}/image [post]
 func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 
@@ -228,6 +231,7 @@ func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Parent product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to create product option"
+// @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options [post]
 func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 
@@ -278,6 +282,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to delete product"
+// @x-roles ["admin"]
 // @Router /products/{id} [delete]
 func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 
@@ -314,6 +319,7 @@ func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to update product"
+// @x-roles ["admin", "manager"]
 // @Router /products/{id} [patch]
 func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 
@@ -367,6 +373,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve product"
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /products/{id} [get]
 func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
@@ -451,6 +458,7 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 409 {object} common.ErrorResponse "Product with same name already exists"
 // @Failure 500 {object} common.ErrorResponse "Failed to create product"
+// @x-roles ["admin", "manager"]
 // @Router /products [post]
 func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
 	var req dto.CreateProductRequest
@@ -495,6 +503,7 @@ func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format or image file is missing"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to upload image"
+// @x-roles ["admin", "manager"]
 // @Router /products/{id}/image [post]
 func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
 
@@ -561,6 +570,7 @@ func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse{data=dto.ListProductsResponse} "Deleted products retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted products"
+// @x-roles ["admin"]
 // @Router /products/trash [get]
 func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
 	var req dto.ListProductsRequest
@@ -604,6 +614,7 @@ func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted product"
+// @x-roles ["admin"]
 // @Router /products/trash/{id} [get]
 func (h *PrdHandler) GetDeletedProductHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
@@ -639,6 +650,7 @@ func (h *PrdHandler) GetDeletedProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to restore product"
+// @x-roles ["admin"]
 // @Router /products/trash/{id}/restore [post]
 func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
@@ -672,6 +684,7 @@ func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse "Products restored successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 500 {object} common.ErrorResponse "Failed to restore products"
+// @x-roles ["admin"]
 // @Router /products/trash/restore-bulk [post]
 func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
 	var req dto.RestoreBulkRequest

@@ -1,4 +1,4 @@
-import { Product, useDeleteProductMutation } from "@/lib/api/query/products.ts";
+import { Product, useDeleteProductMutation, useUpdateProductMutation } from "@/lib/api/query/products.ts";
 import React, { useState } from "react";
 import {
     DropdownMenu,
@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import {  Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,7 +25,14 @@ import { useTranslation } from 'react-i18next';
 export function ProductActions({ product, onEdit }: { product: Product, onEdit?: () => void }) {
     const { t } = useTranslation();
     const deleteMutation = useDeleteProductMutation()
+    const updateMutation = useUpdateProductMutation()
+
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+    const canEdit = updateMutation.isAllowed
+    const canDelete = deleteMutation.isAllowed
+
+    if (!canEdit && !canDelete) return null
 
     const handleDelete = (e: React.MouseEvent) => {
         e.preventDefault()
@@ -47,20 +54,26 @@ export function ProductActions({ product, onEdit }: { product: Product, onEdit?:
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('products.table.actions')}</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> {t('products.actions.edit')}
-                    </DropdownMenuItem>
 
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onSelect={(e) => {
-                            e.preventDefault()
-                            setShowDeleteDialog(true)
-                        }}
-                        className="text-red-600 focus:text-red-600 cursor-pointer"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('products.actions.delete')}
-                    </DropdownMenuItem>
+                    {canEdit && (
+                        <DropdownMenuItem onClick={onEdit}>
+                            <Pencil className="mr-2 h-4 w-4" /> {t('products.actions.edit')}
+                        </DropdownMenuItem>
+                    )}
+
+                    {canEdit && canDelete && <DropdownMenuSeparator />}
+
+                    {canDelete && (
+                        <DropdownMenuItem
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowDeleteDialog(true)
+                            }}
+                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" /> {t('products.actions.delete')}
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

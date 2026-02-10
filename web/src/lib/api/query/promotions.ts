@@ -11,6 +11,7 @@ import {
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
+import { useRBAC } from '@/lib/auth/rbac'
 
 export interface PromotionRuleResponse {
     id: string
@@ -83,8 +84,10 @@ export const usePromotionsListQuery = (params?: PromotionsListParams) =>
 
 export const useRestorePromotionMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/promotions/{id}/restore')
 
-    return useMutation<
+    const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         string
@@ -103,6 +106,8 @@ export const useRestorePromotionMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const promotionDetailQueryOptions = (id: string) =>
@@ -123,8 +128,10 @@ export const usePromotionDetailQuery = (id: string) =>
 
 export const useCreatePromotionMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/promotions')
 
-    return useMutation<
+    const mutation = useMutation<
         Promotion,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         POSKasirInternalDtoCreatePromotionRequest
@@ -143,12 +150,16 @@ export const useCreatePromotionMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useUpdatePromotionMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('PUT', '/promotions/{id}')
 
-    return useMutation<
+    const mutation = useMutation<
         Promotion,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoUpdatePromotionRequest }
@@ -168,12 +179,16 @@ export const useUpdatePromotionMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useDeletePromotionMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('DELETE', '/promotions/{id}')
 
-    return useMutation<
+    const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         string
@@ -192,4 +207,6 @@ export const useDeletePromotionMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }

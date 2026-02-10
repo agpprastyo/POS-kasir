@@ -13,6 +13,7 @@ api/products-api.ts
 api/promotions-api.ts
 api/reports-api.ts
 api/settings-api.ts
+api/shifts-api.ts
 api/users-api.ts
 base.ts
 common.ts
@@ -43,6 +44,8 @@ docs/POSKasirInternalDtoBrandingSettingsResponse.md
 docs/POSKasirInternalDtoCancelOrderRequest.md
 docs/POSKasirInternalDtoCancellationReasonResponse.md
 docs/POSKasirInternalDtoCancellationReportResponse.md
+docs/POSKasirInternalDtoCashTransactionRequest.md
+docs/POSKasirInternalDtoCashTransactionResponse.md
 docs/POSKasirInternalDtoCashierPerformanceResponse.md
 docs/POSKasirInternalDtoCategoryResponse.md
 docs/POSKasirInternalDtoCategoryWithCountResponse.md
@@ -59,6 +62,7 @@ docs/POSKasirInternalDtoCreatePromotionRuleRequest.md
 docs/POSKasirInternalDtoCreatePromotionTargetRequest.md
 docs/POSKasirInternalDtoCreateUserRequest.md
 docs/POSKasirInternalDtoDashboardSummaryResponse.md
+docs/POSKasirInternalDtoEndShiftRequest.md
 docs/POSKasirInternalDtoListProductsResponse.md
 docs/POSKasirInternalDtoLoginRequest.md
 docs/POSKasirInternalDtoLoginResponse.md
@@ -80,6 +84,8 @@ docs/POSKasirInternalDtoProfileResponse.md
 docs/POSKasirInternalDtoRegisterRequest.md
 docs/POSKasirInternalDtoRestoreBulkRequest.md
 docs/POSKasirInternalDtoSalesReport.md
+docs/POSKasirInternalDtoShiftResponse.md
+docs/POSKasirInternalDtoStartShiftRequest.md
 docs/POSKasirInternalDtoUpdateBrandingRequest.md
 docs/POSKasirInternalDtoUpdateOrderItemRequest.md
 docs/POSKasirInternalDtoUpdateOrderStatusRequest.md
@@ -90,6 +96,7 @@ docs/POSKasirInternalDtoUpdateProductRequest.md
 docs/POSKasirInternalDtoUpdatePromotionRequest.md
 docs/POSKasirInternalDtoUpdateUserRequest.md
 docs/POSKasirInternalDtoUsersResponse.md
+docs/POSKasirInternalRepositoryCashTransactionType.md
 docs/POSKasirInternalRepositoryDiscountType.md
 docs/POSKasirInternalRepositoryLogActionType.md
 docs/POSKasirInternalRepositoryLogEntityType.md
@@ -98,6 +105,7 @@ docs/POSKasirInternalRepositoryOrderType.md
 docs/POSKasirInternalRepositoryPromotionRuleType.md
 docs/POSKasirInternalRepositoryPromotionScope.md
 docs/POSKasirInternalRepositoryPromotionTargetType.md
+docs/POSKasirInternalRepositoryShiftStatus.md
 docs/POSKasirInternalRepositoryUserRole.md
 docs/PaymentMethodsApi.md
 docs/PaymentMethodsGet200Response.md
@@ -115,6 +123,9 @@ docs/ReportsPaymentMethodsGet200Response.md
 docs/ReportsProductsGet200Response.md
 docs/ReportsSalesGet200Response.md
 docs/SettingsApi.md
+docs/ShiftsApi.md
+docs/ShiftsCashTransactionPost201Response.md
+docs/ShiftsCurrentGet200Response.md
 docs/UsersApi.md
 docs/UsersGet200Response.md
 git_push.sh
@@ -142,6 +153,8 @@ models/poskasir-internal-dto-branding-settings-response.ts
 models/poskasir-internal-dto-cancel-order-request.ts
 models/poskasir-internal-dto-cancellation-reason-response.ts
 models/poskasir-internal-dto-cancellation-report-response.ts
+models/poskasir-internal-dto-cash-transaction-request.ts
+models/poskasir-internal-dto-cash-transaction-response.ts
 models/poskasir-internal-dto-cashier-performance-response.ts
 models/poskasir-internal-dto-category-response.ts
 models/poskasir-internal-dto-category-with-count-response.ts
@@ -158,6 +171,7 @@ models/poskasir-internal-dto-create-promotion-rule-request.ts
 models/poskasir-internal-dto-create-promotion-target-request.ts
 models/poskasir-internal-dto-create-user-request.ts
 models/poskasir-internal-dto-dashboard-summary-response.ts
+models/poskasir-internal-dto-end-shift-request.ts
 models/poskasir-internal-dto-list-products-response.ts
 models/poskasir-internal-dto-login-request.ts
 models/poskasir-internal-dto-login-response.ts
@@ -179,6 +193,8 @@ models/poskasir-internal-dto-profile-response.ts
 models/poskasir-internal-dto-register-request.ts
 models/poskasir-internal-dto-restore-bulk-request.ts
 models/poskasir-internal-dto-sales-report.ts
+models/poskasir-internal-dto-shift-response.ts
+models/poskasir-internal-dto-start-shift-request.ts
 models/poskasir-internal-dto-update-branding-request.ts
 models/poskasir-internal-dto-update-order-item-request.ts
 models/poskasir-internal-dto-update-order-status-request.ts
@@ -189,6 +205,7 @@ models/poskasir-internal-dto-update-product-request.ts
 models/poskasir-internal-dto-update-promotion-request.ts
 models/poskasir-internal-dto-update-user-request.ts
 models/poskasir-internal-dto-users-response.ts
+models/poskasir-internal-repository-cash-transaction-type.ts
 models/poskasir-internal-repository-discount-type.ts
 models/poskasir-internal-repository-log-action-type.ts
 models/poskasir-internal-repository-log-entity-type.ts
@@ -197,6 +214,7 @@ models/poskasir-internal-repository-order-type.ts
 models/poskasir-internal-repository-promotion-rule-type.ts
 models/poskasir-internal-repository-promotion-scope.ts
 models/poskasir-internal-repository-promotion-target-type.ts
+models/poskasir-internal-repository-shift-status.ts
 models/poskasir-internal-repository-user-role.ts
 models/products-get200-response.ts
 models/products-post201-response.ts
@@ -207,6 +225,8 @@ models/reports-dashboard-summary-get200-response.ts
 models/reports-payment-methods-get200-response.ts
 models/reports-products-get200-response.ts
 models/reports-sales-get200-response.ts
+models/shifts-cash-transaction-post201-response.ts
+models/shifts-current-get200-response.ts
 models/users-get200-response.ts
 package.json
 tsconfig.esm.json

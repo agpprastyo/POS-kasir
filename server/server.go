@@ -14,7 +14,9 @@ import (
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
 	"POS-kasir/internal/settings"
+	"POS-kasir/internal/shift"
 	"POS-kasir/internal/user"
+	"POS-kasir/pkg/cache"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
@@ -51,6 +53,7 @@ type App struct {
 	Validator       validator.Validator
 	MidtransService payment.IMidtrans
 	R2              cloudflarer2.IR2
+	Cache           *shift.Cache
 }
 
 type AppContainer struct {
@@ -66,6 +69,7 @@ type AppContainer struct {
 	ActivityLogHandler        *activitylog.ActivityLogHandler
 	SettingsHandler           *settings.SettingsHandler
 	PrinterHandler            *printer.PrinterHandler
+	ShiftHandler              shift.Handler
 }
 
 func InitApp() *App {
@@ -99,6 +103,11 @@ func InitApp() *App {
 		log.Errorf("Failed to initialize Cloudflare R2: %v", err)
 	}
 
+	// We need to initialize the generic memory cache first
+	memCache := cache.NewMemoryCache()
+	// Then wrap it with Shift Cache
+	shiftCache := shift.NewCache(memCache)
+
 	return &App{
 		Config:          cfg,
 		Logger:          log,
@@ -109,6 +118,7 @@ func InitApp() *App {
 		Validator:       val,
 		MidtransService: midtransService,
 		R2:              newR2,
+		Cache:           shiftCache,
 	}
 }
 
@@ -163,6 +173,10 @@ func BuildAppContainer(app *App) *AppContainer {
 	printerService := printer.NewPrinterService(orderService, settingsService, app.Store, app.Logger)
 	printerHandler := printer.NewPrinterHandler(printerService)
 
+	// Shift Module
+	shiftService := shift.NewService(app.Store, app.Logger, app.Cache)
+	shiftHandler := shift.NewHandler(shiftService, app.Logger, app.Validator)
+
 	return &AppContainer{
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
@@ -176,6 +190,7 @@ func BuildAppContainer(app *App) *AppContainer {
 		ActivityLogHandler:        activityLogHandler,
 		SettingsHandler:           settingsHandler,
 		PrinterHandler:            printerHandler,
+		ShiftHandler:              shiftHandler,
 	}
 }
 

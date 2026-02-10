@@ -25,5 +25,6 @@ export * from './api/products-api';
 export * from './api/promotions-api';
 export * from './api/reports-api';
 export * from './api/settings-api';
+export * from './api/shifts-api';
 export * from './api/users-api';
 

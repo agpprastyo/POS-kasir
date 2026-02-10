@@ -107,6 +107,10 @@ Class | Method | HTTP request | Description
 *SettingsApi* | [**settingsBrandingPut**](docs/SettingsApi.md#settingsbrandingput) | **PUT** /settings/branding | Update branding settings
 *SettingsApi* | [**settingsPrinterGet**](docs/SettingsApi.md#settingsprinterget) | **GET** /settings/printer | Get printer settings
 *SettingsApi* | [**settingsPrinterPut**](docs/SettingsApi.md#settingsprinterput) | **PUT** /settings/printer | Update printer settings
+*ShiftsApi* | [**shiftsCashTransactionPost**](docs/ShiftsApi.md#shiftscashtransactionpost) | **POST** /shifts/cash-transaction | Create a cash transaction (Drop/Expense/In)
+*ShiftsApi* | [**shiftsCurrentGet**](docs/ShiftsApi.md#shiftscurrentget) | **GET** /shifts/current | Get current open shift
+*ShiftsApi* | [**shiftsEndPost**](docs/ShiftsApi.md#shiftsendpost) | **POST** /shifts/end | End current shift
+*ShiftsApi* | [**shiftsStartPost**](docs/ShiftsApi.md#shiftsstartpost) | **POST** /shifts/start | Start a new shift
 *UsersApi* | [**usersGet**](docs/UsersApi.md#usersget) | **GET** /users | Get all users
 *UsersApi* | [**usersIdDelete**](docs/UsersApi.md#usersiddelete) | **DELETE** /users/{id} | Delete user
 *UsersApi* | [**usersIdGet**](docs/UsersApi.md#usersidget) | **GET** /users/{id} | Get user by ID
@@ -138,6 +142,8 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoCancelOrderRequest](docs/POSKasirInternalDtoCancelOrderRequest.md)
  - [POSKasirInternalDtoCancellationReasonResponse](docs/POSKasirInternalDtoCancellationReasonResponse.md)
  - [POSKasirInternalDtoCancellationReportResponse](docs/POSKasirInternalDtoCancellationReportResponse.md)
+ - [POSKasirInternalDtoCashTransactionRequest](docs/POSKasirInternalDtoCashTransactionRequest.md)
+ - [POSKasirInternalDtoCashTransactionResponse](docs/POSKasirInternalDtoCashTransactionResponse.md)
  - [POSKasirInternalDtoCashierPerformanceResponse](docs/POSKasirInternalDtoCashierPerformanceResponse.md)
  - [POSKasirInternalDtoCategoryResponse](docs/POSKasirInternalDtoCategoryResponse.md)
  - [POSKasirInternalDtoCategoryWithCountResponse](docs/POSKasirInternalDtoCategoryWithCountResponse.md)
@@ -154,6 +160,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoCreatePromotionTargetRequest](docs/POSKasirInternalDtoCreatePromotionTargetRequest.md)
  - [POSKasirInternalDtoCreateUserRequest](docs/POSKasirInternalDtoCreateUserRequest.md)
  - [POSKasirInternalDtoDashboardSummaryResponse](docs/POSKasirInternalDtoDashboardSummaryResponse.md)
+ - [POSKasirInternalDtoEndShiftRequest](docs/POSKasirInternalDtoEndShiftRequest.md)
  - [POSKasirInternalDtoListProductsResponse](docs/POSKasirInternalDtoListProductsResponse.md)
  - [POSKasirInternalDtoLoginRequest](docs/POSKasirInternalDtoLoginRequest.md)
  - [POSKasirInternalDtoLoginResponse](docs/POSKasirInternalDtoLoginResponse.md)
@@ -175,6 +182,8 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoRegisterRequest](docs/POSKasirInternalDtoRegisterRequest.md)
  - [POSKasirInternalDtoRestoreBulkRequest](docs/POSKasirInternalDtoRestoreBulkRequest.md)
  - [POSKasirInternalDtoSalesReport](docs/POSKasirInternalDtoSalesReport.md)
+ - [POSKasirInternalDtoShiftResponse](docs/POSKasirInternalDtoShiftResponse.md)
+ - [POSKasirInternalDtoStartShiftRequest](docs/POSKasirInternalDtoStartShiftRequest.md)
  - [POSKasirInternalDtoUpdateBrandingRequest](docs/POSKasirInternalDtoUpdateBrandingRequest.md)
  - [POSKasirInternalDtoUpdateOrderItemRequest](docs/POSKasirInternalDtoUpdateOrderItemRequest.md)
  - [POSKasirInternalDtoUpdateOrderStatusRequest](docs/POSKasirInternalDtoUpdateOrderStatusRequest.md)
@@ -185,6 +194,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoUpdatePromotionRequest](docs/POSKasirInternalDtoUpdatePromotionRequest.md)
  - [POSKasirInternalDtoUpdateUserRequest](docs/POSKasirInternalDtoUpdateUserRequest.md)
  - [POSKasirInternalDtoUsersResponse](docs/POSKasirInternalDtoUsersResponse.md)
+ - [POSKasirInternalRepositoryCashTransactionType](docs/POSKasirInternalRepositoryCashTransactionType.md)
  - [POSKasirInternalRepositoryDiscountType](docs/POSKasirInternalRepositoryDiscountType.md)
  - [POSKasirInternalRepositoryLogActionType](docs/POSKasirInternalRepositoryLogActionType.md)
  - [POSKasirInternalRepositoryLogEntityType](docs/POSKasirInternalRepositoryLogEntityType.md)
@@ -193,6 +203,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalRepositoryPromotionRuleType](docs/POSKasirInternalRepositoryPromotionRuleType.md)
  - [POSKasirInternalRepositoryPromotionScope](docs/POSKasirInternalRepositoryPromotionScope.md)
  - [POSKasirInternalRepositoryPromotionTargetType](docs/POSKasirInternalRepositoryPromotionTargetType.md)
+ - [POSKasirInternalRepositoryShiftStatus](docs/POSKasirInternalRepositoryShiftStatus.md)
  - [POSKasirInternalRepositoryUserRole](docs/POSKasirInternalRepositoryUserRole.md)
  - [PaymentMethodsGet200Response](docs/PaymentMethodsGet200Response.md)
  - [ProductsGet200Response](docs/ProductsGet200Response.md)
@@ -204,6 +215,8 @@ Class | Method | HTTP request | Description
  - [ReportsPaymentMethodsGet200Response](docs/ReportsPaymentMethodsGet200Response.md)
  - [ReportsProductsGet200Response](docs/ReportsProductsGet200Response.md)
  - [ReportsSalesGet200Response](docs/ReportsSalesGet200Response.md)
+ - [ShiftsCashTransactionPost201Response](docs/ShiftsCashTransactionPost201Response.md)
+ - [ShiftsCurrentGet200Response](docs/ShiftsCurrentGet200Response.md)
  - [UsersGet200Response](docs/UsersGet200Response.md)
 
 

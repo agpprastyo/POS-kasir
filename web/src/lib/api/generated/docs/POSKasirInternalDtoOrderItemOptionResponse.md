@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**option_name** | **string** |  | [optional] [default to undefined]
 **price_at_sale** | **number** |  | [optional] [default to undefined]
 **product_option_id** | **string** |  | [optional] [default to undefined]
 
@@ -14,6 +15,7 @@ Name | Type | Description | Notes
 import { POSKasirInternalDtoOrderItemOptionResponse } from 'restClient';
 
 const instance: POSKasirInternalDtoOrderItemOptionResponse = {
+    option_name,
     price_at_sale,
     product_option_id,
 };

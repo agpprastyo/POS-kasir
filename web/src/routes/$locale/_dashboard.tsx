@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/lib/auth/AuthContext'
+import { useAuth } from '@/context/AuthContext'
 import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
 import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
 import { useTranslation } from 'react-i18next'
 import { SettingsPanel } from "@/components/SettingsPanel.tsx";
 import { useBrandingSettingsQuery } from '@/lib/api/query/settings'
+import { useShiftContext } from '@/context/ShiftContext'
+import { Wallet, Loader2 } from 'lucide-react'
 
 
 export const Route = createFileRoute('/$locale/_dashboard')({
@@ -114,7 +116,8 @@ function DashboardLayout() {
             to: '/$locale/product',
             allowedRoles: [
                 POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -123,7 +126,8 @@ function DashboardLayout() {
             to: '/$locale/promotions',
             allowedRoles: [
                 POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager
+                POSKasirInternalRepositoryUserRole.UserRoleManager,
+                POSKasirInternalRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -218,6 +222,10 @@ function DashboardLayout() {
                             <SettingsPanel />
                         </div>
 
+                        <div className="hidden md:block mb-4">
+                            <ShiftControl />
+                        </div>
+
                         <div className="rounded-2xl w-full flex items-center justify-between px-2 gap-2 pl-4 aspect-auto h-12 border">
 
 
@@ -284,6 +292,9 @@ function DashboardLayout() {
                                 <div className="mb-4">
                                     <SettingsPanel />
                                 </div>
+                                <div className="mb-4">
+                                    <ShiftControl />
+                                </div>
                                 {/* Mobile Menu Filtered */}
                                 {filteredMenu.map((item) => (
                                     <Link
@@ -323,5 +334,50 @@ function DashboardLayout() {
                 </main>
             </div>
         </div>
+    )
+}
+
+function ShiftControl() {
+    const { isShiftOpen, setOpenShiftModalOpen, setCloseShiftModalOpen, isLoading, shift } = useShiftContext()
+    const { t } = useTranslation()
+
+    if (isLoading) {
+        return (
+            <Button variant="outline" className="w-full justify-start gap-2" disabled>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="truncate">{t('shift.loading', 'Loading shift...')}</span>
+            </Button>
+        )
+    }
+
+    if (isShiftOpen) {
+        return (
+            <Button
+                variant="outline"
+                className="w-full justify-between group hover:bg-destructive hover:text-destructive-foreground border-destructive/20"
+                onClick={() => setCloseShiftModalOpen(true)}
+            >
+                <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4" />
+                    <span className="truncate">{t('shift.register_open', 'Register Open')}</span>
+                </div>
+                <span className="text-xs opacity-75 font-mono group-hover:text-destructive-foreground/90">
+                    {shift?.start_time ? new Date(shift.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                </span>
+            </Button>
+        )
+    }
+
+    return (
+
+        <Button
+            variant="default"
+            className="w-full justify-start gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={() => setOpenShiftModalOpen(true)}
+        >
+            <Wallet className="h-4 w-4" />
+            <span className="truncate">{t('shift.open_register', 'Open Register')}</span>
+        </Button>
+
     )
 }

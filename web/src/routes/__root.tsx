@@ -7,10 +7,13 @@ import { ThemeProvider } from 'next-themes'
 import appCss from '../styles.css?url'
 
 import { QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/lib/auth/AuthContext'
+import { AuthProvider } from '@/context/AuthContext'
 import { queryClient } from "@/lib/queryClient.ts";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import { ThemeManager } from "@/components/ThemeManager.tsx";
+import { ShiftProvider } from "@/context/ShiftContext";
+import { OpenShiftModal } from "@/components/modals/OpenShiftModal";
+import { CloseShiftModal } from "@/components/modals/CloseShiftModal";
 
 
 
@@ -41,8 +44,12 @@ function RootDocument({ children }: any) {
                 <QueryClientProvider client={queryClient}>
                     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
                         <AuthProvider>
-                            <ThemeManager />
-                            {children}
+                            <ShiftProvider>
+                                <ThemeManager />
+                                {children}
+                                <OpenShiftModal />
+                                <CloseShiftModal />
+                            </ShiftProvider>
                         </AuthProvider>
                         <TanStackDevtools
                             config={{ position: 'bottom-right' }}

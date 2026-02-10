@@ -12,6 +12,48 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CashTransactionType string
+
+const (
+	CashTransactionTypeCashIn  CashTransactionType = "cash_in"
+	CashTransactionTypeCashOut CashTransactionType = "cash_out"
+)
+
+func (e *CashTransactionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CashTransactionType(s)
+	case string:
+		*e = CashTransactionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CashTransactionType: %T", src)
+	}
+	return nil
+}
+
+type NullCashTransactionType struct {
+	CashTransactionType CashTransactionType `json:"cash_transaction_type"`
+	Valid               bool                `json:"valid"` // Valid is true if CashTransactionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCashTransactionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CashTransactionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CashTransactionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCashTransactionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CashTransactionType), nil
+}
+
 type DiscountType string
 
 const (
@@ -366,6 +408,48 @@ func (ns NullPromotionTargetType) Value() (driver.Value, error) {
 	return string(ns.PromotionTargetType), nil
 }
 
+type ShiftStatus string
+
+const (
+	ShiftStatusOpen   ShiftStatus = "open"
+	ShiftStatusClosed ShiftStatus = "closed"
+)
+
+func (e *ShiftStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ShiftStatus(s)
+	case string:
+		*e = ShiftStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ShiftStatus: %T", src)
+	}
+	return nil
+}
+
+type NullShiftStatus struct {
+	ShiftStatus ShiftStatus `json:"shift_status"`
+	Valid       bool        `json:"valid"` // Valid is true if ShiftStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullShiftStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ShiftStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ShiftStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullShiftStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ShiftStatus), nil
+}
+
 type SortOrder string
 
 const (
@@ -513,6 +597,17 @@ type CancellationReason struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type CashTransaction struct {
+	ID          uuid.UUID           `json:"id"`
+	ShiftID     uuid.UUID           `json:"shift_id"`
+	UserID      uuid.UUID           `json:"user_id"`
+	Amount      int64               `json:"amount"`
+	Type        CashTransactionType `json:"type"`
+	Category    string              `json:"category"`
+	Description *string             `json:"description"`
+	CreatedAt   pgtype.Timestamptz  `json:"created_at"`
+}
+
 type Category struct {
 	ID        int32              `json:"id"`
 	Name      string             `json:"name"`
@@ -630,6 +725,19 @@ type Setting struct {
 	Value       string           `json:"value"`
 	Description *string          `json:"description"`
 	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
+type Shift struct {
+	ID              uuid.UUID          `json:"id"`
+	UserID          uuid.UUID          `json:"user_id"`
+	StartTime       pgtype.Timestamptz `json:"start_time"`
+	EndTime         pgtype.Timestamptz `json:"end_time"`
+	StartCash       int64              `json:"start_cash"`
+	ExpectedCashEnd *int64             `json:"expected_cash_end"`
+	ActualCashEnd   *int64             `json:"actual_cash_end"`
+	Status          ShiftStatus        `json:"status"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {

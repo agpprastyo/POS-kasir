@@ -43,6 +43,7 @@ type Querier interface {
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
 	// Membuat alasan pembatalan baru.
 	CreateCancellationReason(ctx context.Context, arg CreateCancellationReasonParams) (CancellationReason, error)
+	CreateCashTransaction(ctx context.Context, arg CreateCashTransactionParams) (CashTransaction, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
@@ -62,6 +63,7 @@ type Querier interface {
 	CreatePromotion(ctx context.Context, arg CreatePromotionParams) (Promotion, error)
 	CreatePromotionRule(ctx context.Context, arg CreatePromotionRuleParams) (PromotionRule, error)
 	CreatePromotionTarget(ctx context.Context, arg CreatePromotionTargetParams) (PromotionTarget, error)
+	CreateShift(ctx context.Context, arg CreateShiftParams) (Shift, error)
 	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Mengurangi stok produk.
@@ -79,6 +81,7 @@ type Querier interface {
 	DeletePromotionTargetsByPromotionID(ctx context.Context, promotionID uuid.UUID) error
 	// Mengubah DELETE menjadi UPDATE untuk soft delete.
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	EndShift(ctx context.Context, arg EndShiftParams) (Shift, error)
 	// Memeriksa apakah kategori dengan ID tertentu ada.
 	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	GetActivePromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
@@ -86,12 +89,15 @@ type Querier interface {
 	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
 	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
 	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)
+	GetCashTotalByShiftIDAndType(ctx context.Context, arg GetCashTotalByShiftIDAndTypeParams) (int64, error)
+	GetCashTransactionsByShiftID(ctx context.Context, shiftID uuid.UUID) ([]CashTransaction, error)
 	GetCashierPerformance(ctx context.Context, arg GetCashierPerformanceParams) ([]GetCashierPerformanceRow, error)
 	// Mengambil satu kategori berdasarkan ID.
 	GetCategory(ctx context.Context, id int32) (Category, error)
 	GetCategorySales(ctx context.Context, arg GetCategorySalesParams) ([]GetCategorySalesRow, error)
 	GetDashboardSummary(ctx context.Context) (GetDashboardSummaryRow, error)
 	GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDeletedProductRow, error)
+	GetOpenShiftByUserID(ctx context.Context, userID uuid.UUID) (Shift, error)
 	// Mengambil semua varian untuk beberapa produk.
 	GetOptionsForProducts(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error)
 	// Mengambil pesanan berdasarkan referensi dari payment gateway.
@@ -134,6 +140,7 @@ type Querier interface {
 	GetSalesSummary(ctx context.Context, arg GetSalesSummaryParams) ([]GetSalesSummaryRow, error)
 	GetSettingByKey(ctx context.Context, key string) (Setting, error)
 	GetSettings(ctx context.Context) ([]Setting, error)
+	GetShiftByID(ctx context.Context, id uuid.UUID) (Shift, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.

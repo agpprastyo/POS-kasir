@@ -25,6 +25,7 @@ func NewPrinterHandler(service IPrinterService) *PrinterHandler {
 // @Produce json
 // @Param id path string true "Order ID"
 // @Success 200 {object} common.SuccessResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/print [post]
 func (h *PrinterHandler) PrintInvoiceHandler(c *fiber.Ctx) error {
 	idParam := c.Params("id")
@@ -56,6 +57,7 @@ func (h *PrinterHandler) PrintInvoiceHandler(c *fiber.Ctx) error {
 // @Tags Printer
 // @Produce json
 // @Success 200 {object} common.SuccessResponse
+// @x-roles ["admin"]
 // @Router /settings/printer/test [post]
 func (h *PrinterHandler) TestPrintHandler(c *fiber.Ctx) error {
 	ctx := c.Context()

@@ -40,8 +40,14 @@ import (
 
 	"github.com/gofiber/swagger"
 
+	_ "embed"
+	"html/template"
+
 	"POS-kasir/sqlc/migrations"
 )
+
+//go:embed swagger_script.js
+var swaggerScript string
 
 type App struct {
 	Config          *config.AppConfig
@@ -103,9 +109,7 @@ func InitApp() *App {
 		log.Errorf("Failed to initialize Cloudflare R2: %v", err)
 	}
 
-	// We need to initialize the generic memory cache first
 	memCache := cache.NewMemoryCache()
-	// Then wrap it with Shift Cache
 	shiftCache := shift.NewCache(memCache)
 
 	return &App{
@@ -227,7 +231,9 @@ func SetupMiddleware(app *App) {
 
 	app.FiberApp.Get("/swagger/*", swagger.New(
 		swagger.Config{
-			URL: "/swagger/doc.json",
+			URL:            "/swagger/doc.json",
+			CustomScript:   template.JS(swaggerScript),
+			ShowExtensions: true,
 		}))
 
 	app.Logger.Infof("Swagger UI available at http://localhost:%s/swagger/index.html", app.Config.Server.Port)

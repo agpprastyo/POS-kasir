@@ -16,8 +16,22 @@
 
 export interface POSKasirInternalDtoUpdateProductRequest {
     'category_id'?: number;
+    'change_type'?: POSKasirInternalDtoUpdateProductRequestChangeTypeEnum;
+    'cost_price'?: number;
     'name'?: string;
+    'note'?: string;
     'price'?: number;
     'stock'?: number;
 }
+
+export const POSKasirInternalDtoUpdateProductRequestChangeTypeEnum = {
+    Sale: 'sale',
+    Restock: 'restock',
+    Correction: 'correction',
+    Return: 'return',
+    Damage: 'damage'
+} as const;
+
+export type POSKasirInternalDtoUpdateProductRequestChangeTypeEnum = typeof POSKasirInternalDtoUpdateProductRequestChangeTypeEnum[keyof typeof POSKasirInternalDtoUpdateProductRequestChangeTypeEnum];
+
 

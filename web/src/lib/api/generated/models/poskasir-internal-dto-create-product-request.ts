@@ -19,6 +19,7 @@ import type { POSKasirInternalDtoCreateProductOptionRequest } from './poskasir-i
 
 export interface POSKasirInternalDtoCreateProductRequest {
     'category_id': number;
+    'cost_price': number;
     'name': string;
     'options'?: Array<POSKasirInternalDtoCreateProductOptionRequest>;
     'price': number;

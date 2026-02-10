@@ -82,6 +82,7 @@ Class | Method | HTTP request | Description
 *ProductsApi* | [**productsIdGet**](docs/ProductsApi.md#productsidget) | **GET** /products/{id} | Get a product by ID
 *ProductsApi* | [**productsIdImagePost**](docs/ProductsApi.md#productsidimagepost) | **POST** /products/{id}/image | Upload an image for a product
 *ProductsApi* | [**productsIdPatch**](docs/ProductsApi.md#productsidpatch) | **PATCH** /products/{id} | Update a product
+*ProductsApi* | [**productsIdStockHistoryGet**](docs/ProductsApi.md#productsidstockhistoryget) | **GET** /products/{id}/stock-history | Get stock history for a product
 *ProductsApi* | [**productsPost**](docs/ProductsApi.md#productspost) | **POST** /products | Create a new product
 *ProductsApi* | [**productsProductIdOptionsOptionIdImagePost**](docs/ProductsApi.md#productsproductidoptionsoptionidimagepost) | **POST** /products/{product_id}/options/{option_id}/image | Upload product option image
 *ProductsApi* | [**productsProductIdOptionsOptionIdPatch**](docs/ProductsApi.md#productsproductidoptionsoptionidpatch) | **PATCH** /products/{product_id}/options/{option_id} | Update a product option
@@ -101,6 +102,8 @@ Class | Method | HTTP request | Description
 *ReportsApi* | [**reportsDashboardSummaryGet**](docs/ReportsApi.md#reportsdashboardsummaryget) | **GET** /reports/dashboard-summary | Get dashboard summary
 *ReportsApi* | [**reportsPaymentMethodsGet**](docs/ReportsApi.md#reportspaymentmethodsget) | **GET** /reports/payment-methods | Get payment method performance
 *ReportsApi* | [**reportsProductsGet**](docs/ReportsApi.md#reportsproductsget) | **GET** /reports/products | Get product performance
+*ReportsApi* | [**reportsProfitProductsGet**](docs/ReportsApi.md#reportsprofitproductsget) | **GET** /reports/profit-products | Get product profit reports
+*ReportsApi* | [**reportsProfitSummaryGet**](docs/ReportsApi.md#reportsprofitsummaryget) | **GET** /reports/profit-summary | Get profit summary
 *ReportsApi* | [**reportsSalesGet**](docs/ReportsApi.md#reportssalesget) | **GET** /reports/sales | Get sales reports
 *SettingsApi* | [**settingsBrandingGet**](docs/SettingsApi.md#settingsbrandingget) | **GET** /settings/branding | Get branding settings
 *SettingsApi* | [**settingsBrandingLogoPost**](docs/SettingsApi.md#settingsbrandinglogopost) | **POST** /settings/branding/logo | Update app logo
@@ -170,6 +173,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoOrderItemResponse](docs/POSKasirInternalDtoOrderItemResponse.md)
  - [POSKasirInternalDtoOrderListResponse](docs/POSKasirInternalDtoOrderListResponse.md)
  - [POSKasirInternalDtoPagedOrderResponse](docs/POSKasirInternalDtoPagedOrderResponse.md)
+ - [POSKasirInternalDtoPagedStockHistoryResponse](docs/POSKasirInternalDtoPagedStockHistoryResponse.md)
  - [POSKasirInternalDtoPaymentAction](docs/POSKasirInternalDtoPaymentAction.md)
  - [POSKasirInternalDtoPaymentMethodPerformanceResponse](docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md)
  - [POSKasirInternalDtoPaymentMethodResponse](docs/POSKasirInternalDtoPaymentMethodResponse.md)
@@ -177,13 +181,16 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalDtoProductListResponse](docs/POSKasirInternalDtoProductListResponse.md)
  - [POSKasirInternalDtoProductOptionResponse](docs/POSKasirInternalDtoProductOptionResponse.md)
  - [POSKasirInternalDtoProductPerformanceResponse](docs/POSKasirInternalDtoProductPerformanceResponse.md)
+ - [POSKasirInternalDtoProductProfitResponse](docs/POSKasirInternalDtoProductProfitResponse.md)
  - [POSKasirInternalDtoProductResponse](docs/POSKasirInternalDtoProductResponse.md)
  - [POSKasirInternalDtoProfileResponse](docs/POSKasirInternalDtoProfileResponse.md)
+ - [POSKasirInternalDtoProfitSummaryResponse](docs/POSKasirInternalDtoProfitSummaryResponse.md)
  - [POSKasirInternalDtoRegisterRequest](docs/POSKasirInternalDtoRegisterRequest.md)
  - [POSKasirInternalDtoRestoreBulkRequest](docs/POSKasirInternalDtoRestoreBulkRequest.md)
  - [POSKasirInternalDtoSalesReport](docs/POSKasirInternalDtoSalesReport.md)
  - [POSKasirInternalDtoShiftResponse](docs/POSKasirInternalDtoShiftResponse.md)
  - [POSKasirInternalDtoStartShiftRequest](docs/POSKasirInternalDtoStartShiftRequest.md)
+ - [POSKasirInternalDtoStockHistoryResponse](docs/POSKasirInternalDtoStockHistoryResponse.md)
  - [POSKasirInternalDtoUpdateBrandingRequest](docs/POSKasirInternalDtoUpdateBrandingRequest.md)
  - [POSKasirInternalDtoUpdateOrderItemRequest](docs/POSKasirInternalDtoUpdateOrderItemRequest.md)
  - [POSKasirInternalDtoUpdateOrderStatusRequest](docs/POSKasirInternalDtoUpdateOrderStatusRequest.md)
@@ -207,6 +214,7 @@ Class | Method | HTTP request | Description
  - [POSKasirInternalRepositoryUserRole](docs/POSKasirInternalRepositoryUserRole.md)
  - [PaymentMethodsGet200Response](docs/PaymentMethodsGet200Response.md)
  - [ProductsGet200Response](docs/ProductsGet200Response.md)
+ - [ProductsIdStockHistoryGet200Response](docs/ProductsIdStockHistoryGet200Response.md)
  - [ProductsPost201Response](docs/ProductsPost201Response.md)
  - [ProductsProductIdOptionsPost201Response](docs/ProductsProductIdOptionsPost201Response.md)
  - [ReportsCancellationsGet200Response](docs/ReportsCancellationsGet200Response.md)
@@ -214,6 +222,8 @@ Class | Method | HTTP request | Description
  - [ReportsDashboardSummaryGet200Response](docs/ReportsDashboardSummaryGet200Response.md)
  - [ReportsPaymentMethodsGet200Response](docs/ReportsPaymentMethodsGet200Response.md)
  - [ReportsProductsGet200Response](docs/ReportsProductsGet200Response.md)
+ - [ReportsProfitProductsGet200Response](docs/ReportsProfitProductsGet200Response.md)
+ - [ReportsProfitSummaryGet200Response](docs/ReportsProfitSummaryGet200Response.md)
  - [ReportsSalesGet200Response](docs/ReportsSalesGet200Response.md)
  - [ShiftsCashTransactionPost201Response](docs/ShiftsCashTransactionPost201Response.md)
  - [ShiftsCurrentGet200Response](docs/ShiftsCurrentGet200Response.md)

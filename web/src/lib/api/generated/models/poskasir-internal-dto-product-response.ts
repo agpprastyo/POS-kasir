@@ -20,6 +20,7 @@ import type { POSKasirInternalDtoProductOptionResponse } from './poskasir-intern
 export interface POSKasirInternalDtoProductResponse {
     'category_id'?: number;
     'category_name'?: string;
+    'cost_price'?: number;
     'created_at'?: string;
     'deleted_at'?: string;
     'id'?: string;

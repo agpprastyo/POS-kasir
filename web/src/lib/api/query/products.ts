@@ -8,7 +8,8 @@ import {
     POSKasirInternalDtoProductResponse,
     POSKasirInternalDtoUpdateProductOptionRequest,
     POSKasirInternalDtoUpdateProductRequest,
-    POSKasirInternalDtoRestoreBulkRequest
+    POSKasirInternalDtoRestoreBulkRequest,
+    POSKasirInternalDtoPagedStockHistoryResponse
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -340,3 +341,28 @@ export const useRestoreBulkProductMutation = () => {
 
     return { ...mutation, isAllowed }
 }
+export type StockHistoryParams = {
+    page?: number
+    limit?: number
+}
+
+export const stockHistoryQueryOptions = (productId: string, params?: StockHistoryParams) =>
+    queryOptions<
+        POSKasirInternalDtoPagedStockHistoryResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['products', 'stock-history', productId, params],
+        queryFn: async () => {
+            const res = await productsApi.productsIdStockHistoryGet(
+                productId,
+                params?.page,
+                params?.limit
+            )
+            return (res.data as any).data;
+        },
+        enabled: !!productId,
+        placeholderData: keepPreviousData,
+    })
+
+export const useStockHistoryQuery = (productId: string, params?: StockHistoryParams) =>
+    useQuery(stockHistoryQueryOptions(productId, params))

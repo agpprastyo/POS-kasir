@@ -266,6 +266,9 @@ definitions:
     properties:
       category_id:
         type: integer
+      cost_price:
+        minimum: 0
+        type: number
       name:
         maxLength: 100
         minLength: 3
@@ -281,6 +284,7 @@ definitions:
         type: integer
     required:
     - category_id
+    - cost_price
     - name
     - price
     - stock
@@ -535,6 +539,15 @@ definitions:
       pagination:
         $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
     type: object
+  POS-kasir_internal_dto.PagedStockHistoryResponse:
+    properties:
+      history:
+        items:
+          $ref: '#/definitions/POS-kasir_internal_dto.StockHistoryResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+    type: object
   POS-kasir_internal_dto.PaymentAction:
     properties:
       method:
@@ -616,12 +629,29 @@ definitions:
       total_revenue:
         type: number
     type: object
+  POS-kasir_internal_dto.ProductProfitResponse:
+    properties:
+      gross_profit:
+        type: number
+      product_id:
+        type: string
+      product_name:
+        type: string
+      total_cogs:
+        type: number
+      total_revenue:
+        type: number
+      total_sold:
+        type: integer
+    type: object
   POS-kasir_internal_dto.ProductResponse:
     properties:
       category_id:
         type: integer
       category_name:
         type: string
+      cost_price:
+        type: number
       created_at:
         type: string
       deleted_at:
@@ -663,6 +693,17 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  POS-kasir_internal_dto.ProfitSummaryResponse:
+    properties:
+      date:
+        type: string
+      gross_profit:
+        type: number
+      total_cogs:
+        type: number
+      total_revenue:
+        type: number
     type: object
   POS-kasir_internal_dto.RegisterRequest:
     properties:
@@ -734,6 +775,29 @@ definitions:
         type: integer
     required:
     - password
+    type: object
+  POS-kasir_internal_dto.StockHistoryResponse:
+    properties:
+      change_amount:
+        type: integer
+      change_type:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      current_stock:
+        type: integer
+      id:
+        type: string
+      note:
+        type: string
+      previous_stock:
+        type: integer
+      product_id:
+        type: string
+      reference_id:
+        type: string
     type: object
   POS-kasir_internal_dto.UpdateBrandingRequest:
     properties:
@@ -812,9 +876,23 @@ definitions:
     properties:
       category_id:
         type: integer
+      change_type:
+        enum:
+        - sale
+        - restock
+        - correction
+        - return
+        - damage
+        type: string
+      cost_price:
+        minimum: 0
+        type: number
       name:
         maxLength: 100
         minLength: 3
+        type: string
+      note:
+        maxLength: 255
         type: string
       price:
         type: number
@@ -1024,7 +1102,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a list of activity logs with filtering and pagination
+      description: 'Get a list of activity logs with filtering and pagination (Roles:
+        admin)'
       parameters:
       - default: 1
         description: Page number
@@ -2266,6 +2345,56 @@ paths:
       x-roles:
       - admin
       - manager
+  /products/{id}/stock-history:
+    get:
+      consumes:
+      - application/json
+      description: Get stock history for a product by ID with pagination
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stock history retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/POS-kasir_internal_dto.PagedStockHistoryResponse'
+              type: object
+        "400":
+          description: Invalid product ID or query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to retrieve stock history
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get stock history for a product
+      tags:
+      - Products
+      x-roles:
+      - admin
+      - manager
+      - cashier
   /products/{product_id}/options:
     post:
       consumes:
@@ -2958,6 +3087,86 @@ paths:
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
       summary: Get product performance
+      tags:
+      - Reports
+  /reports/profit-products:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.ProductProfitResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get product profit reports
+      tags:
+      - Reports
+  /reports/profit-summary:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/POS-kasir_internal_dto.ProfitSummaryResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get profit summary
       tags:
       - Reports
   /reports/sales:

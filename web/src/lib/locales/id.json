@@ -11,7 +11,11 @@
         "yes": "Ya",
         "no": "Tidak",
         "no_data": "Tidak ada data tersedia",
-        "save_changes": "Simpan Perubahan"
+        "save_changes": "Simpan Perubahan",
+        "start_date": "Tanggal Mulai",
+        "end_date": "Tanggal Akhir",
+        "sold": "terjual",
+        "rev": "pend"
     },
     "auth": {
         "welcome_back": "Selamat Datang Kembali",
@@ -134,6 +138,7 @@
         "tabs": {
             "sales": "Penjualan",
             "products": "Produk",
+            "profit": "Keuntungan",
             "performance": "Performa",
             "cancellations": "Pembatalan"
         },
@@ -163,6 +168,16 @@
             "reason": "Alasan",
             "date": "Tanggal",
             "count": "Total Jumlah"
+        },
+        "profit": {
+            "title": "Analisis Keuntungan",
+            "description": "Analisis pendapatan, HPP, dan laba kotor Anda.",
+            "revenue": "Pendapatan",
+            "cogs": "HPP",
+            "gross_profit": "Laba Kotor",
+            "products": "Profitabilitas Produk",
+            "products_desc": "Analisis margin keuntungan per produk.",
+            "profit": "Keuntungan"
         }
     },
     "account": {

@@ -103,6 +103,11 @@ export const RBAC_RULES: Record<string, string[]> = {
         "admin",
         "manager"
     ],
+    "GET /products/{id}/stock-history": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
     "POST /products/{product_id}/options": [
         "admin",
         "manager"

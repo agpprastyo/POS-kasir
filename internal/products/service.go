@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type IPrdService interface {
@@ -27,6 +28,7 @@ type IPrdService interface {
 	UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error)
 	DeleteProduct(ctx context.Context, productID uuid.UUID) error
 	CreateProductOption(ctx context.Context, productID uuid.UUID, req dto.CreateProductOptionRequestStandalone) (*dto.ProductOptionResponse, error)
+	GetStockHistory(ctx context.Context, productID uuid.UUID, req dto.ListStockHistoryRequest) (*dto.PagedStockHistoryResponse, error)
 	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*dto.ProductOptionResponse, error)
 	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req dto.UpdateProductOptionRequest) (*dto.ProductOptionResponse, error)
 	DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error
@@ -319,7 +321,7 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 }
 
 func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error) {
-	_, err := s.store.GetProductWithOptions(ctx, productID)
+	product, err := s.store.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found for update", "productID", productID)
@@ -352,11 +354,58 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		price := int64(*req.Price)
 		updateParams.Price = &price
 	}
+	if req.CostPrice != nil {
+		costPrice := *req.CostPrice
+		numericCost := pgtype.Numeric{}
+		numericCost.Scan(fmt.Sprintf("%f", costPrice))
+		updateParams.CostPrice = numericCost
+	}
 
 	_, err = s.store.UpdateProduct(ctx, updateParams)
 	if err != nil {
 		s.log.Errorf("Failed to update product in repository", "error", err, "productID", productID)
 		return nil, err
+	}
+
+	// Stock History Logging
+	if req.Stock != nil {
+		currentStock := int32(*req.Stock)
+		previousStock := int32(product.Stock)
+		changeAmount := currentStock - previousStock
+
+		if changeAmount != 0 {
+			changeType := repository.StockChangeTypeCorrection // Default
+			if req.ChangeType != nil {
+				changeType = repository.StockChangeType(*req.ChangeType)
+			} else {
+				// Auto-detect simple cases if not provided
+				if changeAmount > 0 {
+					changeType = repository.StockChangeTypeRestock
+				}
+			}
+
+			// Safe dereference for Note
+			var note *string
+			if req.Note != nil {
+				note = req.Note
+			}
+
+			// Creator
+			var createdBy pgtype.UUID
+			if actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID); ok {
+				createdBy = pgtype.UUID{Bytes: actorID, Valid: true}
+			}
+
+			// Reference? For direct update, maybe null or strict correlation if we had one.
+			// Current flow doesn't have a specific reference ID for manual updates other than maybe the log ID?
+			// Leaving referenceID null for manual product updates.
+
+			err := s.RecordStockChange(ctx, productID, changeAmount, previousStock, currentStock, changeType, pgtype.UUID{Valid: false}, note, createdBy)
+			if err != nil {
+				// Don't fail the request if logging fails, but log error
+				s.log.Errorf("Failed to record stock history", "error", err)
+			}
+		}
 	}
 
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
@@ -374,6 +423,26 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	)
 
 	return s.GetProductByID(ctx, productID)
+}
+
+func (s *PrdService) RecordStockChange(ctx context.Context, productID uuid.UUID, changeAmount, previousStock, currentStock int32, changeType repository.StockChangeType, referenceID pgtype.UUID, note *string, createdBy pgtype.UUID) error {
+	params := repository.CreateStockHistoryParams{
+		ProductID:     productID,
+		ChangeAmount:  changeAmount,
+		PreviousStock: previousStock,
+		CurrentStock:  currentStock,
+		ChangeType:    changeType,
+		ReferenceID:   referenceID,
+		Note:          note,
+		CreatedBy:     createdBy,
+	}
+
+	_, err := s.store.CreateStockHistory(ctx, params)
+	if err != nil {
+		return fmt.Errorf("failed to create stock history: %w", err)
+	}
+
+	return nil
 }
 func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*dto.ProductResponse, error) {
 	var optionsResponse []dto.ProductOptionResponse
@@ -449,6 +518,11 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 	}
 
 	productPrice := float64(fullProduct.Price)
+	costPrice := 0.0
+	if fullProduct.CostPrice.Valid {
+		prodCost, _ := fullProduct.CostPrice.Float64Value()
+		costPrice = prodCost.Float64
+	}
 
 	return &dto.ProductResponse{
 		ID:         fullProduct.ID,
@@ -457,6 +531,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 
 		ImageURL:  fullProduct.ImageUrl,
 		Price:     productPrice,
+		CostPrice: costPrice,
 		Stock:     fullProduct.Stock,
 		CreatedAt: fullProduct.CreatedAt.Time,
 		UpdatedAt: fullProduct.UpdatedAt.Time,
@@ -562,11 +637,15 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 
 		price := int64(req.Price)
 
+		numericCost := pgtype.Numeric{}
+		numericCost.Scan(fmt.Sprintf("%f", req.CostPrice))
+
 		productParams := repository.CreateProductParams{
 			Name:       req.Name,
 			CategoryID: &req.CategoryID,
 			Price:      price,
 			Stock:      req.Stock,
+			CostPrice:  numericCost,
 		}
 		newProduct, err = qtx.CreateProduct(ctx, productParams)
 		if err != nil {
@@ -686,6 +765,11 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 	}
 
 	productPrice := float64(product.Price)
+	costPrice := 0.0
+	if product.CostPrice.Valid {
+		prodCost, _ := product.CostPrice.Float64Value()
+		costPrice = prodCost.Float64
+	}
 
 	s.log.Infof("product price before assign: %+v", product.Price)
 	s.log.Infof("product price after assign: %+v", productPrice)
@@ -696,6 +780,7 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 		CategoryID: product.CategoryID,
 		ImageURL:   product.ImageUrl,
 		Price:      productPrice,
+		CostPrice:  costPrice,
 		Stock:      product.Stock,
 		CreatedAt:  product.CreatedAt.Time,
 		UpdatedAt:  product.UpdatedAt.Time,

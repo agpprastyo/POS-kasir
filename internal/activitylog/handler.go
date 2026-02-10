@@ -25,7 +25,7 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 
 // GetActivityLogs godoc
 // @Summary      Get activity logs
-// @Description  Get a list of activity logs with filtering and pagination
+// @Description  Get a list of activity logs with filtering and pagination (Roles: admin)
 // @Tags         ActivityLogs
 // @Accept       json
 // @Produce      json

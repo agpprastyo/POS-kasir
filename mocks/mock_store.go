@@ -266,6 +266,21 @@ func (mr *MockStoreMockRecorder) CountPromotions(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPromotions", reflect.TypeOf((*MockStore)(nil).CountPromotions), ctx)
 }
 
+// CountStockHistoryByProduct mocks base method.
+func (m *MockStore) CountStockHistoryByProduct(ctx context.Context, productID uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountStockHistoryByProduct", ctx, productID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountStockHistoryByProduct indicates an expected call of CountStockHistoryByProduct.
+func (mr *MockStoreMockRecorder) CountStockHistoryByProduct(ctx, productID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountStockHistoryByProduct", reflect.TypeOf((*MockStore)(nil).CountStockHistoryByProduct), ctx, productID)
+}
+
 // CountTrashPromotions mocks base method.
 func (m *MockStore) CountTrashPromotions(ctx context.Context) (int64, error) {
 	m.ctrl.T.Helper()
@@ -504,6 +519,21 @@ func (m *MockStore) CreateShift(ctx context.Context, arg repository.CreateShiftP
 func (mr *MockStoreMockRecorder) CreateShift(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateShift", reflect.TypeOf((*MockStore)(nil).CreateShift), ctx, arg)
+}
+
+// CreateStockHistory mocks base method.
+func (m *MockStore) CreateStockHistory(ctx context.Context, arg repository.CreateStockHistoryParams) (repository.StockHistory, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateStockHistory", ctx, arg)
+	ret0, _ := ret[0].(repository.StockHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateStockHistory indicates an expected call of CreateStockHistory.
+func (mr *MockStoreMockRecorder) CreateStockHistory(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateStockHistory", reflect.TypeOf((*MockStore)(nil).CreateStockHistory), ctx, arg)
 }
 
 // CreateUser mocks base method.
@@ -1066,6 +1096,21 @@ func (mr *MockStoreMockRecorder) GetProductOptionsByIDs(ctx, ids any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductOptionsByIDs", reflect.TypeOf((*MockStore)(nil).GetProductOptionsByIDs), ctx, ids)
 }
 
+// GetProductProfitReports mocks base method.
+func (m *MockStore) GetProductProfitReports(ctx context.Context, arg repository.GetProductProfitReportsParams) ([]repository.GetProductProfitReportsRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProductProfitReports", ctx, arg)
+	ret0, _ := ret[0].([]repository.GetProductProfitReportsRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProductProfitReports indicates an expected call of GetProductProfitReports.
+func (mr *MockStoreMockRecorder) GetProductProfitReports(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductProfitReports", reflect.TypeOf((*MockStore)(nil).GetProductProfitReports), ctx, arg)
+}
+
 // GetProductSalesPerformance mocks base method.
 func (m *MockStore) GetProductSalesPerformance(ctx context.Context, arg repository.GetProductSalesPerformanceParams) ([]repository.GetProductSalesPerformanceRow, error) {
 	m.ctrl.T.Helper()
@@ -1124,6 +1169,21 @@ func (m *MockStore) GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UU
 func (mr *MockStoreMockRecorder) GetProductsForUpdate(ctx, dollar_1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductsForUpdate", reflect.TypeOf((*MockStore)(nil).GetProductsForUpdate), ctx, dollar_1)
+}
+
+// GetProfitSummary mocks base method.
+func (m *MockStore) GetProfitSummary(ctx context.Context, arg repository.GetProfitSummaryParams) ([]repository.GetProfitSummaryRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProfitSummary", ctx, arg)
+	ret0, _ := ret[0].([]repository.GetProfitSummaryRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProfitSummary indicates an expected call of GetProfitSummary.
+func (mr *MockStoreMockRecorder) GetProfitSummary(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfitSummary", reflect.TypeOf((*MockStore)(nil).GetProfitSummary), ctx, arg)
 }
 
 // GetPromotionByID mocks base method.
@@ -1229,6 +1289,36 @@ func (m *MockStore) GetShiftByID(ctx context.Context, id uuid.UUID) (repository.
 func (mr *MockStoreMockRecorder) GetShiftByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetShiftByID", reflect.TypeOf((*MockStore)(nil).GetShiftByID), ctx, id)
+}
+
+// GetStockHistoryByProduct mocks base method.
+func (m *MockStore) GetStockHistoryByProduct(ctx context.Context, productID uuid.UUID) ([]repository.StockHistory, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStockHistoryByProduct", ctx, productID)
+	ret0, _ := ret[0].([]repository.StockHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStockHistoryByProduct indicates an expected call of GetStockHistoryByProduct.
+func (mr *MockStoreMockRecorder) GetStockHistoryByProduct(ctx, productID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStockHistoryByProduct", reflect.TypeOf((*MockStore)(nil).GetStockHistoryByProduct), ctx, productID)
+}
+
+// GetStockHistoryByProductWithPagination mocks base method.
+func (m *MockStore) GetStockHistoryByProductWithPagination(ctx context.Context, arg repository.GetStockHistoryByProductWithPaginationParams) ([]repository.StockHistory, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStockHistoryByProductWithPagination", ctx, arg)
+	ret0, _ := ret[0].([]repository.StockHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStockHistoryByProductWithPagination indicates an expected call of GetStockHistoryByProductWithPagination.
+func (mr *MockStoreMockRecorder) GetStockHistoryByProductWithPagination(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStockHistoryByProductWithPagination", reflect.TypeOf((*MockStore)(nil).GetStockHistoryByProductWithPagination), ctx, arg)
 }
 
 // GetUserByEmail mocks base method.

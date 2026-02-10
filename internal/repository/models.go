@@ -492,6 +492,51 @@ func (ns NullSortOrder) Value() (driver.Value, error) {
 	return string(ns.SortOrder), nil
 }
 
+type StockChangeType string
+
+const (
+	StockChangeTypeSale       StockChangeType = "sale"
+	StockChangeTypeRestock    StockChangeType = "restock"
+	StockChangeTypeCorrection StockChangeType = "correction"
+	StockChangeTypeReturn     StockChangeType = "return"
+	StockChangeTypeDamage     StockChangeType = "damage"
+)
+
+func (e *StockChangeType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StockChangeType(s)
+	case string:
+		*e = StockChangeType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StockChangeType: %T", src)
+	}
+	return nil
+}
+
+type NullStockChangeType struct {
+	StockChangeType StockChangeType `json:"stock_change_type"`
+	Valid           bool            `json:"valid"` // Valid is true if StockChangeType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStockChangeType) Scan(value interface{}) error {
+	if value == nil {
+		ns.StockChangeType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.StockChangeType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStockChangeType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.StockChangeType), nil
+}
+
 type UserOrderColumn string
 
 const (
@@ -637,14 +682,15 @@ type Order struct {
 }
 
 type OrderItem struct {
-	ID             uuid.UUID `json:"id"`
-	OrderID        uuid.UUID `json:"order_id"`
-	ProductID      uuid.UUID `json:"product_id"`
-	Quantity       int32     `json:"quantity"`
-	PriceAtSale    int64     `json:"price_at_sale"`
-	Subtotal       int64     `json:"subtotal"`
-	DiscountAmount int64     `json:"discount_amount"`
-	NetSubtotal    int64     `json:"net_subtotal"`
+	ID              uuid.UUID      `json:"id"`
+	OrderID         uuid.UUID      `json:"order_id"`
+	ProductID       uuid.UUID      `json:"product_id"`
+	Quantity        int32          `json:"quantity"`
+	PriceAtSale     int64          `json:"price_at_sale"`
+	Subtotal        int64          `json:"subtotal"`
+	DiscountAmount  int64          `json:"discount_amount"`
+	NetSubtotal     int64          `json:"net_subtotal"`
+	CostPriceAtSale pgtype.Numeric `json:"cost_price_at_sale"`
 }
 
 type OrderItemOption struct {
@@ -672,6 +718,7 @@ type Product struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice  pgtype.Numeric     `json:"cost_price"`
 }
 
 type ProductOption struct {
@@ -738,6 +785,19 @@ type Shift struct {
 	Status          ShiftStatus        `json:"status"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type StockHistory struct {
+	ID            uuid.UUID          `json:"id"`
+	ProductID     uuid.UUID          `json:"product_id"`
+	ChangeAmount  int32              `json:"change_amount"`
+	PreviousStock int32              `json:"previous_stock"`
+	CurrentStock  int32              `json:"current_stock"`
+	ChangeType    StockChangeType    `json:"change_type"`
+	ReferenceID   pgtype.UUID        `json:"reference_id"`
+	Note          *string            `json:"note"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {

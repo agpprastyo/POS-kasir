@@ -15,9 +15,10 @@ INSERT INTO order_items (
     quantity,
     price_at_sale,
     subtotal,
-    net_subtotal
+    net_subtotal,
+    cost_price_at_sale
 ) VALUES (
-             $1, $2, $3, $4, $5, $6
+             $1, $2, $3, $4, $5, $6, $7
          ) RETURNING *;
 
 -- name: CreateOrderItemOption :one
@@ -224,7 +225,8 @@ INSERT INTO order_items (
     quantity,
     price_at_sale,
     subtotal,
-    net_subtotal
+    net_subtotal,
+    cost_price_at_sale
 )
 SELECT
     sqlc.arg(order_id) AS order_id,
@@ -232,7 +234,8 @@ SELECT
     unnest(sqlc.arg(quantities)::int[]) AS quantity,
     unnest(sqlc.arg(prices_at_sale)::numeric[]) AS price_at_sale,
     unnest(sqlc.arg(subtotals)::numeric[]) AS subtotal,
-    unnest(sqlc.arg(net_subtotals)::numeric[]) AS net_subtotal
+    unnest(sqlc.arg(net_subtotals)::numeric[]) AS net_subtotal,
+    unnest(sqlc.arg(cost_prices_at_sale)::numeric[]) AS cost_price_at_sale
 RETURNING *;
 
 -- name: BatchDecreaseProductStock :exec

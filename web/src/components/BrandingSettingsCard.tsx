@@ -64,10 +64,6 @@ export function BrandingSettingsCard() {
         })
     }
 
-    const handleRemoveLogo = () => {
-        setLogoUrl("")
-
-    }
 
     if (isLoading) {
         return <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>

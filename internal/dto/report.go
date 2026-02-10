@@ -46,3 +46,19 @@ type CancellationReportResponse struct {
 	Reason          string `json:"reason"`
 	CancelledOrders int64  `json:"cancelled_orders"`
 }
+
+type ProfitSummaryResponse struct {
+	Date         time.Time `json:"date"`
+	TotalRevenue float64   `json:"total_revenue"`
+	TotalCOGS    float64   `json:"total_cogs"`
+	GrossProfit  float64   `json:"gross_profit"`
+}
+
+type ProductProfitResponse struct {
+	ProductID    string  `json:"product_id"`
+	ProductName  string  `json:"product_name"`
+	TotalSold    int64   `json:"total_sold"`
+	TotalRevenue float64 `json:"total_revenue"`
+	TotalCOGS    float64 `json:"total_cogs"`
+	GrossProfit  float64 `json:"gross_profit"`
+}

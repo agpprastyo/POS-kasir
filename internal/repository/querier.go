@@ -37,6 +37,7 @@ type Querier interface {
 	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
 	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
 	CountPromotions(ctx context.Context) (int64, error)
+	CountStockHistoryByProduct(ctx context.Context, productID uuid.UUID) (int64, error)
 	CountTrashPromotions(ctx context.Context) (int64, error)
 	// Menghitung pengguna dengan filter status.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
@@ -64,6 +65,7 @@ type Querier interface {
 	CreatePromotionRule(ctx context.Context, arg CreatePromotionRuleParams) (PromotionRule, error)
 	CreatePromotionTarget(ctx context.Context, arg CreatePromotionTargetParams) (PromotionTarget, error)
 	CreateShift(ctx context.Context, arg CreateShiftParams) (Shift, error)
+	CreateStockHistory(ctx context.Context, arg CreateStockHistoryParams) (StockHistory, error)
 	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Mengurangi stok produk.
@@ -121,6 +123,7 @@ type Querier interface {
 	// Retrieves a product option by its ID, including its product details.
 	GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error)
 	GetProductOptionsByIDs(ctx context.Context, ids []uuid.UUID) ([]ProductOption, error)
+	GetProductProfitReports(ctx context.Context, arg GetProductProfitReportsParams) ([]GetProductProfitReportsRow, error)
 	GetProductSalesPerformance(ctx context.Context, arg GetProductSalesPerformanceParams) ([]GetProductSalesPerformanceRow, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
 	// This is an efficient way to fetch a product and its variants in one query.
@@ -131,6 +134,7 @@ type Querier interface {
 	// Mengambil produk sekaligus mengunci barisnya (Row-Level Locking).
 	// Transaksi lain yang mencoba update produk ini harus menunggu sampai transaksi ini selesai.
 	GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
+	GetProfitSummary(ctx context.Context, arg GetProfitSummaryParams) ([]GetProfitSummaryRow, error)
 	// Mengambil detail promosi berdasarkan ID.
 	GetPromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
 	// Mengambil semua aturan untuk sebuah promosi.
@@ -141,6 +145,8 @@ type Querier interface {
 	GetSettingByKey(ctx context.Context, key string) (Setting, error)
 	GetSettings(ctx context.Context) ([]Setting, error)
 	GetShiftByID(ctx context.Context, id uuid.UUID) (Shift, error)
+	GetStockHistoryByProduct(ctx context.Context, productID uuid.UUID) ([]StockHistory, error)
+	GetStockHistoryByProductWithPagination(ctx context.Context, arg GetStockHistoryByProductWithPaginationParams) ([]StockHistory, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.

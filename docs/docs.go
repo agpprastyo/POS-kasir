@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/activity-logs": {
             "get": {
-                "description": "Get a list of activity logs with filtering and pagination",
+                "description": "Get a list of activity logs with filtering and pagination (Roles: admin)",
                 "consumes": [
                     "application/json"
                 ],
@@ -2247,6 +2247,85 @@ const docTemplate = `{
                 ]
             }
         },
+        "/products/{id}/stock-history": {
+            "get": {
+                "description": "Get stock history for a product by ID with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get stock history for a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Stock history retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.PagedStockHistoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID or query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve stock history",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
         "/products/{product_id}/options": {
             "post": {
                 "description": "Create a product option for a parent product",
@@ -3074,6 +3153,136 @@ const docTemplate = `{
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/definitions/POS-kasir_internal_dto.ProductPerformanceResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/profit-products": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get product profit reports",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.ProductProfitResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/profit-summary": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get profit summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.ProfitSummaryResponse"
                                             }
                                         }
                                     }
@@ -4415,6 +4624,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "category_id",
+                "cost_price",
                 "name",
                 "price",
                 "stock"
@@ -4422,6 +4632,10 @@ const docTemplate = `{
             "properties": {
                 "category_id": {
                     "type": "integer"
+                },
+                "cost_price": {
+                    "type": "number",
+                    "minimum": 0
                 },
                 "name": {
                     "type": "string",
@@ -4818,6 +5032,20 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.PagedStockHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.StockHistoryResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                }
+            }
+        },
         "POS-kasir_internal_dto.PaymentAction": {
             "type": "object",
             "properties": {
@@ -4943,6 +5171,29 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.ProductProfitResponse": {
+            "type": "object",
+            "properties": {
+                "gross_profit": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
+                "total_cogs": {
+                    "type": "number"
+                },
+                "total_revenue": {
+                    "type": "number"
+                },
+                "total_sold": {
+                    "type": "integer"
+                }
+            }
+        },
         "POS-kasir_internal_dto.ProductResponse": {
             "type": "object",
             "properties": {
@@ -4951,6 +5202,9 @@ const docTemplate = `{
                 },
                 "category_name": {
                     "type": "string"
+                },
+                "cost_price": {
+                    "type": "number"
                 },
                 "created_at": {
                     "type": "string"
@@ -5013,6 +5267,23 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ProfitSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "gross_profit": {
+                    "type": "number"
+                },
+                "total_cogs": {
+                    "type": "number"
+                },
+                "total_revenue": {
+                    "type": "number"
                 }
             }
         },
@@ -5117,6 +5388,41 @@ const docTemplate = `{
                 "start_cash": {
                     "type": "integer",
                     "minimum": 0
+                }
+            }
+        },
+        "POS-kasir_internal_dto.StockHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "change_amount": {
+                    "type": "integer"
+                },
+                "change_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "current_stock": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "previous_stock": {
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "reference_id": {
+                    "type": "string"
                 }
             }
         },
@@ -5235,10 +5541,28 @@ const docTemplate = `{
                 "category_id": {
                     "type": "integer"
                 },
+                "change_type": {
+                    "type": "string",
+                    "enum": [
+                        "sale",
+                        "restock",
+                        "correction",
+                        "return",
+                        "damage"
+                    ]
+                },
+                "cost_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "price": {
                     "type": "number"

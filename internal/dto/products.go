@@ -16,6 +16,7 @@ type CreateProductRequest struct {
 	Name       string                       `json:"name" validate:"required,min=3,max=100"`
 	CategoryID int32                        `json:"category_id" validate:"required,gt=0"`
 	Price      float64                      `json:"price" validate:"required,gt=0"`
+	CostPrice  float64                      `json:"cost_price" validate:"required,gte=0"`
 	Stock      int32                        `json:"stock" validate:"required,gte=0"`
 	Options    []CreateProductOptionRequest `json:"options" validate:"dive"`
 }
@@ -24,7 +25,10 @@ type UpdateProductRequest struct {
 	Name       *string  `json:"name" validate:"omitempty,min=3,max=100"`
 	CategoryID *int32   `json:"category_id" validate:"omitempty,gt=0"`
 	Price      *float64 `json:"price" validate:"omitempty,gt=0"`
+	CostPrice  *float64 `json:"cost_price" validate:"omitempty,gte=0"`
 	Stock      *int32   `json:"stock" validate:"omitempty,gte=0"`
+	Note       *string  `json:"note" validate:"omitempty,max=255"`
+	ChangeType *string  `json:"change_type" validate:"omitempty,oneof=sale restock correction return damage"`
 }
 
 type ListProductsRequest struct {
@@ -58,6 +62,7 @@ type ProductResponse struct {
 	CategoryName *string                 `json:"category_name,omitempty"`
 	ImageURL     *string                 `json:"image_url,omitempty"`
 	Price        float64                 `json:"price"`
+	CostPrice    float64                 `json:"cost_price"`
 	Stock        int32                   `json:"stock"`
 	CreatedAt    time.Time               `json:"created_at"`
 	UpdatedAt    time.Time               `json:"updated_at"`
@@ -83,4 +88,27 @@ type ListProductsResponse struct {
 
 type RestoreBulkRequest struct {
 	ProductIDs []string `json:"product_ids" validate:"required,min=1"`
+}
+
+type ListStockHistoryRequest struct {
+	Page  *int `form:"page" validate:"omitempty,gte=1"`
+	Limit *int `form:"limit" validate:"omitempty,gte=1,lte=100"`
+}
+
+type StockHistoryResponse struct {
+	ID            uuid.UUID  `json:"id"`
+	ProductID     uuid.UUID  `json:"product_id"`
+	ChangeAmount  int32      `json:"change_amount"`
+	PreviousStock int32      `json:"previous_stock"`
+	CurrentStock  int32      `json:"current_stock"`
+	ChangeType    string     `json:"change_type"`
+	ReferenceID   *uuid.UUID `json:"reference_id,omitempty"`
+	Note          *string    `json:"note,omitempty"`
+	CreatedBy     *uuid.UUID `json:"created_by,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+}
+
+type PagedStockHistoryResponse struct {
+	History    []StockHistoryResponse `json:"history"`
+	Pagination pagination.Pagination  `json:"pagination"`
 }

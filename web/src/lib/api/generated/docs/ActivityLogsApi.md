@@ -9,7 +9,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **activityLogsGet**
 > ActivityLogsGet200Response activityLogsGet()
 
-Get a list of activity logs with filtering and pagination
+Get a list of activity logs with filtering and pagination (Roles: admin)
 
 ### Example
 

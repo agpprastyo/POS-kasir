@@ -72,6 +72,7 @@ docs/POSKasirInternalDtoOrderItemOptionResponse.md
 docs/POSKasirInternalDtoOrderItemResponse.md
 docs/POSKasirInternalDtoOrderListResponse.md
 docs/POSKasirInternalDtoPagedOrderResponse.md
+docs/POSKasirInternalDtoPagedStockHistoryResponse.md
 docs/POSKasirInternalDtoPaymentAction.md
 docs/POSKasirInternalDtoPaymentMethodPerformanceResponse.md
 docs/POSKasirInternalDtoPaymentMethodResponse.md
@@ -79,13 +80,16 @@ docs/POSKasirInternalDtoPrinterSettingsResponse.md
 docs/POSKasirInternalDtoProductListResponse.md
 docs/POSKasirInternalDtoProductOptionResponse.md
 docs/POSKasirInternalDtoProductPerformanceResponse.md
+docs/POSKasirInternalDtoProductProfitResponse.md
 docs/POSKasirInternalDtoProductResponse.md
 docs/POSKasirInternalDtoProfileResponse.md
+docs/POSKasirInternalDtoProfitSummaryResponse.md
 docs/POSKasirInternalDtoRegisterRequest.md
 docs/POSKasirInternalDtoRestoreBulkRequest.md
 docs/POSKasirInternalDtoSalesReport.md
 docs/POSKasirInternalDtoShiftResponse.md
 docs/POSKasirInternalDtoStartShiftRequest.md
+docs/POSKasirInternalDtoStockHistoryResponse.md
 docs/POSKasirInternalDtoUpdateBrandingRequest.md
 docs/POSKasirInternalDtoUpdateOrderItemRequest.md
 docs/POSKasirInternalDtoUpdateOrderStatusRequest.md
@@ -112,6 +116,7 @@ docs/PaymentMethodsGet200Response.md
 docs/PrinterApi.md
 docs/ProductsApi.md
 docs/ProductsGet200Response.md
+docs/ProductsIdStockHistoryGet200Response.md
 docs/ProductsPost201Response.md
 docs/ProductsProductIdOptionsPost201Response.md
 docs/PromotionsApi.md
@@ -121,6 +126,8 @@ docs/ReportsCashierPerformanceGet200Response.md
 docs/ReportsDashboardSummaryGet200Response.md
 docs/ReportsPaymentMethodsGet200Response.md
 docs/ReportsProductsGet200Response.md
+docs/ReportsProfitProductsGet200Response.md
+docs/ReportsProfitSummaryGet200Response.md
 docs/ReportsSalesGet200Response.md
 docs/SettingsApi.md
 docs/ShiftsApi.md
@@ -181,6 +188,7 @@ models/poskasir-internal-dto-order-item-option-response.ts
 models/poskasir-internal-dto-order-item-response.ts
 models/poskasir-internal-dto-order-list-response.ts
 models/poskasir-internal-dto-paged-order-response.ts
+models/poskasir-internal-dto-paged-stock-history-response.ts
 models/poskasir-internal-dto-payment-action.ts
 models/poskasir-internal-dto-payment-method-performance-response.ts
 models/poskasir-internal-dto-payment-method-response.ts
@@ -188,13 +196,16 @@ models/poskasir-internal-dto-printer-settings-response.ts
 models/poskasir-internal-dto-product-list-response.ts
 models/poskasir-internal-dto-product-option-response.ts
 models/poskasir-internal-dto-product-performance-response.ts
+models/poskasir-internal-dto-product-profit-response.ts
 models/poskasir-internal-dto-product-response.ts
 models/poskasir-internal-dto-profile-response.ts
+models/poskasir-internal-dto-profit-summary-response.ts
 models/poskasir-internal-dto-register-request.ts
 models/poskasir-internal-dto-restore-bulk-request.ts
 models/poskasir-internal-dto-sales-report.ts
 models/poskasir-internal-dto-shift-response.ts
 models/poskasir-internal-dto-start-shift-request.ts
+models/poskasir-internal-dto-stock-history-response.ts
 models/poskasir-internal-dto-update-branding-request.ts
 models/poskasir-internal-dto-update-order-item-request.ts
 models/poskasir-internal-dto-update-order-status-request.ts
@@ -217,6 +228,7 @@ models/poskasir-internal-repository-promotion-target-type.ts
 models/poskasir-internal-repository-shift-status.ts
 models/poskasir-internal-repository-user-role.ts
 models/products-get200-response.ts
+models/products-id-stock-history-get200-response.ts
 models/products-post201-response.ts
 models/products-product-id-options-post201-response.ts
 models/reports-cancellations-get200-response.ts
@@ -224,6 +236,8 @@ models/reports-cashier-performance-get200-response.ts
 models/reports-dashboard-summary-get200-response.ts
 models/reports-payment-methods-get200-response.ts
 models/reports-products-get200-response.ts
+models/reports-profit-products-get200-response.ts
+models/reports-profit-summary-get200-response.ts
 models/reports-sales-get200-response.ts
 models/shifts-cash-transaction-post201-response.ts
 models/shifts-current-get200-response.ts

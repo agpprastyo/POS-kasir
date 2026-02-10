@@ -396,6 +396,7 @@ func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UU
 
 func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []dto.UpdateOrderItemRequest) (*dto.OrderDetailResponse, error) {
 	var finalOrder repository.GetOrderWithDetailsRow
+	actorID, userIdOk := ctx.Value(common.UserIDKey).(uuid.UUID)
 
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
 
@@ -445,10 +446,34 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 						return fmt.Errorf("insufficient stock for update %s", product.Name)
 					}
 					qtx.DecreaseProductStock(ctx, repository.DecreaseProductStockParams{ID: req.ProductID, Stock: qtyDiff})
+
+					// Log Stock Decrease
+					qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+						ProductID:     req.ProductID,
+						ChangeAmount:  -qtyDiff,
+						PreviousStock: product.Stock,
+						CurrentStock:  product.Stock - qtyDiff,
+						ChangeType:    repository.StockChangeTypeSale,
+						ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+						Note:          utils.StringPtr("Order Item Qty Increase"),
+						CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+					})
 				} else if qtyDiff < 0 {
 
 					restoreQty := -qtyDiff
 					qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: req.ProductID, Stock: restoreQty})
+
+					// Log Stock Increase
+					qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+						ProductID:     req.ProductID,
+						ChangeAmount:  restoreQty,
+						PreviousStock: product.Stock,
+						CurrentStock:  product.Stock + restoreQty,
+						ChangeType:    repository.StockChangeTypeReturn, // or Correction? Return seems appropriate for reducing order qty
+						ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+						Note:          utils.StringPtr("Order Item Qty Decrease"),
+						CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+					})
 				}
 
 				qtx.UpdateOrderItemQuantity(ctx, repository.UpdateOrderItemQuantityParams{
@@ -468,20 +493,62 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 
 				qtx.DecreaseProductStock(ctx, repository.DecreaseProductStockParams{ID: req.ProductID, Stock: req.Quantity})
 
+				// Log Stock Decrease (New Item)
+				qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+					ProductID:     req.ProductID,
+					ChangeAmount:  -req.Quantity,
+					PreviousStock: product.Stock,
+					CurrentStock:  product.Stock - req.Quantity,
+					ChangeType:    repository.StockChangeTypeSale,
+					ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+					Note:          utils.StringPtr("Order Item Added"),
+					CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+				})
+
+				costPrice := 0.0
+				if product.CostPrice.Valid {
+					f, _ := product.CostPrice.Float64Value()
+					costPrice = f.Float64
+				}
+				numericCost := pgtype.Numeric{}
+				numericCost.Scan(fmt.Sprintf("%f", costPrice))
+
 				qtx.CreateOrderItem(ctx, repository.CreateOrderItemParams{
-					OrderID:     orderID,
-					ProductID:   req.ProductID,
-					Quantity:    req.Quantity,
-					PriceAtSale: price,
-					Subtotal:    subtotal,
-					NetSubtotal: subtotal,
+					OrderID:         orderID,
+					ProductID:       req.ProductID,
+					Quantity:        req.Quantity,
+					PriceAtSale:     price,
+					Subtotal:        subtotal,
+					NetSubtotal:     subtotal,
+					CostPriceAtSale: numericCost,
 				})
 			}
 		}
 
 		for productID, item := range currentMap {
 
-			qtx.AddProductStock(ctx, repository.AddProductStockParams{ID: productID, Stock: item.Quantity})
+			params := repository.AddProductStockParams{ID: productID, Stock: item.Quantity}
+			qtx.AddProductStock(ctx, params)
+
+			// Need to catch product for logging history?
+			// The loop iterates over currentMap which contains OrderItem, not Product.
+			// We need to fetch product to get previous stock.
+			// Optimization: Check if we already fetched it? No, loop is separate.
+			prod, err := qtx.GetProductByID(ctx, productID)
+			if err == nil {
+				qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+					ProductID:     productID,
+					ChangeAmount:  item.Quantity,
+					PreviousStock: prod.Stock,
+					CurrentStock:  prod.Stock + item.Quantity,
+					ChangeType:    repository.StockChangeTypeReturn,
+					ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+					Note:          utils.StringPtr("Order Item Removed"),
+					CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+				})
+			} else {
+				s.log.Warn("Failed to fetch product for stock history logging on item delete", "productID", productID)
+			}
 
 			qtx.DeleteOrderItem(ctx, repository.DeleteOrderItemParams{ID: item.ID, OrderID: orderID})
 		}
@@ -603,6 +670,8 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(ctx context.Conte
 }
 
 func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req dto.CancelOrderRequest) error {
+	actorID, userIdOk := ctx.Value(common.UserIDKey).(uuid.UUID)
+
 	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
 		orderWithDetails, err := qtx.GetOrderWithDetails(ctx, orderID)
 		if err != nil {
@@ -651,16 +720,36 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 			case []byte:
 				var items []repository.OrderItem
 				if err := json.Unmarshal(v, &items); err != nil {
-					for _, item := range items {
-						_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
-							ID:    item.ProductID,
-							Stock: item.Quantity,
-						})
-						if stockErr != nil {
-							s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", item.ProductID)
-							return stockErr
-						}
+					return err
+				}
+				for _, item := range items {
+					// Fetch product to get stock
+					prod, err := qtx.GetProductByID(ctx, item.ProductID)
+					if err != nil {
+						s.log.Error("Failed to fetch product for stock return", "error", err)
+						return err
 					}
+
+					_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
+						ID:    item.ProductID,
+						Stock: item.Quantity,
+					})
+					if stockErr != nil {
+						s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", item.ProductID)
+						return stockErr
+					}
+
+					// Log Stock History
+					qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+						ProductID:     item.ProductID,
+						ChangeAmount:  item.Quantity,
+						PreviousStock: prod.Stock,
+						CurrentStock:  prod.Stock + item.Quantity,
+						ChangeType:    repository.StockChangeTypeReturn,
+						ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+						Note:          utils.StringPtr("Order Cancelled"),
+						CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+					})
 				}
 			case []interface{}:
 				for _, item := range v {
@@ -675,6 +764,13 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 							s.log.Error("Invalid quantity in order items", "item", item)
 							continue
 						}
+
+						// Fetch product
+						prod, err := qtx.GetProductByID(ctx, productID)
+						if err != nil {
+							return err
+						}
+
 						_, stockErr := qtx.AddProductStock(ctx, repository.AddProductStockParams{
 							ID:    productID,
 							Stock: int32(quantity),
@@ -683,6 +779,18 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 							s.log.Error("Failed to restore stock for product", "error", stockErr, "productID", productID)
 							return stockErr
 						}
+
+						// Log Stock History
+						qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+							ProductID:     productID,
+							ChangeAmount:  int32(quantity),
+							PreviousStock: prod.Stock,
+							CurrentStock:  prod.Stock + int32(quantity),
+							ChangeType:    repository.StockChangeTypeReturn,
+							ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+							Note:          utils.StringPtr("Order Cancelled"),
+							CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+						})
 					} else {
 						s.log.Error("Unexpected item type in order items", "item", item)
 					}
@@ -697,7 +805,6 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req d
 		return txErr
 	}
 
-	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
 	logDetails := map[string]interface{}{
 		"cancelled_order_id": orderID.String(),
 		"reason_id":          req.CancellationReasonID,
@@ -920,6 +1027,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 			itemPrices     []pgtype.Numeric
 			itemSubtotals  []pgtype.Numeric
 			itemNetSubs    []pgtype.Numeric
+			itemCostPrices []pgtype.Numeric
 			stockUpdateIDs []uuid.UUID
 			stockUpdateQty []int32
 		)
@@ -956,17 +1064,27 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 			itemSubtotals = append(itemSubtotals, utils.Int64ToNumeric(subtotal))
 			itemNetSubs = append(itemNetSubs, utils.Int64ToNumeric(subtotal))
 
+			costPrice := 0.0
+			if product.CostPrice.Valid {
+				f, _ := product.CostPrice.Float64Value()
+				costPrice = f.Float64
+			}
+			numericCost := pgtype.Numeric{}
+			numericCost.Scan(fmt.Sprintf("%f", costPrice))
+			itemCostPrices = append(itemCostPrices, numericCost)
+
 			stockUpdateIDs = append(stockUpdateIDs, itemReq.ProductID)
 			stockUpdateQty = append(stockUpdateQty, itemReq.Quantity)
 		}
 
 		createdItems, err := qtx.BatchCreateOrderItems(ctx, repository.BatchCreateOrderItemsParams{
-			OrderID:      newOrderID,
-			ProductIds:   itemProductIDs,
-			Quantities:   itemQuantities,
-			PricesAtSale: itemPrices,
-			Subtotals:    itemSubtotals,
-			NetSubtotals: itemNetSubs,
+			OrderID:          newOrderID,
+			ProductIds:       itemProductIDs,
+			Quantities:       itemQuantities,
+			PricesAtSale:     itemPrices,
+			Subtotals:        itemSubtotals,
+			NetSubtotals:     itemNetSubs,
+			CostPricesAtSale: itemCostPrices,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to batch insert items: %w", err)
@@ -1008,6 +1126,30 @@ func (s *OrderService) CreateOrder(ctx context.Context, req dto.CreateOrderReque
 		})
 		if err != nil {
 			return fmt.Errorf("failed to batch update stock: %w", err)
+		}
+
+		// LOG STOCK HISTORY
+		for i, pID := range stockUpdateIDs {
+			qty := stockUpdateQty[i]
+			product := productMap[pID]
+			previousStock := product.Stock
+			currentStock := previousStock - qty
+
+			_, err := qtx.CreateStockHistory(ctx, repository.CreateStockHistoryParams{
+				ProductID:     pID,
+				ChangeAmount:  -qty,
+				PreviousStock: previousStock,
+				CurrentStock:  currentStock,
+				ChangeType:    repository.StockChangeTypeSale,
+				ReferenceID:   pgtype.UUID{Bytes: newOrderID, Valid: true},
+				Note:          utils.StringPtr("Order Created"),
+				CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: ok},
+			})
+			if err != nil {
+				// We log error but maybe valid to strictly fail transaction?
+				// For data integrity, strictly failing is better.
+				return fmt.Errorf("failed to log stock history for %s: %w", pID, err)
+			}
 		}
 
 		_, err = qtx.UpdateOrderTotals(ctx, repository.UpdateOrderTotalsParams{

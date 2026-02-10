@@ -46,6 +46,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Get("/products", authMiddleware, container.ProductHandler.ListProductsHandler)
 	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.ProductHandler.GetProductHandler)
+	api.Get("/products/:id/stock-history", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.GetStockHistoryHandler)
 	api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UpdateProductHandler)
 	api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.DeleteProductHandler)
 
@@ -78,6 +79,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/reports/payment-methods", authMiddleware, container.ReportHandler.GetPaymentMethodPerformanceHandler)
 	api.Get("/reports/cashier-performance", authMiddleware, container.ReportHandler.GetCashierPerformanceHandler)
 	api.Get("/reports/cancellations", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
+	api.Get("/reports/profit-summary", authMiddleware, container.ReportHandler.GetProfitSummaryHandler)
+	api.Get("/reports/profit-products", authMiddleware, container.ReportHandler.GetProductProfitReportsHandler)
 	// Public read access for Cashier (and above)
 	promotionsReadGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier))
 	{

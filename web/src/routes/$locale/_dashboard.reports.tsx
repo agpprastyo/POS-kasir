@@ -6,7 +6,7 @@ import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/p
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSalesReportQuery, useProductPerformanceQuery, usePaymentMethodPerformanceQuery, useCashierPerformanceQuery, useCancellationReportsQuery } from '@/lib/api/query/reports'
+import { useSalesReportQuery, useProductPerformanceQuery, usePaymentMethodPerformanceQuery, useCashierPerformanceQuery, useCancellationReportsQuery, useProfitSummaryQuery, useProductProfitReportsQuery } from '@/lib/api/query/reports'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -48,6 +48,8 @@ function ReportsPage() {
     const { data: paymentsData, isLoading: isLoadingPayments } = usePaymentMethodPerformanceQuery(dateRange.start, dateRange.end)
     const { data: cashierData, isLoading: isLoadingCashier } = useCashierPerformanceQuery(dateRange.start, dateRange.end)
     const { data: cancellationData, isLoading: isLoadingCancellation } = useCancellationReportsQuery(dateRange.start, dateRange.end)
+    const { data: profitSummaryData, isLoading: isLoadingProfitSummary } = useProfitSummaryQuery(dateRange.start, dateRange.end)
+    const { data: productProfitsData, isLoading: isLoadingProductProfits } = useProductProfitReportsQuery(dateRange.start, dateRange.end)
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -81,7 +83,7 @@ function ReportsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="grid gap-1.5">
-                        <label htmlFor="start-date" className="text-xs font-medium text-muted-foreground">Start Date</label>
+                        <label htmlFor="start-date" className="text-xs font-medium text-muted-foreground">{t('common.start_date')}</label>
                         <div className="relative">
                             <input
                                 type="date"
@@ -93,7 +95,7 @@ function ReportsPage() {
                         </div>
                     </div>
                     <div className="grid gap-1.5">
-                        <label htmlFor="end-date" className="text-xs font-medium text-muted-foreground">End Date</label>
+                        <label htmlFor="end-date" className="text-xs font-medium text-muted-foreground">{t('common.end_date')}</label>
                         <div className="relative">
                             <input
                                 type="date"
@@ -110,6 +112,7 @@ function ReportsPage() {
             <Tabs defaultValue="sales" className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="sales">{t('reports.tabs.sales')}</TabsTrigger>
+                    <TabsTrigger value="profit">{t('reports.tabs.profit')}</TabsTrigger>
                     <TabsTrigger value="products">{t('reports.tabs.products')}</TabsTrigger>
                     <TabsTrigger value="performance">{t('reports.tabs.performance')}</TabsTrigger>
                     <TabsTrigger value="cancellations">{t('reports.tabs.cancellations')}</TabsTrigger>
@@ -272,6 +275,104 @@ function ReportsPage() {
                                                 </TableRow>
                                             ))}
                                             {(!cashierData || cashierData.length === 0) && (
+                                                <TableRow>
+                                                    <TableCell colSpan={3} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                {/* Profit Report Tab */}
+                <TabsContent value="profit" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Card className="col-span-4">
+                            <CardHeader>
+                                <CardTitle>{t('reports.profit.title')}</CardTitle>
+                                <CardDescription>{t('reports.profit.description')}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pl-2">
+                                {isLoadingProfitSummary ? (
+                                    <Skeleton className="h-[400px] w-full" />
+                                ) : (
+                                    <ResponsiveContainer width="100%" height={400}>
+                                        <BarChart data={profitSummaryData}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis
+                                                dataKey="date"
+                                                stroke="#888888"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickFormatter={(value) => formatDate(value)}
+                                            />
+                                            <YAxis
+                                                stroke="#888888"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickFormatter={(value) => `Rp${(value / 1000).toLocaleString()}k`}
+                                            />
+                                            <Tooltip
+                                                formatter={(value: number) => formatCurrency(value)}
+                                                labelFormatter={(label) => formatDate(label)}
+                                            />
+                                            <Legend />
+                                            <Bar dataKey="total_revenue" fill="#adfa1d" radius={[4, 4, 0, 0]} name={t('reports.profit.revenue')} />
+                                            <Bar dataKey="total_cogs" fill="#ef4444" radius={[4, 4, 0, 0]} name={t('reports.profit.cogs')} />
+                                            <Bar dataKey="gross_profit" fill="#3b82f6" radius={[4, 4, 0, 0]} name={t('reports.profit.gross_profit')} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <Card className="col-span-3">
+                            <CardHeader>
+                                <CardTitle>{t('reports.profit.products')}</CardTitle>
+                                <CardDescription>{t('reports.profit.products_desc')}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {isLoadingProductProfits ? (
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-10 w-full" />
+                                        <Skeleton className="h-10 w-full" />
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>{t('reports.products.product')}</TableHead>
+                                                <TableHead className="text-right">{t('reports.profit.profit')}</TableHead>
+                                                <TableHead className="text-right">%</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {(productProfitsData || []).map((product) => (
+                                                <TableRow key={product.product_id}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex flex-col">
+                                                            <span>{product.product_name}</span>
+                                                            <span className="text-xs text-muted-foreground">{product.total_sold ?? 0} {t('common.sold')}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="font-medium">{formatCurrency(product.gross_profit ?? 0)}</span>
+                                                            <span className="text-xs text-muted-foreground">{formatCurrency(product.total_revenue ?? 0)} {t('common.rev')}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {product.total_revenue && product.total_revenue > 0
+                                                            ? `${(((product.gross_profit ?? 0) / product.total_revenue) * 100).toFixed(1)}%`
+                                                            : '0%'}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            {(!productProfitsData || productProfitsData.length === 0) && (
                                                 <TableRow>
                                                     <TableCell colSpan={3} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
                                                 </TableRow>

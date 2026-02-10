@@ -62,18 +62,20 @@ INSERT INTO products (
     category_id,
     image_url,
     price,
-    stock
+    stock,
+    cost_price
 ) VALUES (
-             $1, $2, $3, $4, $5
-         ) RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at
+             $1, $2, $3, $4, $5, $6
+         ) RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
 `
 
 type CreateProductParams struct {
-	Name       string  `json:"name"`
-	CategoryID *int32  `json:"category_id"`
-	ImageUrl   *string `json:"image_url"`
-	Price      int64   `json:"price"`
-	Stock      int32   `json:"stock"`
+	Name       string         `json:"name"`
+	CategoryID *int32         `json:"category_id"`
+	ImageUrl   *string        `json:"image_url"`
+	Price      int64          `json:"price"`
+	Stock      int32          `json:"stock"`
+	CostPrice  pgtype.Numeric `json:"cost_price"`
 }
 
 // Queries for Products
@@ -86,6 +88,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		arg.ImageUrl,
 		arg.Price,
 		arg.Stock,
+		arg.CostPrice,
 	)
 	var i Product
 	err := row.Scan(
@@ -98,6 +101,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.CostPrice,
 	)
 	return i, err
 }
@@ -157,7 +161,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 
 const getDeletedProduct = `-- name: GetDeletedProduct :one
 SELECT
-    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
+    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -182,6 +186,7 @@ type GetDeletedProductRow struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice  pgtype.Numeric     `json:"cost_price"`
 	Options    interface{}        `json:"options"`
 }
 
@@ -198,6 +203,7 @@ func (q *Queries) GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDelet
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.CostPrice,
 		&i.Options,
 	)
 	return i, err
@@ -205,7 +211,7 @@ func (q *Queries) GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDelet
 
 const getProductByID = `-- name: GetProductByID :one
 SELECT
-    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
+    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -230,6 +236,7 @@ type GetProductByIDRow struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice  pgtype.Numeric     `json:"cost_price"`
 	Options    interface{}        `json:"options"`
 }
 
@@ -247,6 +254,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (GetProductB
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.CostPrice,
 		&i.Options,
 	)
 	return i, err
@@ -341,7 +349,7 @@ func (q *Queries) GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetPr
 
 const getProductWithOptions = `-- name: GetProductWithOptions :one
 SELECT
-    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at,
+    p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -366,6 +374,7 @@ type GetProductWithOptionsRow struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice  pgtype.Numeric     `json:"cost_price"`
 	Options    interface{}        `json:"options"`
 }
 
@@ -385,6 +394,7 @@ func (q *Queries) GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetP
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.CostPrice,
 		&i.Options,
 	)
 	return i, err
@@ -629,19 +639,21 @@ SET
     category_id = COALESCE($2, category_id),
     image_url = COALESCE($3, image_url),
     price = COALESCE($4, price),
-    stock = COALESCE($5, stock)
+    stock = COALESCE($5, stock),
+    cost_price = COALESCE($6, cost_price)
 WHERE
-    id = $6
-RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at
+    id = $7
+RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
 `
 
 type UpdateProductParams struct {
-	Name       *string   `json:"name"`
-	CategoryID *int32    `json:"category_id"`
-	ImageUrl   *string   `json:"image_url"`
-	Price      *int64    `json:"price"`
-	Stock      *int32    `json:"stock"`
-	ID         uuid.UUID `json:"id"`
+	Name       *string        `json:"name"`
+	CategoryID *int32         `json:"category_id"`
+	ImageUrl   *string        `json:"image_url"`
+	Price      *int64         `json:"price"`
+	Stock      *int32         `json:"stock"`
+	CostPrice  pgtype.Numeric `json:"cost_price"`
+	ID         uuid.UUID      `json:"id"`
 }
 
 // Updates a product's details. Use COALESCE for optional fields.
@@ -652,6 +664,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.ImageUrl,
 		arg.Price,
 		arg.Stock,
+		arg.CostPrice,
 		arg.ID,
 	)
 	var i Product
@@ -665,6 +678,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.CostPrice,
 	)
 	return i, err
 }

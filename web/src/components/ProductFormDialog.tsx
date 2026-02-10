@@ -27,7 +27,10 @@ import {
 import { Label } from "@/components/ui/label.tsx";
 import { useImageCropper } from "@/hooks/use-image-cropper.ts";
 import { ImageCropperDialog } from "@/components/common/ImageCropperDialog.tsx";
+
 import { useTranslation } from 'react-i18next';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StockHistoryTable } from "@/components/products/StockHistoryTable"
 
 
 interface VariantItem {
@@ -62,6 +65,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
         name: '',
         category_id: 0,
         price: 0,
+        cost_price: 0,
         stock: 0
     })
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -78,6 +82,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                     name: detailProduct?.name ?? productToEdit.name ?? '',
                     category_id: detailProduct?.category_id ?? productToEdit.category_id ?? 0,
                     price: detailProduct?.price ?? productToEdit.price ?? 0,
+                    cost_price: detailProduct?.cost_price ?? productToEdit.cost_price ?? 0,
                     stock: detailProduct?.stock ?? productToEdit.stock ?? 0
                 })
                 setPreview(detailProduct?.image_url ?? productToEdit.image_url ?? null)
@@ -91,7 +96,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                     isNew: false
                 })))
             } else {
-                setFormData({ name: '', category_id: 0, price: 0, stock: 0 })
+                setFormData({ name: '', category_id: 0, price: 0, cost_price: 0, stock: 0 })
                 setPreview(null)
                 setSelectedFile(null)
                 setVariants([])
@@ -165,6 +170,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                     name: formData.name,
                     category_id: formData.category_id,
                     price: Number(formData.price),
+                    cost_price: Number(formData.cost_price),
                     stock: Number(formData.stock)
                 }
                 await updateMutation.mutateAsync({ id: productId, body: payload })
@@ -173,6 +179,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                     name: formData.name,
                     category_id: formData.category_id,
                     price: Number(formData.price),
+                    cost_price: Number(formData.cost_price),
                     stock: Number(formData.stock),
                     options: []
                 }
@@ -253,195 +260,224 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
                         ) : (
-                            <form id="product-form" onSubmit={handleSubmit} className="grid gap-6 py-4">
-                                {/* Image Upload Section */}
-                                <div className="flex flex-col items-center gap-4">
-                                    <Avatar
-                                        className="h-24 w-24 border-2 border-muted cursor-pointer hover:opacity-80 transition-opacity"
-                                        onClick={triggerMainImageUpload}>
-                                        <AvatarImage src={preview || undefined} className="object-cover" />
-                                        <AvatarFallback className="bg-muted">
-                                            <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={triggerMainImageUpload}
-                                    >
-                                        {preview ? t('products.form.change_image') : t('products.form.upload_image')}
-                                    </Button>
-
-                                    {/* Input File Hidden terhubung ke hook */}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={cropper.onFileChange}
-                                    />
-                                </div>
-
-
-                                <div className="grid gap-4">
-                                    {/* Name */}
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="name" className="text-right">{t('products.form.name')}</Label>
-                                        <Input
-                                            id="name"
-                                            value={formData.name}
-                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="col-span-3"
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Category */}
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="category" className="text-right">{t('products.form.category')}</Label>
-                                        <div className="col-span-3">
-                                            <Select
-                                                value={formData.category_id ? String(formData.category_id) : ""}
-                                                onValueChange={val => setFormData({ ...formData, category_id: Number(val) })}
+                            <Tabs defaultValue="details" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="details">{t('products.form.tab_details')}</TabsTrigger>
+                                    <TabsTrigger value="history" disabled={!productToEdit}>{t('products.form.tab_history')}</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="details" className="mt-4 space-y-4">
+                                    <form id="product-form" onSubmit={handleSubmit} className="grid gap-6 py-4">
+                                        {/* Image Upload Section */}
+                                        <div className="flex flex-col items-center gap-4">
+                                            <Avatar
+                                                className="h-24 w-24 border-2 border-muted cursor-pointer hover:opacity-80 transition-opacity"
+                                                onClick={triggerMainImageUpload}>
+                                                <AvatarImage src={preview || undefined} className="object-cover" />
+                                                <AvatarFallback className="bg-muted">
+                                                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={triggerMainImageUpload}
                                             >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={t('products.form.select_category')} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map((cat: any) => (
-                                                        <SelectItem key={cat.id} value={String(cat.id)}>
-                                                            {cat.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
+                                                {preview ? t('products.form.change_image') : t('products.form.upload_image')}
+                                            </Button>
 
-                                    {/* Price */}
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="price" className="text-right">{t('products.form.price')}</Label>
-                                        <div className="col-span-3 relative">
-                                            <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
-                                            <Input
-                                                id="price"
-                                                type="text"
-                                                inputMode="numeric"
-                                                value={formData.price ? formData.price.toLocaleString('id-ID') : ''}
-                                                onChange={e => {
-                                                    const val = e.target.value.replace(/\D/g, '')
-                                                    setFormData({ ...formData, price: Number(val) })
-                                                }}
-                                                className="pl-9"
-                                                placeholder="0"
-                                                required
+                                            {/* Input File Hidden terhubung ke hook */}
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={cropper.onFileChange}
                                             />
                                         </div>
-                                    </div>
-
-                                    {/* Stock */}
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="stock" className="text-right">{t('products.form.stock')}</Label>
-                                        <Input
-                                            id="stock"
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={formData.stock ? formData.stock.toLocaleString('id-ID') : ''}
-                                            onChange={e => {
-                                                const val = e.target.value.replace(/\D/g, '')
-                                                setFormData({ ...formData, stock: Number(val) })
-                                            }}
-                                            className="col-span-3"
-                                            placeholder="0"
-                                            required
-                                        />
-                                    </div>
-                                </div>
 
 
-                                {/* Variants Section */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <Label>{t('products.form.variants')}</Label>
-                                        <Button type="button" variant="outline" size="sm" onClick={handleAddVariant}>
-                                            <Plus className="mr-2 h-3 w-3" /> {t('products.form.add_variant')}
-                                        </Button>
-                                    </div>
+                                        <div className="grid gap-4">
+                                            {/* Name */}
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="name" className="text-right">{t('products.form.name')}</Label>
+                                                <Input
+                                                    id="name"
+                                                    value={formData.name}
+                                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                    className="col-span-3"
+                                                    required
+                                                />
+                                            </div>
 
-                                    <div className="space-y-3">
-                                        {variants.map((variant, index) => (
-                                            <div key={index} className="flex items-start gap-3 p-3 border rounded-md">
-                                                {/* Variant Image */}
-                                                <div
-                                                    className="h-12 w-12 shrink-0 border rounded-md cursor-pointer hover:opacity-80 flex items-center justify-center bg-muted"
-                                                    onClick={() => triggerVariantImageUpload(index)}
-                                                >
-                                                    {variant.image_url ? (
-                                                        <img src={variant.image_url} alt="" className="h-full w-full object-cover rounded-md" />
-                                                    ) : (
-                                                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                                                    )}
+                                            {/* Category */}
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="category" className="text-right">{t('products.form.category')}</Label>
+                                                <div className="col-span-3">
+                                                    <Select
+                                                        value={formData.category_id ? String(formData.category_id) : ""}
+                                                        onValueChange={val => setFormData({ ...formData, category_id: Number(val) })}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder={t('products.form.select_category')} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {categories.map((cat: any) => (
+                                                                <SelectItem key={cat.id} value={String(cat.id)}>
+                                                                    {cat.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
                                                 </div>
+                                            </div>
 
-                                                <div className="grid grid-cols-2 gap-2 flex-1">
-                                                    <div className="space-y-1">
-                                                        <Input
-                                                            placeholder={t('products.form.variant_name')}
-                                                            value={variant.name}
-                                                            onChange={e => handleVariantChange(index, "name", e.target.value)}
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1 relative">
-                                                        <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">Rp</span>
-                                                        <Input
-                                                            type="text"
-                                                            inputMode="numeric"
-                                                            placeholder={t('products.form.additional_price')}
-                                                            className="pl-8"
-                                                            value={variant.additional_price ? variant.additional_price.toLocaleString('id-ID') : ''}
-                                                            onChange={e => {
-                                                                const val = e.target.value.replace(/\D/g, '')
-                                                                handleVariantChange(index, "additional_price", Number(val))
-                                                            }}
-                                                        />
-                                                    </div>
+                                            {/* Price */}
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="price" className="text-right">{t('products.form.price')}</Label>
+                                                <div className="col-span-3 relative">
+                                                    <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
+                                                    <Input
+                                                        id="price"
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={formData.price ? formData.price.toLocaleString('id-ID') : ''}
+                                                        onChange={e => {
+                                                            const val = e.target.value.replace(/\D/g, '')
+                                                            setFormData({ ...formData, price: Number(val) })
+                                                        }}
+                                                        className="pl-9"
+                                                        placeholder="0"
+                                                        required
+                                                    />
                                                 </div>
+                                            </div>
 
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-destructive"
-                                                    onClick={() => handleRemoveVariant(index)}
-                                                    disabled={!variant.isNew}
-                                                    title={!variant.isNew ? t('products.form.error_delete_variant') : t('products.actions.delete')}
-                                                >
-                                                    <Trash className="h-4 w-4" />
+                                            {/* Cost Price */}
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="cost_price" className="text-right">{t('products.form.cost_price') || "Modal"}</Label>
+                                                <div className="col-span-3 relative">
+                                                    <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
+                                                    <Input
+                                                        id="cost_price"
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={formData.cost_price ? formData.cost_price.toLocaleString('id-ID') : ''}
+                                                        onChange={e => {
+                                                            const val = e.target.value.replace(/\D/g, '')
+                                                            setFormData({ ...formData, cost_price: Number(val) })
+                                                        }}
+                                                        className="pl-9"
+                                                        placeholder="0"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Stock */}
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="stock" className="text-right">{t('products.form.stock')}</Label>
+                                                <Input
+                                                    id="stock"
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={formData.stock ? formData.stock.toLocaleString('id-ID') : ''}
+                                                    onChange={e => {
+                                                        const val = e.target.value.replace(/\D/g, '')
+                                                        setFormData({ ...formData, stock: Number(val) })
+                                                    }}
+                                                    className="col-span-3"
+                                                    placeholder="0"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+
+                                        {/* Variants Section */}
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <Label>{t('products.form.variants')}</Label>
+                                                <Button type="button" variant="outline" size="sm" onClick={handleAddVariant}>
+                                                    <Plus className="mr-2 h-3 w-3" /> {t('products.form.add_variant')}
                                                 </Button>
                                             </div>
-                                        ))}
-                                        {variants.length === 0 && (
-                                            <p className="text-sm text-center text-muted-foreground py-2">{t('products.form.no_variants')}</p>
-                                        )}
-                                    </div>
-                                </div>
 
+                                            <div className="space-y-3">
+                                                {variants.map((variant, index) => (
+                                                    <div key={index} className="flex items-start gap-3 p-3 border rounded-md">
+                                                        {/* Variant Image */}
+                                                        <div
+                                                            className="h-12 w-12 shrink-0 border rounded-md cursor-pointer hover:opacity-80 flex items-center justify-center bg-muted"
+                                                            onClick={() => triggerVariantImageUpload(index)}
+                                                        >
+                                                            {variant.image_url ? (
+                                                                <img src={variant.image_url} alt="" className="h-full w-full object-cover rounded-md" />
+                                                            ) : (
+                                                                <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                                                            )}
+                                                        </div>
 
-                            </form>
+                                                        <div className="grid grid-cols-2 gap-2 flex-1">
+                                                            <div className="space-y-1">
+                                                                <Input
+                                                                    placeholder={t('products.form.variant_name')}
+                                                                    value={variant.name}
+                                                                    onChange={e => handleVariantChange(index, "name", e.target.value)}
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1 relative">
+                                                                <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">Rp</span>
+                                                                <Input
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    placeholder={t('products.form.additional_price')}
+                                                                    className="pl-8"
+                                                                    value={variant.additional_price ? variant.additional_price.toLocaleString('id-ID') : ''}
+                                                                    onChange={e => {
+                                                                        const val = e.target.value.replace(/\D/g, '')
+                                                                        handleVariantChange(index, "additional_price", Number(val))
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="text-destructive"
+                                                            onClick={() => handleRemoveVariant(index)}
+                                                            disabled={!variant.isNew}
+                                                            title={!variant.isNew ? t('products.form.error_delete_variant') : t('products.actions.delete')}
+                                                        >
+                                                            <Trash className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                                {variants.length === 0 && (
+                                                    <p className="text-sm text-center text-muted-foreground py-2">{t('products.form.no_variants')}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <DialogFooter className="pt-2">
+                                        <Button type="submit" form="product-form" disabled={isSubmitting || (!!productToEdit && isLoadingDetail)}>
+                                            {isSubmitting ? (
+                                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.form.saving')}</>
+                                            ) : (
+                                                t('products.form.save')
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </TabsContent>
+                                <TabsContent value="history" className="mt-4">
+                                    {productToEdit && <StockHistoryTable productId={productToEdit.id!} />}
+                                </TabsContent>
+                            </Tabs>
                         )}
                     </div>
-
-                    <DialogFooter className="p-6 pt-2">
-                        <Button type="submit" form="product-form" disabled={isSubmitting || (!!productToEdit && isLoadingDetail)}>
-                            {isSubmitting ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.form.saving')}</>
-                            ) : (
-                                t('products.form.save')
-                            )}
-                        </Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog >
 

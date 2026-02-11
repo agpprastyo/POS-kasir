@@ -374,7 +374,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve product"
-// @x-roles ["admin", "manager", "cashier"]
+// @x-roles ["admin", "manager"]
 // @Router /products/{id} [get]
 func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
@@ -730,7 +730,7 @@ func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID or query parameters"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve stock history"
-// @x-roles ["admin", "manager", "cashier"]
+// @x-roles ["admin", "manager"]
 // @Router /products/{id}/stock-history [get]
 func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
 	productIDStr := ctx.Params("id")

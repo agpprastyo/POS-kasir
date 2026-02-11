@@ -18,7 +18,6 @@ func getBool(key string, fallback bool) bool {
 	return value
 }
 
-// Helper functions for environment variables
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
@@ -38,7 +37,6 @@ func getInt(key string, fallback int) int {
 	return value
 }
 
-// getDuration (kept for convenience; prefer explicit getInt + unit in config)
 func getDuration(key string, fallback time.Duration) time.Duration {
 	strValue := getEnv(key, "")
 	if strValue == "" {
@@ -51,7 +49,6 @@ func getDuration(key string, fallback time.Duration) time.Duration {
 	return value
 }
 
-// getInt64
 func getInt64(key string, fallback int64) int64 {
 	strValue := getEnv(key, "")
 	if strValue == "" {
@@ -64,10 +61,7 @@ func getInt64(key string, fallback int64) int64 {
 	return value
 }
 
-// getEnvEnum returns env value only if it's in validValues; otherwise returns fallback.
-// It also ensures fallback is valid (if not, the first validValues entry will be used).
 func getEnvEnum(key string, validValues []string, fallback string) string {
-	// ensure fallback is valid
 	validFallback := false
 	for _, v := range validValues {
 		if v == fallback {

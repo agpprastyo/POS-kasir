@@ -55,22 +55,18 @@ func TestAuthService_Login(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		// Mock GetUserByEmail
+		
 		mockRepo.EXPECT().GetUserByEmail(ctx, req.Email).Return(testUser, nil)
 
-		// Mock Token Generation
+		
 		mockToken.EXPECT().GenerateToken(testUser.Username, testUser.Email, testUser.ID, testUser.Role).Return("access_token", time.Now().Add(1*time.Hour), nil)
 		mockToken.EXPECT().GenerateRefreshToken(testUser.Username, testUser.Email, testUser.ID, testUser.Role).Return("refresh_token", time.Now().Add(24*time.Hour), nil)
 
-		// Mock UpdateRefreshToken in DB
+		
 		mockRepo.EXPECT().UpdateRefreshToken(ctx, gomock.Any()).Return(nil)
 
-		// Mock Activity Log (Login Success)
 		mockActivity.EXPECT().Log(ctx, testUser.ID, repository.LogActionTypeLOGINSUCCESS, repository.LogEntityTypeUSER, testUser.ID.String(), gomock.Any())
-		// Also mocked logger expectations inside service? Usually Info or Error.
-		// Service logs errors on failure, maybe nothing on success except activity log?
-		// Checked code: only logs errors.
-
+	
 		resp, err := service.Login(ctx, req)
 
 		if err != nil {
@@ -128,11 +124,9 @@ func TestAuthService_Register(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		// Expect User/Email check checks to FAIL (meaning no user found) => returns pgx.ErrNoRows
 		mockRepo.EXPECT().GetUserByEmail(ctx, req.Email).Return(repository.User{}, pgx.ErrNoRows)
 		mockRepo.EXPECT().GetUserByUsername(ctx, req.Username).Return(repository.User{}, pgx.ErrNoRows)
 
-		// Expect CreateUser
 		newUser := repository.User{
 			ID:        uuid.New(),
 			Username:  req.Username,
@@ -144,10 +138,9 @@ func TestAuthService_Register(t *testing.T) {
 		}
 		mockRepo.EXPECT().CreateUser(ctx, gomock.Any()).Return(newUser, nil)
 
-		// Activity Log
 		mockActivity.EXPECT().Log(ctx, gomock.Any(), repository.LogActionTypeCREATE, repository.LogEntityTypeUSER, gomock.Any(), gomock.Any())
-		// Logger generic warning/info
-		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).AnyTimes() // e.g. "Actor user ID not found"
+		
+		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).AnyTimes()
 
 		resp, err := service.Register(ctx, req)
 		if err != nil {
@@ -224,7 +217,6 @@ func TestAuthService_Profile(t *testing.T) {
 		userNoAvatar.Avatar = nil
 
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(userNoAvatar, nil)
-		// AvatarLink should NOT be called
 
 		resp, err := service.Profile(ctx, userID)
 		if err != nil {
@@ -298,7 +290,7 @@ func TestAuthService_UploadAvatar(t *testing.T) {
 	})
 
 	t.Run("FileTooLarge", func(t *testing.T) {
-		largeData := make([]byte, 4*1024*1024) // 4MB
+		largeData := make([]byte, 4*1024*1024)
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
 		_, err := service.UploadAvatar(ctx, userID, largeData)
@@ -359,11 +351,9 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		// Mock GetUserByID
+		
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(user, nil)
 
-		// Mock UpdateUserPassword
-		// hashedNewPassword, _ := utils.HashPassword(req.NewPassword)
 		mockRepo.EXPECT().UpdateUserPassword(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, arg repository.UpdateUserPasswordParams) error {
 			if arg.ID != userID {
 				return common.ErrInternal
@@ -374,10 +364,8 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 			return nil
 		})
 
-		// Activity Log
+		
 		mockActivity.EXPECT().Log(ctx, gomock.Any(), repository.LogActionTypeUPDATEPASSWORD, repository.LogEntityTypeUSER, userID.String(), gomock.Any())
-		// Also mocked logger expectations inside service? Usually service logs generic info/warn about missing context Actor ID
-		// Warnf called with 1 argument (the message string)
 		mockLogger.EXPECT().Warnf(gomock.Any()).AnyTimes()
 
 		err := service.UpdatePassword(ctx, userID, req)
@@ -388,7 +376,7 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 
 	t.Run("UserNotFound", func(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(repository.User{}, pgx.ErrNoRows)
-		// Errorf called with 2 arguments: format string, and userID
+		
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
 		err := service.UpdatePassword(ctx, userID, req)
@@ -402,7 +390,7 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 
 	t.Run("IncorrectOldPassword", func(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(user, nil)
-		// Errorf called with 2 arguments
+		
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
 		reqWrong := req
@@ -420,7 +408,7 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 	t.Run("UpdateFailure", func(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(user, nil)
 		mockRepo.EXPECT().UpdateUserPassword(ctx, gomock.Any()).Return(pgx.ErrTxClosed) // Some DB error
-		// Errorf called with 2 arguments
+		
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
 		err := service.UpdatePassword(ctx, userID, req)
@@ -464,13 +452,10 @@ func TestAuthService_RefreshToken(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		// 1. Verify token
 		mockToken.EXPECT().VerifyToken(validRefreshToken).Return(claims, nil)
 
-		// 2. Get user
 		mockRepo.EXPECT().GetUserByID(ctx, userID).Return(user, nil)
 
-		// 3. Generate new tokens
 		newAccessToken := "new_access_token"
 		newRefreshToken := "new_refresh_token"
 		mockToken.EXPECT().GenerateToken(user.Username, user.Email, user.ID, user.Role).
@@ -478,7 +463,6 @@ func TestAuthService_RefreshToken(t *testing.T) {
 		mockToken.EXPECT().GenerateRefreshToken(user.Username, user.Email, user.ID, user.Role).
 			Return(newRefreshToken, time.Now().Add(24*time.Hour), nil)
 
-		// 4. Update refresh token in DB
 		mockRepo.EXPECT().UpdateRefreshToken(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, arg repository.UpdateRefreshTokenParams) error {
 			if arg.ID != userID {
 				return common.ErrInternal

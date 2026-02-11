@@ -22,6 +22,9 @@ import { MoreHorizontal } from "lucide-react"
 import {
     promotionsListQueryOptions,
     useDeletePromotionMutation,
+    useUpdatePromotionMutation,
+    useRestorePromotionMutation,
+    useCreatePromotionMutation,
     Promotion
 } from '@/lib/api/query/promotions'
 import { queryClient } from '@/lib/queryClient'
@@ -31,7 +34,6 @@ import { formatRupiah } from "@/lib/utils"
 import { POSKasirInternalRepositoryDiscountType } from '@/lib/api/generated'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRestorePromotionMutation } from '@/lib/api/query/promotions'
 import { RotateCcw } from 'lucide-react'
 
 const promotionsSearchSchema = z.object({
@@ -74,6 +76,8 @@ function PromotionsPage() {
 
     const deleteMutation = useDeletePromotionMutation()
     const restoreMutation = useRestorePromotionMutation()
+    const createMutation = useCreatePromotionMutation()
+    const updateMutation = useUpdatePromotionMutation()
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null)
@@ -112,9 +116,11 @@ function PromotionsPage() {
                     <p className="text-muted-foreground">{t('promotions.description')}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={openCreateModal}>
-                        <Plus className="mr-2 h-4 w-4" /> {t('promotions.add_button')}
-                    </Button>
+                    {createMutation.isAllowed && (
+                        <Button onClick={openCreateModal}>
+                            <Plus className="mr-2 h-4 w-4" /> {t('promotions.add_button')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -131,6 +137,8 @@ function PromotionsPage() {
                         onEdit={openEditModal}
                         onDelete={handleDelete}
                         isTrash={false}
+                        canEdit={updateMutation.isAllowed}
+                        canDelete={deleteMutation.isAllowed}
                     />
                 </TabsContent>
 
@@ -142,6 +150,7 @@ function PromotionsPage() {
                         onDelete={handleDelete}
                         onRestore={handleRestore}
                         isTrash={true}
+                        canRestore={restoreMutation.isAllowed}
                     />
                 </TabsContent>
             </Tabs>
@@ -163,7 +172,9 @@ function PromotionsPage() {
     )
 }
 
-function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash }: any) {
+function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, canEdit, canDelete, canRestore }: any) {
+    const hasAnyAction = (canEdit || canDelete) && !isTrash || (canRestore && isTrash)
+
     return (
         <div className="rounded-md border bg-card">
             <Table>
@@ -174,13 +185,13 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash }
                         <TableHead>{t('promotions.table.discount')}</TableHead>
                         <TableHead>{t('promotions.table.period')}</TableHead>
                         <TableHead>{t('promotions.table.status')}</TableHead>
-                        <TableHead className="text-right">{t('promotions.table.actions')}</TableHead>
+                        {hasAnyAction && <TableHead className="text-right">{t('promotions.table.actions')}</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {promotions.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                            <TableCell colSpan={hasAnyAction ? 6 : 5} className="h-24 text-center text-muted-foreground">
                                 {t('promotions.table.empty')}
                             </TableCell>
                         </TableRow>
@@ -218,35 +229,41 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash }
                                         {promo.is_active ? 'Active' : 'Inactive'}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <span className="sr-only">Open menu</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
-                                            {!isTrash && (
-                                                <>
-                                                    <DropdownMenuItem onClick={() => onEdit(promo)}>
-                                                        <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
+                                {hasAnyAction && (
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <span className="sr-only">Open menu</span>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>{t('common.actions')}</DropdownMenuLabel>
+                                                {!isTrash && (
+                                                    <>
+                                                        {canEdit && (
+                                                            <DropdownMenuItem onClick={() => onEdit(promo)}>
+                                                                <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {canEdit && canDelete && <DropdownMenuSeparator />}
+                                                        {canDelete && (
+                                                            <DropdownMenuItem onClick={() => onDelete(promo.id)} className="text-destructive">
+                                                                <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {isTrash && canRestore && (
+                                                    <DropdownMenuItem onClick={() => onRestore(promo.id)}>
+                                                        <RotateCcw className="mr-2 h-4 w-4" /> Restore
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => onDelete(promo.id)} className="text-destructive">
-                                                        <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
-                                                    </DropdownMenuItem>
-                                                </>
-                                            )}
-                                            {isTrash && (
-                                                <DropdownMenuItem onClick={() => onRestore(promo.id)}>
-                                                    <RotateCcw className="mr-2 h-4 w-4" /> Restore
-                                                </DropdownMenuItem>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))
                     )}

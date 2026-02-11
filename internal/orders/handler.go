@@ -50,6 +50,7 @@ func NewOrderHandler(orderService IOrderService, log logger.ILogger, validate va
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/apply-promotion [post]
 func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 
@@ -98,6 +99,7 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/update-status [post]
 func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 
@@ -148,6 +150,7 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/pay/manual [post]
 func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 
@@ -198,6 +201,7 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/items [put]
 func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 	orderIDStr := c.Params("id")
@@ -237,6 +241,7 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/cancel [post]
 func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 	orderIDStr := c.Params("id")
@@ -287,6 +292,7 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse{data=dto.PagedOrderResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders [get]
 func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 
@@ -347,6 +353,7 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 // @Success 201 {object} common.SuccessResponse{data=dto.OrderDetailResponse}
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders [post]
 func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 	var req dto.CreateOrderRequest
@@ -383,6 +390,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id} [get]
 func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
@@ -419,6 +427,7 @@ func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/pay/midtrans [post]
 func (h *OrderHandler) InitiateMidtransPaymentHandler(c *fiber.Ctx) error {
 

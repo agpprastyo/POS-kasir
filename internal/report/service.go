@@ -6,6 +6,7 @@ import (
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -17,6 +18,8 @@ type IRptService interface {
 	GetPaymentMethodPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.PaymentMethodPerformanceResponse, error)
 	GetCashierPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CashierPerformanceResponse, error)
 	GetCancellationReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CancellationReportResponse, error)
+	GetProfitSummary(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProfitSummaryResponse, error)
+	GetProductProfitReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductProfitResponse, error)
 }
 
 type RptService struct {
@@ -220,6 +223,107 @@ func (r *RptService) GetCancellationReports(ctx context.Context, req *dto.SalesR
 			ReasonID:        row.ReasonID,
 			Reason:          row.Reason,
 			CancelledOrders: row.CancelledOrders,
+		}
+	}
+
+	return &responses, nil
+}
+
+func (r *RptService) GetProfitSummary(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProfitSummaryResponse, error) {
+	params := repository.GetProfitSummaryParams{
+		CreatedAt: pgtype.Timestamptz{
+			Time:  req.StartDate,
+			Valid: true,
+		},
+		CreatedAt_2: pgtype.Timestamptz{
+			Time:  req.EndDate,
+			Valid: true,
+		},
+	}
+
+	results, err := r.Store.GetProfitSummary(ctx, params)
+	if err != nil {
+		r.Log.Error("Failed to get profit summary", "error", err)
+		return nil, err
+	}
+
+	responses := make([]dto.ProfitSummaryResponse, len(results))
+	for i, row := range results {
+		var totalRevenue, totalCOGS, grossProfit float64
+
+		// TotalRevenue (interface{})
+		if n, ok := row.TotalRevenue.(pgtype.Numeric); ok && n.Valid {
+			f, _ := n.Float64Value()
+			totalRevenue = f.Float64
+		} else if v, ok := row.TotalRevenue.(int64); ok {
+			totalRevenue = float64(v)
+		} else if v, ok := row.TotalRevenue.(float64); ok {
+			totalRevenue = v
+		}
+
+		// TotalCogs (interface{})
+		if n, ok := row.TotalCogs.(pgtype.Numeric); ok && n.Valid {
+			f, _ := n.Float64Value()
+			totalCOGS = f.Float64
+		} else if v, ok := row.TotalCogs.(int64); ok {
+			totalCOGS = float64(v)
+		} else if v, ok := row.TotalCogs.(float64); ok {
+			totalCOGS = v
+		}
+
+		// GrossProfit (int32)
+		grossProfit = float64(row.GrossProfit)
+
+		var date time.Time
+		if row.Date.Valid {
+			date = row.Date.Time
+		}
+
+		responses[i] = dto.ProfitSummaryResponse{
+			Date:         date,
+			TotalRevenue: totalRevenue,
+			TotalCOGS:    totalCOGS,
+			GrossProfit:  grossProfit,
+		}
+	}
+
+	return &responses, nil
+}
+
+func (r *RptService) GetProductProfitReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductProfitResponse, error) {
+	params := repository.GetProductProfitReportsParams{
+		CreatedAt: pgtype.Timestamptz{
+			Time:  req.StartDate,
+			Valid: true,
+		},
+		CreatedAt_2: pgtype.Timestamptz{
+			Time:  req.EndDate,
+			Valid: true,
+		},
+	}
+
+	results, err := r.Store.GetProductProfitReports(ctx, params)
+	if err != nil {
+		r.Log.Error("Failed to get product profit reports", "error", err)
+		return nil, err
+	}
+
+	responses := make([]dto.ProductProfitResponse, len(results))
+	for i, row := range results {
+		var totalRevenue, totalCOGS, grossProfit float64
+
+		// Direct fields are int64/int32 in generated struct
+		totalRevenue = float64(row.TotalRevenue)
+		totalCOGS = float64(row.TotalCogs)
+		grossProfit = float64(row.GrossProfit)
+
+		responses[i] = dto.ProductProfitResponse{
+			ProductID:    row.ProductID.String(),
+			ProductName:  row.ProductName,
+			TotalSold:    row.TotalSold,
+			TotalRevenue: totalRevenue,
+			TotalCOGS:    totalCOGS,
+			GrossProfit:  grossProfit,
 		}
 	}
 

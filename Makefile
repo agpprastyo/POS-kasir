@@ -57,7 +57,10 @@ swag:
 	@echo "Generating Swagger docs to ./docs and web/apid-docs..."
 	@swag init -g ./cmd/app/main.go -o ./docs --parseDependency --parseInternal
 	@swag init -g ./cmd/app/main.go -o web/api-docs --parseDependency --parseInternal --outputTypes json
-	@cd web && npm run api:gen
+	@cd web && npm run api:gen && npm run rbac:gen
 
 docker-be:
-	docker compose -f docker-compose.backend.yml up -d --build backend
+	@docker compose -f docker-compose.backend.yml up -d --build
+
+docker-be-down:
+	@docker compose -f docker-compose.backend.yml down

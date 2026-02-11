@@ -1,5 +1,5 @@
 import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ordersApi } from "../../api/client"
+import { ordersApi, printerApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
     POSKasirInternalDtoApplyPromotionRequest,
@@ -13,6 +13,7 @@ import {
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
+import { useRBAC } from "@/lib/auth/rbac"
 
 export type OrdersListParams = {
     limit?: number
@@ -66,8 +67,10 @@ export const useOrderDetailQuery = (id: string, options?: Omit<UseQueryOptions<a
 
 export const useApplyPromotionMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/apply-promotion')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoApplyPromotionRequest }
@@ -87,12 +90,16 @@ export const useApplyPromotionMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useCancelOrderMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/cancel')
 
-    return useMutation<
+    const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoCancelOrderRequest }
@@ -112,12 +119,16 @@ export const useCancelOrderMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useConfirmManualPaymentMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/pay-manual')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoConfirmManualPaymentRequest }
@@ -137,12 +148,16 @@ export const useConfirmManualPaymentMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useInitiateMidtransPaymentMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/pay-midtrans')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoMidtransPaymentResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string }
@@ -162,12 +177,16 @@ export const useInitiateMidtransPaymentMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useUpdateOrderStatusMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/update-status')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoUpdateOrderStatusRequest }
@@ -187,12 +206,16 @@ export const useUpdateOrderStatusMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useCreateOrderMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         POSKasirInternalDtoCreateOrderRequest
@@ -211,12 +234,16 @@ export const useCreateOrderMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 export const useUpdateOrderItemsMutation = () => {
     const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('PUT', '/orders/{id}/items')
 
-    return useMutation<
+    const mutation = useMutation<
         POSKasirInternalDtoOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string; body: POSKasirInternalDtoUpdateOrderItemRequest[] }
@@ -236,5 +263,33 @@ export const useUpdateOrderItemsMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
+
+export const usePrintInvoiceMutation = () => {
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/print')
+
+    const mutation = useMutation<
+        any,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        { id: string }
+    >({
+        mutationKey: ['orders', 'print'],
+        mutationFn: async ({ id }) => {
+            const res = await printerApi.ordersIdPrintPost(id)
+            return (res.data as any).data
+        },
+        onSuccess: () => {
+            toast.success("Printing invoice...")
+        },
+        onError: (error) => {
+            const msg = error.response?.data?.message || "Failed to print invoice"
+            toast.error(msg)
+        }
+    })
+
+    return { ...mutation, isAllowed }
+}

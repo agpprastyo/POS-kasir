@@ -46,6 +46,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Get("/products", authMiddleware, container.ProductHandler.ListProductsHandler)
 	api.Get("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.ProductHandler.GetProductHandler)
+	api.Get("/products/:id/stock-history", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.GetStockHistoryHandler)
 	api.Patch("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager), container.ProductHandler.UpdateProductHandler)
 	api.Delete("/products/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ProductHandler.DeleteProductHandler)
 
@@ -58,7 +59,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 	api.Get("/activity-logs", authMiddleware, middleware.RoleMiddleware(repository.UserRoleAdmin), container.ActivityLogHandler.GetActivityLogs)
 
-	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.CreateOrderHandler)
+	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), middleware.ShiftMiddleware(app.Store, app.Cache), container.OrderHandler.CreateOrderHandler)
 	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
 	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.GetOrderHandler)
 	api.Patch("/orders/:id/items", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOrderItemsHandler)
@@ -68,6 +69,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Post("/orders/:id/pay/midtrans", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.InitiateMidtransPaymentHandler)
 	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
@@ -76,19 +79,40 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/reports/payment-methods", authMiddleware, container.ReportHandler.GetPaymentMethodPerformanceHandler)
 	api.Get("/reports/cashier-performance", authMiddleware, container.ReportHandler.GetCashierPerformanceHandler)
 	api.Get("/reports/cancellations", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
-	promotionsGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
+	api.Get("/reports/profit-summary", authMiddleware, container.ReportHandler.GetProfitSummaryHandler)
+	api.Get("/reports/profit-products", authMiddleware, container.ReportHandler.GetProductProfitReportsHandler)
+	// Public read access for Cashier (and above)
+	promotionsReadGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleCashier))
 	{
-		// Membuat promosi baru beserta aturan dan targetnya.
-		promotionsGroup.Post("/", container.PromotionHandler.CreatePromotionHandler)
-		// Mendapatkan daftar semua promosi.
-		promotionsGroup.Get("/", container.PromotionHandler.ListPromotionsHandler)
-		// Mendapatkan detail satu promosi, termasuk aturan dan targetnya.
-		promotionsGroup.Get("/:id", container.PromotionHandler.GetPromotionHandler)
-		// Memperbarui promosi, aturan, dan targetnya.
-		promotionsGroup.Put("/:id", container.PromotionHandler.UpdatePromotionHandler)
-		// Menghapus promosi.
-		promotionsGroup.Delete("/:id", container.PromotionHandler.DeletePromotionHandler)
-		// Memulihkan promosi yang dihapus.
-		promotionsGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
+		promotionsReadGroup.Get("/", container.PromotionHandler.ListPromotionsHandler)
+		promotionsReadGroup.Get("/:id", container.PromotionHandler.GetPromotionHandler)
+	}
+
+	// Helper for Manager/Admin operations
+	promotionsWriteGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(repository.UserRoleManager))
+	{
+		promotionsWriteGroup.Post("/", container.PromotionHandler.CreatePromotionHandler)
+		promotionsWriteGroup.Put("/:id", container.PromotionHandler.UpdatePromotionHandler)
+		promotionsWriteGroup.Delete("/:id", container.PromotionHandler.DeletePromotionHandler)
+		promotionsWriteGroup.Post("/:id/restore", container.PromotionHandler.RestorePromotionHandler)
+	}
+
+	settingsGroup := api.Group("/settings", authMiddleware)
+	{
+		settingsGroup.Get("/branding", container.SettingsHandler.GetBrandingHandler)
+		settingsGroup.Put("/branding", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdateBrandingHandler)
+		settingsGroup.Post("/branding/logo", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdateLogoHandler)
+
+		settingsGroup.Get("/printer", container.SettingsHandler.GetPrinterSettingsHandler)
+		settingsGroup.Put("/printer", middleware.RoleMiddleware(repository.UserRoleAdmin), container.SettingsHandler.UpdatePrinterSettingsHandler)
+		settingsGroup.Post("/printer/test", middleware.RoleMiddleware(repository.UserRoleAdmin), container.PrinterHandler.TestPrintHandler)
+	}
+
+	shiftGroup := api.Group("/shifts", authMiddleware)
+	{
+		shiftGroup.Post("/start", container.ShiftHandler.StartShiftHandler)
+		shiftGroup.Post("/end", container.ShiftHandler.EndShiftHandler)
+		shiftGroup.Get("/current", container.ShiftHandler.GetOpenShiftHandler)
+		shiftGroup.Post("/cash-transaction", container.ShiftHandler.CreateCashTransactionHandler)
 	}
 }

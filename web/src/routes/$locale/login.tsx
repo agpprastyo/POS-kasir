@@ -12,10 +12,10 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { meQueryOptions } from "@/lib/api/query/auth.ts";
-import { useAuth } from "@/lib/auth/AuthContext.tsx";
+import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "@/lib/queryClient.ts";
 import { useTranslation } from 'react-i18next'
-import {SettingsPanel} from "@/components/SettingsPanel.tsx";
+import { SettingsPanel } from "@/components/SettingsPanel.tsx";
 
 export const Route = createFileRoute('/$locale/login')({
     ssr: false,

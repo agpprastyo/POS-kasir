@@ -125,7 +125,7 @@ func (s *CtgService) DeleteCategory(ctx context.Context, categoryID int32) error
 		actorID,
 		repository.LogActionTypeDELETE,
 		repository.LogEntityTypeCATEGORY,
-		string(categoryID),
+		strconv.Itoa(int(categoryID)),
 		logDetails,
 	)
 	return nil
@@ -199,7 +199,6 @@ func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryR
 		UpdatedAt: category.UpdatedAt.Time,
 	}
 
-	
 	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
 	if !ok {
 		s.log.Warnf("CreateCategory | Actor user ID not found in context for activity logging")

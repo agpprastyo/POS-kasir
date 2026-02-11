@@ -31,7 +31,7 @@ import type { POSKasirInternalCommonErrorResponse } from '../models';
 export const ActivityLogsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get a list of activity logs with filtering and pagination
+         * Get a list of activity logs with filtering and pagination (Roles: admin)
          * @summary Get activity logs
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -110,7 +110,7 @@ export const ActivityLogsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ActivityLogsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get a list of activity logs with filtering and pagination
+         * Get a list of activity logs with filtering and pagination (Roles: admin)
          * @summary Get activity logs
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -139,7 +139,7 @@ export const ActivityLogsApiFactory = function (configuration?: Configuration, b
     const localVarFp = ActivityLogsApiFp(configuration)
     return {
         /**
-         * Get a list of activity logs with filtering and pagination
+         * Get a list of activity logs with filtering and pagination (Roles: admin)
          * @summary Get activity logs
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -163,7 +163,7 @@ export const ActivityLogsApiFactory = function (configuration?: Configuration, b
  */
 export class ActivityLogsApi extends BaseAPI {
     /**
-     * Get a list of activity logs with filtering and pagination
+     * Get a list of activity logs with filtering and pagination (Roles: admin)
      * @summary Get activity logs
      * @param {number} [page] Page number
      * @param {number} [limit] Items per page

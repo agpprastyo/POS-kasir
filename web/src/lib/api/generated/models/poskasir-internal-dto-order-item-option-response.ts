@@ -15,6 +15,7 @@
 
 
 export interface POSKasirInternalDtoOrderItemOptionResponse {
+    'option_name'?: string;
     'price_at_sale'?: number;
     'product_option_id'?: string;
 }

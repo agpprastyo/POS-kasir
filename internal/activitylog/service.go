@@ -82,7 +82,6 @@ func (s *ActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivi
 	if req.EndDate != "" {
 		t, err := time.Parse("2006-01-02", req.EndDate)
 		if err == nil {
-			// Set to end of day
 			t = t.Add(24 * time.Hour).Add(-1 * time.Second)
 			arg.EndDate = pgtype.Timestamptz{Time: t, Valid: true}
 			countArg.EndDate = pgtype.Timestamptz{Time: t, Valid: true}

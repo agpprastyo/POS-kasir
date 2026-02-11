@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **category_id** | **number** |  | [optional] [default to undefined]
 **category_name** | **string** |  | [optional] [default to undefined]
+**cost_price** | **number** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
 **deleted_at** | **string** |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
@@ -25,6 +26,7 @@ import { POSKasirInternalDtoProductResponse } from 'restClient';
 const instance: POSKasirInternalDtoProductResponse = {
     category_id,
     category_name,
+    cost_price,
     created_at,
     deleted_at,
     id,

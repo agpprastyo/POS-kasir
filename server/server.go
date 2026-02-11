@@ -8,11 +8,15 @@ import (
 	"POS-kasir/internal/categories"
 	"POS-kasir/internal/orders"
 	"POS-kasir/internal/payment_methods"
+	"POS-kasir/internal/printer"
 	"POS-kasir/internal/products"
 	"POS-kasir/internal/promotions"
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
+	"POS-kasir/internal/settings"
+	"POS-kasir/internal/shift"
 	"POS-kasir/internal/user"
+	"POS-kasir/pkg/cache"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/logger"
@@ -36,8 +40,14 @@ import (
 
 	"github.com/gofiber/swagger"
 
+	_ "embed"
+	"html/template"
+
 	"POS-kasir/sqlc/migrations"
 )
+
+//go:embed swagger_script.js
+var swaggerScript string
 
 type App struct {
 	Config          *config.AppConfig
@@ -49,6 +59,7 @@ type App struct {
 	Validator       validator.Validator
 	MidtransService payment.IMidtrans
 	R2              cloudflarer2.IR2
+	Cache           *shift.Cache
 }
 
 type AppContainer struct {
@@ -62,6 +73,9 @@ type AppContainer struct {
 	ReportHandler             report.IRptHandler
 	PromotionHandler          promotions.IPromotionHandler
 	ActivityLogHandler        *activitylog.ActivityLogHandler
+	SettingsHandler           *settings.SettingsHandler
+	PrinterHandler            *printer.PrinterHandler
+	ShiftHandler              shift.Handler
 }
 
 func InitApp() *App {
@@ -95,6 +109,9 @@ func InitApp() *App {
 		log.Errorf("Failed to initialize Cloudflare R2: %v", err)
 	}
 
+	memCache := cache.NewMemoryCache()
+	shiftCache := shift.NewCache(memCache)
+
 	return &App{
 		Config:          cfg,
 		Logger:          log,
@@ -105,6 +122,7 @@ func InitApp() *App {
 		Validator:       val,
 		MidtransService: midtransService,
 		R2:              newR2,
+		Cache:           shiftCache,
 	}
 }
 
@@ -151,6 +169,18 @@ func BuildAppContainer(app *App) *AppContainer {
 	promotionService := promotions.NewPromotionService(app.Store, app.Logger)
 	promotionHandler := promotions.NewPromotionHandler(promotionService, app.Logger, app.Validator)
 
+	// Settings Module
+	settingsService := settings.NewSettingsService(app.Store, app.R2, app.Logger)
+	settingsHandler := settings.NewSettingsHandler(settingsService)
+
+	// Printer Module
+	printerService := printer.NewPrinterService(orderService, settingsService, app.Store, app.Logger)
+	printerHandler := printer.NewPrinterHandler(printerService)
+
+	// Shift Module
+	shiftService := shift.NewService(app.Store, app.Logger, app.Cache)
+	shiftHandler := shift.NewHandler(shiftService, app.Logger, app.Validator)
+
 	return &AppContainer{
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
@@ -162,6 +192,9 @@ func BuildAppContainer(app *App) *AppContainer {
 		ReportHandler:             reportHandler,
 		PromotionHandler:          promotionHandler,
 		ActivityLogHandler:        activityLogHandler,
+		SettingsHandler:           settingsHandler,
+		PrinterHandler:            printerHandler,
+		ShiftHandler:              shiftHandler,
 	}
 }
 
@@ -198,7 +231,9 @@ func SetupMiddleware(app *App) {
 
 	app.FiberApp.Get("/swagger/*", swagger.New(
 		swagger.Config{
-			URL: "/swagger/doc.json",
+			URL:            "/swagger/doc.json",
+			CustomScript:   template.JS(swaggerScript),
+			ShowExtensions: true,
 		}))
 
 	app.Logger.Infof("Swagger UI available at http://localhost:%s/swagger/index.html", app.Config.Server.Port)

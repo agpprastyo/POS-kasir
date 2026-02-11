@@ -6,6 +6,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **applied_promotion_id** | **string** |  | [optional] [default to undefined]
+**cash_received** | **number** |  | [optional] [default to undefined]
+**change_due** | **number** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
 **discount_amount** | **number** |  | [optional] [default to undefined]
 **gross_total** | **number** |  | [optional] [default to undefined]
@@ -26,6 +28,8 @@ import { POSKasirInternalDtoOrderDetailResponse } from 'restClient';
 
 const instance: POSKasirInternalDtoOrderDetailResponse = {
     applied_promotion_id,
+    cash_received,
+    change_due,
     created_at,
     discount_amount,
     gross_total,

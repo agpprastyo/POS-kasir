@@ -3,7 +3,7 @@ import { useSuspenseQuery, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
-import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation } from '@/lib/api/query/products'
+import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation, useCreateProductMutation } from '@/lib/api/query/products'
 import { categoriesListQueryOptions } from '@/lib/api/query/categories'
 import { queryClient } from '@/lib/queryClient'
 
@@ -22,6 +22,7 @@ import { ProductCard } from '@/components/ProductCard'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useTranslation } from 'react-i18next';
+
 
 
 const productsSearchSchema = z.object({
@@ -60,6 +61,8 @@ function ProductsPage() {
     const { t } = useTranslation();
     const navigate = useNavigate({ from: Route.fullPath })
     const searchParams = Route.useSearch()
+    const createMutation = useCreateProductMutation()
+
     const productsQuery = useQuery(productsListQueryOptions({
         limit: searchParams.limit,
         page: searchParams.page,
@@ -130,6 +133,11 @@ function ProductsPage() {
         setIsDialogOpen(true)
     }
 
+    const canCreate = createMutation.isAllowed
+    const canRestore = restoreMutation.isAllowed
+
+    const onRestoreHandler = canRestore ? (p: Product) => p.id && restoreMutation.mutate(p.id) : undefined
+
     return (
         <div className="flex flex-col gap-6">
             {/* Header */}
@@ -139,9 +147,11 @@ function ProductsPage() {
                     <p className="text-muted-foreground">{t('products.description')}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={openCreateModal}>
-                        <Plus className="mr-2 h-4 w-4" /> {t('products.add_button')}
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={openCreateModal}>
+                            <Plus className="mr-2 h-4 w-4" /> {t('products.add_button')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -323,13 +333,19 @@ function ProductsPage() {
                                                     <span className="text-muted-foreground">{product.stock}</span>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => product.id && restoreMutation.mutate(product.id)}
-                                                    >
-                                                        {t('products.actions.restore')}
-                                                    </Button>
+                                                    {canRestore && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                if (onRestoreHandler && product.id) {
+                                                                    onRestoreHandler(product)
+                                                                }
+                                                            }}
+                                                        >
+                                                            {t('products.actions.restore')}
+                                                        </Button>
+                                                    )}
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -348,7 +364,7 @@ function ProductsPage() {
                                     <ProductCard
                                         key={product.id}
                                         product={product}
-                                        onRestore={(p) => p.id && restoreMutation.mutate(p.id)}
+                                        onRestore={onRestoreHandler}
                                     />
                                 ))
                             )}

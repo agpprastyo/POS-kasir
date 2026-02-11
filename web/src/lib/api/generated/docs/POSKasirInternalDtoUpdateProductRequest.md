@@ -6,7 +6,10 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **category_id** | **number** |  | [optional] [default to undefined]
+**change_type** | **string** |  | [optional] [default to undefined]
+**cost_price** | **number** |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
+**note** | **string** |  | [optional] [default to undefined]
 **price** | **number** |  | [optional] [default to undefined]
 **stock** | **number** |  | [optional] [default to undefined]
 
@@ -17,7 +20,10 @@ import { POSKasirInternalDtoUpdateProductRequest } from 'restClient';
 
 const instance: POSKasirInternalDtoUpdateProductRequest = {
     category_id,
+    change_type,
+    cost_price,
     name,
+    note,
     price,
     stock,
 };

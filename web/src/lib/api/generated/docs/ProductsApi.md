@@ -9,6 +9,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**productsIdGet**](#productsidget) | **GET** /products/{id} | Get a product by ID|
 |[**productsIdImagePost**](#productsidimagepost) | **POST** /products/{id}/image | Upload an image for a product|
 |[**productsIdPatch**](#productsidpatch) | **PATCH** /products/{id} | Update a product|
+|[**productsIdStockHistoryGet**](#productsidstockhistoryget) | **GET** /products/{id}/stock-history | Get stock history for a product|
 |[**productsPost**](#productspost) | **POST** /products | Create a new product|
 |[**productsProductIdOptionsOptionIdImagePost**](#productsproductidoptionsoptionidimagepost) | **POST** /products/{product_id}/options/{option_id}/image | Upload product option image|
 |[**productsProductIdOptionsOptionIdPatch**](#productsproductidoptionsoptionidpatch) | **PATCH** /products/{product_id}/options/{option_id} | Update a product option|
@@ -300,6 +301,66 @@ No authorization required
 |**400** | Invalid product ID format |  -  |
 |**404** | Product not found |  -  |
 |**500** | Failed to update product |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productsIdStockHistoryGet**
+> ProductsIdStockHistoryGet200Response productsIdStockHistoryGet()
+
+Get stock history for a product by ID with pagination
+
+### Example
+
+```typescript
+import {
+    ProductsApi,
+    Configuration
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new ProductsApi(configuration);
+
+let id: string; //Product ID (default to undefined)
+let page: number; //Page number (optional) (default to undefined)
+let limit: number; //Limit (optional) (default to undefined)
+
+const { status, data } = await apiInstance.productsIdStockHistoryGet(
+    id,
+    page,
+    limit
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **id** | [**string**] | Product ID | defaults to undefined|
+| **page** | [**number**] | Page number | (optional) defaults to undefined|
+| **limit** | [**number**] | Limit | (optional) defaults to undefined|
+
+
+### Return type
+
+**ProductsIdStockHistoryGet200Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Stock history retrieved successfully |  -  |
+|**400** | Invalid product ID or query parameters |  -  |
+|**404** | Product not found |  -  |
+|**500** | Failed to retrieve stock history |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

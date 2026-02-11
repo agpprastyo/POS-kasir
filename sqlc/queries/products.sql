@@ -8,9 +8,10 @@ INSERT INTO products (
     category_id,
     image_url,
     price,
-    stock
+    stock,
+    cost_price
 ) VALUES (
-             $1, $2, $3, $4, $5
+             $1, $2, $3, $4, $5, $6
          ) RETURNING *;
 
 -- name: GetProductWithOptions :one
@@ -65,7 +66,8 @@ SET
     category_id = COALESCE(sqlc.narg(category_id), category_id),
     image_url = COALESCE(sqlc.narg(image_url), image_url),
     price = COALESCE(sqlc.narg(price), price),
-    stock = COALESCE(sqlc.narg(stock), stock)
+    stock = COALESCE(sqlc.narg(stock), stock),
+    cost_price = COALESCE(sqlc.narg(cost_price), cost_price)
 WHERE
     id = sqlc.arg(id)
 RETURNING *;

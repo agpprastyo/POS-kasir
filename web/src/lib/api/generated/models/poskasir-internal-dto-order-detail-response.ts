@@ -25,6 +25,8 @@ import type { POSKasirInternalRepositoryOrderType } from './poskasir-internal-re
 
 export interface POSKasirInternalDtoOrderDetailResponse {
     'applied_promotion_id'?: string;
+    'cash_received'?: number;
+    'change_due'?: number;
     'created_at'?: string;
     'discount_amount'?: number;
     'gross_total'?: number;

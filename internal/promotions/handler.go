@@ -43,6 +43,7 @@ func NewPromotionHandler(service IPromotionService, log logger.ILogger, validate
 // @Success 201 {object} common.SuccessResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager"]
 // @Router /promotions [post]
 func (h *PromotionHandler) CreatePromotionHandler(c *fiber.Ctx) error {
 	var req dto.CreatePromotionRequest
@@ -79,6 +80,7 @@ func (h *PromotionHandler) CreatePromotionHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager"]
 // @Router /promotions/{id} [put]
 func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
 	idStr := c.Params("id")
@@ -123,6 +125,7 @@ func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 404 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["cashier", "admin", "manager"]
 // @Router /promotions/{id} [get]
 func (h *PromotionHandler) GetPromotionHandler(c *fiber.Ctx) error {
 	idStr := c.Params("id")
@@ -155,6 +158,7 @@ func (h *PromotionHandler) GetPromotionHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager"]
 // @Router /promotions/{id} [delete]
 func (h *PromotionHandler) DeletePromotionHandler(c *fiber.Ctx) error {
 	idStr := c.Params("id")
@@ -185,6 +189,7 @@ func (h *PromotionHandler) DeletePromotionHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["cashier", "admin", "manager"]
 // @Router /promotions [get]
 func (h *PromotionHandler) ListPromotionsHandler(c *fiber.Ctx) error {
 	var req dto.ListPromotionsRequest
@@ -214,6 +219,7 @@ func (h *PromotionHandler) ListPromotionsHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
+// @x-roles ["admin", "manager"]
 // @Router /promotions/{id}/restore [post]
 func (h *PromotionHandler) RestorePromotionHandler(c *fiber.Ctx) error {
 	idStr := c.Params("id")

@@ -17,8 +17,10 @@ import {
     useConfirmManualPaymentMutation,
     useCancelOrderMutation,
     useInitiateMidtransPaymentMutation,
-    useApplyPromotionMutation
+    useApplyPromotionMutation,
+    usePrintInvoiceMutation
 } from '@/lib/api/query/orders'
+import { usePrinterSettingsQuery } from '@/lib/api/query/settings'
 import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
 import { usePromotionsListQuery } from '@/lib/api/query/promotions'
 import { toast } from 'sonner'
@@ -63,6 +65,8 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
     const confirmManualPaymentMutation = useConfirmManualPaymentMutation()
     const initiateMidtransPaymentMutation = useInitiateMidtransPaymentMutation()
     const cancelOrderMutation = useCancelOrderMutation()
+    const printInvoiceMutation = usePrintInvoiceMutation()
+    const { data: printerSettings } = usePrinterSettingsQuery()
 
     // Promo states mostly for display if we keep the promo selection here
     // For now, let's assuming promo is already applied or we include the promo selector here too.
@@ -85,14 +89,22 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
     // Auto close
     useEffect(() => {
         if (open && order?.status === 'paid') {
+            if (printerSettings?.auto_print) {
+                printInvoiceMutation.mutate({ id: orderId || '' })
+            }
+
             if (onPaymentSuccess) onPaymentSuccess()
             onOpenChange(false)
             toast.success(t('order.success.payment_success'), {
                 description: t('order.payment_dialog.midtrans_auto_confirm'),
-                style: { background: '#10B981', color: 'white', border: 'none' }
+                style: { background: '#10B981', color: 'white', border: 'none' },
+                action: {
+                    label: 'Print',
+                    onClick: () => printInvoiceMutation.mutate({ id: orderId || '' })
+                }
             })
         }
-    }, [order?.status, open, onPaymentSuccess, onOpenChange, t])
+    }, [order?.status, open, onPaymentSuccess, onOpenChange, t, printerSettings, orderId])
 
     const handleAttemptClose = (isOpen: boolean) => {
         if (!isOpen) {
@@ -113,7 +125,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
             await cancelOrderMutation.mutateAsync({
                 id: orderId,
                 body: {
-                    cancellation_reason_id: 1, 
+                    cancellation_reason_id: 1,
                     cancellation_notes: t('order.payment_dialog.cancelled_by_user')
                 }
             })
@@ -147,12 +159,22 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                     id: orderId,
                     body: payload
                 })
-               
+
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
+
+                if (printerSettings?.auto_print) {
+                    printInvoiceMutation.mutate({ id: orderId })
+                }
+
                 if (onPaymentSuccess) onPaymentSuccess()
                 onOpenChange(false)
 
-                toast.success(t('order.success.payment_complete'))
+                toast.success(t('order.success.payment_complete'), {
+                    action: {
+                        label: 'Print',
+                        onClick: () => printInvoiceMutation.mutate({ id: orderId })
+                    }
+                })
             } catch (error) {
                 console.error(error)
             }
@@ -179,6 +201,10 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                 })
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
 
+                if (printerSettings?.auto_print) {
+                    printInvoiceMutation.mutate({ id: orderId })
+                }
+
                 if (onPaymentSuccess) onPaymentSuccess()
                 onOpenChange(false)
 
@@ -188,7 +214,11 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                     description: `${t('order.success.received')}: ${formatRupiah(inputCash)} | ${t('order.total')}: ${formatRupiah(totalAmount)}`,
                     closeButton: true,
                     position: 'top-center',
-                    style: { background: '#10B981', color: 'white', border: 'none' }
+                    style: { background: '#10B981', color: 'white', border: 'none' },
+                    action: {
+                        label: 'Print',
+                        onClick: () => printInvoiceMutation.mutate({ id: orderId })
+                    }
                 })
             } catch (error) {
                 console.error(error)
@@ -247,7 +277,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                                         onValueChange={(val) => {
                                             if (!orderId) return;
                                             if (val === "none") {
-                                                
+
                                             } else {
                                                 applyPromotionMutation.mutate({
                                                     id: orderId,

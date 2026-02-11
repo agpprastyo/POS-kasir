@@ -46,6 +46,7 @@ type UsrHandler struct {
 // @failure 400 {object} common.ErrorResponse "Bad Request"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
+// @x-roles ["admin"]
 // @Router /users/{id} [delete]
 func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -159,6 +160,7 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 // @Tags Users
 // @Accept json
 // @Produce json
+// @x-roles ["admin"]
 // @Param user body dto.CreateUserRequest true "User details"
 // @Success 201 {object} common.SuccessResponse{data=dto.ProfileResponse}
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
@@ -223,6 +225,7 @@ func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "User ID is required"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @x-roles ["admin", "manager"]
 // @Router /users/{id} [get]
 func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
@@ -269,6 +272,7 @@ func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 // @Tags Users
 // @Accept json
 // @Produce json
+// @x-roles ["admin"]
 // @Param id path string true "User ID"
 // @Param user body dto.UpdateUserRequest true "User details"
 // @Success 200 {object} common.SuccessResponse{data=dto.ProfileResponse}
@@ -367,6 +371,7 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "User ID is required"
 // @Failure 404 {object} common.ErrorResponse "User not found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
+// @x-roles ["admin"]
 // @Router /users/{id}/toggle-status [post]
 func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
 	ctx := c.Context()

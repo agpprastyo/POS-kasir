@@ -1,0 +1,243 @@
+package settings
+
+import (
+	"POS-kasir/internal/common"
+	"POS-kasir/internal/dto"
+	"POS-kasir/internal/repository"
+	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
+	"POS-kasir/pkg/logger"
+	"context"
+	"fmt"
+	"path/filepath"
+
+	"github.com/google/uuid"
+)
+
+type ISettingsService interface {
+	GetBranding(ctx context.Context) (*dto.BrandingSettingsResponse, error)
+	UpdateBranding(ctx context.Context, req dto.UpdateBrandingRequest) (*dto.BrandingSettingsResponse, error)
+	GetPrinterSettings(ctx context.Context) (*dto.PrinterSettingsResponse, error)
+	UpdatePrinterSettings(ctx context.Context, req dto.UpdatePrinterSettingsRequest) (*dto.PrinterSettingsResponse, error)
+	UpdateLogo(ctx context.Context, data []byte, filename string, contentType string) (string, error)
+}
+
+type SettingsService struct {
+	store    repository.Store
+	r2Client cloudflarer2.IR2
+	log      logger.ILogger
+}
+
+func NewSettingsService(store repository.Store, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
+	return &SettingsService{
+		store:    store,
+		r2Client: r2Client,
+		log:      log,
+	}
+}
+
+func (s *SettingsService) GetBranding(ctx context.Context) (*dto.BrandingSettingsResponse, error) {
+	settings, err := s.store.GetSettings(ctx)
+	if err != nil {
+		s.log.Error("Failed to fetch settings", "error", err)
+		return nil, err
+	}
+
+	response := &dto.BrandingSettingsResponse{
+		AppName:        "POS Kasir",
+		FooterText:     "© 2024 POS Kasir. All rights reserved.",
+		ThemeColor:     "#000000",
+		ThemeColorDark: "#ffffff",
+	}
+
+	for _, setting := range settings {
+		switch setting.Key {
+		case "app_name":
+			response.AppName = setting.Value
+		case "app_logo":
+			response.AppLogo = setting.Value
+		case "footer_text":
+			response.FooterText = setting.Value
+		case "theme_color":
+			response.ThemeColor = setting.Value
+		case "theme_color_dark":
+			response.ThemeColorDark = setting.Value
+		}
+	}
+
+	return response, nil
+}
+
+func (s *SettingsService) UpdateBranding(ctx context.Context, req dto.UpdateBrandingRequest) (*dto.BrandingSettingsResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+		// Update App Name
+		if req.AppName != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "app_name",
+				Value: req.AppName,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update App Logo (URL) if provided directly (e.g. cleared)
+		// Usually handled by UpdateLogo but user might want to set external URL
+		if req.AppLogo != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "app_logo",
+				Value: req.AppLogo,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update Footer Text
+		if req.FooterText != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "footer_text",
+				Value: req.FooterText,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update Theme Color
+		if req.ThemeColor != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "theme_color",
+				Value: req.ThemeColor,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update Theme Color Dark
+		if req.ThemeColorDark != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "theme_color_dark",
+				Value: req.ThemeColorDark,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		s.log.Error("Failed to update branding settings", "error", txErr)
+		return nil, txErr
+	}
+
+	return s.GetBranding(ctx)
+}
+
+func (s *SettingsService) UpdateLogo(ctx context.Context, data []byte, filename string, contentType string) (string, error) {
+	if len(data) == 0 {
+		return "", common.ErrBadRequest
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(filename)
+	newFilename := fmt.Sprintf("branding/logo_%s%s", uuid.New().String(), ext)
+
+	// Upload to R2
+	url, err := s.r2Client.UploadFile(ctx, newFilename, data, contentType)
+	if err != nil {
+		s.log.Error("Failed to upload logo to R2", "error", err)
+		return "", err
+	}
+
+	// Update setting
+	_, err = s.store.UpsertSetting(ctx, repository.UpsertSettingParams{
+		Key:   "app_logo",
+		Value: url,
+	})
+	if err != nil {
+		s.log.Error("Failed to update app_logo setting", "error", err)
+		return "", err
+	}
+
+	return url, nil
+}
+
+func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*dto.PrinterSettingsResponse, error) {
+	settings, err := s.store.GetSettings(ctx)
+	if err != nil {
+		s.log.Error("Failed to fetch settings", "error", err)
+		return nil, err
+	}
+
+	response := &dto.PrinterSettingsResponse{
+		Connection: "socket://127.0.0.1:9100", // Default
+		PaperWidth: "58",
+		AutoPrint:  false,
+	}
+
+	for _, setting := range settings {
+		switch setting.Key {
+		case "printer_connection":
+			response.Connection = setting.Value
+		case "printer_paper_width":
+			response.PaperWidth = setting.Value
+		case "printer_auto_print":
+			response.AutoPrint = setting.Value == "true"
+		}
+	}
+
+	return response, nil
+}
+
+func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req dto.UpdatePrinterSettingsRequest) (*dto.PrinterSettingsResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+		// Connection
+		if req.Connection != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "printer_connection",
+				Value: req.Connection,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Paper Width
+		if req.PaperWidth != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "printer_paper_width",
+				Value: req.PaperWidth,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		// Auto Print
+		if req.AutoPrint != nil {
+			val := "false"
+			if *req.AutoPrint {
+				val = "true"
+			}
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "printer_auto_print",
+				Value: val,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		s.log.Error("Failed to update printer settings", "error", txErr)
+		return nil, txErr
+	}
+
+	return s.GetPrinterSettings(ctx)
+}

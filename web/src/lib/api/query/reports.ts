@@ -7,7 +7,9 @@ import {
     POSKasirInternalDtoDashboardSummaryResponse,
     POSKasirInternalDtoPaymentMethodPerformanceResponse,
     POSKasirInternalDtoProductPerformanceResponse,
-    POSKasirInternalDtoSalesReport
+    POSKasirInternalDtoSalesReport,
+    POSKasirInternalDtoProfitSummaryResponse,
+    POSKasirInternalDtoProductProfitResponse
 } from "../generated"
 import { AxiosError } from "axios"
 
@@ -110,3 +112,36 @@ export const cancellationReportsQueryOptions = (startDate: string, endDate: stri
 
 export const useCancellationReportsQuery = (startDate: string, endDate: string) =>
     useQuery(cancellationReportsQueryOptions(startDate, endDate))
+
+export const profitSummaryQueryOptions = (startDate: string, endDate: string) =>
+    queryOptions<
+        POSKasirInternalDtoProfitSummaryResponse[],
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['reports', 'profit-summary', startDate, endDate],
+        queryFn: async () => {
+            const res = await reportsApi.reportsProfitSummaryGet(startDate, endDate);
+            return (res.data as any).data;
+        },
+        enabled: !!startDate && !!endDate,
+    })
+
+export const useProfitSummaryQuery = (startDate: string, endDate: string) =>
+    useQuery(profitSummaryQueryOptions(startDate, endDate))
+
+
+export const productProfitReportsQueryOptions = (startDate: string, endDate: string) =>
+    queryOptions<
+        POSKasirInternalDtoProductProfitResponse[],
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['reports', 'profit-products', startDate, endDate],
+        queryFn: async () => {
+            const res = await reportsApi.reportsProfitProductsGet(startDate, endDate);
+            return (res.data as any).data;
+        },
+        enabled: !!startDate && !!endDate,
+    })
+
+export const useProductProfitReportsQuery = (startDate: string, endDate: string) =>
+    useQuery(productProfitReportsQueryOptions(startDate, endDate))

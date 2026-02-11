@@ -1,12 +1,13 @@
-import {keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient} from '@tanstack/react-query'
-import {categoriesApi} from "../../api/client"
+import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { categoriesApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
     POSKasirInternalDtoCategoryResponse,
     POSKasirInternalDtoCreateCategoryRequest
 } from "../generated"
-import {toast} from "sonner"
-import {AxiosError} from "axios"
+import { toast } from "sonner"
+import { AxiosError } from "axios"
+import { useRBAC } from '@/lib/auth/rbac'
 
 // Gunakan tipe dari generated, atau definisikan ulang tanpa description
 export type Category = POSKasirInternalDtoCategoryResponse
@@ -57,7 +58,10 @@ export const categoryDetailQueryOptions = (id: number) =>
 export const useCreateCategoryMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation<
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/categories')
+
+    const mutation = useMutation<
         Category,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         POSKasirInternalDtoCreateCategoryRequest
@@ -68,7 +72,7 @@ export const useCreateCategoryMutation = () => {
             return (res.data as any).data;
         },
         onSuccess: () => {
-            qc.invalidateQueries({queryKey: ['categories', 'list']})
+            qc.invalidateQueries({ queryKey: ['categories', 'list'] })
             toast.success("Kategori berhasil dibuat")
         },
         onError: (error) => {
@@ -76,6 +80,8 @@ export const useCreateCategoryMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 
@@ -83,18 +89,21 @@ export const useCreateCategoryMutation = () => {
 export const useUpdateCategoryMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation<
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('PUT', '/categories/{id}')
+
+    const mutation = useMutation<
         Category,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: number; body: POSKasirInternalDtoCreateCategoryRequest }
     >({
         mutationKey: ['categories', 'update'],
-        mutationFn: async ({id, body}) => {
+        mutationFn: async ({ id, body }) => {
             const res = await categoriesApi.categoriesIdPut(id, body)
             return (res.data as any).data;
         },
         onSuccess: () => {
-            qc.invalidateQueries({queryKey: ['categories', 'list']})
+            qc.invalidateQueries({ queryKey: ['categories', 'list'] })
             toast.success("Kategori berhasil diperbarui")
         },
         onError: (error) => {
@@ -102,6 +111,8 @@ export const useUpdateCategoryMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }
 
 
@@ -109,7 +120,10 @@ export const useUpdateCategoryMutation = () => {
 export const useDeleteCategoryMutation = () => {
     const qc = useQueryClient()
 
-    return useMutation<
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('DELETE', '/categories/{id}')
+
+    const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         number
@@ -120,7 +134,7 @@ export const useDeleteCategoryMutation = () => {
             return (res.data as any).data;
         },
         onSuccess: () => {
-            qc.invalidateQueries({queryKey: ['categories', 'list']})
+            qc.invalidateQueries({ queryKey: ['categories', 'list'] })
             toast.success("Kategori berhasil dihapus")
         },
         onError: (error) => {
@@ -128,4 +142,6 @@ export const useDeleteCategoryMutation = () => {
             toast.error(msg)
         }
     })
+
+    return { ...mutation, isAllowed }
 }

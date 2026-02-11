@@ -16,6 +16,8 @@ type IRptHandler interface {
 	GetPaymentMethodPerformanceHandler(c *fiber.Ctx) error
 	GetCashierPerformanceHandler(c *fiber.Ctx) error
 	GetCancellationReportsHandler(c *fiber.Ctx) error
+	GetProfitSummaryHandler(c *fiber.Ctx) error
+	GetProductProfitReportsHandler(c *fiber.Ctx) error
 }
 
 type RptHandler struct {
@@ -234,6 +236,82 @@ func (r *RptHandler) GetDashboardSummaryHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Dashboard summary retrieved successfully",
 		Data:    summary,
+	})
+}
+
+// GetProfitSummaryHandler retrieves profit summary
+// @Summary Get profit summary
+// @Tags Reports
+// @Accept json
+// @Produce json
+// @Param start_date query string true "Start Date (YYYY-MM-DD)"
+// @Param end_date query string true "End Date (YYYY-MM-DD)"
+// @Success 200 {object} common.SuccessResponse{data=[]dto.ProfitSummaryResponse}
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /reports/profit-summary [get]
+func (r *RptHandler) GetProfitSummaryHandler(c *fiber.Ctx) error {
+	startDate, endDate, err := r.parseDateRange(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	serviceReq := &dto.SalesReportRequest{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	results, err := r.Service.GetProfitSummary(c.Context(), serviceReq)
+	if err != nil {
+		r.log.Error("Failed to get profit summary", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to get profit summary",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Profit summary retrieved successfully",
+		Data:    results,
+	})
+}
+
+// GetProductProfitReportsHandler retrieves product profit reports
+// @Summary Get product profit reports
+// @Tags Reports
+// @Accept json
+// @Produce json
+// @Param start_date query string true "Start Date (YYYY-MM-DD)"
+// @Param end_date query string true "End Date (YYYY-MM-DD)"
+// @Success 200 {object} common.SuccessResponse{data=[]dto.ProductProfitResponse}
+// @Failure 400 {object} common.ErrorResponse
+// @Failure 500 {object} common.ErrorResponse
+// @Router /reports/profit-products [get]
+func (r *RptHandler) GetProductProfitReportsHandler(c *fiber.Ctx) error {
+	startDate, endDate, err := r.parseDateRange(c)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	serviceReq := &dto.SalesReportRequest{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	results, err := r.Service.GetProductProfitReports(c.Context(), serviceReq)
+	if err != nil {
+		r.log.Error("Failed to get product profit reports", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to get product profit reports",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Product profit reports retrieved successfully",
+		Data:    results,
 	})
 }
 

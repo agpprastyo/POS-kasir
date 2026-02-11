@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/activity-logs": {
             "get": {
-                "description": "Get a list of activity logs with filtering and pagination",
+                "description": "Get a list of activity logs with filtering and pagination (Roles: admin)",
                 "consumes": [
                     "application/json"
                 ],
@@ -111,7 +111,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/auth/login": {
@@ -635,7 +638,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/categories/count": {
@@ -738,7 +745,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "description": "Update category by ID",
@@ -801,7 +812,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "delete": {
                 "description": "Delete category by ID",
@@ -855,7 +870,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/orders": {
@@ -938,7 +957,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             },
             "post": {
                 "consumes": [
@@ -993,7 +1017,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}": {
@@ -1054,7 +1083,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/apply-promotion": {
@@ -1124,7 +1158,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/cancel": {
@@ -1182,7 +1221,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/items": {
@@ -1255,7 +1299,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/pay/manual": {
@@ -1325,7 +1374,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/pay/midtrans": {
@@ -1386,7 +1440,46 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
+        "/orders/{id}/print": {
+            "post": {
+                "description": "Trigger printing of invoice for a specific order",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Print invoice for an order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/orders/{id}/update-status": {
@@ -1456,7 +1549,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/payment-methods": {
@@ -1635,7 +1733,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/trash": {
@@ -1708,7 +1810,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/restore-bulk": {
@@ -1754,7 +1859,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/{id}": {
@@ -1816,7 +1924,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/trash/{id}/restore": {
@@ -1866,7 +1977,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/products/{id}": {
@@ -1928,7 +2042,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             },
             "delete": {
                 "description": "Delete a product by ID",
@@ -1976,7 +2095,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             },
             "patch": {
                 "description": "Update a product by ID",
@@ -2045,7 +2167,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{id}/image": {
@@ -2114,7 +2240,90 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
+            }
+        },
+        "/products/{id}/stock-history": {
+            "get": {
+                "description": "Get stock history for a product by ID with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get stock history for a product",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Stock history retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.PagedStockHistoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid product ID or query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Product not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve stock history",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
             }
         },
         "/products/{product_id}/options": {
@@ -2185,7 +2394,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{product_id}/options/{option_id}": {
@@ -2263,7 +2476,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/products/{product_id}/options/{option_id}/image": {
@@ -2339,7 +2556,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions": {
@@ -2393,7 +2614,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "cashier",
+                    "admin",
+                    "manager"
+                ]
             },
             "post": {
                 "consumes": [
@@ -2436,7 +2662,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions/{id}": {
@@ -2485,7 +2715,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "cashier",
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "consumes": [
@@ -2541,7 +2776,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "delete": {
                 "consumes": [
@@ -2582,7 +2821,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/promotions/{id}/restore": {
@@ -2625,7 +2868,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             }
         },
         "/reports/cancellations": {
@@ -2928,6 +3175,136 @@ const docTemplate = `{
                 }
             }
         },
+        "/reports/profit-products": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get product profit reports",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.ProductProfitResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/profit-summary": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get profit summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/POS-kasir_internal_dto.ProfitSummaryResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/reports/sales": {
             "get": {
                 "consumes": [
@@ -2980,6 +3357,412 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/branding": {
+            "get": {
+                "description": "Get branding settings like app name, logo, footer text",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get branding settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update branding settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update branding settings",
+                "parameters": [
+                    {
+                        "description": "Update Branding Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdateBrandingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.BrandingSettingsResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
+        "/settings/branding/logo": {
+            "post": {
+                "description": "Upload and update app logo",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update app logo",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Logo image file",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
+        "/settings/printer": {
+            "get": {
+                "description": "Get printer settings like connection string, paper width",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get printer settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update printer settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update printer settings",
+                "parameters": [
+                    {
+                        "description": "Update Printer Settings Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.UpdatePrinterSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.PrinterSettingsResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
+        "/settings/printer/test": {
+            "post": {
+                "description": "Send a test print command to the configured printer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Test printer connection",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
+        "/shifts/cash-transaction": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Create a cash transaction (Drop/Expense/In)",
+                "parameters": [
+                    {
+                        "description": "Cash Transaction Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.CashTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.CashTransactionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/current": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Get current open shift",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/end": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "End current shift",
+                "parameters": [
+                    {
+                        "description": "End Shift Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.EndShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "No open shift found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/shifts/start": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Shifts"
+                ],
+                "summary": "Start a new shift",
+                "parameters": [
+                    {
+                        "description": "Start Shift Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_dto.StartShiftRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/POS-kasir_internal_dto.ShiftResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already has an open shift",
                         "schema": {
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
@@ -3174,7 +3957,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/users/{id}": {
@@ -3235,7 +4021,11 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
             },
             "put": {
                 "consumes": [
@@ -3321,7 +4111,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             },
             "delete": {
                 "consumes": [
@@ -3368,7 +4161,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         },
         "/users/{id}/toggle-status": {
@@ -3417,7 +4213,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
                     }
-                }
+                },
+                "x-roles": [
+                    "admin"
+                ]
             }
         }
     },
@@ -3522,6 +4321,26 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.BrandingSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "app_logo": {
+                    "type": "string"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "footer_text": {
+                    "type": "string"
+                },
+                "theme_color": {
+                    "type": "string"
+                },
+                "theme_color_dark": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.CancelOrderRequest": {
             "type": "object",
             "required": [
@@ -3568,6 +4387,66 @@ const docTemplate = `{
                 },
                 "reason_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CashTransactionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "category",
+                "type"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "cash_in",
+                        "cash_out"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/POS-kasir_internal_repository.CashTransactionType"
+                        }
+                    ]
+                }
+            }
+        },
+        "POS-kasir_internal_dto.CashTransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "shift_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.CashTransactionType"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3745,6 +4624,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "category_id",
+                "cost_price",
                 "name",
                 "price",
                 "stock"
@@ -3752,6 +4632,10 @@ const docTemplate = `{
             "properties": {
                 "category_id": {
                     "type": "integer"
+                },
+                "cost_price": {
+                    "type": "number",
+                    "minimum": 0
                 },
                 "name": {
                     "type": "string",
@@ -3916,6 +4800,21 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.EndShiftRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "actual_cash_end": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.ListProductsResponse": {
             "type": "object",
             "properties": {
@@ -3994,6 +4893,12 @@ const docTemplate = `{
                 "applied_promotion_id": {
                     "type": "string"
                 },
+                "cash_received": {
+                    "type": "integer"
+                },
+                "change_due": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -4038,6 +4943,9 @@ const docTemplate = `{
         "POS-kasir_internal_dto.OrderItemOptionResponse": {
             "type": "object",
             "properties": {
+                "option_name": {
+                    "type": "string"
+                },
                 "price_at_sale": {
                     "type": "integer"
                 },
@@ -4124,6 +5032,20 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.PagedStockHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/POS-kasir_internal_dto.StockHistoryResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                }
+            }
+        },
         "POS-kasir_internal_dto.PaymentAction": {
             "type": "object",
             "properties": {
@@ -4168,6 +5090,20 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.PrinterSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "auto_print": {
+                    "type": "boolean"
+                },
+                "connection": {
+                    "type": "string"
+                },
+                "paper_width": {
                     "type": "string"
                 }
             }
@@ -4235,6 +5171,29 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.ProductProfitResponse": {
+            "type": "object",
+            "properties": {
+                "gross_profit": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
+                "total_cogs": {
+                    "type": "number"
+                },
+                "total_revenue": {
+                    "type": "number"
+                },
+                "total_sold": {
+                    "type": "integer"
+                }
+            }
+        },
         "POS-kasir_internal_dto.ProductResponse": {
             "type": "object",
             "properties": {
@@ -4243,6 +5202,9 @@ const docTemplate = `{
                 },
                 "category_name": {
                     "type": "string"
+                },
+                "cost_price": {
+                    "type": "number"
                 },
                 "created_at": {
                     "type": "string"
@@ -4308,6 +5270,23 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.ProfitSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "gross_profit": {
+                    "type": "number"
+                },
+                "total_cogs": {
+                    "type": "number"
+                },
+                "total_revenue": {
+                    "type": "number"
+                }
+            }
+        },
         "POS-kasir_internal_dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -4361,6 +5340,110 @@ const docTemplate = `{
                 },
                 "total_sales": {
                     "type": "number"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.ShiftResponse": {
+            "type": "object",
+            "properties": {
+                "actual_cash_end": {
+                    "type": "integer"
+                },
+                "difference": {
+                    "description": "Actual - Expected",
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "expected_cash_end": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_cash": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/POS-kasir_internal_repository.ShiftStatus"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.StartShiftRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "start_cash": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "POS-kasir_internal_dto.StockHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "change_amount": {
+                    "type": "integer"
+                },
+                "change_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "current_stock": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "previous_stock": {
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "reference_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "POS-kasir_internal_dto.UpdateBrandingRequest": {
+            "type": "object",
+            "properties": {
+                "app_logo": {
+                    "description": "URL or empty",
+                    "type": "string"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "footer_text": {
+                    "type": "string"
+                },
+                "theme_color": {
+                    "type": "string"
+                },
+                "theme_color_dark": {
+                    "type": "string"
                 }
             }
         },
@@ -4424,6 +5507,20 @@ const docTemplate = `{
                 }
             }
         },
+        "POS-kasir_internal_dto.UpdatePrinterSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "auto_print": {
+                    "type": "boolean"
+                },
+                "connection": {
+                    "type": "string"
+                },
+                "paper_width": {
+                    "type": "string"
+                }
+            }
+        },
         "POS-kasir_internal_dto.UpdateProductOptionRequest": {
             "type": "object",
             "properties": {
@@ -4444,10 +5541,28 @@ const docTemplate = `{
                 "category_id": {
                     "type": "integer"
                 },
+                "change_type": {
+                    "type": "string",
+                    "enum": [
+                        "sale",
+                        "restock",
+                        "correction",
+                        "return",
+                        "damage"
+                    ]
+                },
+                "cost_price": {
+                    "type": "number",
+                    "minimum": 0
+                },
                 "name": {
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "price": {
                     "type": "number"
@@ -4553,6 +5668,17 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "POS-kasir_internal_repository.CashTransactionType": {
+            "type": "string",
+            "enum": [
+                "cash_in",
+                "cash_out"
+            ],
+            "x-enum-varnames": [
+                "CashTransactionTypeCashIn",
+                "CashTransactionTypeCashOut"
+            ]
         },
         "POS-kasir_internal_repository.DiscountType": {
             "type": "string",
@@ -4676,6 +5802,17 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "PromotionTargetTypePRODUCT",
                 "PromotionTargetTypeCATEGORY"
+            ]
+        },
+        "POS-kasir_internal_repository.ShiftStatus": {
+            "type": "string",
+            "enum": [
+                "open",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "ShiftStatusOpen",
+                "ShiftStatusClosed"
             ]
         },
         "POS-kasir_internal_repository.UserRole": {

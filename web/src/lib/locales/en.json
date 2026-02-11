@@ -10,7 +10,12 @@
         "confirm": "Confirm",
         "yes": "Yes",
         "no": "No",
-        "no_data": "No data available"
+        "no_data": "No data available",
+        "save_changes": "Save Changes",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "sold": "sold",
+        "rev": "rev"
     },
     "auth": {
         "welcome_back": "Welcome back",
@@ -131,6 +136,7 @@
         "tabs": {
             "sales": "Sales",
             "products": "Products",
+            "profit": "Profit",
             "performance": "Performance",
             "cancellations": "Cancellations"
         },
@@ -160,6 +166,16 @@
             "reason": "Reason",
             "date": "Date",
             "count": "Total Count"
+        },
+        "profit": {
+            "title": "Profit Analysis",
+            "description": "Analyze your revenue, COGS, and gross profit.",
+            "revenue": "Revenue",
+            "cogs": "COGS",
+            "gross_profit": "Gross Profit",
+            "products": "Product Profitability",
+            "products_desc": "Profit margin analysis per product.",
+            "profit": "Profit"
         }
     },
     "account": {
@@ -194,7 +210,9 @@
         "tabs": {
             "cancellation": "Cancellation Reasons",
             "category": "Category",
-            "payment_methods": "Payment Methods"
+            "payment_methods": "Payment Methods",
+            "branding": "Branding",
+            "printer": "Printer"
         },
         "cancellation": {
             "title": "Cancellation Reasons",
@@ -245,6 +263,36 @@
             "title": "Payment Methods",
             "description": "Available payment methods for POS transactions.",
             "empty": "No payment methods found."
+        },
+        "branding": {
+            "title": "App Branding",
+            "description": "Customize your application name, logo, and footer.",
+            "app_name": "Application Name",
+            "logo": "Application Logo",
+            "footer_text": "Footer Text",
+            "theme_color": "Theme Color (Light Mode)",
+            "theme_color_dark": "Theme Color (Dark Mode)",
+            "update_success": "Branding settings updated successfully!",
+            "update_error": "Failed to update branding",
+            "uploading": "Uploading logo...",
+            "upload_success": "Logo uploaded successfully",
+            "upload_error": "Failed to upload logo",
+            "no_logo": "No Logo",
+            "upload_button": "Upload New Logo",
+            "remove_button": "Remove/Clear",
+            "logo_help": "Recommended size: 512x512px. Max 5MB. Values are updated immediately upon upload."
+        },
+        "printer": {
+            "title": "Printer Settings",
+            "description": "Configure your receipt printer connection.",
+            "connection": "Printer Connection URI",
+            "connection_placeholder": "socket://127.0.0.1:9100",
+            "paper_width": "Paper Width",
+            "auto_print": "Auto Print on Payment",
+            "test_print": "Test Print",
+            "update_success": "Printer settings updated successfully!",
+            "update_error": "Failed to update printer settings",
+            "help_text": "Use socket://IP:PORT for network printers (e.g. 192.168.1.100:9100)."
         }
     },
     "users": {

@@ -25,7 +25,7 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 
 // GetActivityLogs godoc
 // @Summary      Get activity logs
-// @Description  Get a list of activity logs with filtering and pagination
+// @Description  Get a list of activity logs with filtering and pagination (Roles: admin)
 // @Tags         ActivityLogs
 // @Accept       json
 // @Produce      json
@@ -40,12 +40,12 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 // @Success      200  {object}  common.SuccessResponse{data=dto.ActivityLogListResponse}
 // @Failure      400  {object}  common.ErrorResponse
 // @Failure      500  {object}  common.ErrorResponse
+// @x-roles ["admin"]
 // @Router       /activity-logs [get]
 func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
 	ctx := c.Context()
 
 	var req dto.GetActivityLogsRequest
-	// Use QueryParser for GET requests
 	if err := c.QueryParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse query parameters",
@@ -53,7 +53,6 @@ func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set defaults if not provided (though QueryParser handles types, logic defaults might be needed)
 	if req.Page < 1 {
 		req.Page = 1
 	}

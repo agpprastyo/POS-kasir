@@ -15,7 +15,7 @@ DB_URL := postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?
 # ==============================================================================
 
 help:
-	@echo "Usage: make [target]"
+	@echo "Usage: make [target]" 
 	@echo ""
 	@echo "  sqlc-generate : Menjalankan 'sqlc generate'."
 	@echo "  migrate-up    : Menjalankan semua migrasi 'up'."

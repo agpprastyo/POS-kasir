@@ -6,18 +6,18 @@ import (
 	"POS-kasir/pkg/logger"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type IRptHandler interface {
-	GetDashboardSummaryHandler(c *fiber.Ctx) error
-	GetSalesReportsHandler(c *fiber.Ctx) error
-	GetProductPerformanceHandler(c *fiber.Ctx) error
-	GetPaymentMethodPerformanceHandler(c *fiber.Ctx) error
-	GetCashierPerformanceHandler(c *fiber.Ctx) error
-	GetCancellationReportsHandler(c *fiber.Ctx) error
-	GetProfitSummaryHandler(c *fiber.Ctx) error
-	GetProductProfitReportsHandler(c *fiber.Ctx) error
+	GetDashboardSummaryHandler(c fiber.Ctx) error
+	GetSalesReportsHandler(c fiber.Ctx) error
+	GetProductPerformanceHandler(c fiber.Ctx) error
+	GetPaymentMethodPerformanceHandler(c fiber.Ctx) error
+	GetCashierPerformanceHandler(c fiber.Ctx) error
+	GetCancellationReportsHandler(c fiber.Ctx) error
+	GetProfitSummaryHandler(c fiber.Ctx) error
+	GetProductProfitReportsHandler(c fiber.Ctx) error
 }
 
 type RptHandler struct {
@@ -36,7 +36,7 @@ type RptHandler struct {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/sales [get]
-func (r *RptHandler) GetSalesReportsHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetSalesReportsHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -49,7 +49,7 @@ func (r *RptHandler) GetSalesReportsHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	salesReports, err := r.Service.GetSalesReports(c.Context(), serviceReq)
+	salesReports, err := r.Service.GetSalesReports(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get sales reports", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -74,7 +74,7 @@ func (r *RptHandler) GetSalesReportsHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/products [get]
-func (r *RptHandler) GetProductPerformanceHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetProductPerformanceHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -87,7 +87,7 @@ func (r *RptHandler) GetProductPerformanceHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetProductPerformance(c.Context(), serviceReq)
+	results, err := r.Service.GetProductPerformance(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get product performance", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -112,7 +112,7 @@ func (r *RptHandler) GetProductPerformanceHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/payment-methods [get]
-func (r *RptHandler) GetPaymentMethodPerformanceHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetPaymentMethodPerformanceHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -125,7 +125,7 @@ func (r *RptHandler) GetPaymentMethodPerformanceHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetPaymentMethodPerformance(c.Context(), serviceReq)
+	results, err := r.Service.GetPaymentMethodPerformance(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get payment method performance", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -150,7 +150,7 @@ func (r *RptHandler) GetPaymentMethodPerformanceHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/cashier-performance [get]
-func (r *RptHandler) GetCashierPerformanceHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetCashierPerformanceHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -163,7 +163,7 @@ func (r *RptHandler) GetCashierPerformanceHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetCashierPerformance(c.Context(), serviceReq)
+	results, err := r.Service.GetCashierPerformance(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get cashier performance", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -188,7 +188,7 @@ func (r *RptHandler) GetCashierPerformanceHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/cancellations [get]
-func (r *RptHandler) GetCancellationReportsHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetCancellationReportsHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -201,7 +201,7 @@ func (r *RptHandler) GetCancellationReportsHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetCancellationReports(c.Context(), serviceReq)
+	results, err := r.Service.GetCancellationReports(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get cancellation reports", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -223,9 +223,9 @@ func (r *RptHandler) GetCancellationReportsHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse{data=dto.DashboardSummaryResponse}
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/dashboard-summary [get]
-func (r *RptHandler) GetDashboardSummaryHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetDashboardSummaryHandler(c fiber.Ctx) error {
 
-	summary, err := r.Service.GetDashboardSummary(c.Context())
+	summary, err := r.Service.GetDashboardSummary(c.RequestCtx())
 	if err != nil {
 		r.log.Error("Failed to get dashboard summary", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -250,7 +250,7 @@ func (r *RptHandler) GetDashboardSummaryHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/profit-summary [get]
-func (r *RptHandler) GetProfitSummaryHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetProfitSummaryHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -263,7 +263,7 @@ func (r *RptHandler) GetProfitSummaryHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetProfitSummary(c.Context(), serviceReq)
+	results, err := r.Service.GetProfitSummary(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get profit summary", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -288,7 +288,7 @@ func (r *RptHandler) GetProfitSummaryHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse
 // @Failure 500 {object} common.ErrorResponse
 // @Router /reports/profit-products [get]
-func (r *RptHandler) GetProductProfitReportsHandler(c *fiber.Ctx) error {
+func (r *RptHandler) GetProductProfitReportsHandler(c fiber.Ctx) error {
 	startDate, endDate, err := r.parseDateRange(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -301,7 +301,7 @@ func (r *RptHandler) GetProductProfitReportsHandler(c *fiber.Ctx) error {
 		EndDate:   endDate,
 	}
 
-	results, err := r.Service.GetProductProfitReports(c.Context(), serviceReq)
+	results, err := r.Service.GetProductProfitReports(c.RequestCtx(), serviceReq)
 	if err != nil {
 		r.log.Error("Failed to get product profit reports", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -315,7 +315,7 @@ func (r *RptHandler) GetProductProfitReportsHandler(c *fiber.Ctx) error {
 	})
 }
 
-func (r *RptHandler) parseDateRange(c *fiber.Ctx) (time.Time, time.Time, error) {
+func (r *RptHandler) parseDateRange(c fiber.Ctx) (time.Time, time.Time, error) {
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
 
@@ -356,3 +356,5 @@ func NewRptHandler(service IRptService, log logger.ILogger) IRptHandler {
 		log:     log,
 	}
 }
+
+// fiber:context-methods migrated

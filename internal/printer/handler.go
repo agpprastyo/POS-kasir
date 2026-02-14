@@ -4,7 +4,7 @@ import (
 	"POS-kasir/internal/common"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +27,7 @@ func NewPrinterHandler(service IPrinterService) *PrinterHandler {
 // @Success 200 {object} common.SuccessResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/print [post]
-func (h *PrinterHandler) PrintInvoiceHandler(c *fiber.Ctx) error {
+func (h *PrinterHandler) PrintInvoiceHandler(c fiber.Ctx) error {
 	idParam := c.Params("id")
 	orderID, err := uuid.Parse(idParam)
 	if err != nil {
@@ -37,7 +37,7 @@ func (h *PrinterHandler) PrintInvoiceHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	ctx := c.Context()
+	ctx := c.RequestCtx()
 	err = h.service.PrintInvoice(ctx, orderID)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -59,8 +59,8 @@ func (h *PrinterHandler) PrintInvoiceHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse
 // @x-roles ["admin"]
 // @Router /settings/printer/test [post]
-func (h *PrinterHandler) TestPrintHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *PrinterHandler) TestPrintHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	err := h.service.TestPrint(ctx)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -73,3 +73,5 @@ func (h *PrinterHandler) TestPrintHandler(c *fiber.Ctx) error {
 		Message: "Test print command sent associated with configured printer",
 	})
 }
+
+// fiber:context-methods migrated

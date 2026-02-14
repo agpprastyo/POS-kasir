@@ -6,16 +6,18 @@ import (
 	"POS-kasir/pkg/validator"
 	"errors"
 
-	"github.com/gofiber/fiber/v2"
+	"strconv"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 type ICtgHandler interface {
-	GetAllCategoriesHandler(c *fiber.Ctx) error
-	CreateCategoryHandler(c *fiber.Ctx) error
-	GetCategoryByIDHandler(c *fiber.Ctx) error
-	UpdateCategoryHandler(c *fiber.Ctx) error
-	DeleteCategoryHandler(c *fiber.Ctx) error
-	GetCategoryCountHandler(c *fiber.Ctx) error
+	GetAllCategoriesHandler(c fiber.Ctx) error
+	CreateCategoryHandler(c fiber.Ctx) error
+	GetCategoryByIDHandler(c fiber.Ctx) error
+	UpdateCategoryHandler(c fiber.Ctx) error
+	DeleteCategoryHandler(c fiber.Ctx) error
+	GetCategoryCountHandler(c fiber.Ctx) error
 }
 
 func NewCtgHandler(service ICtgService, log logger.ILogger, validator validator.Validator) ICtgHandler {
@@ -46,9 +48,9 @@ type CtgHandler struct {
 // @Failure 500 {object} common.ErrorResponse "Failed to delete category"
 // @x-roles ["admin", "manager"]
 // @Router /categories/{id} [delete]
-func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	categoryID, err := c.ParamsInt("id")
+func (h *CtgHandler) DeleteCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	categoryID, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -95,9 +97,9 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to update category"
 // @x-roles ["admin", "manager"]
 // @Router /categories/{id} [put]
-func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	id, err := c.ParamsInt("id")
+func (h *CtgHandler) UpdateCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Invalid category ID format: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -106,7 +108,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 	}
 
 	req := new(CreateCategoryRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -155,9 +157,9 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve category"
 // @x-roles ["admin", "manager"]
 // @Router /categories/{id} [get]
-func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	categoryID, err := c.ParamsInt("id")
+func (h *CtgHandler) GetCategoryByIDHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	categoryID, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
 		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -198,10 +200,10 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to create category"
 // @x-roles ["admin", "manager"]
 // @Router /categories [post]
-func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *CtgHandler) CreateCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	req := new(CreateCategoryRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Warnf("CreateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -245,10 +247,10 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve categories"
 // @Router /categories [get]
-func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *CtgHandler) GetAllCategoriesHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	req := new(ListCategoryRequest)
-	if err := c.QueryParser(req); err != nil {
+	if err := c.Bind().Query(req); err != nil {
 		h.log.Warnf("GetAllCategoriesHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
@@ -294,8 +296,8 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 // @Success 200 {object} common.SuccessResponse{data=[]CategoryWithCountResponse} "Category count retrieved successfully"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve category count"
 // @Router /categories/count [get]
-func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *CtgHandler) GetCategoryCountHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	count, err := h.service.GetCategoryWithProductCount(ctx)
 	if err != nil {
 		h.log.Warnf("GetCategoryCountHandler | Failed to get category count: %v", err)
@@ -310,3 +312,5 @@ func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
 	})
 
 }
+
+// fiber:context-methods migrated

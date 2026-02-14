@@ -9,28 +9,28 @@ import (
 	"io"
 	"mime/multipart"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type IPrdHandler interface {
-	CreateProductHandler(ctx *fiber.Ctx) error
-	UploadProductImageHandler(ctx *fiber.Ctx) error
-	ListProductsHandler(ctx *fiber.Ctx) error
-	GetProductHandler(ctx *fiber.Ctx) error
-	UpdateProductHandler(ctx *fiber.Ctx) error
-	DeleteProductHandler(ctx *fiber.Ctx) error
-	CreateProductOptionHandler(ctx *fiber.Ctx) error
-	UploadProductOptionImageHandler(ctx *fiber.Ctx) error
-	UpdateProductOptionHandler(ctx *fiber.Ctx) error
-	DeleteProductOptionHandler(ctx *fiber.Ctx) error
+	CreateProductHandler(ctx fiber.Ctx) error
+	UploadProductImageHandler(ctx fiber.Ctx) error
+	ListProductsHandler(ctx fiber.Ctx) error
+	GetProductHandler(ctx fiber.Ctx) error
+	UpdateProductHandler(ctx fiber.Ctx) error
+	DeleteProductHandler(ctx fiber.Ctx) error
+	CreateProductOptionHandler(ctx fiber.Ctx) error
+	UploadProductOptionImageHandler(ctx fiber.Ctx) error
+	UpdateProductOptionHandler(ctx fiber.Ctx) error
+	DeleteProductOptionHandler(ctx fiber.Ctx) error
 
 	// Deleted Products
-	ListDeletedProductsHandler(ctx *fiber.Ctx) error
-	GetDeletedProductHandler(ctx *fiber.Ctx) error
-	RestoreProductHandler(ctx *fiber.Ctx) error
-	RestoreProductsBulkHandler(ctx *fiber.Ctx) error
-	GetStockHistoryHandler(ctx *fiber.Ctx) error
+	ListDeletedProductsHandler(ctx fiber.Ctx) error
+	GetDeletedProductHandler(ctx fiber.Ctx) error
+	RestoreProductHandler(ctx fiber.Ctx) error
+	RestoreProductsBulkHandler(ctx fiber.Ctx) error
+	GetStockHistoryHandler(ctx fiber.Ctx) error
 }
 
 func NewPrdHandler(prdService IPrdService, log logger.ILogger, validate validator.Validator) IPrdHandler {
@@ -62,7 +62,7 @@ type PrdHandler struct {
 // @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id} [delete]
 
-func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) DeleteProductOptionHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
@@ -77,7 +77,7 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid option ID format"})
 	}
 
-	err = h.prdService.DeleteProductOption(ctx.Context(), productID, optionID)
+	err = h.prdService.DeleteProductOption(ctx.RequestCtx(), productID, optionID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
@@ -106,7 +106,7 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to update product option"
 // @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id} [patch]
-func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UpdateProductOptionHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
@@ -122,7 +122,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 	}
 
 	var req UpdateProductOptionRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		h.log.Warn("Cannot parse product option update request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -135,7 +135,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	optionResponse, err := h.prdService.UpdateProductOption(ctx.Context(), productID, optionID, req)
+	optionResponse, err := h.prdService.UpdateProductOption(ctx.RequestCtx(), productID, optionID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
@@ -165,7 +165,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to upload product image"
 // @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options/{option_id}/image [post]
-func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UploadProductOptionImageHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
@@ -204,7 +204,7 @@ func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to read file"})
 	}
 
-	optionResponse, err := h.prdService.UploadProductOptionImage(ctx.Context(), productID, optionID, buf.Bytes())
+	optionResponse, err := h.prdService.UploadProductOptionImage(ctx.RequestCtx(), productID, optionID, buf.Bytes())
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product or option not found"})
@@ -233,7 +233,7 @@ func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to create product option"
 // @x-roles ["admin", "manager"]
 // @Router /products/{product_id}/options [post]
-func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) CreateProductOptionHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("product_id")
 	productID, err := uuid.Parse(productIDStr)
@@ -243,7 +243,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 	}
 
 	var req CreateProductOptionRequestStandalone
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		h.log.Warn("Cannot parse product option request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -256,7 +256,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	optionResponse, err := h.prdService.CreateProductOption(ctx.Context(), productID, req)
+	optionResponse, err := h.prdService.CreateProductOption(ctx.RequestCtx(), productID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Parent product not found"})
@@ -284,7 +284,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to delete product"
 // @x-roles ["admin"]
 // @Router /products/{id} [delete]
-func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) DeleteProductHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
@@ -293,7 +293,7 @@ func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	err = h.prdService.DeleteProduct(ctx.Context(), productID)
+	err = h.prdService.DeleteProduct(ctx.RequestCtx(), productID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -321,7 +321,7 @@ func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to update product"
 // @x-roles ["admin", "manager"]
 // @Router /products/{id} [patch]
-func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UpdateProductHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
@@ -331,7 +331,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 	}
 
 	var req UpdateProductRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		h.log.Warn("Cannot parse request body for update", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -344,7 +344,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	productResponse, err := h.prdService.UpdateProduct(ctx.Context(), productID, req)
+	productResponse, err := h.prdService.UpdateProduct(ctx.RequestCtx(), productID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -375,7 +375,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve product"
 // @x-roles ["admin", "manager"]
 // @Router /products/{id} [get]
-func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) GetProductHandler(ctx fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
@@ -383,7 +383,7 @@ func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	productResponse, err := h.prdService.GetProductByID(ctx.Context(), productID)
+	productResponse, err := h.prdService.GetProductByID(ctx.RequestCtx(), productID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -412,9 +412,9 @@ func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve products"
 // @Router /products [get]
-func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) ListProductsHandler(ctx fiber.Ctx) error {
 	var req ListProductsRequest
-	if err := ctx.QueryParser(&req); err != nil {
+	if err := ctx.Bind().Query(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
@@ -433,7 +433,7 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 
 	h.log.Info("List products request validated", "params", req)
 
-	listResponse, err := h.prdService.ListProducts(ctx.Context(), req)
+	listResponse, err := h.prdService.ListProducts(ctx.RequestCtx(), req)
 	if err != nil {
 		h.log.Error("Failed to list products", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -460,9 +460,9 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to create product"
 // @x-roles ["admin", "manager"]
 // @Router /products [post]
-func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) CreateProductHandler(ctx fiber.Ctx) error {
 	var req CreateProductRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		h.log.Warn("Cannot parse request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -477,7 +477,7 @@ func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	productResponse, err := h.prdService.CreateProduct(ctx.Context(), req)
+	productResponse, err := h.prdService.CreateProduct(ctx.RequestCtx(), req)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to create product",
@@ -505,7 +505,7 @@ func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to upload image"
 // @x-roles ["admin", "manager"]
 // @Router /products/{id}/image [post]
-func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) UploadProductImageHandler(ctx fiber.Ctx) error {
 
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
@@ -539,7 +539,7 @@ func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
 	}
 	fileBytes := buf.Bytes()
 
-	productResponse, err := h.prdService.UploadProductImage(ctx.Context(), productID, fileBytes)
+	productResponse, err := h.prdService.UploadProductImage(ctx.RequestCtx(), productID, fileBytes)
 	if err != nil {
 
 		if errors.Is(err, common.ErrNotFound) {
@@ -572,9 +572,9 @@ func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted products"
 // @x-roles ["admin"]
 // @Router /products/trash [get]
-func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) ListDeletedProductsHandler(ctx fiber.Ctx) error {
 	var req ListProductsRequest
-	if err := ctx.QueryParser(&req); err != nil {
+	if err := ctx.Bind().Query(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
@@ -589,7 +589,7 @@ func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	listResponse, err := h.prdService.ListDeletedProducts(ctx.Context(), req)
+	listResponse, err := h.prdService.ListDeletedProducts(ctx.RequestCtx(), req)
 	if err != nil {
 		h.log.Error("Failed to list deleted products", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -616,7 +616,7 @@ func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted product"
 // @x-roles ["admin"]
 // @Router /products/trash/{id} [get]
-func (h *PrdHandler) GetDeletedProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) GetDeletedProductHandler(ctx fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
@@ -624,7 +624,7 @@ func (h *PrdHandler) GetDeletedProductHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	productResponse, err := h.prdService.GetDeletedProduct(ctx.Context(), productID)
+	productResponse, err := h.prdService.GetDeletedProduct(ctx.RequestCtx(), productID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -652,7 +652,7 @@ func (h *PrdHandler) GetDeletedProductHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to restore product"
 // @x-roles ["admin"]
 // @Router /products/trash/{id}/restore [post]
-func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) RestoreProductHandler(ctx fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
@@ -660,7 +660,7 @@ func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	err = h.prdService.RestoreProduct(ctx.Context(), productID)
+	err = h.prdService.RestoreProduct(ctx.RequestCtx(), productID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -686,9 +686,9 @@ func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to restore products"
 // @x-roles ["admin"]
 // @Router /products/trash/restore-bulk [post]
-func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) RestoreProductsBulkHandler(ctx fiber.Ctx) error {
 	var req RestoreBulkRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.Bind().Body(&req); err != nil {
 		h.log.Warn("Cannot parse request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -703,7 +703,7 @@ func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err := h.prdService.RestoreProductsBulk(ctx.Context(), req)
+	err := h.prdService.RestoreProductsBulk(ctx.RequestCtx(), req)
 	if err != nil {
 		h.log.Error("Failed to bulk restore products", "error", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
@@ -731,7 +731,7 @@ func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve stock history"
 // @x-roles ["admin", "manager"]
 // @Router /products/{id}/stock-history [get]
-func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
+func (h *PrdHandler) GetStockHistoryHandler(ctx fiber.Ctx) error {
 	productIDStr := ctx.Params("id")
 	productID, err := uuid.Parse(productIDStr)
 	if err != nil {
@@ -740,7 +740,7 @@ func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
 	}
 
 	var req ListStockHistoryRequest
-	if err := ctx.QueryParser(&req); err != nil {
+	if err := ctx.Bind().Query(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
@@ -755,7 +755,7 @@ func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	historyResponse, err := h.prdService.GetStockHistory(ctx.Context(), productID, req)
+	historyResponse, err := h.prdService.GetStockHistory(ctx.RequestCtx(), productID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Product not found"})
@@ -769,3 +769,5 @@ func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
 		Data:    historyResponse,
 	})
 }
+
+// fiber:context-methods migrated

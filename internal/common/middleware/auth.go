@@ -6,11 +6,11 @@ import (
 
 	"POS-kasir/pkg/utils"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		token := c.Cookies("access_token")
 		if token == "" {
 			log.Warnf("unauthorized access attempt: no token provided")
@@ -35,10 +35,12 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 		log.Infof("current email is %v", claims.Email)
 		log.Infof("current user ID is %v", claims.UserID)
 
-		c.Context().SetUserValue(common.UserIDKey, claims.UserID)
+		c.RequestCtx().SetUserValue(common.UserIDKey, claims.UserID)
 
 		log.Infof("current user ID is %v", claims.UserID)
 
 		return c.Next()
 	}
 }
+
+// fiber:context-methods migrated

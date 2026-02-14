@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type SettingsHandler struct {
@@ -26,8 +26,8 @@ func NewSettingsHandler(service ISettingsService) *SettingsHandler {
 // @Produce json
 // @Success 200 {object} dto.BrandingSettingsResponse
 // @Router /settings/branding [get]
-func (h *SettingsHandler) GetBrandingHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *SettingsHandler) GetBrandingHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	resp, err := h.service.GetBranding(ctx)
 	if err != nil {
@@ -53,11 +53,11 @@ func (h *SettingsHandler) GetBrandingHandler(c *fiber.Ctx) error {
 // @Success 200 {object} dto.BrandingSettingsResponse
 // @x-roles ["admin"]
 // @Router /settings/branding [put]
-func (h *SettingsHandler) UpdateBrandingHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *SettingsHandler) UpdateBrandingHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	var req dto.UpdateBrandingRequest
 
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 			Error:   err.Error(),
@@ -88,8 +88,8 @@ func (h *SettingsHandler) UpdateBrandingHandler(c *fiber.Ctx) error {
 // @Success 200 {object} map[string]string
 // @x-roles ["admin"]
 // @Router /settings/branding/logo [post]
-func (h *SettingsHandler) UpdateLogoHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *SettingsHandler) UpdateLogoHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	file, err := c.FormFile("logo")
 	if err != nil {
@@ -148,8 +148,8 @@ func (h *SettingsHandler) UpdateLogoHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Success 200 {object} dto.PrinterSettingsResponse
 // @Router /settings/printer [get]
-func (h *SettingsHandler) GetPrinterSettingsHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *SettingsHandler) GetPrinterSettingsHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	resp, err := h.service.GetPrinterSettings(ctx)
 	if err != nil {
@@ -175,11 +175,11 @@ func (h *SettingsHandler) GetPrinterSettingsHandler(c *fiber.Ctx) error {
 // @Success 200 {object} dto.PrinterSettingsResponse
 // @x-roles ["admin"]
 // @Router /settings/printer [put]
-func (h *SettingsHandler) UpdatePrinterSettingsHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *SettingsHandler) UpdatePrinterSettingsHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	var req dto.UpdatePrinterSettingsRequest
 
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 			Error:   err.Error(),
@@ -199,3 +199,5 @@ func (h *SettingsHandler) UpdatePrinterSettingsHandler(c *fiber.Ctx) error {
 		Data:    resp,
 	})
 }
+
+// fiber:context-methods migrated

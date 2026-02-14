@@ -9,7 +9,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
@@ -22,12 +22,12 @@ func NewUsrHandler(service IUsrService, log logger.ILogger, validator validator.
 }
 
 type IUsrHandler interface {
-	GetAllUsersHandler(c *fiber.Ctx) error
-	CreateUserHandler(c *fiber.Ctx) error
-	GetUserByIDHandler(c *fiber.Ctx) error
-	UpdateUserHandler(c *fiber.Ctx) error
-	ToggleUserStatusHandler(c *fiber.Ctx) error
-	DeleteUserHandler(c *fiber.Ctx) error
+	GetAllUsersHandler(c fiber.Ctx) error
+	CreateUserHandler(c fiber.Ctx) error
+	GetUserByIDHandler(c fiber.Ctx) error
+	UpdateUserHandler(c fiber.Ctx) error
+	ToggleUserStatusHandler(c fiber.Ctx) error
+	DeleteUserHandler(c fiber.Ctx) error
 }
 
 type UsrHandler struct {
@@ -48,8 +48,8 @@ type UsrHandler struct {
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @x-roles ["admin"]
 // @Router /users/{id} [delete]
-func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) DeleteUserHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	id := c.Params("id")
 	if id == "" {
 		h.log.Errorf("DeleteUserHandler | User ID is required")
@@ -105,10 +105,10 @@ func (h *UsrHandler) DeleteUserHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "No users found"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
 // @Router /users [get]
-func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) GetAllUsersHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	req := new(dto.UsersRequest)
-	if err := c.QueryParser(req); err != nil {
+	if err := c.Bind().Query(req); err != nil {
 		h.log.Errorf("GetAllUsersHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
@@ -167,10 +167,10 @@ func (h *UsrHandler) GetAllUsersHandler(c *fiber.Ctx) error {
 // @Failure 409 {object} common.ErrorResponse "User already exists"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
 // @Router /users [post]
-func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) CreateUserHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	req := new(dto.CreateUserRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Errorf("CreateUserHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -227,8 +227,8 @@ func (h *UsrHandler) CreateUserHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
 // @x-roles ["admin", "manager"]
 // @Router /users/{id} [get]
-func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) GetUserByIDHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	id := c.Params("id")
 	if id == "" {
 		h.log.Errorf("GetUserByIDHandler | Failed to get user by ID: %v", id)
@@ -283,8 +283,8 @@ func (h *UsrHandler) GetUserByIDHandler(c *fiber.Ctx) error {
 // @Failure 409 {object} common.ErrorResponse "Username already exists"
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
 // @Router /users/{id} [put]
-func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) UpdateUserHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	id := c.Params("id")
 	role := c.Locals("role")
 	if id == "" {
@@ -303,7 +303,7 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 	}
 
 	req := new(dto.UpdateUserRequest)
-	if err := c.BodyParser(req); err != nil {
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Errorf("UpdateUserHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
@@ -373,8 +373,8 @@ func (h *UsrHandler) UpdateUserHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse "Internal server error"
 // @x-roles ["admin"]
 // @Router /users/{id}/toggle-status [post]
-func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *UsrHandler) ToggleUserStatusHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	id := c.Params("id")
 	if id == "" {
 		h.log.Errorf("ToggleUserStatusHandler | User ID is required")
@@ -415,3 +415,5 @@ func (h *UsrHandler) ToggleUserStatusHandler(c *fiber.Ctx) error {
 		Message: "User status toggled successfully",
 	})
 }
+
+// fiber:context-methods migrated

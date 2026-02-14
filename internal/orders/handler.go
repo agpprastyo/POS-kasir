@@ -8,21 +8,21 @@ import (
 	"POS-kasir/pkg/validator"
 	"errors"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type IOrderHandler interface {
-	CreateOrderHandler(c *fiber.Ctx) error
-	GetOrderHandler(c *fiber.Ctx) error
-	InitiateMidtransPaymentHandler(c *fiber.Ctx) error
-	MidtransNotificationHandler(c *fiber.Ctx) error
-	ListOrdersHandler(c *fiber.Ctx) error
-	CancelOrderHandler(c *fiber.Ctx) error
-	UpdateOrderItemsHandler(c *fiber.Ctx) error
-	ConfirmManualPaymentHandler(c *fiber.Ctx) error
-	UpdateOperationalStatusHandler(c *fiber.Ctx) error
-	ApplyPromotionHandler(c *fiber.Ctx) error
+	CreateOrderHandler(c fiber.Ctx) error
+	GetOrderHandler(c fiber.Ctx) error
+	InitiateMidtransPaymentHandler(c fiber.Ctx) error
+	MidtransNotificationHandler(c fiber.Ctx) error
+	ListOrdersHandler(c fiber.Ctx) error
+	CancelOrderHandler(c fiber.Ctx) error
+	UpdateOrderItemsHandler(c fiber.Ctx) error
+	ConfirmManualPaymentHandler(c fiber.Ctx) error
+	UpdateOperationalStatusHandler(c fiber.Ctx) error
+	ApplyPromotionHandler(c fiber.Ctx) error
 }
 
 type OrderHandler struct {
@@ -52,7 +52,7 @@ func NewOrderHandler(orderService IOrderService, log logger.ILogger, validate va
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/apply-promotion [post]
-func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) ApplyPromotionHandler(c fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -61,7 +61,7 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.ApplyPromotionRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
@@ -69,7 +69,7 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	orderResponse, err := h.orderService.ApplyPromotion(c.Context(), orderID, req)
+	orderResponse, err := h.orderService.ApplyPromotion(c.RequestCtx(), orderID, req)
 	if err != nil {
 
 		if errors.Is(err, common.ErrNotFound) {
@@ -101,7 +101,7 @@ func (h *OrderHandler) ApplyPromotionHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/update-status [post]
-func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) UpdateOperationalStatusHandler(c fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -111,7 +111,7 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.UpdateOrderStatusRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("Cannot parse update status request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -121,7 +121,7 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	orderResponse, err := h.orderService.UpdateOperationalStatus(c.Context(), orderID, req)
+	orderResponse, err := h.orderService.UpdateOperationalStatus(c.RequestCtx(), orderID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
@@ -152,7 +152,7 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/pay/manual [post]
-func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) ConfirmManualPaymentHandler(c fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -162,7 +162,7 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.ConfirmManualPaymentRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("Cannot parse complete manual payment request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -172,7 +172,7 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	orderResponse, err := h.orderService.ConfirmManualPayment(c.Context(), orderID, req)
+	orderResponse, err := h.orderService.ConfirmManualPayment(c.RequestCtx(), orderID, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
@@ -203,7 +203,7 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/items [put]
-func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) UpdateOrderItemsHandler(c fiber.Ctx) error {
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
@@ -211,7 +211,7 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 	}
 
 	var req []dto.UpdateOrderItemRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body, expected an array of actions"})
 	}
 
@@ -219,7 +219,7 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	updatedOrder, err := h.orderService.UpdateOrderItems(c.Context(), orderID, req)
+	updatedOrder, err := h.orderService.UpdateOrderItems(c.RequestCtx(), orderID, req)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update order items"})
 	}
@@ -243,7 +243,7 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/cancel [post]
-func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) CancelOrderHandler(c fiber.Ctx) error {
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
 	if err != nil {
@@ -252,7 +252,7 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.CancelOrderRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("CancelOrderHandler | Cannot parse cancel order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -262,7 +262,7 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	err = h.orderService.CancelOrder(c.Context(), orderID, req)
+	err = h.orderService.CancelOrder(c.RequestCtx(), orderID, req)
 	if err != nil {
 
 		if errors.Is(err, common.ErrNotFound) {
@@ -294,10 +294,10 @@ func (h *OrderHandler) CancelOrderHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders [get]
-func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) ListOrdersHandler(c fiber.Ctx) error {
 
 	var req dto.ListOrdersRequest
-	if err := c.QueryParser(&req); err != nil {
+	if err := c.Bind().Query(&req); err != nil {
 		h.log.Warnf("Cannot parse list orders query parameters", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid query parameters"})
 	}
@@ -332,7 +332,7 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 		req.UserID = &currentUserID
 	}
 
-	pagedResponse, err := h.orderService.ListOrders(c.Context(), req)
+	pagedResponse, err := h.orderService.ListOrders(c.RequestCtx(), req)
 	if err != nil {
 		h.log.Errorf("Failed to list orders from service", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to retrieve orders"})
@@ -355,9 +355,9 @@ func (h *OrderHandler) ListOrdersHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders [post]
-func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) CreateOrderHandler(c fiber.Ctx) error {
 	var req dto.CreateOrderRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("Cannot parse create order request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -368,7 +368,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error(), Data: req})
 	}
 
-	orderResponse, err := h.orderService.CreateOrder(c.Context(), req)
+	orderResponse, err := h.orderService.CreateOrder(c.RequestCtx(), req)
 	if err != nil {
 		h.log.Errorf("Failed to create order in service", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to create order"})
@@ -392,7 +392,7 @@ func (h *OrderHandler) CreateOrderHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id} [get]
-func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) GetOrderHandler(c fiber.Ctx) error {
 	// 1. Ambil ID dari parameter URL
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -401,7 +401,7 @@ func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	orderResponse, err := h.orderService.GetOrder(c.Context(), orderID)
+	orderResponse, err := h.orderService.GetOrder(c.RequestCtx(), orderID)
 	if err != nil {
 
 		if errors.Is(err, common.ErrNotFound) {
@@ -429,7 +429,7 @@ func (h *OrderHandler) GetOrderHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager", "cashier"]
 // @Router /orders/{id}/pay/midtrans [post]
-func (h *OrderHandler) InitiateMidtransPaymentHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) InitiateMidtransPaymentHandler(c fiber.Ctx) error {
 
 	orderIDStr := c.Params("id")
 	orderID, err := uuid.Parse(orderIDStr)
@@ -438,7 +438,7 @@ func (h *OrderHandler) InitiateMidtransPaymentHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	qrisResponse, err := h.orderService.InitiateMidtransPayment(c.Context(), orderID)
+	qrisResponse, err := h.orderService.InitiateMidtransPayment(c.RequestCtx(), orderID)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
@@ -453,15 +453,15 @@ func (h *OrderHandler) InitiateMidtransPaymentHandler(c *fiber.Ctx) error {
 	})
 }
 
-func (h *OrderHandler) MidtransNotificationHandler(c *fiber.Ctx) error {
+func (h *OrderHandler) MidtransNotificationHandler(c fiber.Ctx) error {
 
 	var payload dto.MidtransNotificationPayload
-	if err := c.BodyParser(&payload); err != nil {
+	if err := c.Bind().Body(&payload); err != nil {
 		h.log.Warnf("Cannot parse Midtrans notification body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid notification format"})
 	}
 
-	err := h.orderService.HandleMidtransNotification(c.Context(), payload)
+	err := h.orderService.HandleMidtransNotification(c.RequestCtx(), payload)
 	if err != nil {
 		h.log.Errorf("Error handling Midtrans notification", "error", err, "orderID", payload.OrderID)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to handle notification"})
@@ -470,3 +470,5 @@ func (h *OrderHandler) MidtransNotificationHandler(c *fiber.Ctx) error {
 	h.log.Infof("Successfully handled Midtrans notification", "orderID", payload.OrderID, "status", payload.TransactionStatus)
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{Message: "Notification received successfully"})
 }
+
+// fiber:context-methods migrated

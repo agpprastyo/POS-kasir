@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -103,7 +103,7 @@ func TestAthHandler_ProfileHandler(t *testing.T) {
 	mockService, mockLogger, _, handler, app := setupHandlerTest(t)
 
 	// Inject middleware to simulate context locals
-	app.Get("/me", func(c *fiber.Ctx) error {
+	app.Get("/me", func(c fiber.Ctx) error {
 		c.Locals("user_id", uuid.MustParse("00000000-0000-0000-0000-000000000001"))
 		return handler.ProfileHandler(c)
 	})
@@ -151,7 +151,7 @@ func TestAthHandler_UpdatePasswordHandler(t *testing.T) {
 	mockService, mockLogger, mockValidator, handler, app := setupHandlerTest(t)
 	userID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 
-	app.Post("/update-password", func(c *fiber.Ctx) error {
+	app.Post("/update-password", func(c fiber.Ctx) error {
 		c.Locals("user_id", userID)
 		return handler.UpdatePasswordHandler(c)
 	})
@@ -253,7 +253,7 @@ func TestAthHandler_RefreshHandler(t *testing.T) {
 func TestAthHandler_AddUserHandler(t *testing.T) {
 	mockService, mockLogger, mockValidator, handler, app := setupHandlerTest(t)
 
-	app.Post("/users", func(c *fiber.Ctx) error {
+	app.Post("/users", func(c fiber.Ctx) error {
 		c.Locals("role", repository.UserRoleAdmin)
 		return handler.AddUserHandler(c)
 	})
@@ -286,7 +286,7 @@ func TestAthHandler_AddUserHandler(t *testing.T) {
 
 	t.Run("UnauthorizedRole", func(t *testing.T) {
 		appForbidden := fiber.New()
-		appForbidden.Post("/users", func(c *fiber.Ctx) error {
+		appForbidden.Post("/users", func(c fiber.Ctx) error {
 			c.Locals("role", repository.UserRoleCashier)
 			return handler.AddUserHandler(c)
 		})
@@ -337,7 +337,7 @@ func TestAthHandler_UpdateAvatarHandler(t *testing.T) {
 	mockService, mockLogger, _, handler, app := setupHandlerTest(t)
 	userID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 
-	app.Put("/me/avatar", func(c *fiber.Ctx) error {
+	app.Put("/me/avatar", func(c fiber.Ctx) error {
 		c.Locals("user_id", userID)
 		return handler.UpdateAvatarHandler(c)
 	})

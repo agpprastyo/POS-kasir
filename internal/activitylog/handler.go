@@ -6,7 +6,7 @@ import (
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type ActivityLogHandler struct {
@@ -42,11 +42,11 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 // @Failure      500  {object}  common.ErrorResponse
 // @x-roles ["admin"]
 // @Router       /activity-logs [get]
-func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *ActivityLogHandler) GetActivityLogs(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	var req GetActivityLogsRequest
-	if err := c.QueryParser(&req); err != nil {
+	if err := c.Bind().Query(&req); err != nil {
 		h.log.Errorf("Handler | GetActivityLogs | %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse query parameters",
@@ -78,3 +78,5 @@ func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
 		Data:    result,
 	})
 }
+
+// fiber:context-methods migrated

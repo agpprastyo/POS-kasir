@@ -36,13 +36,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	fiberlog "github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
+	swagger "github.com/gofiber/contrib/v3/swaggo"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	fiberlog "github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/joho/godotenv"
-
-	"github.com/gofiber/swagger"
 
 	_ "embed"
 	"html/template"
@@ -227,10 +226,10 @@ func SetupMiddleware(app *App) {
 		log.Fatal("CORS_ALLOW_ORIGINS is empty or invalid")
 	}
 	app.FiberApp.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
-		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		ExposeHeaders:    "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Access-Control-Allow-Methods",
+		AllowOrigins:     strings.Split(origins, ","),
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
@@ -269,7 +268,7 @@ func WaitForShutdown(app *App) {
 }
 
 func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
-	return func(c *fiber.Ctx, err error) error {
+	return func(c fiber.Ctx, err error) error {
 		logger.Errorf("Error 1: %v", err)
 
 		var e *fiber.Error

@@ -14,19 +14,19 @@ import (
 	"mime/multipart"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type IAuthHandler interface {
-	UpdatePasswordHandler(c *fiber.Ctx) error
-	LoginHandler(c *fiber.Ctx) error
-	LogoutHandler(c *fiber.Ctx) error
+	UpdatePasswordHandler(c fiber.Ctx) error
+	LoginHandler(c fiber.Ctx) error
+	LogoutHandler(c fiber.Ctx) error
 
-	ProfileHandler(c *fiber.Ctx) error
-	AddUserHandler(c *fiber.Ctx) error
-	UpdateAvatarHandler(c *fiber.Ctx) error
-	RefreshHandler(c *fiber.Ctx) error
+	ProfileHandler(c fiber.Ctx) error
+	AddUserHandler(c fiber.Ctx) error
+	UpdateAvatarHandler(c fiber.Ctx) error
+	RefreshHandler(c fiber.Ctx) error
 }
 
 type AthHandler struct {
@@ -58,8 +58,8 @@ func NewAuthHandler(service IAuthService, log logger.ILogger, validator validato
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/me/update-password [post]
-func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *AthHandler) UpdatePasswordHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
@@ -70,7 +70,7 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.UpdatePasswordRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
 			Error:   err.Error(),
@@ -118,11 +118,11 @@ func (h *AthHandler) UpdatePasswordHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/login [post]
-func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *AthHandler) LoginHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
 	var req dto.LoginRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
 			Error:   err.Error(),
@@ -215,7 +215,7 @@ func (h *AthHandler) LoginHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/logout [post]
-func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
+func (h *AthHandler) LogoutHandler(c fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    "",
@@ -254,8 +254,8 @@ func (h *AthHandler) LogoutHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/me [get]
-func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *AthHandler) ProfileHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
 		h.Log.Errorf("ProfileHandler | Failed to get userID from context, userId : %v", userUUID)
@@ -303,10 +303,10 @@ func (h *AthHandler) ProfileHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} common.ErrorResponse "Bad Request"
 // @Failure 409 {object} common.ErrorResponse "Conflict"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
-func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *AthHandler) AddUserHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	var req dto.RegisterRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse request body",
 		})
@@ -372,8 +372,8 @@ func (h *AthHandler) AddUserHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "Not Found"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/me/avatar [put]
-func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *AthHandler) UpdateAvatarHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userUUID, ok := c.Locals("user_id").(uuid.UUID)
 	if !ok {
 		h.Log.Errorf("UpdateAvatarHandler | Failed to get userID from context")
@@ -466,7 +466,7 @@ func (h *AthHandler) UpdateAvatarHandler(c *fiber.Ctx) error {
 // @Failure 401 {object} common.ErrorResponse "Unauthorized"
 // @Failure 500 {object} common.ErrorResponse "Internal Server Error"
 // @Router /auth/refresh [post]
-func (h *AthHandler) RefreshHandler(c *fiber.Ctx) error {
+func (h *AthHandler) RefreshHandler(c fiber.Ctx) error {
 	refreshToken := c.Cookies("refresh_token")
 	if refreshToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
@@ -474,7 +474,7 @@ func (h *AthHandler) RefreshHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	resp, err := h.Service.RefreshToken(c.Context(), refreshToken)
+	resp, err := h.Service.RefreshToken(c.RequestCtx(), refreshToken)
 	if err != nil {
 		h.Log.Errorf("RefreshHandler | Failed to refresh token: %v", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
@@ -523,3 +523,5 @@ func (h *AthHandler) RefreshHandler(c *fiber.Ctx) error {
 		},
 	})
 }
+
+// fiber:context-methods migrated

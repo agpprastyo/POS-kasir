@@ -6,15 +6,15 @@ import (
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type Handler interface {
-	StartShiftHandler(c *fiber.Ctx) error
-	EndShiftHandler(c *fiber.Ctx) error
-	GetOpenShiftHandler(c *fiber.Ctx) error
-	CreateCashTransactionHandler(c *fiber.Ctx) error
+	StartShiftHandler(c fiber.Ctx) error
+	EndShiftHandler(c fiber.Ctx) error
+	GetOpenShiftHandler(c fiber.Ctx) error
+	CreateCashTransactionHandler(c fiber.Ctx) error
 }
 
 type handler struct {
@@ -42,12 +42,12 @@ func NewHandler(service Service, log logger.ILogger, validator validator.Validat
 // @Failure 409 {object} common.ErrorResponse "User already has an open shift"
 // @Failure 500 {object} common.ErrorResponse
 // @Router /shifts/start [post]
-func (h *handler) StartShiftHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *handler) StartShiftHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
 	var req dto.StartShiftRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 			Error:   err.Error(),
@@ -86,12 +86,12 @@ func (h *handler) StartShiftHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "No open shift found"
 // @Failure 500 {object} common.ErrorResponse
 // @Router /shifts/end [post]
-func (h *handler) EndShiftHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *handler) EndShiftHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
 	var req dto.EndShiftRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 			Error:   err.Error(),
@@ -128,8 +128,8 @@ func (h *handler) EndShiftHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "No open shift found"
 // @Failure 500 {object} common.ErrorResponse
 // @Router /shifts/current [get]
-func (h *handler) GetOpenShiftHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *handler) GetOpenShiftHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
 	shift, err := h.service.GetOpenShift(ctx, userID)
@@ -162,12 +162,12 @@ func (h *handler) GetOpenShiftHandler(c *fiber.Ctx) error {
 // @Failure 404 {object} common.ErrorResponse "No open shift found"
 // @Failure 500 {object} common.ErrorResponse
 // @Router /shifts/cash-transaction [post]
-func (h *handler) CreateCashTransactionHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+func (h *handler) CreateCashTransactionHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
 	var req dto.CashTransactionRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 			Error:   err.Error(),
@@ -194,3 +194,5 @@ func (h *handler) CreateCashTransactionHandler(c *fiber.Ctx) error {
 		Data:    tx,
 	})
 }
+
+// fiber:context-methods migrated

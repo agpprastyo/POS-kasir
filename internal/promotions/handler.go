@@ -7,17 +7,17 @@ import (
 	"POS-kasir/pkg/validator"
 	"errors"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 )
 
 type IPromotionHandler interface {
-	CreatePromotionHandler(c *fiber.Ctx) error
-	GetPromotionHandler(c *fiber.Ctx) error
-	UpdatePromotionHandler(c *fiber.Ctx) error
-	DeletePromotionHandler(c *fiber.Ctx) error
-	ListPromotionsHandler(c *fiber.Ctx) error
-	RestorePromotionHandler(c *fiber.Ctx) error
+	CreatePromotionHandler(c fiber.Ctx) error
+	GetPromotionHandler(c fiber.Ctx) error
+	UpdatePromotionHandler(c fiber.Ctx) error
+	DeletePromotionHandler(c fiber.Ctx) error
+	ListPromotionsHandler(c fiber.Ctx) error
+	RestorePromotionHandler(c fiber.Ctx) error
 }
 
 type PromotionHandler struct {
@@ -45,9 +45,9 @@ func NewPromotionHandler(service IPromotionService, log logger.ILogger, validate
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager"]
 // @Router /promotions [post]
-func (h *PromotionHandler) CreatePromotionHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) CreatePromotionHandler(c fiber.Ctx) error {
 	var req dto.CreatePromotionRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("Cannot parse create promotion request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -57,7 +57,7 @@ func (h *PromotionHandler) CreatePromotionHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	promo, err := h.service.CreatePromotion(c.Context(), req)
+	promo, err := h.service.CreatePromotion(c.RequestCtx(), req)
 	if err != nil {
 		h.log.Errorf("Failed to create promotion", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to create promotion"})
@@ -82,7 +82,7 @@ func (h *PromotionHandler) CreatePromotionHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager"]
 // @Router /promotions/{id} [put]
-func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) UpdatePromotionHandler(c fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -90,7 +90,7 @@ func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
 	}
 
 	var req dto.UpdatePromotionRequest
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.Bind().Body(&req); err != nil {
 		h.log.Warnf("Cannot parse update promotion request body", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
@@ -100,7 +100,7 @@ func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Validation failed", Error: err.Error()})
 	}
 
-	promo, err := h.service.UpdatePromotion(c.Context(), id, req)
+	promo, err := h.service.UpdatePromotion(c.RequestCtx(), id, req)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Promotion not found"})
@@ -127,14 +127,14 @@ func (h *PromotionHandler) UpdatePromotionHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["cashier", "admin", "manager"]
 // @Router /promotions/{id} [get]
-func (h *PromotionHandler) GetPromotionHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) GetPromotionHandler(c fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid ID format"})
 	}
 
-	promo, err := h.service.GetPromotion(c.Context(), id)
+	promo, err := h.service.GetPromotion(c.RequestCtx(), id)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Promotion not found"})
@@ -160,14 +160,14 @@ func (h *PromotionHandler) GetPromotionHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager"]
 // @Router /promotions/{id} [delete]
-func (h *PromotionHandler) DeletePromotionHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) DeletePromotionHandler(c fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid ID format"})
 	}
 
-	err = h.service.DeletePromotion(c.Context(), id)
+	err = h.service.DeletePromotion(c.RequestCtx(), id)
 	if err != nil {
 		h.log.Errorf("Failed to delete promotion", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to delete promotion"})
@@ -191,14 +191,14 @@ func (h *PromotionHandler) DeletePromotionHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["cashier", "admin", "manager"]
 // @Router /promotions [get]
-func (h *PromotionHandler) ListPromotionsHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) ListPromotionsHandler(c fiber.Ctx) error {
 	var req dto.ListPromotionsRequest
-	if err := c.QueryParser(&req); err != nil {
+	if err := c.Bind().Query(&req); err != nil {
 		h.log.Warnf("Cannot parse list promotions query", "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid query parameters"})
 	}
 
-	resp, err := h.service.ListPromotions(c.Context(), req)
+	resp, err := h.service.ListPromotions(c.RequestCtx(), req)
 	if err != nil {
 		h.log.Errorf("Failed to list promotions", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to list promotions"})
@@ -221,14 +221,14 @@ func (h *PromotionHandler) ListPromotionsHandler(c *fiber.Ctx) error {
 // @Failure 500 {object} common.ErrorResponse
 // @x-roles ["admin", "manager"]
 // @Router /promotions/{id}/restore [post]
-func (h *PromotionHandler) RestorePromotionHandler(c *fiber.Ctx) error {
+func (h *PromotionHandler) RestorePromotionHandler(c fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid ID format"})
 	}
 
-	err = h.service.RestorePromotion(c.Context(), id)
+	err = h.service.RestorePromotion(c.RequestCtx(), id)
 	if err != nil {
 		h.log.Errorf("Failed to restore promotion", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to restore promotion"})
@@ -238,3 +238,5 @@ func (h *PromotionHandler) RestorePromotionHandler(c *fiber.Ctx) error {
 		Message: "Promotion restored successfully",
 	})
 }
+
+// fiber:context-methods migrated

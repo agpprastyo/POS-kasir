@@ -7,14 +7,14 @@ import (
 	"POS-kasir/pkg/utils"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // JWTAuthMiddleware validates access token from cookie and sets locals.
 // require = true -> if token missing/invalid return 401
 // require = false -> if token missing/invalid continue (useful for routes that optionally accept login)
 func JWTAuthMiddleware(tokenManager utils.Manager, cfg *config.AppConfig, log logger.ILogger, require bool) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		token := c.Cookies("access_token", "")
 		if token == "" {
 			if require {
@@ -52,7 +52,7 @@ func JWTAuthMiddleware(tokenManager utils.Manager, cfg *config.AppConfig, log lo
 		c.Locals("user_id", claims.UserID)
 
 		// also set user value in context (if you use that)
-		c.Context().SetUserValue(common.UserIDKey, claims.UserID)
+		c.RequestCtx().SetUserValue(common.UserIDKey, claims.UserID)
 
 		// optional: refresh token expiration if you want sliding sessions (careful!)
 		// if time.Until(claims.ExpiresAt) < 2*time.Minute { ... }
@@ -60,3 +60,5 @@ func JWTAuthMiddleware(tokenManager utils.Manager, cfg *config.AppConfig, log lo
 		return c.Next()
 	}
 }
+
+// fiber:context-methods migrated

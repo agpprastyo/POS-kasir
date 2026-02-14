@@ -1,8 +1,8 @@
-package cancellation_reasons
+package cancellation_reasons_test
 
 import (
+	"POS-kasir/internal/cancellation_reasons"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/mocks"
 	"encoding/json"
 	"errors"
@@ -16,21 +16,21 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockICancellationReasonService, *mocks.MockFieldLogger, ICancellationReasonHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockICancellationReasonService, *mocks.MockFieldLogger, *cancellation_reasons.CancellationReasonHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockICancellationReasonService(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	handler := NewCancellationReasonHandler(mockService, mockLogger)
+	handler := cancellation_reasons.NewCancellationReasonHandler(mockService, mockLogger).(*cancellation_reasons.CancellationReasonHandler)
 	app := fiber.New()
 	return mockService, mockLogger, handler, app
 }
 
-func TestCancellationReasonHandler_ListCancellationReasonsHandler(t *testing.T) {
+func TestCancellationReasonHandler_GetActivityLogs(t *testing.T) {
 	mockService, mockLogger, handler, app := setupHandlerTest(t)
 	app.Get("/cancellation-reasons", handler.ListCancellationReasonsHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		reasons := []dto.CancellationReasonResponse{
+		reasons := []cancellation_reasons.CancellationReasonResponse{
 			{ID: 1, Reason: "Reason 1", IsActive: true, CreatedAt: time.Now()},
 		}
 		mockService.EXPECT().ListCancellationReasons(gomock.Any()).Return(reasons, nil)

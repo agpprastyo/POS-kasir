@@ -2,33 +2,34 @@ package categories
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/validator"
 	"errors"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type ICtgHandler interface {
 	GetAllCategoriesHandler(c *fiber.Ctx) error
-	GetCategoryCountHandler(c *fiber.Ctx) error
 	CreateCategoryHandler(c *fiber.Ctx) error
 	GetCategoryByIDHandler(c *fiber.Ctx) error
 	UpdateCategoryHandler(c *fiber.Ctx) error
 	DeleteCategoryHandler(c *fiber.Ctx) error
+	GetCategoryCountHandler(c *fiber.Ctx) error
 }
 
-func NewCtgHandler(service ICtgService, log logger.ILogger) ICtgHandler {
+func NewCtgHandler(service ICtgService, log logger.ILogger, validator validator.Validator) ICtgHandler {
 	return &CtgHandler{
-		service: service,
-		log:     log,
+		service:   service,
+		log:       log,
+		validator: validator,
 	}
 }
 
 type CtgHandler struct {
-	service ICtgService
-	log     logger.ILogger
+	service   ICtgService
+	log       logger.ILogger
+	validator validator.Validator
 }
 
 // DeleteCategoryHandler
@@ -47,11 +48,9 @@ type CtgHandler struct {
 // @Router /categories/{id} [delete]
 func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	idStr := c.Params("id")
-
-	categoryID, err := strconv.Atoi(idStr)
+	categoryID, err := c.ParamsInt("id")
 	if err != nil {
-		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", idStr)
+		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
@@ -88,7 +87,7 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Category ID"
-// @Param category body dto.CreateCategoryRequest true "Category details"
+// @Param category body CreateCategoryRequest true "Category details"
 // @Success 200 {object} common.SuccessResponse "Category deleted successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 404 {object} common.ErrorResponse "Category not found"
@@ -98,14 +97,7 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 // @Router /categories/{id} [put]
 func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category ID is required",
-		})
-	}
-
-	categoryID, err := strconv.Atoi(id)
+	id, err := c.ParamsInt("id")
 	if err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Invalid category ID format: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -113,7 +105,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	req := new(dto.CreateCategoryRequest)
+	req := new(CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -121,13 +113,11 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if req.Name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category name is required",
-		})
+	if ok, err := common.ValidateAndRespond(c, h.validator, h.log, req); ok {
+		return err
 	}
 
-	category, err := h.service.UpdateCategory(ctx, int32(categoryID), *req)
+	category, err := h.service.UpdateCategory(ctx, int32(id), *req)
 	if err != nil {
 		switch {
 		case errors.Is(err, common.ErrCategoryNotFound):
@@ -159,7 +149,7 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path int true "Category ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=CategoryResponse} "Category retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
 // @Failure 404 {object} common.ErrorResponse "Category not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve category"
@@ -167,16 +157,9 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 // @Router /categories/{id} [get]
 func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category ID is required",
-		})
-	}
-
-	categoryID, err := strconv.Atoi(id)
+	categoryID, err := c.ParamsInt("id")
 	if err != nil {
-		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", id)
+		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
@@ -208,8 +191,8 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 // @Tags Categories
 // @Accept json
 // @Produce json
-// @Param category body dto.CreateCategoryRequest true "Category details"
-// @Success 201 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category created successfully"
+// @Param category body CreateCategoryRequest true "Category details"
+// @Success 201 {object} common.SuccessResponse{data=CategoryResponse} "Category created successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
 // @Failure 500 {object} common.ErrorResponse "Failed to create category"
@@ -217,7 +200,7 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 // @Router /categories [post]
 func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(dto.CreateCategoryRequest)
+	req := new(CreateCategoryRequest)
 	if err := c.BodyParser(req); err != nil {
 		h.log.Warnf("CreateCategoryHandler | Failed to parse request body: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -225,10 +208,8 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if req.Name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category name is required",
-		})
+	if ok, err := common.ValidateAndRespond(c, h.validator, h.log, req); ok {
+		return err
 	}
 
 	category, err := h.service.CreateCategory(ctx, *req)
@@ -260,18 +241,22 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 // @Produce json
 // @Param limit query int false "Number of categories to return"
 // @Param offset query int false "Offset for pagination"
-// @Success 200 {object} common.SuccessResponse{data=[]dto.CategoryWithCountResponse} "Categories retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=[]CategoryWithCountResponse} "Categories retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve categories"
 // @Router /categories [get]
 func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 	ctx := c.Context()
-	req := new(dto.ListCategoryRequest)
+	req := new(ListCategoryRequest)
 	if err := c.QueryParser(req); err != nil {
 		h.log.Warnf("GetAllCategoriesHandler | Failed to parse query parameters: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
 		})
+	}
+
+	if ok, err := common.ValidateAndRespond(c, h.validator, h.log, req); ok {
+		return err
 	}
 
 	categories, err := h.service.GetAllCategories(ctx, *req)
@@ -306,7 +291,7 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 // @Tags Categories
 // @Accept json
 // @Produce json
-// @Success 200 {object} common.SuccessResponse{data=int} "Category count retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=[]CategoryWithCountResponse} "Category count retrieved successfully"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve category count"
 // @Router /categories/count [get]
 func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {

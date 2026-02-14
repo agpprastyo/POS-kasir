@@ -2,7 +2,6 @@ package products
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"bytes"
@@ -56,7 +55,7 @@ type PrdHandler struct {
 // @Produce json
 // @Param product_id path string true "Product ID"
 // @Param option_id path string true "Option ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductOptionResponse} "Product option deleted successfully"
+// @Success 200 {object} common.SuccessResponse{data=ProductOptionResponse} "Product option deleted successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to delete product option"
@@ -100,8 +99,8 @@ func (h *PrdHandler) DeleteProductOptionHandler(ctx *fiber.Ctx) error {
 // @Produce json
 // @Param product_id path string true "Product ID"
 // @Param option_id path string true "Option ID"
-// @Param body body dto.UpdateProductOptionRequest true "Product option update request"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductOptionResponse} "Product option updated successfully"
+// @Param body body UpdateProductOptionRequest true "Product option update request"
+// @Success 200 {object} common.SuccessResponse{data=ProductOptionResponse} "Product option updated successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to update product option"
@@ -122,7 +121,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid option ID format"})
 	}
 
-	var req dto.UpdateProductOptionRequest
+	var req UpdateProductOptionRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse product option update request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -160,7 +159,7 @@ func (h *PrdHandler) UpdateProductOptionHandler(ctx *fiber.Ctx) error {
 // @Param product_id path string true "Product ID"
 // @Param option_id  path string true "Option ID"
 // @Param image formData file true "Product image"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductOptionResponse} "Product option image uploaded successfully"
+// @Success 200 {object} common.SuccessResponse{data=ProductOptionResponse} "Product option image uploaded successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid ID format or missing file"
 // @Failure 404 {object} common.ErrorResponse "Product or option not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to upload product image"
@@ -227,8 +226,8 @@ func (h *PrdHandler) UploadProductOptionImageHandler(ctx *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param product_id path string true "Product ID"
-// @Param body body dto.CreateProductOptionRequestStandalone true "Product option create request"
-// @Success 201 {object} common.SuccessResponse{data=dto.ProductOptionResponse} "Product option created successfully"
+// @Param body body CreateProductOptionRequestStandalone true "Product option create request"
+// @Success 201 {object} common.SuccessResponse{data=ProductOptionResponse} "Product option created successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Parent product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to create product option"
@@ -243,7 +242,7 @@ func (h *PrdHandler) CreateProductOptionHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	var req dto.CreateProductOptionRequestStandalone
+	var req CreateProductOptionRequestStandalone
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse product option request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -315,8 +314,8 @@ func (h *PrdHandler) DeleteProductHandler(ctx *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID"
-// @Param body body dto.UpdateProductRequest true "Product update request"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductResponse} "Product updated successfully"
+// @Param body body UpdateProductRequest true "Product update request"
+// @Success 200 {object} common.SuccessResponse{data=ProductResponse} "Product updated successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to update product"
@@ -331,7 +330,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	var req dto.UpdateProductRequest
+	var req UpdateProductRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse request body for update", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
@@ -370,7 +369,7 @@ func (h *PrdHandler) UpdateProductHandler(ctx *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductResponse} "Product retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=ProductResponse} "Product retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve product"
@@ -409,12 +408,12 @@ func (h *PrdHandler) GetProductHandler(ctx *fiber.Ctx) error {
 // @Param limit query int false "Limit the number of products returned"
 // @Param search query string false "Search products by name"
 // @Param category_id query int false "Search products by category ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.ListProductsResponse} "Products retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=ListProductsResponse} "Products retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve products"
 // @Router /products [get]
 func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
-	var req dto.ListProductsRequest
+	var req ListProductsRequest
 	if err := ctx.QueryParser(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -454,15 +453,15 @@ func (h *PrdHandler) ListProductsHandler(ctx *fiber.Ctx) error {
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param body body dto.CreateProductRequest true "Product create request"
-// @Success 201 {object} common.SuccessResponse{data=dto.ProductResponse} "Product created successfully"
+// @Param body body CreateProductRequest true "Product create request"
+// @Success 201 {object} common.SuccessResponse{data=ProductResponse} "Product created successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 409 {object} common.ErrorResponse "Product with same name already exists"
 // @Failure 500 {object} common.ErrorResponse "Failed to create product"
 // @x-roles ["admin", "manager"]
 // @Router /products [post]
 func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
-	var req dto.CreateProductRequest
+	var req CreateProductRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -500,7 +499,7 @@ func (h *PrdHandler) CreateProductHandler(ctx *fiber.Ctx) error {
 // @Produce json
 // @Param id path string true "Product ID"
 // @Param image formData file true "Image file"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductResponse} "Product image uploaded successfully"
+// @Success 200 {object} common.SuccessResponse{data=ProductResponse} "Product image uploaded successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format or image file is missing"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to upload image"
@@ -568,13 +567,13 @@ func (h *PrdHandler) UploadProductImageHandler(ctx *fiber.Ctx) error {
 // @Param limit query int false "Limit the number of products returned"
 // @Param search query string false "Search products by name"
 // @Param category_id query int false "Search products by category ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.ListProductsResponse} "Deleted products retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=ListProductsResponse} "Deleted products retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted products"
 // @x-roles ["admin"]
 // @Router /products/trash [get]
 func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
-	var req dto.ListProductsRequest
+	var req ListProductsRequest
 	if err := ctx.QueryParser(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -611,7 +610,7 @@ func (h *PrdHandler) ListDeletedProductsHandler(ctx *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Product ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.ProductResponse} "Deleted product retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=ProductResponse} "Deleted product retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID format"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve deleted product"
@@ -681,14 +680,14 @@ func (h *PrdHandler) RestoreProductHandler(ctx *fiber.Ctx) error {
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param body body dto.RestoreBulkRequest true "Bulk restore request"
+// @Param body body RestoreBulkRequest true "Bulk restore request"
 // @Success 200 {object} common.SuccessResponse "Products restored successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid request body"
 // @Failure 500 {object} common.ErrorResponse "Failed to restore products"
 // @x-roles ["admin"]
 // @Router /products/trash/restore-bulk [post]
 func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
-	var req dto.RestoreBulkRequest
+	var req RestoreBulkRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		h.log.Warn("Cannot parse request body", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
@@ -726,7 +725,7 @@ func (h *PrdHandler) RestoreProductsBulkHandler(ctx *fiber.Ctx) error {
 // @Param id path string true "Product ID"
 // @Param page query int false "Page number"
 // @Param limit query int false "Limit"
-// @Success 200 {object} common.SuccessResponse{data=dto.PagedStockHistoryResponse} "Stock history retrieved successfully"
+// @Success 200 {object} common.SuccessResponse{data=PagedStockHistoryResponse} "Stock history retrieved successfully"
 // @Failure 400 {object} common.ErrorResponse "Invalid product ID or query parameters"
 // @Failure 404 {object} common.ErrorResponse "Product not found"
 // @Failure 500 {object} common.ErrorResponse "Failed to retrieve stock history"
@@ -740,7 +739,7 @@ func (h *PrdHandler) GetStockHistoryHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid product ID format"})
 	}
 
-	var req dto.ListStockHistoryRequest
+	var req ListStockHistoryRequest
 	if err := ctx.QueryParser(&req); err != nil {
 		h.log.Warn("Cannot parse query parameters", "error", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{

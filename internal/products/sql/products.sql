@@ -232,3 +232,5 @@ UPDATE products
 SET deleted_at = NULL
 WHERE id = ANY($1::uuid[]);
 
+-- name: CheckCategoryExists :one
+SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1);

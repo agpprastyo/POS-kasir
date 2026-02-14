@@ -1,14 +1,16 @@
 package seeder
 
 import (
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/cancellation_reasons/repository"
+	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v5"
 )
 
-func SeedCancellationReasons(ctx context.Context, q repository.Querier, log logger.ILogger) error {
+func SeedCancellationReasons(ctx context.Context, q cancellation_reasons_repo.Querier, log logger.ILogger) error {
 	log.Info("Seeding cancellation reasons...")
 
 	defaultReasons := []struct {

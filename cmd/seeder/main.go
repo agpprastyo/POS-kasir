@@ -2,6 +2,8 @@ package main
 
 import (
 	"POS-kasir/config"
+	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
+	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/database/seeder"
@@ -37,8 +39,10 @@ func main() {
 	}
 
 	queries := repository.New(db.GetPool())
+	catRepo := categories_repo.New(db.GetPool())
+	cancelRepo := cancellation_reasons_repo.New(db.GetPool())
 
-	if err := seeder.RunSeeders(ctx, queries, logr); err != nil {
+	if err := seeder.RunSeeders(ctx, queries, catRepo, cancelRepo, logr); err != nil {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 

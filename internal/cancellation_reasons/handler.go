@@ -2,7 +2,6 @@ package cancellation_reasons
 
 import (
 	"POS-kasir/internal/common"
-	_ "POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,7 +23,7 @@ func NewCancellationReasonHandler(service ICancellationReasonService, log logger
 // ListCancellationReasonsHandler
 // @Summary List cancellation reasons
 // @Tags Cancellation Reasons
-// @Success 200 {object} common.SuccessResponse{data=[]dto.CancellationReasonResponse} "List of cancellation reasons"
+// @Success 200 {object} common.SuccessResponse{data=[]CancellationReasonResponse} "List of cancellation reasons"
 // @Failure 500 {object} common.ErrorResponse
 // @Router /cancellation-reasons [get]
 func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c *fiber.Ctx) error {

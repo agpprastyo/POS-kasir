@@ -1,4 +1,4 @@
-package dto
+package activitylog
 
 import (
 	"POS-kasir/internal/repository"
@@ -8,14 +8,14 @@ import (
 )
 
 type GetActivityLogsRequest struct {
-	Page       int                      `query:"page" validate:"min=1"`
-	Limit      int                      `query:"limit" validate:"min=1,max=100"`
-	Search     string                   `query:"search"`
-	StartDate  string                   `query:"start_date"`
-	EndDate    string                   `query:"end_date"`
-	UserID     string                   `query:"user_id"`
-	EntityType repository.LogEntityType `query:"entity_type"`
-	ActionType repository.LogActionType `query:"action_type"`
+	Page       int                      `query:"page" validate:"omitempty,min=1"`
+	Limit      int                      `query:"limit" validate:"omitempty,min=1,max=100"`
+	Search     string                   `query:"search" validate:"omitempty"`
+	StartDate  string                   `query:"start_date" validate:"omitempty,datetime=2006-01-02"`
+	EndDate    string                   `query:"end_date" validate:"omitempty,datetime=2006-01-02"`
+	UserID     string                   `query:"user_id" validate:"omitempty,uuid"`
+	EntityType repository.LogEntityType `query:"entity_type" validate:"omitempty,oneof=PRODUCT CATEGORY PROMOTION ORDER USER"`
+	ActionType repository.LogActionType `query:"action_type" validate:"omitempty,oneof=CREATE UPDATE DELETE CANCEL APPLY_PROMOTION PROCESS_PAYMENT REGISTER UPDATE_PASSWORD UPDATE_AVATAR LOGIN_SUCCESS LOGIN_FAILED"`
 }
 
 type ActivityLogResponse struct {

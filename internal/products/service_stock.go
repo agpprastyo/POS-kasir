@@ -3,8 +3,7 @@ package products
 import (
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/pagination"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	products_repo "POS-kasir/internal/products/repository"
 	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
@@ -14,8 +13,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (s *PrdService) GetStockHistory(ctx context.Context, productID uuid.UUID, req dto.ListStockHistoryRequest) (*dto.PagedStockHistoryResponse, error) {
-	_, err := s.store.GetProductByID(ctx, productID)
+func (s *PrdService) GetStockHistory(ctx context.Context, productID uuid.UUID, req ListStockHistoryRequest) (*PagedStockHistoryResponse, error) {
+	_, err := s.repo.GetProductByID(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, common.ErrNotFound
@@ -33,25 +32,25 @@ func (s *PrdService) GetStockHistory(ctx context.Context, productID uuid.UUID, r
 	}
 	offset := (page - 1) * limit
 
-	params := repository.GetStockHistoryByProductWithPaginationParams{
+	params := products_repo.GetStockHistoryByProductWithPaginationParams{
 		ProductID: productID,
 		Limit:     int32(limit),
 		Offset:    int32(offset),
 	}
 
-	history, err := s.store.GetStockHistoryByProductWithPagination(ctx, params)
+	history, err := s.repo.GetStockHistoryByProductWithPagination(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch stock history: %w", err)
 	}
 
-	count, err := s.store.CountStockHistoryByProduct(ctx, productID)
+	count, err := s.repo.CountStockHistoryByProduct(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count stock history: %w", err)
 	}
 
-	var historyResponses []dto.StockHistoryResponse
+	var historyResponses []StockHistoryResponse
 	for _, h := range history {
-		historyResponses = append(historyResponses, dto.StockHistoryResponse{
+		historyResponses = append(historyResponses, StockHistoryResponse{
 			ID:            h.ID,
 			ProductID:     h.ProductID,
 			ChangeAmount:  h.ChangeAmount,
@@ -65,7 +64,7 @@ func (s *PrdService) GetStockHistory(ctx context.Context, productID uuid.UUID, r
 		})
 	}
 
-	return &dto.PagedStockHistoryResponse{
+	return &PagedStockHistoryResponse{
 		History: historyResponses,
 		Pagination: pagination.BuildPagination(
 			page,

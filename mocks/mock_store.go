@@ -146,21 +146,6 @@ func (mr *MockStoreMockRecorder) CountActiveUsers(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountActiveUsers", reflect.TypeOf((*MockStore)(nil).CountActiveUsers), ctx)
 }
 
-// CountActivityLogs mocks base method.
-func (m *MockStore) CountActivityLogs(ctx context.Context, arg repository.CountActivityLogsParams) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountActivityLogs", ctx, arg)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CountActivityLogs indicates an expected call of CountActivityLogs.
-func (mr *MockStoreMockRecorder) CountActivityLogs(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountActivityLogs", reflect.TypeOf((*MockStore)(nil).CountActivityLogs), ctx, arg)
-}
-
 // CountCategories mocks base method.
 func (m *MockStore) CountCategories(ctx context.Context) (int64, error) {
 	m.ctrl.T.Helper()
@@ -309,21 +294,6 @@ func (m *MockStore) CountUsers(ctx context.Context, arg repository.CountUsersPar
 func (mr *MockStoreMockRecorder) CountUsers(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountUsers", reflect.TypeOf((*MockStore)(nil).CountUsers), ctx, arg)
-}
-
-// CreateActivityLog mocks base method.
-func (m *MockStore) CreateActivityLog(ctx context.Context, arg repository.CreateActivityLogParams) (uuid.UUID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateActivityLog", ctx, arg)
-	ret0, _ := ret[0].(uuid.UUID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateActivityLog indicates an expected call of CreateActivityLog.
-func (mr *MockStoreMockRecorder) CreateActivityLog(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActivityLog", reflect.TypeOf((*MockStore)(nil).CreateActivityLog), ctx, arg)
 }
 
 // CreateCancellationReason mocks base method.
@@ -749,21 +719,6 @@ func (m *MockStore) GetActivePromotionByID(ctx context.Context, id uuid.UUID) (r
 func (mr *MockStoreMockRecorder) GetActivePromotionByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivePromotionByID", reflect.TypeOf((*MockStore)(nil).GetActivePromotionByID), ctx, id)
-}
-
-// GetActivityLogs mocks base method.
-func (m *MockStore) GetActivityLogs(ctx context.Context, arg repository.GetActivityLogsParams) ([]repository.GetActivityLogsRow, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActivityLogs", ctx, arg)
-	ret0, _ := ret[0].([]repository.GetActivityLogsRow)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetActivityLogs indicates an expected call of GetActivityLogs.
-func (mr *MockStoreMockRecorder) GetActivityLogs(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivityLogs", reflect.TypeOf((*MockStore)(nil).GetActivityLogs), ctx, arg)
 }
 
 // GetCancellationReasonByReason mocks base method.

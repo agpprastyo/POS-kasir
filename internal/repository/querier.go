@@ -25,28 +25,15 @@ type Querier interface {
 	CheckUserExistence(ctx context.Context, arg CheckUserExistenceParams) (CheckUserExistenceRow, error)
 	// Hanya menghitung pengguna yang aktif dan belum dihapus.
 	CountActiveUsers(ctx context.Context) (int64, error)
-	CountActivityLogs(ctx context.Context, arg CountActivityLogsParams) (int64, error)
-	// Menghitung total jumlah kategori, berguna untuk pagination.
-	CountCategories(ctx context.Context) (int64, error)
-	CountDeletedProducts(ctx context.Context, arg CountDeletedProductsParams) (int64, error)
 	// Hanya menghitung pengguna yang tidak aktif dan belum dihapus.
 	CountInactiveUsers(ctx context.Context) (int64, error)
 	// Menghitung total pesanan dengan filter.
 	CountOrders(ctx context.Context, arg CountOrdersParams) (int64, error)
-	// Counts total products for pagination, respecting filters.
-	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)
-	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
 	CountPromotions(ctx context.Context) (int64, error)
-	CountStockHistoryByProduct(ctx context.Context, productID uuid.UUID) (int64, error)
 	CountTrashPromotions(ctx context.Context) (int64, error)
 	// Menghitung pengguna dengan filter status.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
-	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (uuid.UUID, error)
-	// Membuat alasan pembatalan baru.
-	CreateCancellationReason(ctx context.Context, arg CreateCancellationReasonParams) (CancellationReason, error)
 	CreateCashTransaction(ctx context.Context, arg CreateCashTransactionParams) (CashTransaction, error)
-	// Membuat kategori baru dan mengembalikan data lengkapnya.
-	CreateCategory(ctx context.Context, name string) (Category, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	// Menambahkan satu item produk ke dalam pesanan.
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
@@ -54,51 +41,31 @@ type Querier interface {
 	CreateOrderItemOption(ctx context.Context, arg CreateOrderItemOptionParams) (OrderItemOption, error)
 	// Membuat metode pembayaran baru.
 	CreatePaymentMethod(ctx context.Context, name string) (PaymentMethod, error)
-	// Queries for Products
-	// Creates a new product and returns its full details.
-	// Product options should be created separately in a transaction.
-	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
-	// Queries for Product Options (Variants)
-	// Creates a new option for a specific product.
-	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
 	CreatePromotion(ctx context.Context, arg CreatePromotionParams) (Promotion, error)
 	CreatePromotionRule(ctx context.Context, arg CreatePromotionRuleParams) (PromotionRule, error)
 	CreatePromotionTarget(ctx context.Context, arg CreatePromotionTargetParams) (PromotionTarget, error)
 	CreateShift(ctx context.Context, arg CreateShiftParams) (Shift, error)
-	CreateStockHistory(ctx context.Context, arg CreateStockHistoryParams) (StockHistory, error)
 	// Tidak ada perubahan, deleted_at akan NULL secara default.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Mengurangi stok produk.
 	DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error)
-	// Menghapus satu kategori berdasarkan ID.
-	DeleteCategory(ctx context.Context, id int32) error
 	// Menghapus satu item dari pesanan.
 	DeleteOrderItem(ctx context.Context, arg DeleteOrderItemParams) error
 	DeleteOrderItemOptionsByOrderItemID(ctx context.Context, orderItemID uuid.UUID) error
 	DeleteOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) error
-	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
-	DeleteProduct(ctx context.Context, id uuid.UUID) error
 	DeletePromotion(ctx context.Context, id uuid.UUID) error
 	DeletePromotionRulesByPromotionID(ctx context.Context, promotionID uuid.UUID) error
 	DeletePromotionTargetsByPromotionID(ctx context.Context, promotionID uuid.UUID) error
 	// Mengubah DELETE menjadi UPDATE untuk soft delete.
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	EndShift(ctx context.Context, arg EndShiftParams) (Shift, error)
-	// Memeriksa apakah kategori dengan ID tertentu ada.
-	ExistsCategory(ctx context.Context, id int32) (bool, error)
 	GetActivePromotionByID(ctx context.Context, id uuid.UUID) (Promotion, error)
-	GetActivityLogs(ctx context.Context, arg GetActivityLogsParams) ([]GetActivityLogsRow, error)
-	// Mengambil satu alasan pembatalan berdasarkan teks alasannya untuk pengecekan duplikat.
-	GetCancellationReasonByReason(ctx context.Context, reason string) (CancellationReason, error)
 	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)
 	GetCashTotalByShiftIDAndType(ctx context.Context, arg GetCashTotalByShiftIDAndTypeParams) (int64, error)
 	GetCashTransactionsByShiftID(ctx context.Context, shiftID uuid.UUID) ([]CashTransaction, error)
 	GetCashierPerformance(ctx context.Context, arg GetCashierPerformanceParams) ([]GetCashierPerformanceRow, error)
-	// Mengambil satu kategori berdasarkan ID.
-	GetCategory(ctx context.Context, id int32) (Category, error)
 	GetCategorySales(ctx context.Context, arg GetCategorySalesParams) ([]GetCategorySalesRow, error)
 	GetDashboardSummary(ctx context.Context) (GetDashboardSummaryRow, error)
-	GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDeletedProductRow, error)
 	GetOpenShiftByUserID(ctx context.Context, userID uuid.UUID) (Shift, error)
 	// Mengambil semua varian untuk beberapa produk.
 	GetOptionsForProducts(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error)
@@ -116,19 +83,9 @@ type Querier interface {
 	// Mengambil satu metode pembayaran berdasarkan nama untuk pengecekan duplikat.
 	GetPaymentMethodByName(ctx context.Context, name string) (PaymentMethod, error)
 	GetPaymentMethodSales(ctx context.Context, arg GetPaymentMethodSalesParams) ([]GetPaymentMethodSalesRow, error)
-	// Retrieves a product by its ID, including its options.
-	GetProductByID(ctx context.Context, id uuid.UUID) (GetProductByIDRow, error)
-	// Mengambil satu varian produk berdasarkan ID dan ID produk induknya.
-	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
-	// Retrieves a product option by its ID, including its product details.
-	GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error)
 	GetProductOptionsByIDs(ctx context.Context, ids []uuid.UUID) ([]ProductOption, error)
 	GetProductProfitReports(ctx context.Context, arg GetProductProfitReportsParams) ([]GetProductProfitReportsRow, error)
 	GetProductSalesPerformance(ctx context.Context, arg GetProductSalesPerformanceParams) ([]GetProductSalesPerformanceRow, error)
-	// Retrieves a single product and aggregates its options into a JSON array.
-	// This is an efficient way to fetch a product and its variants in one query.
-	// Now filters out soft-deleted options.
-	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
 	// Mengambil beberapa produk berdasarkan array ID. Ini untuk menghindari N+1 query.
 	GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
 	// Mengambil produk sekaligus mengunci barisnya (Row-Level Locking).
@@ -145,43 +102,22 @@ type Querier interface {
 	GetSettingByKey(ctx context.Context, key string) (Setting, error)
 	GetSettings(ctx context.Context) ([]Setting, error)
 	GetShiftByID(ctx context.Context, id uuid.UUID) (Shift, error)
-	GetStockHistoryByProduct(ctx context.Context, productID uuid.UUID) ([]StockHistory, error)
-	GetStockHistoryByProductWithPagination(ctx context.Context, arg GetStockHistoryByProductWithPaginationParams) ([]StockHistory, error)
 	// Mengambil satu pengguna berdasarkan email, hanya jika pengguna tersebut aktif.
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	// Mengambil satu pengguna berdasarkan ID, hanya jika pengguna tersebut aktif.
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	// Mengambil satu pengguna berdasarkan username, hanya jika pengguna tersebut aktif.
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	// Mengambil daftar semua alasan pembatalan yang aktif.
-	ListCancellationReasons(ctx context.Context) ([]CancellationReason, error)
-	// Mengambil daftar semua kategori dengan pagination.
-	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
-	// Mengambil daftar kategori beserta jumlah produk yang ada di setiap kategori.
-	ListCategoriesWithProducts(ctx context.Context, arg ListCategoriesWithProductsParams) ([]ListCategoriesWithProductsRow, error)
-	ListDeletedProducts(ctx context.Context, arg ListDeletedProductsParams) ([]ListDeletedProductsRow, error)
-	// Retrieves all options for a single product.
-	ListOptionsForProduct(ctx context.Context, productID uuid.UUID) ([]ProductOption, error)
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListOrdersRow, error)
 	// Mengambil daftar semua metode pembayaran yang aktif.
 	ListPaymentMethods(ctx context.Context) ([]PaymentMethod, error)
-	// Lists products with filtering and pagination.
-	// Does not include variants for performance reasons on a list view.
-	ListProducts(ctx context.Context, arg ListProductsParams) ([]ListProductsRow, error)
 	ListPromotions(ctx context.Context, arg ListPromotionsParams) ([]Promotion, error)
 	ListTrashPromotions(ctx context.Context, arg ListTrashPromotionsParams) ([]Promotion, error)
 	// Mengambil daftar pengguna dengan filter, pagination, dan status (aktif/dihapus/semua).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
-	RestoreProduct(ctx context.Context, id uuid.UUID) error
-	RestoreProductsBulk(ctx context.Context, dollar_1 []uuid.UUID) error
 	RestorePromotion(ctx context.Context, id uuid.UUID) error
-	SoftDeleteProduct(ctx context.Context, id uuid.UUID) error
-	// Deletes a single product option.
-	SoftDeleteProductOption(ctx context.Context, id uuid.UUID) error
 	// Hanya bisa mengubah status pengguna yang belum dihapus.
 	ToggleUserActiveStatus(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
-	// Memperbarui nama kategori dan mengembalikan data yang sudah diperbarui.
-	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateOrderAppliedPromotion(ctx context.Context, arg UpdateOrderAppliedPromotionParams) error
 	// Update qty dan subtotal. Penting: Tambahkan validasi stok/constraint di level aplikasi
 	// atau pastikan trigger handle pengurangan stok jika qty bertambah.
@@ -200,10 +136,6 @@ type Querier interface {
 	UpdateOrderStatusByGatewayRef(ctx context.Context, arg UpdateOrderStatusByGatewayRefParams) (Order, error)
 	// Memperbarui total harga, diskon, dan total bersih dari sebuah pesanan.
 	UpdateOrderTotals(ctx context.Context, arg UpdateOrderTotalsParams) (Order, error)
-	// Updates a product's details. Use COALESCE for optional fields.
-	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
-	// Updates a specific product option.
-	UpdateProductOption(ctx context.Context, arg UpdateProductOptionParams) (ProductOption, error)
 	UpdatePromotion(ctx context.Context, arg UpdatePromotionParams) (Promotion, error)
 	// Memperbarui refresh token pengguna (Single Session Enforcement).
 	UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) error

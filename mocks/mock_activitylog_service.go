@@ -10,7 +10,7 @@
 package mocks
 
 import (
-	dto "POS-kasir/internal/dto"
+	activitylog "POS-kasir/internal/activitylog"
 	repository "POS-kasir/internal/repository"
 	context "context"
 	reflect "reflect"
@@ -44,10 +44,10 @@ func (m *MockIActivityService) EXPECT() *MockIActivityServiceMockRecorder {
 }
 
 // GetActivityLogs mocks base method.
-func (m *MockIActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivityLogsRequest) (*dto.ActivityLogListResponse, error) {
+func (m *MockIActivityService) GetActivityLogs(ctx context.Context, req activitylog.GetActivityLogsRequest) (*activitylog.ActivityLogListResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetActivityLogs", ctx, req)
-	ret0, _ := ret[0].(*dto.ActivityLogListResponse)
+	ret0, _ := ret[0].(*activitylog.ActivityLogListResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

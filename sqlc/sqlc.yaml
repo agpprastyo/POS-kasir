@@ -19,3 +19,86 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+
+## Activity Log | internal/activitylog/sql/activity_log.sql
+  - engine: "postgresql"
+    queries: "../internal/activitylog/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/activitylog/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Cancellation Reasons | internal/cancellation_reasons/sql/cancelation_reasons.sql
+  - engine: "postgresql"
+    queries: "../internal/cancellation_reasons/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/cancellation_reasons/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Categories | internal/categories/sql/categories.sql
+  - engine: "postgresql"
+    queries: "../internal/categories/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/categories/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+## Products | internal/products/sql/products.sql
+  - engine: "postgresql"
+    queries: "../internal/products/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/products/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"

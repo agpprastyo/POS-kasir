@@ -1,7 +1,8 @@
-package cancellation_reasons
+package cancellation_reasons_test
 
 import (
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/cancellation_reasons"
+	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/mocks"
 	"context"
 	"errors"
@@ -13,11 +14,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupServiceTest(t *testing.T) (*mocks.MockStore, *mocks.MockFieldLogger, ICancellationReasonService) {
+func setupServiceTest(t *testing.T) (*mocks.MockCancellationReasonRepository, *mocks.MockFieldLogger, cancellation_reasons.ICancellationReasonService) {
 	ctrl := gomock.NewController(t)
-	mockStore := mocks.NewMockStore(ctrl)
+	mockStore := mocks.NewMockCancellationReasonRepository(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	service := NewCancellationReasonService(mockStore, mockLogger)
+	service := cancellation_reasons.NewCancellationReasonService(mockStore, mockLogger)
 	return mockStore, mockLogger, service
 }
 
@@ -28,7 +29,7 @@ func TestCancellationReasonService_ListCancellationReasons(t *testing.T) {
 	desc := "Default descriptions"
 
 	t.Run("Success", func(t *testing.T) {
-		repoReasons := []repository.CancellationReason{
+		repoReasons := []cancellation_reasons_repo.CancellationReason{
 			{
 				ID:          1,
 				Reason:      "Reason 1",

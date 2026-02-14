@@ -2,7 +2,7 @@ package activitylog
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
+
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 
@@ -37,7 +37,7 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 // @Param        user_id query string false "User ID"
 // @Param        entity_type query string false "Entity Type"
 // @Param        action_type query string false "Action Type"
-// @Success      200  {object}  common.SuccessResponse{data=dto.ActivityLogListResponse}
+// @Success      200  {object}  common.SuccessResponse{data=ActivityLogListResponse}
 // @Failure      400  {object}  common.ErrorResponse
 // @Failure      500  {object}  common.ErrorResponse
 // @x-roles ["admin"]
@@ -45,12 +45,17 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
 	ctx := c.Context()
 
-	var req dto.GetActivityLogsRequest
+	var req GetActivityLogsRequest
 	if err := c.QueryParser(&req); err != nil {
+		h.log.Errorf("Handler | GetActivityLogs | %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse query parameters",
 			Error:   err.Error(),
 		})
+	}
+
+	if done, err := common.ValidateAndRespond(c, h.validator, h.log, &req); done {
+		return err
 	}
 
 	if req.Page < 1 {
@@ -58,10 +63,6 @@ func (h *ActivityLogHandler) GetActivityLogs(c *fiber.Ctx) error {
 	}
 	if req.Limit < 1 {
 		req.Limit = 10
-	}
-
-	if done, err := common.ValidateAndRespond(c, h.validator, h.log, &req); done {
-		return err
 	}
 
 	result, err := h.service.GetActivityLogs(ctx, req)

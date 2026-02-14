@@ -3,13 +3,17 @@ package server
 import (
 	"POS-kasir/config"
 	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/auth"
 	"POS-kasir/internal/cancellation_reasons"
+	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/internal/categories"
+	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/internal/orders"
 	"POS-kasir/internal/payment_methods"
 	"POS-kasir/internal/printer"
 	"POS-kasir/internal/products"
+	products_repo "POS-kasir/internal/products/repository"
 	"POS-kasir/internal/promotions"
 	"POS-kasir/internal/report"
 	"POS-kasir/internal/repository"
@@ -128,7 +132,8 @@ func InitApp() *App {
 
 func BuildAppContainer(app *App) *AppContainer {
 	// Activity Log IActivityService
-	activityService := activitylog.NewActivityService(app.Store, app.Logger)
+	activityLogRepo := activitylog_repo.New(app.DB.GetPool())
+	activityService := activitylog.NewActivityService(activityLogRepo, app.Logger)
 	activityLogHandler := activitylog.NewActivityLogHandler(activityService, app.Logger, app.Validator)
 
 	// Auth Module
@@ -141,12 +146,14 @@ func BuildAppContainer(app *App) *AppContainer {
 	userHandler := user.NewUsrHandler(userService, app.Logger, app.Validator)
 
 	// Category Module
-	categoryService := categories.NewCtgService(app.Store, app.Logger, activityService)
-	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
+	categoryRepo := categories_repo.New(app.DB.GetPool())
+	categoryService := categories.NewCtgService(categoryRepo, app.Logger, activityService)
+	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger, app.Validator)
 
 	// Product Module
 	prdRepo := products.NewPrdRepo(app.R2, app.Logger)
-	prdService := products.NewPrdService(app.Store, app.Logger, prdRepo, activityService)
+	productsRepo := products_repo.New(app.DB.GetPool())
+	prdService := products.NewPrdService(app.Store, productsRepo, app.Logger, prdRepo, activityService)
 	prdHandler := products.NewPrdHandler(prdService, app.Logger, app.Validator)
 
 	// Order & Payment Module
@@ -158,7 +165,8 @@ func BuildAppContainer(app *App) *AppContainer {
 	paymentMethodHandler := payment_methods.NewPaymentMethodHandler(paymentMethodService, app.Logger)
 
 	// Cancellation Reason Module
-	cancellationReasonService := cancellation_reasons.NewCancellationReasonService(app.Store, app.Logger)
+	cancellationRepo := cancellation_reasons_repo.New(app.DB.GetPool())
+	cancellationReasonService := cancellation_reasons.NewCancellationReasonService(cancellationRepo, app.Logger)
 	cancellationReasonHandler := cancellation_reasons.NewCancellationReasonHandler(cancellationReasonService, app.Logger)
 
 	// report module

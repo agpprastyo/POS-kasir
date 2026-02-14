@@ -1,8 +1,9 @@
-package categories
+package categories_test
 
 import (
+	"POS-kasir/internal/categories"
+	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/internal/repository"
 	"POS-kasir/mocks"
 	"context"
@@ -17,12 +18,12 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupTest(t *testing.T) (*mocks.MockStore, *mocks.MockFieldLogger, *mocks.MockIActivityService, ICtgService) {
+func setupTest(t *testing.T) (*mocks.MockCategoriesRepository, *mocks.MockFieldLogger, *mocks.MockIActivityService, categories.ICtgService) {
 	ctrl := gomock.NewController(t)
-	mockRepo := mocks.NewMockStore(ctrl)
+	mockRepo := mocks.NewMockCategoriesRepository(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
-	service := NewCtgService(mockRepo, mockLogger, mockActivity)
+	service := categories.NewCtgService(mockRepo, mockLogger, mockActivity)
 	return mockRepo, mockLogger, mockActivity, service
 }
 
@@ -32,14 +33,14 @@ func TestCtgService_GetAllCategories(t *testing.T) {
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
-		repoCategories := []repository.Category{
+		repoCategories := []categories_repo.Category{
 			{ID: 1, Name: "Food", CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}},
 			{ID: 2, Name: "Drink", CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}},
 		}
 
-		mockRepo.EXPECT().ListCategories(ctx, repository.ListCategoriesParams{Limit: 10, Offset: 0}).Return(repoCategories, nil)
+		mockRepo.EXPECT().ListCategories(ctx, categories_repo.ListCategoriesParams{Limit: 10, Offset: 0}).Return(repoCategories, nil)
 
-		resp, err := service.GetAllCategories(ctx, dto.ListCategoryRequest{})
+		resp, err := service.GetAllCategories(ctx, categories.ListCategoryRequest{})
 
 		assert.NoError(t, err)
 		assert.Len(t, resp, 2)
@@ -47,10 +48,10 @@ func TestCtgService_GetAllCategories(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockRepo.EXPECT().ListCategories(ctx, gomock.Any()).Return([]repository.Category{}, nil)
+		mockRepo.EXPECT().ListCategories(ctx, gomock.Any()).Return([]categories_repo.Category{}, nil)
 		mockLogger.EXPECT().Warnf(gomock.Any()).Times(1)
 
-		resp, err := service.GetAllCategories(ctx, dto.ListCategoryRequest{})
+		resp, err := service.GetAllCategories(ctx, categories.ListCategoryRequest{})
 
 		assert.ErrorIs(t, err, common.ErrCategoryNotFound)
 		assert.Nil(t, resp)
@@ -60,7 +61,7 @@ func TestCtgService_GetAllCategories(t *testing.T) {
 		mockRepo.EXPECT().ListCategories(ctx, gomock.Any()).Return(nil, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
-		resp, err := service.GetAllCategories(ctx, dto.ListCategoryRequest{})
+		resp, err := service.GetAllCategories(ctx, categories.ListCategoryRequest{})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -74,8 +75,8 @@ func TestCtgService_CreateCategory(t *testing.T) {
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
-		req := dto.CreateCategoryRequest{Name: "New Category"}
-		repoCategory := repository.Category{
+		req := categories.CreateCategoryRequest{Name: "New Category"}
+		repoCategory := categories_repo.Category{
 			ID:        1,
 			Name:      req.Name,
 			CreatedAt: pgtype.Timestamptz{Time: now, Valid: true},
@@ -92,10 +93,10 @@ func TestCtgService_CreateCategory(t *testing.T) {
 	})
 
 	t.Run("CreateError", func(t *testing.T) {
-		mockRepo.EXPECT().CreateCategory(ctx, gomock.Any()).Return(repository.Category{}, errors.New("db error"))
+		mockRepo.EXPECT().CreateCategory(ctx, gomock.Any()).Return(categories_repo.Category{}, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
-		resp, err := service.CreateCategory(ctx, dto.CreateCategoryRequest{Name: "Fail"})
+		resp, err := service.CreateCategory(ctx, categories.CreateCategoryRequest{Name: "Fail"})
 
 		assert.ErrorIs(t, err, common.ErrInternal)
 		assert.Nil(t, resp)
@@ -103,8 +104,8 @@ func TestCtgService_CreateCategory(t *testing.T) {
 
 	t.Run("CreateMissingActor", func(t *testing.T) {
 		ctxNoActor := context.Background()
-		req := dto.CreateCategoryRequest{Name: "No Actor"}
-		repoCategory := repository.Category{ID: 2, Name: req.Name}
+		req := categories.CreateCategoryRequest{Name: "No Actor"}
+		repoCategory := categories_repo.Category{ID: 2, Name: req.Name}
 
 		mockRepo.EXPECT().CreateCategory(ctxNoActor, req.Name).Return(repoCategory, nil)
 		mockLogger.EXPECT().Warnf(gomock.Any()).Times(1)
@@ -123,7 +124,7 @@ func TestCtgService_GetCategoryByID(t *testing.T) {
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
-		repoCategory := repository.Category{ID: 1, Name: "Found", CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}}
+		repoCategory := categories_repo.Category{ID: 1, Name: "Found", CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}}
 		mockRepo.EXPECT().GetCategory(ctx, int32(1)).Return(repoCategory, nil)
 
 		resp, err := service.GetCategoryByID(ctx, 1)
@@ -133,7 +134,7 @@ func TestCtgService_GetCategoryByID(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockRepo.EXPECT().GetCategory(ctx, int32(1)).Return(repository.Category{}, pgx.ErrNoRows)
+		mockRepo.EXPECT().GetCategory(ctx, int32(1)).Return(categories_repo.Category{}, pgx.ErrNoRows)
 		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
 
 		resp, err := service.GetCategoryByID(ctx, 1)
@@ -143,7 +144,7 @@ func TestCtgService_GetCategoryByID(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockRepo.EXPECT().GetCategory(ctx, int32(1)).Return(repository.Category{}, errors.New("db error"))
+		mockRepo.EXPECT().GetCategory(ctx, int32(1)).Return(categories_repo.Category{}, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
 		resp, err := service.GetCategoryByID(ctx, 1)
@@ -159,9 +160,9 @@ func TestCtgService_UpdateCategory(t *testing.T) {
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
-		req := dto.CreateCategoryRequest{Name: "Updated"}
-		repoCategory := repository.Category{ID: 1, Name: req.Name, CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}}
-		mockRepo.EXPECT().UpdateCategory(ctx, repository.UpdateCategoryParams{ID: 1, Name: "Updated"}).Return(repoCategory, nil)
+		req := categories.CreateCategoryRequest{Name: "Updated"}
+		repoCategory := categories_repo.Category{ID: 1, Name: req.Name, CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}}
+		mockRepo.EXPECT().UpdateCategory(ctx, categories_repo.UpdateCategoryParams{ID: 1, Name: "Updated"}).Return(repoCategory, nil)
 
 		resp, err := service.UpdateCategory(ctx, 1, req)
 
@@ -170,20 +171,20 @@ func TestCtgService_UpdateCategory(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mockRepo.EXPECT().UpdateCategory(ctx, gomock.Any()).Return(repository.Category{}, pgx.ErrNoRows)
+		mockRepo.EXPECT().UpdateCategory(ctx, gomock.Any()).Return(categories_repo.Category{}, pgx.ErrNoRows)
 		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
 
-		resp, err := service.UpdateCategory(ctx, 1, dto.CreateCategoryRequest{Name: "X"})
+		resp, err := service.UpdateCategory(ctx, 1, categories.CreateCategoryRequest{Name: "X"})
 
 		assert.ErrorIs(t, err, common.ErrCategoryNotFound)
 		assert.Nil(t, resp)
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockRepo.EXPECT().UpdateCategory(ctx, gomock.Any()).Return(repository.Category{}, errors.New("db error"))
+		mockRepo.EXPECT().UpdateCategory(ctx, gomock.Any()).Return(categories_repo.Category{}, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
-		resp, err := service.UpdateCategory(ctx, 1, dto.CreateCategoryRequest{Name: "X"})
+		resp, err := service.UpdateCategory(ctx, 1, categories.CreateCategoryRequest{Name: "X"})
 
 		assert.ErrorIs(t, err, common.ErrInternal)
 		assert.Nil(t, resp)
@@ -286,7 +287,7 @@ func TestCtgService_GetCategoryWithProductCount(t *testing.T) {
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
-		repoData := []repository.ListCategoriesWithProductsRow{
+		repoData := []categories_repo.ListCategoriesWithProductsRow{
 			{ID: 1, Name: "C1", ProductCount: 2, CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}},
 		}
 		mockRepo.EXPECT().ListCategoriesWithProducts(ctx, gomock.Any()).Return(repoData, nil)
@@ -319,7 +320,7 @@ func TestCtgService_GetCategoryWithProductCount(t *testing.T) {
 	})
 
 	t.Run("Empty", func(t *testing.T) {
-		mockRepo.EXPECT().ListCategoriesWithProducts(ctx, gomock.Any()).Return([]repository.ListCategoriesWithProductsRow{}, nil)
+		mockRepo.EXPECT().ListCategoriesWithProducts(ctx, gomock.Any()).Return([]categories_repo.ListCategoriesWithProductsRow{}, nil)
 		mockLogger.EXPECT().Warnf(gomock.Any()).Times(1)
 
 		resp, err := service.GetCategoryWithProductCount(ctx)

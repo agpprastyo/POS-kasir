@@ -1,4 +1,4 @@
-package dto
+package products
 
 import (
 	"POS-kasir/internal/common/pagination"

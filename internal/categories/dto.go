@@ -1,4 +1,4 @@
-package dto
+package categories
 
 import "time"
 
@@ -18,10 +18,10 @@ type CategoryWithCountResponse struct {
 }
 
 type ListCategoryRequest struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit  int32 `json:"limit" query:"limit" validate:"omitempty,gte=1,lte=100"`
+	Offset int32 `json:"offset" query:"offset" validate:"omitempty,gte=0"`
 }
 
 type CreateCategoryRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required,min=3,max=100"`
 }

@@ -1,11 +1,11 @@
 package settings
 
 import (
+	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/store"
 	"POS-kasir/internal/settings/repository"
-	"POS-kasir/internal/activitylog"
-	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/logger"
 	"context"
@@ -26,19 +26,19 @@ type ISettingsService interface {
 
 type SettingsService struct {
 	activitylog activitylog.IActivityService
-	repo     repository.Querier
-	store    store.Store
-	r2Client cloudflarer2.IR2
-	log      logger.ILogger
+	repo        repository.Querier
+	store       store.Store
+	r2Client    cloudflarer2.IR2
+	log         logger.ILogger
 }
 
 func NewSettingsService(store store.Store, activitylog activitylog.IActivityService, repo repository.Querier, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
 	return &SettingsService{
 		activitylog: activitylog,
-		repo:     repo,
-		store:    store,
-		r2Client: r2Client,
-		log:      log,
+		repo:        repo,
+		store:       store,
+		r2Client:    r2Client,
+		log:         log,
 	}
 }
 
@@ -141,14 +141,13 @@ func (s *SettingsService) UpdateBranding(ctx context.Context, req UpdateBranding
 		return nil, txErr
 	}
 
-
 	// Activity Log
 	actorID := ctx.Value("user_id").(uuid.UUID)
 	logDetails := map[string]interface{}{
-		"app_name":        req.AppName,
-		"app_logo":        req.AppLogo,
-		"footer_text":     req.FooterText,
-		"theme_color":     req.ThemeColor,
+		"app_name":         req.AppName,
+		"app_logo":         req.AppLogo,
+		"footer_text":      req.FooterText,
+		"theme_color":      req.ThemeColor,
 		"theme_color_dark": req.ThemeColorDark,
 	}
 

@@ -3,6 +3,7 @@ package user_test
 import (
 	"POS-kasir/config"
 	"POS-kasir/internal/common"
+	"POS-kasir/internal/common/middleware"
 	"POS-kasir/internal/user"
 	user_repo "POS-kasir/internal/user/repository"
 
@@ -254,7 +255,7 @@ func TestAthHandler_AddUserHandler(t *testing.T) {
 	mockService, mockLogger, mockValidator, handler, app := setupHandlerTest(t)
 
 	app.Post("/users", func(c fiber.Ctx) error {
-		c.Locals("role", user_repo.UserRoleAdmin)
+		c.Locals("role", middleware.UserRole(user_repo.UserRoleAdmin))
 		return handler.AddUserHandler(c)
 	})
 
@@ -287,7 +288,7 @@ func TestAthHandler_AddUserHandler(t *testing.T) {
 	t.Run("UnauthorizedRole", func(t *testing.T) {
 		appForbidden := fiber.New()
 		appForbidden.Post("/users", func(c fiber.Ctx) error {
-			c.Locals("role", user_repo.UserRoleCashier)
+			c.Locals("role", middleware.UserRole(user_repo.UserRoleCashier))
 			return handler.AddUserHandler(c)
 		})
 

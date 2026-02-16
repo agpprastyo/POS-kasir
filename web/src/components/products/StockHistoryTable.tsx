@@ -7,7 +7,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { POSKasirInternalDtoStockHistoryResponse } from "@/lib/api/generated"
+import { InternalProductsStockHistoryResponse } from "@/lib/api/generated"
 import { useStockHistoryQuery } from "@/lib/api/query/products"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
@@ -79,7 +79,7 @@ export const StockHistoryTable = ({ productId }: StockHistoryTableProps) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {history.map((item: POSKasirInternalDtoStockHistoryResponse) => (
+                        {history.map((item: InternalProductsStockHistoryResponse) => (
                             <TableRow key={item.id}>
                                 <TableCell>
                                     {item.created_at ? format(new Date(item.created_at), "dd MMM yyyy HH:mm", { locale: idLocale }) : "-"}

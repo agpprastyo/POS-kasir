@@ -2,15 +2,15 @@ import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient }
 import { categoriesApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
-    POSKasirInternalDtoCategoryResponse,
-    POSKasirInternalDtoCreateCategoryRequest
+    InternalCategoriesCategoryResponse,
+    InternalCategoriesCreateCategoryRequest
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { useRBAC } from '@/lib/auth/rbac'
 
 // Gunakan tipe dari generated, atau definisikan ulang tanpa description
-export type Category = POSKasirInternalDtoCategoryResponse
+export type Category = InternalCategoriesCategoryResponse
 
 export type CategoriesListParams = {
     limit?: number
@@ -64,7 +64,7 @@ export const useCreateCategoryMutation = () => {
     const mutation = useMutation<
         Category,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoCreateCategoryRequest
+        InternalCategoriesCreateCategoryRequest
     >({
         mutationKey: ['categories', 'create'],
         mutationFn: async (body) => {
@@ -95,7 +95,7 @@ export const useUpdateCategoryMutation = () => {
     const mutation = useMutation<
         Category,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: number; body: POSKasirInternalDtoCreateCategoryRequest }
+        { id: number; body: InternalCategoriesCreateCategoryRequest }
     >({
         mutationKey: ['categories', 'update'],
         mutationFn: async ({ id, body }) => {

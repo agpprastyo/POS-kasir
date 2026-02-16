@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/context/AuthContext'
 import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
-import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
+import { POSKasirInternalUserRepositoryUserRole } from '@/lib/api/generated'
 import { useTranslation } from 'react-i18next'
 import { SettingsPanel } from "@/components/SettingsPanel.tsx";
 import { useBrandingSettingsQuery } from '@/lib/api/query/settings'
@@ -76,7 +76,7 @@ function DashboardLayout() {
         label: string
         icon: any
         to: string
-        allowedRoles: POSKasirInternalRepositoryUserRole[]
+        allowedRoles: POSKasirInternalUserRepositoryUserRole[]
     }
 
     const menuItems: DashboardMenuItem[] = [
@@ -85,9 +85,9 @@ function DashboardLayout() {
             icon: LayoutDashboard,
             to: '/$locale',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -95,9 +95,9 @@ function DashboardLayout() {
             icon: ShoppingCart,
             to: '/$locale/order',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -105,9 +105,9 @@ function DashboardLayout() {
             icon: Receipt,
             to: '/$locale/transactions',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -115,9 +115,9 @@ function DashboardLayout() {
             icon: Package,
             to: '/$locale/product',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -125,9 +125,9 @@ function DashboardLayout() {
             icon: Tag,
             to: '/$locale/promotions',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -135,7 +135,7 @@ function DashboardLayout() {
             icon: FileText,
             to: '/$locale/reports',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin
             ]
         },
         {
@@ -143,8 +143,8 @@ function DashboardLayout() {
             icon: UserIcon,
             to: '/$locale/users',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin
-                , POSKasirInternalRepositoryUserRole.UserRoleManager
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin
+                , POSKasirInternalUserRepositoryUserRole.UserRoleManager
             ]
         },
         {
@@ -152,9 +152,9 @@ function DashboardLayout() {
             icon: Settings,
             to: '/$locale/settings',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -162,9 +162,9 @@ function DashboardLayout() {
             icon: UserIcon,
             to: '/$locale/account',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-                POSKasirInternalRepositoryUserRole.UserRoleManager,
-                POSKasirInternalRepositoryUserRole.UserRoleCashier
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleManager,
+                POSKasirInternalUserRepositoryUserRole.UserRoleCashier
             ]
         },
         {
@@ -172,7 +172,7 @@ function DashboardLayout() {
             icon: ActivityIcon,
             to: '/$locale/activity-logs',
             allowedRoles: [
-                POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+                POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
 
             ]
         }

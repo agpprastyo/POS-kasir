@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { settingsApi, printerApi } from '@/lib/api/client'
-import { POSKasirInternalDtoUpdateBrandingRequest, POSKasirInternalDtoUpdatePrinterSettingsRequest } from '../generated'
+import { InternalSettingsUpdateBrandingRequest, InternalSettingsUpdatePrinterSettingsRequest } from '../generated'
 import { useRBAC } from '@/lib/auth/rbac'
 
 export const brandingSettingsQueryKey = ['branding-settings']
@@ -24,7 +24,7 @@ export function useUpdateBrandingSettingsMutation() {
     const isAllowed = canAccessApi('PUT', '/settings/branding')
 
     const mutation = useMutation({
-        mutationFn: async (data: POSKasirInternalDtoUpdateBrandingRequest) => {
+        mutationFn: async (data: InternalSettingsUpdateBrandingRequest) => {
             const res = await settingsApi.settingsBrandingPut(data)
             return (res.data as any).data
         },
@@ -71,7 +71,7 @@ export function useUpdatePrinterSettingsMutation() {
     const isAllowed = canAccessApi('PUT', '/settings/printer')
 
     const mutation = useMutation({
-        mutationFn: async (data: POSKasirInternalDtoUpdatePrinterSettingsRequest) => {
+        mutationFn: async (data: InternalSettingsUpdatePrinterSettingsRequest) => {
             const res = await settingsApi.settingsPrinterPut(data)
             return (res.data as any).data
         },

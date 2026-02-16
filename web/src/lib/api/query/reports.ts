@@ -2,20 +2,20 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { reportsApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
-    POSKasirInternalDtoCancellationReportResponse,
-    POSKasirInternalDtoCashierPerformanceResponse,
-    POSKasirInternalDtoDashboardSummaryResponse,
-    POSKasirInternalDtoPaymentMethodPerformanceResponse,
-    POSKasirInternalDtoProductPerformanceResponse,
-    POSKasirInternalDtoSalesReport,
-    POSKasirInternalDtoProfitSummaryResponse,
-    POSKasirInternalDtoProductProfitResponse
+    InternalReportCancellationReportResponse,
+    InternalReportCashierPerformanceResponse,
+    InternalReportDashboardSummaryResponse,
+    InternalReportPaymentMethodPerformanceResponse,
+    InternalReportProductPerformanceResponse,
+    InternalReportSalesReport,
+    InternalReportProfitSummaryResponse,
+    InternalReportProductProfitResponse
 } from "../generated"
 import { AxiosError } from "axios"
 
 export const dashboardSummaryQueryOptions = () =>
     queryOptions<
-        POSKasirInternalDtoDashboardSummaryResponse,
+        InternalReportDashboardSummaryResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'dashboard-summary'],
@@ -31,7 +31,7 @@ export const useDashboardSummaryQuery = () =>
 
 export const salesReportQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoSalesReport[],
+        InternalReportSalesReport[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'sales', startDate, endDate],
@@ -48,7 +48,7 @@ export const useSalesReportQuery = (startDate: string, endDate: string) =>
 
 export const productPerformanceQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoProductPerformanceResponse[],
+        InternalReportProductPerformanceResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'products', startDate, endDate],
@@ -65,7 +65,7 @@ export const useProductPerformanceQuery = (startDate: string, endDate: string) =
 
 export const paymentMethodPerformanceQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoPaymentMethodPerformanceResponse[],
+        InternalReportPaymentMethodPerformanceResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'payment-methods', startDate, endDate],
@@ -82,7 +82,7 @@ export const usePaymentMethodPerformanceQuery = (startDate: string, endDate: str
 
 export const cashierPerformanceQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoCashierPerformanceResponse[],
+        InternalReportCashierPerformanceResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'cashier-performance', startDate, endDate],
@@ -99,7 +99,7 @@ export const useCashierPerformanceQuery = (startDate: string, endDate: string) =
 
 export const cancellationReportsQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoCancellationReportResponse[],
+        InternalReportCancellationReportResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'cancellations', startDate, endDate],
@@ -115,7 +115,7 @@ export const useCancellationReportsQuery = (startDate: string, endDate: string) 
 
 export const profitSummaryQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoProfitSummaryResponse[],
+        InternalReportProfitSummaryResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'profit-summary', startDate, endDate],
@@ -132,7 +132,7 @@ export const useProfitSummaryQuery = (startDate: string, endDate: string) =>
 
 export const productProfitReportsQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        POSKasirInternalDtoProductProfitResponse[],
+        InternalReportProductProfitResponse[],
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'profit-products', startDate, endDate],

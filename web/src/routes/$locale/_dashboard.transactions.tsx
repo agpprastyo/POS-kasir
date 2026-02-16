@@ -35,7 +35,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from 'sonner'
-import { POSKasirInternalDtoOrderListResponse, POSKasirInternalRepositoryOrderStatus } from '@/lib/api/generated'
+import { InternalOrdersOrderListResponse, POSKasirInternalOrdersRepositoryOrderStatus } from '@/lib/api/generated'
 import { useTranslation } from 'react-i18next'
 import { NewPagination } from "@/components/pagination.tsx";
 import { PaymentDialog } from "@/components/payment/PaymentDialog"
@@ -58,7 +58,7 @@ export const Route = createFileRoute('/$locale/_dashboard/transactions')({
     component: TransactionsPage,
 })
 
-type OrderWithItems = POSKasirInternalDtoOrderListResponse & {
+type OrderWithItems = InternalOrdersOrderListResponse & {
     items?: Array<{
         product_name: string;
         quantity: number;
@@ -127,7 +127,7 @@ function TransactionsPage() {
     const updateOrderStatusMutation = useUpdateOrderStatusMutation()
     const cancelOrderMutation = useCancelOrderMutation()
 
-    const handleStatusUpdate = async (id: string, newStatus: POSKasirInternalRepositoryOrderStatus) => {
+    const handleStatusUpdate = async (id: string, newStatus: POSKasirInternalOrdersRepositoryOrderStatus) => {
         try {
             await updateOrderStatusMutation.mutateAsync({
                 id,
@@ -172,7 +172,7 @@ function TransactionsPage() {
     const handleFinish = async (order: OrderWithItems) => {
         if (!order.id) return;
         try {
-            await handleStatusUpdate(order.id, POSKasirInternalRepositoryOrderStatus.OrderStatusPaid)
+            await handleStatusUpdate(order.id, POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid)
             toast.success(t('transactions.messages.order_finished'))
         } catch (e) {
             console.error(e)
@@ -316,10 +316,10 @@ function TransactionsPage() {
                                             <TableCell>
                                                 <Select
                                                     value={order.status}
-                                                    disabled={order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid || order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled}
+                                                    disabled={order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid || order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled}
                                                     onValueChange={(val) => {
-                                                        if (order.id && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid && val !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled) {
-                                                            handleStatusUpdate(order.id, val as POSKasirInternalRepositoryOrderStatus)
+                                                        if (order.id && val !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid && val !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled) {
+                                                            handleStatusUpdate(order.id, val as POSKasirInternalOrdersRepositoryOrderStatus)
                                                         } else {
 
                                                             toast.info(t('transactions.messages.use_action_button'))
@@ -328,34 +328,34 @@ function TransactionsPage() {
                                                 >
                                                     <SelectTrigger className="w-[140px] h-8 border-none bg-transparent hover:bg-muted focus:ring-0 p-0">
                                                         <Badge
-                                                            variant={order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'default' : order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled ? 'destructive' : 'secondary'}
-                                                            className={`capitalize cursor-pointer w-full justify-center ${order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusPaid ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                            variant={order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid ? 'default' : order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled ? 'destructive' : 'secondary'}
+                                                            className={`capitalize cursor-pointer w-full justify-center ${order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid ? 'bg-green-600 hover:bg-green-700' : ''}`}
                                                         >
                                                             {order.status ? t(`transactions.status.${order.status}`) : order.status}
                                                         </Badge>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusOpen}>{t('transactions.status.open')}</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusInProgress}>{t('transactions.status.in_progress')}</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryOrderStatus.OrderStatusServed}>{t('transactions.status.served')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusOpen}>{t('transactions.status.open')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusInProgress}>{t('transactions.status.in_progress')}</SelectItem>
+                                                        <SelectItem value={POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed}>{t('transactions.status.served')}</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {!order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && (
+                                                    {!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
                                                         <Button size="sm" variant="default" className="h-8 gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleOpenPayment(order)}>
                                                             <Banknote className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.pay')}
                                                         </Button>
                                                     )}
-                                                    {order.is_paid && order.status === POSKasirInternalRepositoryOrderStatus.OrderStatusServed && (
+                                                    {order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed && (
                                                         <Button size="sm" variant="outline" className="h-8 gap-1 border-green-600 text-green-600 hover:bg-green-50" onClick={() => handleFinish(order)}>
                                                             <CheckCircle className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.complete')}
                                                         </Button>
                                                     )}
-                                                    {(!order.is_paid && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusCancelled && order.status !== POSKasirInternalRepositoryOrderStatus.OrderStatusPaid) && (
+                                                    {(!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid) && (
                                                         <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleOpenCancel(order)}>
                                                             <XCircle className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.cancel')}

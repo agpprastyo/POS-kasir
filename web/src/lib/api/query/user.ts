@@ -1,14 +1,15 @@
 import { useMutation, useQuery, useQueryClient, queryOptions, keepPreviousData } from '@tanstack/react-query'
 import { usersApi } from "../../api/client.ts"
 import {
-    POSKasirInternalDtoCreateUserRequest,
-    POSKasirInternalDtoUpdateUserRequest,
-    POSKasirInternalDtoUsersResponse,
-    POSKasirInternalDtoProfileResponse,
+    InternalUserCreateUserRequest,
+    InternalUserUpdateUserRequest,
+    InternalUserUsersResponse,
+    InternalUserProfileResponse,
     UsersGetRoleEnum,
     UsersGetSortByEnum,
     UsersGetSortOrderEnum,
-    UsersGetStatusEnum, POSKasirInternalCommonErrorResponse,
+    UsersGetStatusEnum,
+    POSKasirInternalCommonErrorResponse,
 } from "../generated"
 import { toast } from "sonner";
 import { AxiosError } from "axios";
@@ -30,7 +31,7 @@ export type UsersListParams = {
 // --- QUERY: Get All Users (/api/v1/users) ---
 export const usersListQueryOptions = (params?: UsersListParams) =>
     queryOptions<
-        POSKasirInternalDtoUsersResponse,
+        InternalUserUsersResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['users', 'list', params],
@@ -56,7 +57,7 @@ export const useUsersListQuery = (params?: UsersListParams) => useQuery(usersLis
 // --- QUERY: Get User By ID (/api/v1/users/{id}) ---
 export const userDetailQueryOptions = (id: string) =>
     queryOptions<
-        POSKasirInternalDtoProfileResponse,
+        InternalUserProfileResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['users', 'detail', id],
@@ -79,9 +80,9 @@ export const useCreateUserMutation = () => {
     return {
         ...useMutation({
             mutationKey: ['users', 'create'],
-            mutationFn: async (body: POSKasirInternalDtoCreateUserRequest) => {
+            mutationFn: async (body: InternalUserCreateUserRequest) => {
                 const res = await usersApi.usersPost(body)
-                return (res.data as any).data as POSKasirInternalDtoProfileResponse;
+                return (res.data as any).data as InternalUserProfileResponse;
             },
             onSuccess: async () => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })
@@ -103,9 +104,9 @@ export const useUpdateUserMutation = () => {
     return {
         ...useMutation({
             mutationKey: ['users', 'update'],
-            mutationFn: async ({ id, body }: { id: string; body: POSKasirInternalDtoUpdateUserRequest }) => {
+            mutationFn: async ({ id, body }: { id: string; body: InternalUserUpdateUserRequest }) => {
                 const res = await usersApi.usersIdPut(id, body)
-                return (res.data as any).data as POSKasirInternalDtoProfileResponse;
+                return (res.data as any).data as InternalUserProfileResponse;
             },
             onSuccess: async (data) => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })

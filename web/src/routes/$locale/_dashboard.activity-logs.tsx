@@ -5,8 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-    POSKasirInternalRepositoryUserRole,
-    POSKasirInternalDtoActivityLogResponse
+    POSKasirInternalUserRepositoryUserRole,
+    InternalActivitylogActivityLogResponse
 } from '@/lib/api/generated';
 import { activityLogsListQueryOptions, activityLogsSearchSchema } from '@/lib/api/query/activity-logs';
 import { meQueryOptions } from '@/lib/api/query/auth';
@@ -27,8 +27,8 @@ export const Route = createFileRoute('/$locale/_dashboard/activity-logs')({
     },
     beforeLoad: async () => {
         const user = await queryClient.ensureQueryData(meQueryOptions());
-        const allowedRoles: POSKasirInternalRepositoryUserRole[] = [
-            POSKasirInternalRepositoryUserRole.UserRoleAdmin,
+        const allowedRoles: POSKasirInternalUserRepositoryUserRole[] = [
+            POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
         ];
         if (!user.role || !allowedRoles.includes(user.role)) {
             throw redirect({
@@ -197,7 +197,7 @@ function ActivityLogsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {data?.logs?.map((log: POSKasirInternalDtoActivityLogResponse) => (
+                                {data?.logs?.map((log: InternalActivitylogActivityLogResponse) => (
                                     <TableRow key={log.id}>
                                         <TableCell>{format(new Date(log.created_at!), 'PPP p')}</TableCell>
                                         <TableCell>

@@ -2,22 +2,22 @@ import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient }
 import { productsApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
-    POSKasirInternalDtoCreateProductOptionRequestStandalone,
-    POSKasirInternalDtoCreateProductRequest,
-    POSKasirInternalDtoListProductsResponse,
-    POSKasirInternalDtoProductResponse,
-    POSKasirInternalDtoUpdateProductOptionRequest,
-    POSKasirInternalDtoUpdateProductRequest,
-    POSKasirInternalDtoRestoreBulkRequest,
-    POSKasirInternalDtoPagedStockHistoryResponse
+    InternalProductsCreateProductOptionRequestStandalone,
+    InternalProductsCreateProductRequest,
+    InternalProductsListProductsResponse,
+    InternalProductsProductResponse,
+    InternalProductsUpdateProductOptionRequest,
+    InternalProductsUpdateProductRequest,
+    InternalProductsRestoreBulkRequest,
+    InternalProductsPagedStockHistoryResponse
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { useRBAC } from '@/lib/auth/rbac'
 
 
-export type Product = POSKasirInternalDtoProductResponse
-export type ProductListResponse = POSKasirInternalDtoListProductsResponse
+export type Product = InternalProductsProductResponse
+export type ProductListResponse = InternalProductsListProductsResponse
 
 export type ProductsListParams = {
     limit?: number
@@ -73,7 +73,7 @@ export const useCreateProductMutation = () => {
     const mutation = useMutation<
         Product,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoCreateProductRequest
+        InternalProductsCreateProductRequest
     >({
         mutationKey: ['products', 'create'],
         mutationFn: async (body) => {
@@ -101,7 +101,7 @@ export const useUpdateProductMutation = () => {
     const mutation = useMutation<
         Product,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoUpdateProductRequest }
+        { id: string; body: InternalProductsUpdateProductRequest }
     >({
         mutationKey: ['products', 'update'],
         mutationFn: async ({ id, body }) => {
@@ -188,7 +188,7 @@ export const useCreateProductOptionMutation = () => {
     const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { productId: string; body: POSKasirInternalDtoCreateProductOptionRequestStandalone }
+        { productId: string; body: InternalProductsCreateProductOptionRequestStandalone }
     >({
         mutationKey: ['products', 'create-option'],
         mutationFn: async ({ productId, body }) => {
@@ -216,7 +216,7 @@ export const useUpdateProductOptionMutation = () => {
     const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { productId: string; optionId: string; body: POSKasirInternalDtoUpdateProductOptionRequest }
+        { productId: string; optionId: string; body: InternalProductsUpdateProductOptionRequest }
     >({
         mutationKey: ['products', 'update-option'],
         mutationFn: async ({ productId, optionId, body }) => {
@@ -321,7 +321,7 @@ export const useRestoreBulkProductMutation = () => {
     const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoRestoreBulkRequest
+        InternalProductsRestoreBulkRequest
     >({
         mutationKey: ['products', 'restore-bulk'],
         mutationFn: async (body) => {
@@ -348,7 +348,7 @@ export type StockHistoryParams = {
 
 export const stockHistoryQueryOptions = (productId: string, params?: StockHistoryParams) =>
     queryOptions<
-        POSKasirInternalDtoPagedStockHistoryResponse,
+        InternalProductsPagedStockHistoryResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['products', 'stock-history', productId, params],

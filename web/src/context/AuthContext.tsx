@@ -4,17 +4,17 @@ import {
     type ReactNode,
     useMemo,
 } from 'react'
-import {POSKasirInternalDtoLoginRequest, POSKasirInternalDtoProfileResponse} from "@/lib/api/generated";
+import {InternalUserLoginRequest, InternalUserProfileResponse} from "@/lib/api/generated";
 import {useLoginMutation, useLogoutMutation, useMeQuery} from "@/lib/api/query/auth.ts";
 import { queryClient } from "@/lib/queryClient";
 
-type UserProfile = POSKasirInternalDtoProfileResponse
+type UserProfile = InternalUserProfileResponse
 
 type AuthContextValue = {
     user: UserProfile | null
     isAuthenticated: boolean
     isLoading: boolean
-    login: (payload: POSKasirInternalDtoLoginRequest) => Promise<void>
+    login: (payload: InternalUserLoginRequest) => Promise<void>
     logout: () => Promise<void>
 }
 
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profile = userProfile ?? null
         const isAuthenticated = !!profile && !isMeError
 
-        const login = async (payload: POSKasirInternalDtoLoginRequest) => {
+        const login = async (payload: InternalUserLoginRequest) => {
             await loginMutation.mutateAsync(payload)
         }
 

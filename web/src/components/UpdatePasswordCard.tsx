@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from "react";
 import { useUpdatePasswordMutation } from "@/lib/api/query/auth.ts";
-import { POSKasirInternalDtoUpdatePasswordRequest } from "@/lib/api/generated";
+import { InternalUserUpdatePasswordRequest } from "@/lib/api/generated";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { KeyRound, Loader2, Save } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
@@ -35,7 +35,7 @@ export function UpdatePasswordCard() {
         }
 
         try {
-            const payload: POSKasirInternalDtoUpdatePasswordRequest = {
+            const payload: InternalUserUpdatePasswordRequest = {
                 old_password: formData.old_password,
                 new_password: formData.new_password
             }

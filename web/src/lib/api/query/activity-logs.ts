@@ -1,5 +1,9 @@
 import { activityLogsApi } from "../client";
-import { POSKasirInternalDtoActivityLogListResponse } from "@/lib/api/generated";
+import {
+    InternalActivitylogActivityLogListResponse,
+    ActivityLogsGetEntityTypeEnum,
+    ActivityLogsGetActionTypeEnum
+} from "@/lib/api/generated";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -10,8 +14,8 @@ export const activityLogsSearchSchema = z.object({
     start_date: z.string().optional(),
     end_date: z.string().optional(),
     user_id: z.string().optional(),
-    entity_type: z.string().optional(),
-    action_type: z.string().optional(),
+    entity_type: z.enum(Object.values(ActivityLogsGetEntityTypeEnum)).optional(),
+    action_type: z.enum(Object.values(ActivityLogsGetActionTypeEnum)).optional(),
 });
 
 export type ActivityLogsSearch = z.infer<typeof activityLogsSearchSchema>;
@@ -29,7 +33,7 @@ export const activityLogsListQueryOptions = (search: ActivityLogsSearch) => quer
             search.entity_type,
             search.action_type
         );
-        return (response.data as any).data as POSKasirInternalDtoActivityLogListResponse;
+        return (response.data as any).data as InternalActivitylogActivityLogListResponse;
     }
 });
 

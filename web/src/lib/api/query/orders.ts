@@ -2,14 +2,14 @@ import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient }
 import { ordersApi, printerApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
-    POSKasirInternalDtoApplyPromotionRequest,
-    POSKasirInternalDtoCancelOrderRequest,
-    POSKasirInternalDtoConfirmManualPaymentRequest,
-    POSKasirInternalDtoCreateOrderRequest,
-    POSKasirInternalDtoUpdateOrderStatusRequest,
-    POSKasirInternalDtoUpdateOrderItemRequest,
-    POSKasirInternalDtoOrderDetailResponse,
-    POSKasirInternalDtoMidtransPaymentResponse,
+    InternalOrdersApplyPromotionRequest,
+    InternalOrdersCancelOrderRequest,
+    InternalOrdersConfirmManualPaymentRequest,
+    InternalOrdersCreateOrderRequest,
+    InternalOrdersUpdateOrderStatusRequest,
+    InternalOrdersUpdateOrderItemRequest,
+    InternalOrdersOrderDetailResponse,
+    InternalOrdersMidtransPaymentResponse,
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -71,9 +71,9 @@ export const useApplyPromotionMutation = () => {
     const isAllowed = canAccessApi('POST', '/orders/{id}/apply-promotion')
 
     const mutation = useMutation<
-        POSKasirInternalDtoOrderDetailResponse,
+        InternalOrdersOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoApplyPromotionRequest }
+        { id: string; body: InternalOrdersApplyPromotionRequest }
     >({
         mutationKey: ['orders', 'apply-promotion'],
         mutationFn: async ({ id, body }) => {
@@ -102,7 +102,7 @@ export const useCancelOrderMutation = () => {
     const mutation = useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoCancelOrderRequest }
+        { id: string; body: InternalOrdersCancelOrderRequest }
     >({
         mutationKey: ['orders', 'cancel'],
         mutationFn: async ({ id, body }) => {
@@ -129,9 +129,9 @@ export const useConfirmManualPaymentMutation = () => {
     const isAllowed = canAccessApi('POST', '/orders/{id}/pay-manual')
 
     const mutation = useMutation<
-        POSKasirInternalDtoOrderDetailResponse,
+        InternalOrdersOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoConfirmManualPaymentRequest }
+        { id: string; body: InternalOrdersConfirmManualPaymentRequest }
     >({
         mutationKey: ['orders', 'complete-manual-payment'],
         mutationFn: async ({ id, body }) => {
@@ -158,7 +158,7 @@ export const useInitiateMidtransPaymentMutation = () => {
     const isAllowed = canAccessApi('POST', '/orders/{id}/pay-midtrans')
 
     const mutation = useMutation<
-        POSKasirInternalDtoMidtransPaymentResponse,
+        InternalOrdersMidtransPaymentResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         { id: string }
     >({
@@ -187,9 +187,9 @@ export const useUpdateOrderStatusMutation = () => {
     const isAllowed = canAccessApi('POST', '/orders/{id}/update-status')
 
     const mutation = useMutation<
-        POSKasirInternalDtoOrderDetailResponse,
+        InternalOrdersOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoUpdateOrderStatusRequest }
+        { id: string; body: InternalOrdersUpdateOrderStatusRequest }
     >({
         mutationKey: ['orders', 'update-status'],
         mutationFn: async ({ id, body }) => {
@@ -216,9 +216,9 @@ export const useCreateOrderMutation = () => {
     const isAllowed = canAccessApi('POST', '/orders')
 
     const mutation = useMutation<
-        POSKasirInternalDtoOrderDetailResponse,
+        InternalOrdersOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoCreateOrderRequest
+        InternalOrdersCreateOrderRequest
     >({
         mutationKey: ['orders', 'create'],
         mutationFn: async (body) => {
@@ -244,9 +244,9 @@ export const useUpdateOrderItemsMutation = () => {
     const isAllowed = canAccessApi('PUT', '/orders/{id}/items')
 
     const mutation = useMutation<
-        POSKasirInternalDtoOrderDetailResponse,
+        InternalOrdersOrderDetailResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoUpdateOrderItemRequest[] }
+        { id: string; body: InternalOrdersUpdateOrderItemRequest[] }
     >({
         mutationKey: ['orders', 'update-items'],
         mutationFn: async ({ id, body }) => {

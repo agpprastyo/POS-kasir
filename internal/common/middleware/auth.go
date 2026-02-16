@@ -26,7 +26,7 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 			})
 		}
 		c.Locals("user", claims.Username)
-		c.Locals("role", claims.Role)
+		c.Locals("role", UserRole(claims.Role))
 		c.Locals("email", claims.Email)
 		c.Locals("user_id", claims.UserID)
 
@@ -43,4 +43,3 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 	}
 }
 
-// fiber:context-methods migrated

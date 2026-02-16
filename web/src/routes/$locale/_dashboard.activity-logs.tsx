@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
     POSKasirInternalUserRepositoryUserRole,
-    InternalActivitylogActivityLogResponse
+    InternalActivitylogActivityLogResponse,
+    ActivityLogsGetActionTypeEnum,
+    ActivityLogsGetEntityTypeEnum
 } from '@/lib/api/generated';
 import { activityLogsListQueryOptions, activityLogsSearchSchema } from '@/lib/api/query/activity-logs';
 import { meQueryOptions } from '@/lib/api/query/auth';
@@ -15,8 +17,9 @@ import { cn } from '@/lib/utils';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { CalendarIcon, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, Search, X, ChevronsUpDown } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/$locale/_dashboard/activity-logs')({
@@ -102,11 +105,11 @@ function ActivityLogsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Actions</SelectItem>
-                                    <SelectItem value="create">Create</SelectItem>
-                                    <SelectItem value="update">Update</SelectItem>
-                                    <SelectItem value="delete">Delete</SelectItem>
-                                    <SelectItem value="login">Login</SelectItem>
-                                    <SelectItem value="logout">Logout</SelectItem>
+                                    {Object.values(ActivityLogsGetActionTypeEnum).map((action) => (
+                                        <SelectItem key={action} value={action}>
+                                            {action.replace(/_/g, ' ')}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -118,11 +121,11 @@ function ActivityLogsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Entities</SelectItem>
-                                    <SelectItem value="user">User</SelectItem>
-                                    <SelectItem value="product">Product</SelectItem>
-                                    <SelectItem value="order">Order</SelectItem>
-                                    <SelectItem value="category">Category</SelectItem>
-                                    <SelectItem value="auth">Auth</SelectItem>
+                                    {Object.values(ActivityLogsGetEntityTypeEnum).map((entity) => (
+                                        <SelectItem key={entity} value={entity}>
+                                            {entity}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -214,9 +217,24 @@ function ActivityLogsPage() {
                                             <div className="text-xs text-muted-foreground">{log.entity_id}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <pre className="max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted-foreground">
-                                                {JSON.stringify(log.details, null, 2)}
-                                            </pre>
+                                            <Collapsible>
+                                                <div className="flex items-center gap-2">
+                                                    <CollapsibleTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                                            <ChevronsUpDown className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle</span>
+                                                        </Button>
+                                                    </CollapsibleTrigger>
+                                                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                                        {JSON.stringify(log.details)}
+                                                    </span>
+                                                </div>
+                                                <CollapsibleContent>
+                                                    <pre className="mt-2 w-[300px] overflow-auto rounded-md bg-muted p-2 text-xs">
+                                                        {JSON.stringify(log.details, null, 2)}
+                                                    </pre>
+                                                </CollapsibleContent>
+                                            </Collapsible>
                                         </TableCell>
                                     </TableRow>
                                 ))}

@@ -1,6 +1,8 @@
 package promotions
 
 import (
+	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/pagination"
 	"POS-kasir/internal/common/store"
@@ -24,9 +26,10 @@ type IPromotionService interface {
 }
 
 type PromotionService struct {
-	repo  repository.Querier
-	store store.Store
-	log   logger.ILogger
+	repo            repository.Querier
+	store           store.Store
+	log             logger.ILogger
+	activityService activitylog.IActivityService
 }
 
 func NewPromotionService(store store.Store, repo repository.Querier, log logger.ILogger) IPromotionService {
@@ -99,6 +102,22 @@ func (s *PromotionService) CreatePromotion(ctx context.Context, req CreatePromot
 		return nil, err
 	}
 
+	actorID := ctx.Value("user_id").(uuid.UUID)
+
+	logDetails := map[string]interface{}{
+		"created_promotion_id":   promoID,
+		"created_promotion_name": req.Name,
+	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypePROMOTION,
+		promoID.String(),
+		logDetails,
+	)
+
 	return s.GetPromotion(ctx, promoID)
 }
 
@@ -166,6 +185,20 @@ func (s *PromotionService) UpdatePromotion(ctx context.Context, id uuid.UUID, re
 		s.log.Error("Failed to update promotion", "error", err, "id", id)
 		return nil, err
 	}
+
+	actorID := ctx.Value("user_id").(uuid.UUID)
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePROMOTION,
+		id.String(),
+		map[string]interface{}{
+			"updated_promotion_id":   id,
+			"updated_promotion_name": req.Name,
+		},
+	)
 
 	return s.GetPromotion(ctx, id)
 }
@@ -256,6 +289,19 @@ func (s *PromotionService) RestorePromotion(ctx context.Context, id uuid.UUID) e
 		s.log.Error("Failed to restore promotion", "error", err, "id", id)
 		return err
 	}
+
+	actorID := ctx.Value("user_id").(uuid.UUID)
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypePROMOTION,
+		id.String(),
+		map[string]interface{}{
+			"restored_promotion_id": id,
+		},
+	)
 	return nil
 }
 

@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/store"
 	"POS-kasir/internal/settings/repository"
@@ -23,18 +25,20 @@ type ISettingsService interface {
 }
 
 type SettingsService struct {
-	repo     repository.Querier
-	store    store.Store
-	r2Client cloudflarer2.IR2
-	log      logger.ILogger
+	activitylog activitylog.IActivityService
+	repo        repository.Querier
+	store       store.Store
+	r2Client    cloudflarer2.IR2
+	log         logger.ILogger
 }
 
-func NewSettingsService(store store.Store, repo repository.Querier, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
+func NewSettingsService(store store.Store, activitylog activitylog.IActivityService, repo repository.Querier, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
 	return &SettingsService{
-		repo:     repo,
-		store:    store,
-		r2Client: r2Client,
-		log:      log,
+		activitylog: activitylog,
+		repo:        repo,
+		store:       store,
+		r2Client:    r2Client,
+		log:         log,
 	}
 }
 
@@ -137,6 +141,25 @@ func (s *SettingsService) UpdateBranding(ctx context.Context, req UpdateBranding
 		return nil, txErr
 	}
 
+	// Activity Log
+	actorID := ctx.Value("user_id").(uuid.UUID)
+	logDetails := map[string]interface{}{
+		"app_name":         req.AppName,
+		"app_logo":         req.AppLogo,
+		"footer_text":      req.FooterText,
+		"theme_color":      req.ThemeColor,
+		"theme_color_dark": req.ThemeColorDark,
+	}
+
+	s.activitylog.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypeSETTINGS,
+		"settings",
+		logDetails,
+	)
+
 	return s.GetBranding(ctx)
 }
 
@@ -165,6 +188,17 @@ func (s *SettingsService) UpdateLogo(ctx context.Context, data []byte, filename 
 		s.log.Error("Failed to update app_logo setting", "error", err)
 		return "", err
 	}
+
+	// Activity Log
+	actorID := ctx.Value("user_id").(uuid.UUID)
+	s.activitylog.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypeSETTINGS,
+		"settings",
+		map[string]interface{}{"app_logo": url},
+	)
 
 	return url, nil
 }
@@ -243,6 +277,17 @@ func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req UpdateP
 		s.log.Error("Failed to update printer settings", "error", txErr)
 		return nil, txErr
 	}
+
+	// Activity Log
+	actorID := ctx.Value("user_id").(uuid.UUID)
+	s.activitylog.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypeSETTINGS,
+		"settings",
+		map[string]interface{}{"printer_connection": req.Connection, "printer_paper_width": req.PaperWidth, "printer_auto_print": req.AutoPrint},
+	)
 
 	return s.GetPrinterSettings(ctx)
 }

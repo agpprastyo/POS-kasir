@@ -157,6 +157,25 @@ func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req C
 		UpdatedAt: category.UpdatedAt.Time,
 	}
 
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warnf("UpdateCategory | Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"updated_category_id": categoryID,
+		"updated_category_name": category.Name,
+	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypeCATEGORY,
+		strconv.Itoa(int(categoryID)),
+		logDetails,
+	)
+
 	return response, nil
 }
 

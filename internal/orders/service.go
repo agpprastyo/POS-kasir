@@ -282,6 +282,26 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 		return nil, txErr
 	}
 
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warnf("UpdateOrder | Actor user ID not found in context for activity logging")
+	}
+
+	logDetails := map[string]interface{}{
+		"updated_order_id": orderID,
+		"updated_order_status": finalOrder.Status,
+		"promotion_id": req.PromotionID,
+	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activity_repo.LogActionTypeAPPLYPROMOTION,
+		activity_repo.LogEntityTypeORDER,
+		orderID.String(),
+		logDetails,
+	)
+
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
@@ -578,6 +598,20 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 	if txErr != nil {
 		return nil, txErr
 	}
+
+	logDetails := map[string]interface{}{
+		"updated_order_id": orderID,
+		"updated_order_status": finalOrder.Status,
+	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activity_repo.LogActionTypeAPPLYPROMOTION,
+		activity_repo.LogEntityTypeORDER,
+		orderID.String(),
+		logDetails,
+	)
 
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
@@ -1185,9 +1219,19 @@ func (s *OrderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 		return nil, txErr
 	}
 
-	go func() {
-		s.activityService.Log(context.Background(), actorID, activity_repo.LogActionTypeCREATE, activity_repo.LogEntityTypeORDER, newOrderID.String(), nil)
-	}()
+	logDetails := map[string]interface{}{
+		"created_order_id": newOrderID,
+		"created_order_status": finalOrder.Status,
+	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activity_repo.LogActionTypeCREATE,
+		activity_repo.LogEntityTypeORDER,
+		newOrderID.String(),
+		logDetails,
+	)
 
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }

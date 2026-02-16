@@ -15,6 +15,8 @@ export function useBrandingSettingsQuery() {
             // So we cast to any to access the data property
             return (res.data as any).data
         },
+        staleTime: Infinity,
+        gcTime: Infinity,
     })
 }
 

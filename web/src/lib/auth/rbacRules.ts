@@ -5,9 +5,47 @@ export const RBAC_RULES: Record<string, string[]> = {
     "GET /activity-logs": [
         "admin"
     ],
+    "POST /auth/add": [
+        "admin"
+    ],
+    "POST /auth/logout": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /auth/me": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "PUT /auth/me/avatar": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "PUT /auth/me/password": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /cancellation-reasons": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /categories": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
     "POST /categories": [
         "admin",
         "manager"
+    ],
+    "GET /categories/count": [
+        "admin",
+        "manager",
+        "cashier"
     ],
     "GET /categories/{id}": [
         "admin",
@@ -71,6 +109,16 @@ export const RBAC_RULES: Record<string, string[]> = {
         "manager",
         "cashier"
     ],
+    "GET /payment-methods": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /products": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
     "POST /products": [
         "admin",
         "manager"
@@ -105,8 +153,7 @@ export const RBAC_RULES: Record<string, string[]> = {
     ],
     "GET /products/{id}/stock-history": [
         "admin",
-        "manager",
-        "cashier"
+        "manager"
     ],
     "POST /products/{product_id}/options": [
         "admin",
@@ -121,18 +168,18 @@ export const RBAC_RULES: Record<string, string[]> = {
         "manager"
     ],
     "GET /promotions": [
-        "cashier",
         "admin",
-        "manager"
+        "manager",
+        "cashier"
     ],
     "POST /promotions": [
         "admin",
         "manager"
     ],
     "GET /promotions/{id}": [
-        "cashier",
         "admin",
-        "manager"
+        "manager",
+        "cashier"
     ],
     "PUT /promotions/{id}": [
         "admin",
@@ -146,17 +193,92 @@ export const RBAC_RULES: Record<string, string[]> = {
         "admin",
         "manager"
     ],
+    "GET /reports/cancellations": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/cashier-performance": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/dashboard-summary": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/payment-methods": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/products": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/profit-products": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/profit-summary": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /reports/sales": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /settings/branding": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
     "PUT /settings/branding": [
         "admin"
     ],
     "POST /settings/branding/logo": [
         "admin"
     ],
+    "GET /settings/printer": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
     "PUT /settings/printer": [
         "admin"
     ],
     "POST /settings/printer/test": [
         "admin"
+    ],
+    "POST /shifts/cash-transaction": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /shifts/current": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "POST /shifts/end": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "POST /shifts/start": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /users": [
+        "admin",
+        "manager",
+        "cashier"
     ],
     "POST /users": [
         "admin"

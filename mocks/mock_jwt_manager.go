@@ -10,7 +10,6 @@
 package mocks
 
 import (
-	repository "POS-kasir/internal/repository"
 	utils "POS-kasir/pkg/utils"
 	reflect "reflect"
 	time "time"
@@ -44,7 +43,7 @@ func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 }
 
 // GenerateRefreshToken mocks base method.
-func (m *MockManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+func (m *MockManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateRefreshToken", username, email, userID, role)
 	ret0, _ := ret[0].(string)
@@ -60,7 +59,7 @@ func (mr *MockManagerMockRecorder) GenerateRefreshToken(username, email, userID,
 }
 
 // GenerateToken mocks base method.
-func (m *MockManager) GenerateToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+func (m *MockManager) GenerateToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateToken", username, email, userID, role)
 	ret0, _ := ret[0].(string)

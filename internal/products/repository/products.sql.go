@@ -12,6 +12,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addProductStock = `-- name: AddProductStock :one
+UPDATE products
+SET stock = stock + $1
+WHERE id = $2
+RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+`
+
+type AddProductStockParams struct {
+	Quantity int32     `json:"quantity"`
+	ID       uuid.UUID `json:"id"`
+}
+
+func (q *Queries) AddProductStock(ctx context.Context, arg AddProductStockParams) (Product, error) {
+	row := q.db.QueryRow(ctx, addProductStock, arg.Quantity, arg.ID)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CategoryID,
+		&i.ImageUrl,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.CostPrice,
+	)
+	return i, err
+}
+
 const checkCategoryExists = `-- name: CheckCategoryExists :one
 SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)
 `
@@ -155,6 +185,36 @@ func (q *Queries) CreateProductOption(ctx context.Context, arg CreateProductOpti
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const decreaseProductStock = `-- name: DecreaseProductStock :one
+UPDATE products
+SET stock = stock - $1
+WHERE id = $2
+RETURNING id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+`
+
+type DecreaseProductStockParams struct {
+	Quantity int32     `json:"quantity"`
+	ID       uuid.UUID `json:"id"`
+}
+
+func (q *Queries) DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error) {
+	row := q.db.QueryRow(ctx, decreaseProductStock, arg.Quantity, arg.ID)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CategoryID,
+		&i.ImageUrl,
+		&i.Price,
+		&i.Stock,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.CostPrice,
 	)
 	return i, err
 }
@@ -358,6 +418,40 @@ func (q *Queries) GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetPr
 	return i, err
 }
 
+const getProductOptionsByIDs = `-- name: GetProductOptionsByIDs :many
+SELECT id, product_id, name, additional_price, image_url, created_at, updated_at, deleted_at FROM product_options
+WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetProductOptionsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error) {
+	rows, err := q.db.Query(ctx, getProductOptionsByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ProductOption{}
+	for rows.Next() {
+		var i ProductOption
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.Name,
+			&i.AdditionalPrice,
+			&i.ImageUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProductWithOptions = `-- name: GetProductWithOptions :one
 SELECT
     p.id, p.name, p.category_id, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
@@ -409,6 +503,79 @@ func (q *Queries) GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetP
 		&i.Options,
 	)
 	return i, err
+}
+
+const getProductsByIDs = `-- name: GetProductsByIDs :many
+SELECT id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CategoryID,
+			&i.ImageUrl,
+			&i.Price,
+			&i.Stock,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.CostPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProductsForUpdate = `-- name: GetProductsForUpdate :many
+SELECT id, name, category_id, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+WHERE id = ANY($1::uuid[])
+FOR UPDATE
+`
+
+func (q *Queries) GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsForUpdate, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CategoryID,
+			&i.ImageUrl,
+			&i.Price,
+			&i.Stock,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.CostPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listDeletedProducts = `-- name: ListDeletedProducts :many

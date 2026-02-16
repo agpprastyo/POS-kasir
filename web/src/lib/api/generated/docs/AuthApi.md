@@ -4,17 +4,18 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**authAddPost**](#authaddpost) | **POST** /auth/add | Add new user|
 |[**authLoginPost**](#authloginpost) | **POST** /auth/login | Login|
 |[**authLogoutPost**](#authlogoutpost) | **POST** /auth/logout | Logout|
 |[**authMeAvatarPut**](#authmeavatarput) | **PUT** /auth/me/avatar | Update avatar|
-|[**authMeGet**](#authmeget) | **GET** /auth/me | Get profile|
-|[**authMeUpdatePasswordPost**](#authmeupdatepasswordpost) | **POST** /auth/me/update-password | Update password|
+|[**authMeGet**](#authmeget) | **GET** /auth/me | Get current profile|
+|[**authMePasswordPut**](#authmepasswordput) | **PUT** /auth/me/password | Update password|
 |[**authRefreshPost**](#authrefreshpost) | **POST** /auth/refresh | Refresh token|
 
-# **authLoginPost**
-> AuthLoginPost200Response authLoginPost(request)
+# **authAddPost**
+> AuthAddPost200Response authAddPost(request)
 
-Login
+Register a new user with a specific role (Roles: admin)
 
 ### Example
 
@@ -22,13 +23,69 @@ Login
 import {
     AuthApi,
     Configuration,
-    POSKasirInternalDtoLoginRequest
+    InternalUserRegisterRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let request: POSKasirInternalDtoLoginRequest; //Login request
+let request: InternalUserRegisterRequest; //New user details
+
+const { status, data } = await apiInstance.authAddPost(
+    request
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **request** | **InternalUserRegisterRequest**| New user details | |
+
+
+### Return type
+
+**AuthAddPost200Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | User added successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
+|**403** | Forbidden - higher role assignment attempt |  -  |
+|**409** | User, username, or email already exists |  -  |
+|**500** | Internal server error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authLoginPost**
+> AuthLoginPost200Response authLoginPost(request)
+
+Authenticate user and return access/refresh tokens via cookies and response body (Roles: public)
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    InternalUserLoginRequest
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let request: InternalUserLoginRequest; //Login credentials
 
 const { status, data } = await apiInstance.authLoginPost(
     request
@@ -39,7 +96,7 @@ const { status, data } = await apiInstance.authLoginPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoLoginRequest**| Login request | |
+| **request** | **InternalUserLoginRequest**| Login credentials | |
 
 
 ### Return type
@@ -59,18 +116,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**400** | Bad Request |  -  |
-|**401** | Unauthorized |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Authenticated successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
+|**401** | Invalid username or password |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authLogoutPost**
-> AuthLogoutPost200Response authLogoutPost()
+> POSKasirInternalCommonSuccessResponse authLogoutPost()
 
-Logout
+Clear access and refresh token cookies (Roles: authenticated)
 
 ### Example
 
@@ -92,7 +148,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**AuthLogoutPost200Response**
+**POSKasirInternalCommonSuccessResponse**
 
 ### Authorization
 
@@ -107,17 +163,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
+|**200** | Successfully logged out |  -  |
 |**401** | Unauthorized |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authMeAvatarPut**
-> AuthMeGet200Response authMeAvatarPut()
+> AuthAddPost200Response authMeAvatarPut()
 
-Update avatar
+Upload and update the profile picture for the current user (Roles: authenticated)
 
 ### Example
 
@@ -130,7 +185,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let avatar: File; //Avatar file (default to undefined)
+let avatar: File; //Avatar image file (default to undefined)
 
 const { status, data } = await apiInstance.authMeAvatarPut(
     avatar
@@ -141,12 +196,12 @@ const { status, data } = await apiInstance.authMeAvatarPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **avatar** | [**File**] | Avatar file | defaults to undefined|
+| **avatar** | [**File**] | Avatar image file | defaults to undefined|
 
 
 ### Return type
 
-**AuthMeGet200Response**
+**AuthAddPost200Response**
 
 ### Authorization
 
@@ -161,18 +216,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**400** | Bad Request |  -  |
+|**200** | Avatar updated successfully |  -  |
+|**400** | Invalid file or dimensions |  -  |
 |**401** | Unauthorized |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authMeGet**
-> AuthMeGet200Response authMeGet()
+> AuthAddPost200Response authMeGet()
 
-Get profile
+Get detailed profile information for the authenticated user session (Roles: authenticated)
 
 ### Example
 
@@ -194,7 +248,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**AuthMeGet200Response**
+**AuthAddPost200Response**
 
 ### Authorization
 
@@ -209,17 +263,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
+|**200** | Profile retrieved successfully |  -  |
 |**401** | Unauthorized |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **authMeUpdatePasswordPost**
-> AuthLogoutPost200Response authMeUpdatePasswordPost(request)
+# **authMePasswordPut**
+> POSKasirInternalCommonSuccessResponse authMePasswordPut(request)
 
-Update password
+Update the password for the current user session (Roles: authenticated)
 
 ### Example
 
@@ -227,15 +280,15 @@ Update password
 import {
     AuthApi,
     Configuration,
-    POSKasirInternalDtoUpdatePasswordRequest
+    InternalUserUpdatePasswordRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let request: POSKasirInternalDtoUpdatePasswordRequest; //Update password request
+let request: InternalUserUpdatePasswordRequest; //Password update details
 
-const { status, data } = await apiInstance.authMeUpdatePasswordPost(
+const { status, data } = await apiInstance.authMePasswordPut(
     request
 );
 ```
@@ -244,12 +297,12 @@ const { status, data } = await apiInstance.authMeUpdatePasswordPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoUpdatePasswordRequest**| Update password request | |
+| **request** | **InternalUserUpdatePasswordRequest**| Password update details | |
 
 
 ### Return type
 
-**AuthLogoutPost200Response**
+**POSKasirInternalCommonSuccessResponse**
 
 ### Authorization
 
@@ -264,18 +317,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**400** | Bad Request |  -  |
+|**200** | Password updated successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
 |**401** | Unauthorized |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authRefreshPost**
-> AuthLoginPost200Response authRefreshPost()
+> AuthRefreshPost200Response authRefreshPost()
 
-Refresh token
+Issue a new access token using a valid refresh token cookie (Roles: public/authenticated)
 
 ### Example
 
@@ -297,7 +349,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**AuthLoginPost200Response**
+**AuthRefreshPost200Response**
 
 ### Authorization
 
@@ -312,9 +364,9 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Unauthorized |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Token refreshed successfully |  -  |
+|**401** | Invalid or expired session |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

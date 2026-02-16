@@ -2,6 +2,7 @@ package activitylog
 
 import (
 	"POS-kasir/internal/common"
+	"errors"
 
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
@@ -10,16 +11,14 @@ import (
 )
 
 type ActivityLogHandler struct {
-	service   IActivityService
-	log       logger.ILogger
-	validator validator.Validator
+	service IActivityService
+	log     logger.ILogger
 }
 
-func NewActivityLogHandler(service IActivityService, log logger.ILogger, validator validator.Validator) *ActivityLogHandler {
+func NewActivityLogHandler(service IActivityService, log logger.ILogger) *ActivityLogHandler {
 	return &ActivityLogHandler{
-		service:   service,
-		log:       log,
-		validator: validator,
+		service: service,
+		log:     log,
 	}
 }
 
@@ -34,9 +33,9 @@ func NewActivityLogHandler(service IActivityService, log logger.ILogger, validat
 // @Param        search query string false "Search term"
 // @Param        start_date query string false "Start date (YYYY-MM-DD)"
 // @Param        end_date query string false "End date (YYYY-MM-DD)"
-// @Param        user_id query string false "User ID"
-// @Param        entity_type query string false "Entity Type"
-// @Param        action_type query string false "Action Type"
+// @Param        user_id query string false "User ID" Format(uuid)
+// @Param        entity_type query string false "Entity Type" Enums(PRODUCT, CATEGORY, PROMOTION, ORDER, USER)
+// @Param        action_type query string false "Action Type" Enums(CREATE, UPDATE, DELETE, CANCEL, APPLY_PROMOTION, PROCESS_PAYMENT, REGISTER, UPDATE_PASSWORD, UPDATE_AVATAR, LOGIN_SUCCESS, LOGIN_FAILED)
 // @Success      200  {object}  common.SuccessResponse{data=ActivityLogListResponse}
 // @Failure      400  {object}  common.ErrorResponse
 // @Failure      500  {object}  common.ErrorResponse
@@ -48,21 +47,20 @@ func (h *ActivityLogHandler) GetActivityLogs(c fiber.Ctx) error {
 	var req GetActivityLogsRequest
 	if err := c.Bind().Query(&req); err != nil {
 		h.log.Errorf("Handler | GetActivityLogs | %v", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Failed to parse query parameters",
 			Error:   err.Error(),
 		})
-	}
-
-	if done, err := common.ValidateAndRespond(c, h.validator, h.log, &req); done {
-		return err
-	}
-
-	if req.Page < 1 {
-		req.Page = 1
-	}
-	if req.Limit < 1 {
-		req.Limit = 10
 	}
 
 	result, err := h.service.GetActivityLogs(ctx, req)
@@ -78,5 +76,3 @@ func (h *ActivityLogHandler) GetActivityLogs(c fiber.Ctx) error {
 		Data:    result,
 	})
 }
-
-// fiber:context-methods migrated

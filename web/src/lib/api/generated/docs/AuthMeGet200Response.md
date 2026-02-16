@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoProfileResponse**](POSKasirInternalDtoProfileResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalUserProfileResponse**](InternalUserProfileResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

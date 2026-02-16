@@ -1,7 +1,7 @@
 package cancellation_reasons
 
 import (
-	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
+	"POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 )
@@ -11,11 +11,11 @@ type ICancellationReasonService interface {
 }
 
 type CancellationReasonService struct {
-	store cancellation_reasons_repo.Querier
+	store repository.Querier
 	log   logger.ILogger
 }
 
-func NewCancellationReasonService(store cancellation_reasons_repo.Querier, log logger.ILogger) ICancellationReasonService {
+func NewCancellationReasonService(store repository.Querier, log logger.ILogger) ICancellationReasonService {
 	return &CancellationReasonService{store: store, log: log}
 }
 

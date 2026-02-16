@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoActivityLogListResponse**](POSKasirInternalDtoActivityLogListResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalActivitylogActivityLogListResponse**](InternalActivitylogActivityLogListResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

@@ -2,10 +2,11 @@ package products
 
 import (
 	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/pagination"
+	"POS-kasir/internal/common/store"
 	products_repo "POS-kasir/internal/products/repository"
-	"POS-kasir/internal/repository"
 	"POS-kasir/pkg/logger"
 
 	"context"
@@ -42,13 +43,13 @@ type IPrdService interface {
 
 type PrdService struct {
 	log             logger.ILogger
-	store           repository.Store
+	store           store.Store
 	repo            products_repo.Querier
-	prdRepo         IPrdRepo
+	prdRepo         IProductImageRepository
 	activityService activitylog.IActivityService
 }
 
-func NewPrdService(store repository.Store, repo products_repo.Querier, log logger.ILogger, prdRepo IPrdRepo, activityService activitylog.IActivityService) IPrdService {
+func NewPrdService(store store.Store, repo products_repo.Querier, log logger.ILogger, prdRepo IProductImageRepository, activityService activitylog.IActivityService) IPrdService {
 	return &PrdService{
 		store:           store,
 		repo:            repo,
@@ -85,8 +86,8 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -131,8 +132,8 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -204,8 +205,8 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -258,8 +259,8 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		newOption.ID.String(),
 		logDetails,
 	)
@@ -297,8 +298,8 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
@@ -376,23 +377,22 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		changeAmount := currentStock - previousStock
 
 		if changeAmount != 0 {
-			changeType := products_repo.StockChangeTypeCorrection // Default
+			changeType := products_repo.StockChangeTypeCorrection 
 			if req.ChangeType != nil {
 				changeType = products_repo.StockChangeType(*req.ChangeType)
 			} else {
-				// Auto-detect simple cases if not provided
+				
 				if changeAmount > 0 {
 					changeType = products_repo.StockChangeTypeRestock
 				}
 			}
 
-			// Safe dereference for Note
 			var note *string
 			if req.Note != nil {
 				note = req.Note
 			}
 
-			// Creator
+			
 			var createdBy pgtype.UUID
 			if actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID); ok {
 				createdBy = pgtype.UUID{Bytes: actorID, Valid: true}
@@ -418,8 +418,8 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
@@ -601,11 +601,11 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
 			if err != nil {
 				s.log.Warnf("Failed to get public URL for product image", "error", err)
-				imageUrl = *p.ImageUrl // Tetap gunakan URL asli jika gagal
+				imageUrl = *p.ImageUrl 
 			}
 			p.ImageUrl = &imageUrl
 		} else {
-			p.ImageUrl = nil // Setel ke nil jika tidak ada URL
+			p.ImageUrl = nil 
 		}
 		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
@@ -634,8 +634,8 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 	var newProduct products_repo.Product
 	var createdOptions []products_repo.ProductOption
 
-	txFunc := func(qtx *repository.Queries) error {
-		pq := products_repo.New(qtx.DB()) // Use domain-specific queries with the same transaction
+	txFunc := func(tx pgx.Tx) error {
+		qtx := products_repo.New(tx)
 		var err error
 
 		price := int64(req.Price)
@@ -650,7 +650,8 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 			Stock:      req.Stock,
 			CostPrice:  numericCost,
 		}
-		newProduct, err = pq.CreateProduct(ctx, productParams)
+
+		newProduct, err = qtx.CreateProduct(ctx, productParams)
 		if err != nil {
 			s.log.Errorf("Failed to create product in transaction", "error", err)
 			return err
@@ -664,11 +665,12 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 				Name:            opt.Name,
 				AdditionalPrice: additionalPrice,
 			}
-			createdOpt, err := pq.CreateProductOption(ctx, optionParams)
+			createdOpt, err := qtx.CreateProductOption(ctx, optionParams)
 			if err != nil {
 				s.log.Errorf("Failed to create product option in transaction", "error", err)
 				return err
 			}
+
 			createdOptions = append(createdOptions, createdOpt)
 		}
 		return nil
@@ -689,8 +691,8 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		newProduct.ID.String(),
 		logDetails,
 	)
@@ -709,7 +711,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		return nil, err
 	}
 
-	const maxFileSize = 5 * 1024 * 1024 // 2MB
+	const maxFileSize = 5 * 1024 * 1024 
 	if len(data) > maxFileSize {
 		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
 	}
@@ -740,8 +742,8 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
@@ -850,7 +852,6 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req ListProductsRe
 			deletedAt = &t
 		}
 
-		// Similar image logic if needed, skipping detailed image check for list view speed or reuse similar logic
 		if p.ImageUrl != nil && *p.ImageUrl != "" {
 			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
 			if err != nil {
@@ -990,7 +991,7 @@ func (s *PrdService) RestoreProduct(ctx context.Context, productID uuid.UUID) er
 
 	// Log activity
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
-	s.activityService.Log(ctx, actorID, repository.LogActionTypeUPDATE, repository.LogEntityTypePRODUCT, productID.String(), map[string]interface{}{
+	s.activityService.Log(ctx, actorID, activitylog_repo.LogActionTypeUPDATE, activitylog_repo.LogEntityTypePRODUCT, productID.String(), map[string]interface{}{
 		"action": "restore",
 	})
 
@@ -1017,7 +1018,7 @@ func (s *PrdService) RestoreProductsBulk(ctx context.Context, req RestoreBulkReq
 
 	// Log activity (maybe one log for all or individually? One log is cleaner)
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
-	s.activityService.Log(ctx, actorID, repository.LogActionTypeUPDATE, repository.LogEntityTypePRODUCT, "bulk", map[string]interface{}{
+	s.activityService.Log(ctx, actorID, activitylog_repo.LogActionTypeUPDATE, activitylog_repo.LogEntityTypePRODUCT, "bulk", map[string]interface{}{
 		"action": "restore_bulk",
 		"count":  len(ids),
 		"ids":    req.ProductIDs,

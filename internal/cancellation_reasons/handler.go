@@ -21,11 +21,15 @@ func NewCancellationReasonHandler(service ICancellationReasonService, log logger
 }
 
 // ListCancellationReasonsHandler
-// @Summary List cancellation reasons
-// @Tags Cancellation Reasons
-// @Success 200 {object} common.SuccessResponse{data=[]CancellationReasonResponse} "List of cancellation reasons"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /cancellation-reasons [get]
+// @Summary      List cancellation reasons
+// @Description  Get a list of all active cancellation reasons for orders
+// @Tags         Cancellation Reasons
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse{data=[]CancellationReasonResponse} "List of cancellation reasons"
+// @Failure      500 {object} common.ErrorResponse
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /cancellation-reasons [get]
 func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c fiber.Ctx) error {
 	reasons, err := h.service.ListCancellationReasons(c.RequestCtx())
 	if err != nil {
@@ -38,5 +42,3 @@ func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c fiber.Ctx) 
 		Data:    reasons,
 	})
 }
-
-// fiber:context-methods migrated

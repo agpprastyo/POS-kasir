@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalOrdersMidtransPaymentResponse } from './internal-orders-midtrans-payment-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoMidtransPaymentResponse } from './poskasir-internal-dto-midtrans-payment-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type OrdersIdPayMidtransPost200Response

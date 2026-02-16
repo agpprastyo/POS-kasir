@@ -11,7 +11,7 @@ package mocks
 
 import (
 	activitylog "POS-kasir/internal/activitylog"
-	repository "POS-kasir/internal/repository"
+	repository "POS-kasir/internal/activitylog/repository"
 	context "context"
 	reflect "reflect"
 

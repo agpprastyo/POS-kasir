@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalUserUsersResponse } from './internal-user-users-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoUsersResponse } from './poskasir-internal-dto-users-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type UsersGet200Response

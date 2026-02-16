@@ -32,10 +32,10 @@ type UpdateProductRequest struct {
 }
 
 type ListProductsRequest struct {
-	Page       *int    `form:"page" validate:"omitempty,gte=1"`
-	Limit      *int    `form:"limit" validate:"omitempty,gte=1,lte=100"`
-	CategoryID *int32  `form:"category_id" json:"category_id" query:"category_id"  validate:"omitempty,gt=0"`
-	Search     *string `form:"search" validate:"omitempty,min=1,max=100"`
+	Page       *int    `query:"page" validate:"omitempty,gte=1"`
+	Limit      *int    `query:"limit" validate:"omitempty,gte=1,lte=100"`
+	CategoryID *int32  `query:"category_id" validate:"omitempty,gt=0"`
+	Search     *string `query:"search" validate:"omitempty,min=1,max=100"`
 }
 
 type CreateProductOptionRequestStandalone struct {
@@ -91,8 +91,8 @@ type RestoreBulkRequest struct {
 }
 
 type ListStockHistoryRequest struct {
-	Page  *int `form:"page" validate:"omitempty,gte=1"`
-	Limit *int `form:"limit" validate:"omitempty,gte=1,lte=100"`
+	Page  *int `query:"page" validate:"omitempty,gte=1"`
+	Limit *int `query:"limit" validate:"omitempty,gte=1,lte=100"`
 }
 
 type StockHistoryResponse struct {

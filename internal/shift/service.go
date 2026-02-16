@@ -2,8 +2,7 @@ package shift
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	repository "POS-kasir/internal/shift/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/utils"
 	"context"
@@ -14,19 +13,19 @@ import (
 )
 
 type Service interface {
-	StartShift(ctx context.Context, userID uuid.UUID, req dto.StartShiftRequest) (*dto.ShiftResponse, error)
-	EndShift(ctx context.Context, userID uuid.UUID, req dto.EndShiftRequest) (*dto.ShiftResponse, error)
-	GetOpenShift(ctx context.Context, userID uuid.UUID) (*dto.ShiftResponse, error)
-	CreateCashTransaction(ctx context.Context, userID uuid.UUID, req dto.CashTransactionRequest) (*dto.CashTransactionResponse, error)
+	StartShift(ctx context.Context, userID uuid.UUID, req StartShiftRequest) (*ShiftResponse, error)
+	EndShift(ctx context.Context, userID uuid.UUID, req EndShiftRequest) (*ShiftResponse, error)
+	GetOpenShift(ctx context.Context, userID uuid.UUID) (*ShiftResponse, error)
+	CreateCashTransaction(ctx context.Context, userID uuid.UUID, req CashTransactionRequest) (*CashTransactionResponse, error)
 }
 
 type service struct {
-	repo  repository.Store
+	repo  repository.Querier
 	log   logger.ILogger
 	cache *Cache
 }
 
-func NewService(repo repository.Store, log logger.ILogger, cache *Cache) Service {
+func NewService(repo repository.Querier, log logger.ILogger, cache *Cache) Service {
 	return &service{
 		repo:  repo,
 		log:   log,
@@ -34,15 +33,15 @@ func NewService(repo repository.Store, log logger.ILogger, cache *Cache) Service
 	}
 }
 
-func (s *service) StartShift(ctx context.Context, userID uuid.UUID, req dto.StartShiftRequest) (*dto.ShiftResponse, error) {
+func (s *service) StartShift(ctx context.Context, userID uuid.UUID, req StartShiftRequest) (*ShiftResponse, error) {
 	// Verify user password
-	user, err := s.repo.GetUserByID(ctx, userID)
+	passwordHash, err := s.repo.GetUserPasswordHash(ctx, userID)
 	if err != nil {
-		s.log.Errorf("StartShift | User not found: %v", userID)
+		s.log.Errorf("StartShift | User not found or hash missing: %v", userID)
 		return nil, common.ErrNotFound
 	}
 
-	if !utils.CheckPassword(user.PasswordHash, req.Password) {
+	if !utils.CheckPassword(passwordHash, req.Password) {
 		s.log.Errorf("StartShift | Invalid password for user: %v", userID)
 		return nil, common.ErrInvalidCredentials
 	}
@@ -66,15 +65,15 @@ func (s *service) StartShift(ctx context.Context, userID uuid.UUID, req dto.Star
 	return s.mapShiftToResponse(shift), nil
 }
 
-func (s *service) EndShift(ctx context.Context, userID uuid.UUID, req dto.EndShiftRequest) (*dto.ShiftResponse, error) {
+func (s *service) EndShift(ctx context.Context, userID uuid.UUID, req EndShiftRequest) (*ShiftResponse, error) {
 	// Verify user password
-	user, err := s.repo.GetUserByID(ctx, userID)
+	passwordHash, err := s.repo.GetUserPasswordHash(ctx, userID)
 	if err != nil {
-		s.log.Errorf("EndShift | User not found: %v", userID)
+		s.log.Errorf("EndShift | User not found or hash missing: %v", userID)
 		return nil, common.ErrNotFound
 	}
 
-	if !utils.CheckPassword(user.PasswordHash, req.Password) {
+	if !utils.CheckPassword(passwordHash, req.Password) {
 		s.log.Errorf("EndShift | Invalid password for user: %v", userID)
 		return nil, common.ErrInvalidCredentials
 	}
@@ -138,7 +137,7 @@ func (s *service) EndShift(ctx context.Context, userID uuid.UUID, req dto.EndShi
 	return res, nil
 }
 
-func (s *service) GetOpenShift(ctx context.Context, userID uuid.UUID) (*dto.ShiftResponse, error) {
+func (s *service) GetOpenShift(ctx context.Context, userID uuid.UUID) (*ShiftResponse, error) {
 	shift, err := s.repo.GetOpenShiftByUserID(ctx, userID)
 	if err != nil {
 		return nil, common.ErrNotFound
@@ -147,7 +146,7 @@ func (s *service) GetOpenShift(ctx context.Context, userID uuid.UUID) (*dto.Shif
 	return s.mapShiftToResponse(shift), nil
 }
 
-func (s *service) CreateCashTransaction(ctx context.Context, userID uuid.UUID, req dto.CashTransactionRequest) (*dto.CashTransactionResponse, error) {
+func (s *service) CreateCashTransaction(ctx context.Context, userID uuid.UUID, req CashTransactionRequest) (*CashTransactionResponse, error) {
 	// Get current open shift
 	shift, err := s.repo.GetOpenShiftByUserID(ctx, userID)
 	if err != nil {
@@ -168,7 +167,7 @@ func (s *service) CreateCashTransaction(ctx context.Context, userID uuid.UUID, r
 		return nil, err
 	}
 
-	return &dto.CashTransactionResponse{
+	return &CashTransactionResponse{
 		ID:          tx.ID,
 		ShiftID:     tx.ShiftID,
 		UserID:      tx.UserID,
@@ -180,7 +179,7 @@ func (s *service) CreateCashTransaction(ctx context.Context, userID uuid.UUID, r
 	}, nil
 }
 
-func (s *service) mapShiftToResponse(shift repository.Shift) *dto.ShiftResponse {
+func (s *service) mapShiftToResponse(shift repository.Shift) *ShiftResponse {
 	var endTime *time.Time
 	if shift.EndTime.Valid {
 		t := shift.EndTime.Time
@@ -197,7 +196,7 @@ func (s *service) mapShiftToResponse(shift repository.Shift) *dto.ShiftResponse 
 		actual = shift.ActualCashEnd
 	}
 
-	return &dto.ShiftResponse{
+	return &ShiftResponse{
 		ID:              shift.ID,
 		UserID:          shift.UserID,
 		StartTime:       shift.StartTime.Time,

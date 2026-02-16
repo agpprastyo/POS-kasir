@@ -4,7 +4,8 @@ import (
 	"POS-kasir/config"
 	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	categories_repo "POS-kasir/internal/categories/repository"
-	"POS-kasir/internal/repository"
+	payment_methods_repo "POS-kasir/internal/payment_methods/repository"
+	user_repo "POS-kasir/internal/user/repository"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/database/seeder"
 	"POS-kasir/pkg/logger"
@@ -38,11 +39,12 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	queries := repository.New(db.GetPool())
+	userRepo := user_repo.New(db.GetPool())
 	catRepo := categories_repo.New(db.GetPool())
+	paymentMethodRepo := payment_methods_repo.New(db.GetPool())
 	cancelRepo := cancellation_reasons_repo.New(db.GetPool())
 
-	if err := seeder.RunSeeders(ctx, queries, catRepo, cancelRepo, logr); err != nil {
+	if err := seeder.RunSeeders(ctx, userRepo, catRepo, paymentMethodRepo, cancelRepo, logr); err != nil {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 

@@ -28,8 +28,8 @@ let search: string; //Search term (optional) (default to undefined)
 let startDate: string; //Start date (YYYY-MM-DD) (optional) (default to undefined)
 let endDate: string; //End date (YYYY-MM-DD) (optional) (default to undefined)
 let userId: string; //User ID (optional) (default to undefined)
-let entityType: string; //Entity Type (optional) (default to undefined)
-let actionType: string; //Action Type (optional) (default to undefined)
+let entityType: 'PRODUCT' | 'CATEGORY' | 'PROMOTION' | 'ORDER' | 'USER'; //Entity Type (optional) (default to undefined)
+let actionType: 'CREATE' | 'UPDATE' | 'DELETE' | 'CANCEL' | 'APPLY_PROMOTION' | 'PROCESS_PAYMENT' | 'REGISTER' | 'UPDATE_PASSWORD' | 'UPDATE_AVATAR' | 'LOGIN_SUCCESS' | 'LOGIN_FAILED'; //Action Type (optional) (default to undefined)
 
 const { status, data } = await apiInstance.activityLogsGet(
     page,
@@ -53,8 +53,8 @@ const { status, data } = await apiInstance.activityLogsGet(
 | **startDate** | [**string**] | Start date (YYYY-MM-DD) | (optional) defaults to undefined|
 | **endDate** | [**string**] | End date (YYYY-MM-DD) | (optional) defaults to undefined|
 | **userId** | [**string**] | User ID | (optional) defaults to undefined|
-| **entityType** | [**string**] | Entity Type | (optional) defaults to undefined|
-| **actionType** | [**string**] | Action Type | (optional) defaults to undefined|
+| **entityType** | [**&#39;PRODUCT&#39; | &#39;CATEGORY&#39; | &#39;PROMOTION&#39; | &#39;ORDER&#39; | &#39;USER&#39;**]**Array<&#39;PRODUCT&#39; &#124; &#39;CATEGORY&#39; &#124; &#39;PROMOTION&#39; &#124; &#39;ORDER&#39; &#124; &#39;USER&#39;>** | Entity Type | (optional) defaults to undefined|
+| **actionType** | [**&#39;CREATE&#39; | &#39;UPDATE&#39; | &#39;DELETE&#39; | &#39;CANCEL&#39; | &#39;APPLY_PROMOTION&#39; | &#39;PROCESS_PAYMENT&#39; | &#39;REGISTER&#39; | &#39;UPDATE_PASSWORD&#39; | &#39;UPDATE_AVATAR&#39; | &#39;LOGIN_SUCCESS&#39; | &#39;LOGIN_FAILED&#39;**]**Array<&#39;CREATE&#39; &#124; &#39;UPDATE&#39; &#124; &#39;DELETE&#39; &#124; &#39;CANCEL&#39; &#124; &#39;APPLY_PROMOTION&#39; &#124; &#39;PROCESS_PAYMENT&#39; &#124; &#39;REGISTER&#39; &#124; &#39;UPDATE_PASSWORD&#39; &#124; &#39;UPDATE_AVATAR&#39; &#124; &#39;LOGIN_SUCCESS&#39; &#124; &#39;LOGIN_FAILED&#39;>** | Action Type | (optional) defaults to undefined|
 
 
 ### Return type

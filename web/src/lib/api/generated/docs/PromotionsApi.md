@@ -12,8 +12,9 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**promotionsPost**](#promotionspost) | **POST** /promotions | Create a new promotion|
 
 # **promotionsGet**
-> POSKasirInternalCommonSuccessResponse promotionsGet()
+> PromotionsGet200Response promotionsGet()
 
+Get a list of promotions with pagination and optional trash filter (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -48,7 +49,7 @@ const { status, data } = await apiInstance.promotionsGet(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**PromotionsGet200Response**
 
 ### Authorization
 
@@ -63,15 +64,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotions retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **promotionsIdDelete**
 > POSKasirInternalCommonSuccessResponse promotionsIdDelete()
 
+Soft delete a promotion by its ID (Roles: admin, manager)
 
 ### Example
 
@@ -115,15 +117,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotion deleted successfully |  -  |
+|**400** | Invalid promotion ID format |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **promotionsIdGet**
-> POSKasirInternalCommonSuccessResponse promotionsIdGet()
+> PromotionsPost201Response promotionsIdGet()
 
+Retrieve details of a specific promotion by its ID (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -152,7 +155,7 @@ const { status, data } = await apiInstance.promotionsIdGet(
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**PromotionsPost201Response**
 
 ### Authorization
 
@@ -167,16 +170,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotion retrieved successfully |  -  |
+|**400** | Invalid promotion ID format |  -  |
+|**404** | Promotion not found |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **promotionsIdPut**
-> POSKasirInternalCommonSuccessResponse promotionsIdPut(request)
+> PromotionsPost201Response promotionsIdPut(request)
 
+Update details of an existing promotion by its ID (Roles: admin, manager)
 
 ### Example
 
@@ -184,14 +188,14 @@ No authorization required
 import {
     PromotionsApi,
     Configuration,
-    POSKasirInternalDtoUpdatePromotionRequest
+    InternalPromotionsUpdatePromotionRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new PromotionsApi(configuration);
 
 let id: string; //Promotion ID (default to undefined)
-let request: POSKasirInternalDtoUpdatePromotionRequest; //Promotion details
+let request: InternalPromotionsUpdatePromotionRequest; //Promotion details
 
 const { status, data } = await apiInstance.promotionsIdPut(
     id,
@@ -203,13 +207,13 @@ const { status, data } = await apiInstance.promotionsIdPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoUpdatePromotionRequest**| Promotion details | |
+| **request** | **InternalPromotionsUpdatePromotionRequest**| Promotion details | |
 | **id** | [**string**] | Promotion ID | defaults to undefined|
 
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**PromotionsPost201Response**
 
 ### Authorization
 
@@ -224,16 +228,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotion updated successfully |  -  |
+|**400** | Invalid project ID format or request body |  -  |
+|**404** | Promotion not found |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **promotionsIdRestorePost**
 > POSKasirInternalCommonSuccessResponse promotionsIdRestorePost()
 
+Restore a soft-deleted promotion by its ID (Roles: admin, manager)
 
 ### Example
 
@@ -277,15 +282,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotion restored successfully |  -  |
+|**400** | Invalid promotion ID format |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **promotionsPost**
-> POSKasirInternalCommonSuccessResponse promotionsPost(request)
+> PromotionsPost201Response promotionsPost(request)
 
+Create a new promotion with rules and targets (Roles: admin, manager)
 
 ### Example
 
@@ -293,13 +299,13 @@ No authorization required
 import {
     PromotionsApi,
     Configuration,
-    POSKasirInternalDtoCreatePromotionRequest
+    InternalPromotionsCreatePromotionRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new PromotionsApi(configuration);
 
-let request: POSKasirInternalDtoCreatePromotionRequest; //Promotion details
+let request: InternalPromotionsCreatePromotionRequest; //Promotion details
 
 const { status, data } = await apiInstance.promotionsPost(
     request
@@ -310,12 +316,12 @@ const { status, data } = await apiInstance.promotionsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoCreatePromotionRequest**| Promotion details | |
+| **request** | **InternalPromotionsCreatePromotionRequest**| Promotion details | |
 
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**PromotionsPost201Response**
 
 ### Authorization
 
@@ -330,9 +336,9 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**201** | Promotion created successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

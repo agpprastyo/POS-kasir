@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/repository"
+	shift_repo "POS-kasir/internal/shift/repository"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -16,7 +16,7 @@ type ShiftCache interface {
 	SetOpen(userID uuid.UUID, open bool)
 }
 
-func ShiftMiddleware(queries repository.Querier, cache ShiftCache) fiber.Handler {
+func ShiftMiddleware(queries shift_repo.Querier, cache ShiftCache) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		userID, ok := c.Locals("user_id").(uuid.UUID)
 		if !ok {

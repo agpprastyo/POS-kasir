@@ -3,8 +3,8 @@ package categories_test
 import (
 	"POS-kasir/internal/categories"
 	categories_repo "POS-kasir/internal/categories/repository"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/repository"
 	"POS-kasir/mocks"
 	"context"
 	"errors"
@@ -84,7 +84,7 @@ func TestCtgService_CreateCategory(t *testing.T) {
 		}
 
 		mockRepo.EXPECT().CreateCategory(ctx, req.Name).Return(repoCategory, nil)
-		mockActivity.EXPECT().Log(ctx, userID, repository.LogActionTypeCREATE, repository.LogEntityTypeCATEGORY, "1", gomock.Any())
+		mockActivity.EXPECT().Log(ctx, userID, activitylog_repo.LogActionTypeCREATE, activitylog_repo.LogEntityTypeCATEGORY, "1", gomock.Any())
 
 		resp, err := service.CreateCategory(ctx, req)
 
@@ -109,7 +109,7 @@ func TestCtgService_CreateCategory(t *testing.T) {
 
 		mockRepo.EXPECT().CreateCategory(ctxNoActor, req.Name).Return(repoCategory, nil)
 		mockLogger.EXPECT().Warnf(gomock.Any()).Times(1)
-		mockActivity.EXPECT().Log(ctxNoActor, uuid.Nil, repository.LogActionTypeCREATE, repository.LogEntityTypeCATEGORY, "2", gomock.Any())
+		mockActivity.EXPECT().Log(ctxNoActor, uuid.Nil, activitylog_repo.LogActionTypeCREATE, activitylog_repo.LogEntityTypeCATEGORY, "2", gomock.Any())
 
 		resp, err := service.CreateCategory(ctxNoActor, req)
 
@@ -200,7 +200,7 @@ func TestCtgService_DeleteCategory(t *testing.T) {
 		mockRepo.EXPECT().ExistsCategory(ctx, int32(1)).Return(true, nil)
 		mockRepo.EXPECT().CountProductsInCategory(ctx, gomock.Any()).Return(int64(0), nil)
 		mockRepo.EXPECT().DeleteCategory(ctx, int32(1)).Return(nil)
-		mockActivity.EXPECT().Log(ctx, userID, repository.LogActionTypeDELETE, repository.LogEntityTypeCATEGORY, "1", gomock.Any())
+		mockActivity.EXPECT().Log(ctx, userID, activitylog_repo.LogActionTypeDELETE, activitylog_repo.LogEntityTypeCATEGORY, "1", gomock.Any())
 
 		err := service.DeleteCategory(ctx, 1)
 
@@ -273,7 +273,7 @@ func TestCtgService_DeleteCategory(t *testing.T) {
 		mockRepo.EXPECT().CountProductsInCategory(ctxNoActor, gomock.Any()).Return(int64(0), nil)
 		mockRepo.EXPECT().DeleteCategory(ctxNoActor, int32(1)).Return(nil)
 		mockLogger.EXPECT().Warnf(gomock.Any()).Times(1)
-		mockActivity.EXPECT().Log(ctxNoActor, uuid.Nil, repository.LogActionTypeDELETE, repository.LogEntityTypeCATEGORY, "1", gomock.Any())
+		mockActivity.EXPECT().Log(ctxNoActor, uuid.Nil, activitylog_repo.LogActionTypeDELETE, activitylog_repo.LogEntityTypeCATEGORY, "1", gomock.Any())
 
 		err := service.DeleteCategory(ctxNoActor, 1)
 

@@ -1,7 +1,7 @@
 package seeder
 
 import (
-	"POS-kasir/internal/repository"
+	user_repo "POS-kasir/internal/user/repository"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/utils"
 	"context"
@@ -9,15 +9,15 @@ import (
 	"github.com/google/uuid"
 )
 
-func SeedUsers(ctx context.Context, q repository.Querier, log logger.ILogger) error {
+func SeedUsers(ctx context.Context, q user_repo.Querier, log logger.ILogger) error {
 	userData := []struct {
 		Username string
 		Email    string
-		Role     repository.UserRole
+		Role     user_repo.UserRole
 	}{
-		{"admin", "admin@example.com", repository.UserRoleAdmin},
-		{"cashier", "cashier@example.com", repository.UserRoleCashier},
-		{"manager", "manager@example.com", repository.UserRoleManager},
+		{"admin", "admin@example.com", user_repo.UserRoleAdmin},
+		{"cashier", "cashier@example.com", user_repo.UserRoleCashier},
+		{"manager", "manager@example.com", user_repo.UserRoleManager},
 	}
 
 	hashPassword, err := utils.HashPassword("passwordrahasia")
@@ -30,14 +30,13 @@ func SeedUsers(ctx context.Context, q repository.Querier, log logger.ILogger) er
 		userUUID, err := uuid.NewV7()
 		if err != nil {
 			log.Fatalf("Seeder User | failed to generate UUID: %v", err)
-			continue 
+			continue
 		}
-		params := repository.CreateUserParams{
+		params := user_repo.CreateUserParams{
 			ID:           userUUID,
 			Username:     data.Username,
 			Email:        data.Email,
 			PasswordHash: hashPassword,
-			Avatar:       nil,
 			Role:         data.Role,
 			IsActive:     true,
 		}

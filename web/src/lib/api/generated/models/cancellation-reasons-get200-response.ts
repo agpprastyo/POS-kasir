@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalCancellationReasonsCancellationReasonResponse } from './internal-cancellation-reasons-cancellation-reason-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoCancellationReasonResponse } from './poskasir-internal-dto-cancellation-reason-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type CancellationReasonsGet200Response

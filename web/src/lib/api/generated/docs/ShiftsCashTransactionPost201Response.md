@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoCashTransactionResponse**](POSKasirInternalDtoCashTransactionResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalShiftCashTransactionResponse**](InternalShiftCashTransactionResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

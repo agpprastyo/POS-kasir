@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoCancellationReasonResponse&gt;**](POSKasirInternalDtoCancellationReasonResponse.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalCancellationReasonsCancellationReasonResponse&gt;**](InternalCancellationReasonsCancellationReasonResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

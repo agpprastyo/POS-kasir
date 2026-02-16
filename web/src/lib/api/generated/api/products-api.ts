@@ -22,19 +22,19 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { InternalProductsCreateProductOptionRequestStandalone } from '../models';
+// @ts-ignore
+import type { InternalProductsCreateProductRequest } from '../models';
+// @ts-ignore
+import type { InternalProductsRestoreBulkRequest } from '../models';
+// @ts-ignore
+import type { InternalProductsUpdateProductOptionRequest } from '../models';
+// @ts-ignore
+import type { InternalProductsUpdateProductRequest } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoCreateProductOptionRequestStandalone } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoCreateProductRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoRestoreBulkRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoUpdateProductOptionRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoUpdateProductRequest } from '../models';
 // @ts-ignore
 import type { ProductsGet200Response } from '../models';
 // @ts-ignore
@@ -49,7 +49,7 @@ import type { ProductsProductIdOptionsPost201Response } from '../models';
 export const ProductsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * List products based on query parameters
+         * Get a list of products with filtering by category and search term (Roles: authenticated)
          * @summary List products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -99,7 +99,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Delete a product by ID
+         * Delete a product by its ID (Roles: admin)
          * @summary Delete a product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -133,7 +133,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Get a product by ID
+         * Retrieve detailed information of a specific product by its ID (Roles: admin, manager, cashier)
          * @summary Get a product by ID
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -167,7 +167,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Upload an image for a product by ID
+         * Upload an image for a product by ID (Roles: admin, manager)
          * @summary Upload an image for a product
          * @param {string} id Product ID
          * @param {File} image Image file
@@ -212,14 +212,14 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Update a product by ID
+         * Update details of a specific product by its ID (Roles: admin, manager)
          * @summary Update a product
          * @param {string} id Product ID
-         * @param {POSKasirInternalDtoUpdateProductRequest} body Product update request
+         * @param {InternalProductsUpdateProductRequest} body Product update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsIdPatch: async (id: string, body: POSKasirInternalDtoUpdateProductRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsIdPatch: async (id: string, body: InternalProductsUpdateProductRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('productsIdPatch', 'id', id)
             // verify required parameter 'body' is not null or undefined
@@ -252,7 +252,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Get stock history for a product by ID with pagination
+         * Get stock history for a specific product by its ID with pagination (Roles: admin, manager)
          * @summary Get stock history for a product
          * @param {string} id Product ID
          * @param {number} [page] Page number
@@ -296,13 +296,13 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Create a new product
+         * Create a new product with multiple options (Roles: admin, manager)
          * @summary Create a new product
-         * @param {POSKasirInternalDtoCreateProductRequest} body Product create request
+         * @param {InternalProductsCreateProductRequest} body Product create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsPost: async (body: POSKasirInternalDtoCreateProductRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsPost: async (body: InternalProductsCreateProductRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'body' is not null or undefined
             assertParamExists('productsPost', 'body', body)
             const localVarPath = `/products`;
@@ -332,11 +332,11 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Upload image for a specific product option
+         * Upload image for a specific product option (Roles: admin, manager)
          * @summary Upload product option image
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {File} image Product image
+         * @param {File} image Product option image
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -381,15 +381,15 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Update a product option by ID
+         * Update details of a specific product option by its ID (Roles: admin, manager)
          * @summary Update a product option
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {POSKasirInternalDtoUpdateProductOptionRequest} body Product option update request
+         * @param {InternalProductsUpdateProductOptionRequest} body Product option update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsOptionIdPatch: async (productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsProductIdOptionsOptionIdPatch: async (productId: string, optionId: string, body: InternalProductsUpdateProductOptionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'productId' is not null or undefined
             assertParamExists('productsProductIdOptionsOptionIdPatch', 'productId', productId)
             // verify required parameter 'optionId' is not null or undefined
@@ -425,14 +425,14 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Create a product option for a parent product
+         * Create a new product option for a parent product (Roles: admin, manager)
          * @summary Create a product option
          * @param {string} productId Product ID
-         * @param {POSKasirInternalDtoCreateProductOptionRequestStandalone} body Product option create request
+         * @param {InternalProductsCreateProductOptionRequestStandalone} body Product option create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsPost: async (productId: string, body: POSKasirInternalDtoCreateProductOptionRequestStandalone, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsProductIdOptionsPost: async (productId: string, body: InternalProductsCreateProductOptionRequestStandalone, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'productId' is not null or undefined
             assertParamExists('productsProductIdOptionsPost', 'productId', productId)
             // verify required parameter 'body' is not null or undefined
@@ -465,7 +465,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * List deleted products with pagination and filtering
+         * Get a list of deleted products with pagination and filtering (Roles: admin)
          * @summary List deleted products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -515,7 +515,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Get a deleted product by ID
+         * Retrieve detailed information of a specific deleted product by its ID (Roles: admin)
          * @summary Get a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -549,7 +549,7 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Restore a deleted product by ID
+         * Restore a specific deleted product by its ID (Roles: admin)
          * @summary Restore a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -583,13 +583,13 @@ export const ProductsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Restore multiple deleted products by IDs
+         * Restore multiple deleted products by their IDs (Roles: admin)
          * @summary Bulk restore deleted products
-         * @param {POSKasirInternalDtoRestoreBulkRequest} body Bulk restore request
+         * @param {InternalProductsRestoreBulkRequest} body Bulk restore request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsTrashRestoreBulkPost: async (body: POSKasirInternalDtoRestoreBulkRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        productsTrashRestoreBulkPost: async (body: InternalProductsRestoreBulkRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'body' is not null or undefined
             assertParamExists('productsTrashRestoreBulkPost', 'body', body)
             const localVarPath = `/products/trash/restore-bulk`;
@@ -628,7 +628,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ProductsApiAxiosParamCreator(configuration)
     return {
         /**
-         * List products based on query parameters
+         * Get a list of products with filtering by category and search term (Roles: authenticated)
          * @summary List products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -644,7 +644,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a product by ID
+         * Delete a product by its ID (Roles: admin)
          * @summary Delete a product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -657,7 +657,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get a product by ID
+         * Retrieve detailed information of a specific product by its ID (Roles: admin, manager, cashier)
          * @summary Get a product by ID
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -670,7 +670,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Upload an image for a product by ID
+         * Upload an image for a product by ID (Roles: admin, manager)
          * @summary Upload an image for a product
          * @param {string} id Product ID
          * @param {File} image Image file
@@ -684,21 +684,21 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a product by ID
+         * Update details of a specific product by its ID (Roles: admin, manager)
          * @summary Update a product
          * @param {string} id Product ID
-         * @param {POSKasirInternalDtoUpdateProductRequest} body Product update request
+         * @param {InternalProductsUpdateProductRequest} body Product update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsIdPatch(id: string, body: POSKasirInternalDtoUpdateProductRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsPost201Response>> {
+        async productsIdPatch(id: string, body: InternalProductsUpdateProductRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productsIdPatch(id, body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsIdPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get stock history for a product by ID with pagination
+         * Get stock history for a specific product by its ID with pagination (Roles: admin, manager)
          * @summary Get stock history for a product
          * @param {string} id Product ID
          * @param {number} [page] Page number
@@ -713,24 +713,24 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Create a new product
+         * Create a new product with multiple options (Roles: admin, manager)
          * @summary Create a new product
-         * @param {POSKasirInternalDtoCreateProductRequest} body Product create request
+         * @param {InternalProductsCreateProductRequest} body Product create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsPost(body: POSKasirInternalDtoCreateProductRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsPost201Response>> {
+        async productsPost(body: InternalProductsCreateProductRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productsPost(body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Upload image for a specific product option
+         * Upload image for a specific product option (Roles: admin, manager)
          * @summary Upload product option image
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {File} image Product image
+         * @param {File} image Product option image
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -741,36 +741,36 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a product option by ID
+         * Update details of a specific product option by its ID (Roles: admin, manager)
          * @summary Update a product option
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {POSKasirInternalDtoUpdateProductOptionRequest} body Product option update request
+         * @param {InternalProductsUpdateProductOptionRequest} body Product option update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
+        async productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: InternalProductsUpdateProductOptionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productsProductIdOptionsOptionIdPatch(productId, optionId, body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsProductIdOptionsOptionIdPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Create a product option for a parent product
+         * Create a new product option for a parent product (Roles: admin, manager)
          * @summary Create a product option
          * @param {string} productId Product ID
-         * @param {POSKasirInternalDtoCreateProductOptionRequestStandalone} body Product option create request
+         * @param {InternalProductsCreateProductOptionRequestStandalone} body Product option create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsProductIdOptionsPost(productId: string, body: POSKasirInternalDtoCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
+        async productsProductIdOptionsPost(productId: string, body: InternalProductsCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductsProductIdOptionsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productsProductIdOptionsPost(productId, body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsProductIdOptionsPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * List deleted products with pagination and filtering
+         * Get a list of deleted products with pagination and filtering (Roles: admin)
          * @summary List deleted products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -786,7 +786,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get a deleted product by ID
+         * Retrieve detailed information of a specific deleted product by its ID (Roles: admin)
          * @summary Get a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -799,7 +799,7 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Restore a deleted product by ID
+         * Restore a specific deleted product by its ID (Roles: admin)
          * @summary Restore a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -812,13 +812,13 @@ export const ProductsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Restore multiple deleted products by IDs
+         * Restore multiple deleted products by their IDs (Roles: admin)
          * @summary Bulk restore deleted products
-         * @param {POSKasirInternalDtoRestoreBulkRequest} body Bulk restore request
+         * @param {InternalProductsRestoreBulkRequest} body Bulk restore request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async productsTrashRestoreBulkPost(body: POSKasirInternalDtoRestoreBulkRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async productsTrashRestoreBulkPost(body: InternalProductsRestoreBulkRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productsTrashRestoreBulkPost(body, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductsApi.productsTrashRestoreBulkPost']?.[localVarOperationServerIndex]?.url;
@@ -834,7 +834,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
     const localVarFp = ProductsApiFp(configuration)
     return {
         /**
-         * List products based on query parameters
+         * Get a list of products with filtering by category and search term (Roles: authenticated)
          * @summary List products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -847,7 +847,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsGet(page, limit, search, categoryId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a product by ID
+         * Delete a product by its ID (Roles: admin)
          * @summary Delete a product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -857,7 +857,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get a product by ID
+         * Retrieve detailed information of a specific product by its ID (Roles: admin, manager, cashier)
          * @summary Get a product by ID
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -867,7 +867,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Upload an image for a product by ID
+         * Upload an image for a product by ID (Roles: admin, manager)
          * @summary Upload an image for a product
          * @param {string} id Product ID
          * @param {File} image Image file
@@ -878,18 +878,18 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsIdImagePost(id, image, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a product by ID
+         * Update details of a specific product by its ID (Roles: admin, manager)
          * @summary Update a product
          * @param {string} id Product ID
-         * @param {POSKasirInternalDtoUpdateProductRequest} body Product update request
+         * @param {InternalProductsUpdateProductRequest} body Product update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsIdPatch(id: string, body: POSKasirInternalDtoUpdateProductRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsPost201Response> {
+        productsIdPatch(id: string, body: InternalProductsUpdateProductRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsPost201Response> {
             return localVarFp.productsIdPatch(id, body, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get stock history for a product by ID with pagination
+         * Get stock history for a specific product by its ID with pagination (Roles: admin, manager)
          * @summary Get stock history for a product
          * @param {string} id Product ID
          * @param {number} [page] Page number
@@ -901,21 +901,21 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsIdStockHistoryGet(id, page, limit, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a new product
+         * Create a new product with multiple options (Roles: admin, manager)
          * @summary Create a new product
-         * @param {POSKasirInternalDtoCreateProductRequest} body Product create request
+         * @param {InternalProductsCreateProductRequest} body Product create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsPost(body: POSKasirInternalDtoCreateProductRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsPost201Response> {
+        productsPost(body: InternalProductsCreateProductRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsPost201Response> {
             return localVarFp.productsPost(body, options).then((request) => request(axios, basePath));
         },
         /**
-         * Upload image for a specific product option
+         * Upload image for a specific product option (Roles: admin, manager)
          * @summary Upload product option image
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {File} image Product image
+         * @param {File} image Product option image
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -923,30 +923,30 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsProductIdOptionsOptionIdImagePost(productId, optionId, image, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a product option by ID
+         * Update details of a specific product option by its ID (Roles: admin, manager)
          * @summary Update a product option
          * @param {string} productId Product ID
          * @param {string} optionId Option ID
-         * @param {POSKasirInternalDtoUpdateProductOptionRequest} body Product option update request
+         * @param {InternalProductsUpdateProductOptionRequest} body Product option update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
+        productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: InternalProductsUpdateProductOptionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
             return localVarFp.productsProductIdOptionsOptionIdPatch(productId, optionId, body, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a product option for a parent product
+         * Create a new product option for a parent product (Roles: admin, manager)
          * @summary Create a product option
          * @param {string} productId Product ID
-         * @param {POSKasirInternalDtoCreateProductOptionRequestStandalone} body Product option create request
+         * @param {InternalProductsCreateProductOptionRequestStandalone} body Product option create request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsProductIdOptionsPost(productId: string, body: POSKasirInternalDtoCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
+        productsProductIdOptionsPost(productId: string, body: InternalProductsCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig): AxiosPromise<ProductsProductIdOptionsPost201Response> {
             return localVarFp.productsProductIdOptionsPost(productId, body, options).then((request) => request(axios, basePath));
         },
         /**
-         * List deleted products with pagination and filtering
+         * Get a list of deleted products with pagination and filtering (Roles: admin)
          * @summary List deleted products
          * @param {number} [page] Page number
          * @param {number} [limit] Limit the number of products returned
@@ -959,7 +959,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsTrashGet(page, limit, search, categoryId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get a deleted product by ID
+         * Retrieve detailed information of a specific deleted product by its ID (Roles: admin)
          * @summary Get a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -969,7 +969,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsTrashIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Restore a deleted product by ID
+         * Restore a specific deleted product by its ID (Roles: admin)
          * @summary Restore a deleted product
          * @param {string} id Product ID
          * @param {*} [options] Override http request option.
@@ -979,13 +979,13 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.productsTrashIdRestorePost(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Restore multiple deleted products by IDs
+         * Restore multiple deleted products by their IDs (Roles: admin)
          * @summary Bulk restore deleted products
-         * @param {POSKasirInternalDtoRestoreBulkRequest} body Bulk restore request
+         * @param {InternalProductsRestoreBulkRequest} body Bulk restore request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        productsTrashRestoreBulkPost(body: POSKasirInternalDtoRestoreBulkRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        productsTrashRestoreBulkPost(body: InternalProductsRestoreBulkRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
             return localVarFp.productsTrashRestoreBulkPost(body, options).then((request) => request(axios, basePath));
         },
     };
@@ -996,7 +996,7 @@ export const ProductsApiFactory = function (configuration?: Configuration, baseP
  */
 export class ProductsApi extends BaseAPI {
     /**
-     * List products based on query parameters
+     * Get a list of products with filtering by category and search term (Roles: authenticated)
      * @summary List products
      * @param {number} [page] Page number
      * @param {number} [limit] Limit the number of products returned
@@ -1010,7 +1010,7 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Delete a product by ID
+     * Delete a product by its ID (Roles: admin)
      * @summary Delete a product
      * @param {string} id Product ID
      * @param {*} [options] Override http request option.
@@ -1021,7 +1021,7 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Get a product by ID
+     * Retrieve detailed information of a specific product by its ID (Roles: admin, manager, cashier)
      * @summary Get a product by ID
      * @param {string} id Product ID
      * @param {*} [options] Override http request option.
@@ -1032,7 +1032,7 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Upload an image for a product by ID
+     * Upload an image for a product by ID (Roles: admin, manager)
      * @summary Upload an image for a product
      * @param {string} id Product ID
      * @param {File} image Image file
@@ -1044,19 +1044,19 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Update a product by ID
+     * Update details of a specific product by its ID (Roles: admin, manager)
      * @summary Update a product
      * @param {string} id Product ID
-     * @param {POSKasirInternalDtoUpdateProductRequest} body Product update request
+     * @param {InternalProductsUpdateProductRequest} body Product update request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsIdPatch(id: string, body: POSKasirInternalDtoUpdateProductRequest, options?: RawAxiosRequestConfig) {
+    public productsIdPatch(id: string, body: InternalProductsUpdateProductRequest, options?: RawAxiosRequestConfig) {
         return ProductsApiFp(this.configuration).productsIdPatch(id, body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Get stock history for a product by ID with pagination
+     * Get stock history for a specific product by its ID with pagination (Roles: admin, manager)
      * @summary Get stock history for a product
      * @param {string} id Product ID
      * @param {number} [page] Page number
@@ -1069,22 +1069,22 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Create a new product
+     * Create a new product with multiple options (Roles: admin, manager)
      * @summary Create a new product
-     * @param {POSKasirInternalDtoCreateProductRequest} body Product create request
+     * @param {InternalProductsCreateProductRequest} body Product create request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsPost(body: POSKasirInternalDtoCreateProductRequest, options?: RawAxiosRequestConfig) {
+    public productsPost(body: InternalProductsCreateProductRequest, options?: RawAxiosRequestConfig) {
         return ProductsApiFp(this.configuration).productsPost(body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Upload image for a specific product option
+     * Upload image for a specific product option (Roles: admin, manager)
      * @summary Upload product option image
      * @param {string} productId Product ID
      * @param {string} optionId Option ID
-     * @param {File} image Product image
+     * @param {File} image Product option image
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1093,32 +1093,32 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Update a product option by ID
+     * Update details of a specific product option by its ID (Roles: admin, manager)
      * @summary Update a product option
      * @param {string} productId Product ID
      * @param {string} optionId Option ID
-     * @param {POSKasirInternalDtoUpdateProductOptionRequest} body Product option update request
+     * @param {InternalProductsUpdateProductOptionRequest} body Product option update request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: POSKasirInternalDtoUpdateProductOptionRequest, options?: RawAxiosRequestConfig) {
+    public productsProductIdOptionsOptionIdPatch(productId: string, optionId: string, body: InternalProductsUpdateProductOptionRequest, options?: RawAxiosRequestConfig) {
         return ProductsApiFp(this.configuration).productsProductIdOptionsOptionIdPatch(productId, optionId, body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Create a product option for a parent product
+     * Create a new product option for a parent product (Roles: admin, manager)
      * @summary Create a product option
      * @param {string} productId Product ID
-     * @param {POSKasirInternalDtoCreateProductOptionRequestStandalone} body Product option create request
+     * @param {InternalProductsCreateProductOptionRequestStandalone} body Product option create request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsProductIdOptionsPost(productId: string, body: POSKasirInternalDtoCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig) {
+    public productsProductIdOptionsPost(productId: string, body: InternalProductsCreateProductOptionRequestStandalone, options?: RawAxiosRequestConfig) {
         return ProductsApiFp(this.configuration).productsProductIdOptionsPost(productId, body, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * List deleted products with pagination and filtering
+     * Get a list of deleted products with pagination and filtering (Roles: admin)
      * @summary List deleted products
      * @param {number} [page] Page number
      * @param {number} [limit] Limit the number of products returned
@@ -1132,7 +1132,7 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Get a deleted product by ID
+     * Retrieve detailed information of a specific deleted product by its ID (Roles: admin)
      * @summary Get a deleted product
      * @param {string} id Product ID
      * @param {*} [options] Override http request option.
@@ -1143,7 +1143,7 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Restore a deleted product by ID
+     * Restore a specific deleted product by its ID (Roles: admin)
      * @summary Restore a deleted product
      * @param {string} id Product ID
      * @param {*} [options] Override http request option.
@@ -1154,13 +1154,13 @@ export class ProductsApi extends BaseAPI {
     }
 
     /**
-     * Restore multiple deleted products by IDs
+     * Restore multiple deleted products by their IDs (Roles: admin)
      * @summary Bulk restore deleted products
-     * @param {POSKasirInternalDtoRestoreBulkRequest} body Bulk restore request
+     * @param {InternalProductsRestoreBulkRequest} body Bulk restore request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productsTrashRestoreBulkPost(body: POSKasirInternalDtoRestoreBulkRequest, options?: RawAxiosRequestConfig) {
+    public productsTrashRestoreBulkPost(body: InternalProductsRestoreBulkRequest, options?: RawAxiosRequestConfig) {
         return ProductsApiFp(this.configuration).productsTrashRestoreBulkPost(body, options).then((request) => request(this.axios, this.basePath));
     }
 }

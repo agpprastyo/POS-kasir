@@ -45,7 +45,7 @@ import type { ReportsSalesGet200Response } from '../models';
 export const ReportsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
+         * Get statistics on order cancellations grouped by reason (Roles: admin, manager, cashier)
          * @summary Get cancellation reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -89,7 +89,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get order counts and sales totals handled by each cashier (Roles: admin, manager, cashier)
          * @summary Get cashier performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -133,7 +133,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -163,7 +163,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
          * @summary Get payment method performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -207,7 +207,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get sales performance metrics for each product (Roles: admin, manager, cashier)
          * @summary Get product performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -251,7 +251,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get profitability metrics for each product sold (Roles: admin, manager, cashier)
          * @summary Get product profit reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -295,7 +295,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get gross profit analytics grouped by date (Roles: admin, manager, cashier)
          * @summary Get profit summary
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -339,7 +339,7 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * 
+         * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -392,7 +392,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ReportsApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
+         * Get statistics on order cancellations grouped by reason (Roles: admin, manager, cashier)
          * @summary Get cancellation reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -406,7 +406,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get order counts and sales totals handled by each cashier (Roles: admin, manager, cashier)
          * @summary Get cashier performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -420,7 +420,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -432,7 +432,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
          * @summary Get payment method performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -446,7 +446,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get sales performance metrics for each product (Roles: admin, manager, cashier)
          * @summary Get product performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -460,7 +460,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get profitability metrics for each product sold (Roles: admin, manager, cashier)
          * @summary Get product profit reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -474,7 +474,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get gross profit analytics grouped by date (Roles: admin, manager, cashier)
          * @summary Get profit summary
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -488,7 +488,7 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -511,7 +511,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = ReportsApiFp(configuration)
     return {
         /**
-         * 
+         * Get statistics on order cancellations grouped by reason (Roles: admin, manager, cashier)
          * @summary Get cancellation reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -522,7 +522,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsCancellationsGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get order counts and sales totals handled by each cashier (Roles: admin, manager, cashier)
          * @summary Get cashier performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -533,7 +533,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsCashierPerformanceGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -542,7 +542,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsDashboardSummaryGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
          * @summary Get payment method performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -553,7 +553,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsPaymentMethodsGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get sales performance metrics for each product (Roles: admin, manager, cashier)
          * @summary Get product performance
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -564,7 +564,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsProductsGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get profitability metrics for each product sold (Roles: admin, manager, cashier)
          * @summary Get product profit reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -575,7 +575,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsProfitProductsGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get gross profit analytics grouped by date (Roles: admin, manager, cashier)
          * @summary Get profit summary
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -586,7 +586,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsProfitSummaryGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
          * @param {string} endDate End Date (YYYY-MM-DD)
@@ -604,7 +604,7 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
  */
 export class ReportsApi extends BaseAPI {
     /**
-     * 
+     * Get statistics on order cancellations grouped by reason (Roles: admin, manager, cashier)
      * @summary Get cancellation reports
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -616,7 +616,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get order counts and sales totals handled by each cashier (Roles: admin, manager, cashier)
      * @summary Get cashier performance
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -628,7 +628,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
      * @summary Get dashboard summary
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -638,7 +638,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
      * @summary Get payment method performance
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -650,7 +650,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get sales performance metrics for each product (Roles: admin, manager, cashier)
      * @summary Get product performance
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -662,7 +662,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get profitability metrics for each product sold (Roles: admin, manager, cashier)
      * @summary Get product profit reports
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -674,7 +674,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get gross profit analytics grouped by date (Roles: admin, manager, cashier)
      * @summary Get profit summary
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)
@@ -686,7 +686,7 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
      * @summary Get sales reports
      * @param {string} startDate Start Date (YYYY-MM-DD)
      * @param {string} endDate End Date (YYYY-MM-DD)

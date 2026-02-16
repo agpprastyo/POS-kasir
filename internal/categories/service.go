@@ -2,9 +2,10 @@ package categories
 
 import (
 	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/repository"
+
 	"POS-kasir/pkg/logger"
 	"context"
 	"errors"
@@ -123,8 +124,8 @@ func (s *CtgService) DeleteCategory(ctx context.Context, categoryID int32) error
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypeCATEGORY,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypeCATEGORY,
 		strconv.Itoa(int(categoryID)),
 		logDetails,
 	)
@@ -212,8 +213,8 @@ func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryReque
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypeCATEGORY,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypeCATEGORY,
 		strconv.FormatUint(uint64(category.ID), 10),
 		logDetails,
 	)

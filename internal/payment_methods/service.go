@@ -1,35 +1,34 @@
 package payment_methods
 
 import (
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/payment_methods/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 )
 
 type IPaymentMethodService interface {
-	ListPaymentMethods(ctx context.Context) ([]dto.PaymentMethodResponse, error)
+	ListPaymentMethods(ctx context.Context) ([]PaymentMethodResponse, error)
 }
 
 type PaymentMethodService struct {
-	store repository.Store
-	log   logger.ILogger
+	repo repository.Querier
+	log  logger.ILogger
 }
 
-func NewPaymentMethodService(store repository.Store, log logger.ILogger) IPaymentMethodService {
-	return &PaymentMethodService{store: store, log: log}
+func NewPaymentMethodService(repo repository.Querier, log logger.ILogger) IPaymentMethodService {
+	return &PaymentMethodService{repo: repo, log: log}
 }
 
-func (s *PaymentMethodService) ListPaymentMethods(ctx context.Context) ([]dto.PaymentMethodResponse, error) {
-	methods, err := s.store.ListPaymentMethods(ctx)
+func (s *PaymentMethodService) ListPaymentMethods(ctx context.Context) ([]PaymentMethodResponse, error) {
+	methods, err := s.repo.ListPaymentMethods(ctx)
 	if err != nil {
 		s.log.Error("Failed to list payment methods from repository", "error", err)
 		return nil, err
 	}
 
-	var response []dto.PaymentMethodResponse
+	var response []PaymentMethodResponse
 	for _, method := range methods {
-		response = append(response, dto.PaymentMethodResponse{
+		response = append(response, PaymentMethodResponse{
 			ID:        method.ID,
 			Name:      method.Name,
 			IsActive:  method.IsActive,

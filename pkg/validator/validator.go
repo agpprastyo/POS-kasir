@@ -94,7 +94,11 @@ func buildErrorMessage(fe validator.FieldError) string {
 		return "must be less than or equal to " + fe.Param()
 	case "oneof":
 		return "must be one of the allowed values"
-	// add more tag messages here or fallback
+	case "uuid":
+		return "must be a valid UUID"
+	case "url":
+		return "must be a valid URL"
+	
 	default:
 		return fe.Error() // fallback to a default message
 	}

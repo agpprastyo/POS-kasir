@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddProductStock(ctx context.Context, arg AddProductStockParams) (Product, error)
 	CheckCategoryExists(ctx context.Context, id int32) (bool, error)
 	CountDeletedProducts(ctx context.Context, arg CountDeletedProductsParams) (int64, error)
 	// Counts total products for pagination, respecting filters.
@@ -24,6 +25,7 @@ type Querier interface {
 	// Creates a new option for a specific product.
 	CreateProductOption(ctx context.Context, arg CreateProductOptionParams) (ProductOption, error)
 	CreateStockHistory(ctx context.Context, arg CreateStockHistoryParams) (StockHistory, error)
+	DecreaseProductStock(ctx context.Context, arg DecreaseProductStockParams) (Product, error)
 	// Deletes a product. Its options will be deleted automatically due to 'ON DELETE CASCADE'.
 	DeleteProduct(ctx context.Context, id uuid.UUID) error
 	GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDeletedProductRow, error)
@@ -33,10 +35,13 @@ type Querier interface {
 	GetProductOption(ctx context.Context, arg GetProductOptionParams) (ProductOption, error)
 	// Retrieves a product option by its ID, including its product details.
 	GetProductOptionByID(ctx context.Context, id uuid.UUID) (GetProductOptionByIDRow, error)
+	GetProductOptionsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]ProductOption, error)
 	// Retrieves a single product and aggregates its options into a JSON array.
 	// This is an efficient way to fetch a product and its variants in one query.
 	// Now filters out soft-deleted options.
 	GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetProductWithOptionsRow, error)
+	GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
+	GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UUID) ([]Product, error)
 	GetStockHistoryByProduct(ctx context.Context, productID uuid.UUID) ([]StockHistory, error)
 	GetStockHistoryByProductWithPagination(ctx context.Context, arg GetStockHistoryByProductWithPaginationParams) ([]StockHistory, error)
 	ListDeletedProducts(ctx context.Context, arg ListDeletedProductsParams) ([]ListDeletedProductsRow, error)

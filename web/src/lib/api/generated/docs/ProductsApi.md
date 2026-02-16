@@ -22,7 +22,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **productsGet**
 > ProductsGet200Response productsGet()
 
-List products based on query parameters
+Get a list of products with filtering by category and search term (Roles: authenticated)
 
 ### Example
 
@@ -84,7 +84,7 @@ No authorization required
 # **productsIdDelete**
 > POSKasirInternalCommonSuccessResponse productsIdDelete()
 
-Delete a product by ID
+Delete a product by its ID (Roles: admin)
 
 ### Example
 
@@ -138,7 +138,7 @@ No authorization required
 # **productsIdGet**
 > ProductsPost201Response productsIdGet()
 
-Get a product by ID
+Retrieve detailed information of a specific product by its ID (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -192,7 +192,7 @@ No authorization required
 # **productsIdImagePost**
 > ProductsPost201Response productsIdImagePost()
 
-Upload an image for a product by ID
+Upload an image for a product by ID (Roles: admin, manager)
 
 ### Example
 
@@ -240,7 +240,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Product image uploaded successfully |  -  |
-|**400** | Invalid product ID format or image file is missing |  -  |
+|**400** | Invalid ID format or image file is missing |  -  |
 |**404** | Product not found |  -  |
 |**500** | Failed to upload image |  -  |
 
@@ -249,7 +249,7 @@ No authorization required
 # **productsIdPatch**
 > ProductsPost201Response productsIdPatch(body)
 
-Update a product by ID
+Update details of a specific product by its ID (Roles: admin, manager)
 
 ### Example
 
@@ -257,14 +257,14 @@ Update a product by ID
 import {
     ProductsApi,
     Configuration,
-    POSKasirInternalDtoUpdateProductRequest
+    InternalProductsUpdateProductRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ProductsApi(configuration);
 
 let id: string; //Product ID (default to undefined)
-let body: POSKasirInternalDtoUpdateProductRequest; //Product update request
+let body: InternalProductsUpdateProductRequest; //Product update request
 
 const { status, data } = await apiInstance.productsIdPatch(
     id,
@@ -276,7 +276,7 @@ const { status, data } = await apiInstance.productsIdPatch(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **POSKasirInternalDtoUpdateProductRequest**| Product update request | |
+| **body** | **InternalProductsUpdateProductRequest**| Product update request | |
 | **id** | [**string**] | Product ID | defaults to undefined|
 
 
@@ -298,7 +298,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Product updated successfully |  -  |
-|**400** | Invalid product ID format |  -  |
+|**400** | Invalid ID format or request body |  -  |
 |**404** | Product not found |  -  |
 |**500** | Failed to update product |  -  |
 
@@ -307,7 +307,7 @@ No authorization required
 # **productsIdStockHistoryGet**
 > ProductsIdStockHistoryGet200Response productsIdStockHistoryGet()
 
-Get stock history for a product by ID with pagination
+Get stock history for a specific product by its ID with pagination (Roles: admin, manager)
 
 ### Example
 
@@ -358,7 +358,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Stock history retrieved successfully |  -  |
-|**400** | Invalid product ID or query parameters |  -  |
+|**400** | Invalid ID format or query parameters |  -  |
 |**404** | Product not found |  -  |
 |**500** | Failed to retrieve stock history |  -  |
 
@@ -367,7 +367,7 @@ No authorization required
 # **productsPost**
 > ProductsPost201Response productsPost(body)
 
-Create a new product
+Create a new product with multiple options (Roles: admin, manager)
 
 ### Example
 
@@ -375,13 +375,13 @@ Create a new product
 import {
     ProductsApi,
     Configuration,
-    POSKasirInternalDtoCreateProductRequest
+    InternalProductsCreateProductRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ProductsApi(configuration);
 
-let body: POSKasirInternalDtoCreateProductRequest; //Product create request
+let body: InternalProductsCreateProductRequest; //Product create request
 
 const { status, data } = await apiInstance.productsPost(
     body
@@ -392,7 +392,7 @@ const { status, data } = await apiInstance.productsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **POSKasirInternalDtoCreateProductRequest**| Product create request | |
+| **body** | **InternalProductsCreateProductRequest**| Product create request | |
 
 
 ### Return type
@@ -422,7 +422,7 @@ No authorization required
 # **productsProductIdOptionsOptionIdImagePost**
 > ProductsProductIdOptionsPost201Response productsProductIdOptionsOptionIdImagePost()
 
-Upload image for a specific product option
+Upload image for a specific product option (Roles: admin, manager)
 
 ### Example
 
@@ -437,7 +437,7 @@ const apiInstance = new ProductsApi(configuration);
 
 let productId: string; //Product ID (default to undefined)
 let optionId: string; //Option ID (default to undefined)
-let image: File; //Product image (default to undefined)
+let image: File; //Product option image (default to undefined)
 
 const { status, data } = await apiInstance.productsProductIdOptionsOptionIdImagePost(
     productId,
@@ -452,7 +452,7 @@ const { status, data } = await apiInstance.productsProductIdOptionsOptionIdImage
 |------------- | ------------- | ------------- | -------------|
 | **productId** | [**string**] | Product ID | defaults to undefined|
 | **optionId** | [**string**] | Option ID | defaults to undefined|
-| **image** | [**File**] | Product image | defaults to undefined|
+| **image** | [**File**] | Product option image | defaults to undefined|
 
 
 ### Return type
@@ -475,14 +475,14 @@ No authorization required
 |**200** | Product option image uploaded successfully |  -  |
 |**400** | Invalid ID format or missing file |  -  |
 |**404** | Product or option not found |  -  |
-|**500** | Failed to upload product image |  -  |
+|**500** | Failed to upload product option image |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **productsProductIdOptionsOptionIdPatch**
 > ProductsProductIdOptionsPost201Response productsProductIdOptionsOptionIdPatch(body)
 
-Update a product option by ID
+Update details of a specific product option by its ID (Roles: admin, manager)
 
 ### Example
 
@@ -490,7 +490,7 @@ Update a product option by ID
 import {
     ProductsApi,
     Configuration,
-    POSKasirInternalDtoUpdateProductOptionRequest
+    InternalProductsUpdateProductOptionRequest
 } from 'restClient';
 
 const configuration = new Configuration();
@@ -498,7 +498,7 @@ const apiInstance = new ProductsApi(configuration);
 
 let productId: string; //Product ID (default to undefined)
 let optionId: string; //Option ID (default to undefined)
-let body: POSKasirInternalDtoUpdateProductOptionRequest; //Product option update request
+let body: InternalProductsUpdateProductOptionRequest; //Product option update request
 
 const { status, data } = await apiInstance.productsProductIdOptionsOptionIdPatch(
     productId,
@@ -511,7 +511,7 @@ const { status, data } = await apiInstance.productsProductIdOptionsOptionIdPatch
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **POSKasirInternalDtoUpdateProductOptionRequest**| Product option update request | |
+| **body** | **InternalProductsUpdateProductOptionRequest**| Product option update request | |
 | **productId** | [**string**] | Product ID | defaults to undefined|
 | **optionId** | [**string**] | Option ID | defaults to undefined|
 
@@ -534,7 +534,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Product option updated successfully |  -  |
-|**400** | Invalid product ID format |  -  |
+|**400** | Invalid ID format or request body |  -  |
 |**404** | Product or option not found |  -  |
 |**500** | Failed to update product option |  -  |
 
@@ -543,7 +543,7 @@ No authorization required
 # **productsProductIdOptionsPost**
 > ProductsProductIdOptionsPost201Response productsProductIdOptionsPost(body)
 
-Create a product option for a parent product
+Create a new product option for a parent product (Roles: admin, manager)
 
 ### Example
 
@@ -551,14 +551,14 @@ Create a product option for a parent product
 import {
     ProductsApi,
     Configuration,
-    POSKasirInternalDtoCreateProductOptionRequestStandalone
+    InternalProductsCreateProductOptionRequestStandalone
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ProductsApi(configuration);
 
 let productId: string; //Product ID (default to undefined)
-let body: POSKasirInternalDtoCreateProductOptionRequestStandalone; //Product option create request
+let body: InternalProductsCreateProductOptionRequestStandalone; //Product option create request
 
 const { status, data } = await apiInstance.productsProductIdOptionsPost(
     productId,
@@ -570,7 +570,7 @@ const { status, data } = await apiInstance.productsProductIdOptionsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **POSKasirInternalDtoCreateProductOptionRequestStandalone**| Product option create request | |
+| **body** | **InternalProductsCreateProductOptionRequestStandalone**| Product option create request | |
 | **productId** | [**string**] | Product ID | defaults to undefined|
 
 
@@ -592,7 +592,7 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** | Product option created successfully |  -  |
-|**400** | Invalid product ID format |  -  |
+|**400** | Invalid product ID format or request body |  -  |
 |**404** | Parent product not found |  -  |
 |**500** | Failed to create product option |  -  |
 
@@ -601,7 +601,7 @@ No authorization required
 # **productsTrashGet**
 > ProductsGet200Response productsTrashGet()
 
-List deleted products with pagination and filtering
+Get a list of deleted products with pagination and filtering (Roles: admin)
 
 ### Example
 
@@ -663,7 +663,7 @@ No authorization required
 # **productsTrashIdGet**
 > ProductsPost201Response productsTrashIdGet()
 
-Get a deleted product by ID
+Retrieve detailed information of a specific deleted product by its ID (Roles: admin)
 
 ### Example
 
@@ -717,7 +717,7 @@ No authorization required
 # **productsTrashIdRestorePost**
 > POSKasirInternalCommonSuccessResponse productsTrashIdRestorePost()
 
-Restore a deleted product by ID
+Restore a specific deleted product by its ID (Roles: admin)
 
 ### Example
 
@@ -771,7 +771,7 @@ No authorization required
 # **productsTrashRestoreBulkPost**
 > POSKasirInternalCommonSuccessResponse productsTrashRestoreBulkPost(body)
 
-Restore multiple deleted products by IDs
+Restore multiple deleted products by their IDs (Roles: admin)
 
 ### Example
 
@@ -779,13 +779,13 @@ Restore multiple deleted products by IDs
 import {
     ProductsApi,
     Configuration,
-    POSKasirInternalDtoRestoreBulkRequest
+    InternalProductsRestoreBulkRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ProductsApi(configuration);
 
-let body: POSKasirInternalDtoRestoreBulkRequest; //Bulk restore request
+let body: InternalProductsRestoreBulkRequest; //Bulk restore request
 
 const { status, data } = await apiInstance.productsTrashRestoreBulkPost(
     body
@@ -796,7 +796,7 @@ const { status, data } = await apiInstance.productsTrashRestoreBulkPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **POSKasirInternalDtoRestoreBulkRequest**| Bulk restore request | |
+| **body** | **InternalProductsRestoreBulkRequest**| Bulk restore request | |
 
 
 ### Return type

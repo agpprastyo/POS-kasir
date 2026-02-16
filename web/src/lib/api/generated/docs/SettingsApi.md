@@ -11,9 +11,9 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**settingsPrinterPut**](#settingsprinterput) | **PUT** /settings/printer | Update printer settings|
 
 # **settingsBrandingGet**
-> POSKasirInternalDtoBrandingSettingsResponse settingsBrandingGet()
+> SettingsBrandingGet200Response settingsBrandingGet()
 
-Get branding settings like app name, logo, footer text
+Retrieve branding settings (app name, logo, footer text, theme colors) for the application (Roles: authenticated)
 
 ### Example
 
@@ -35,7 +35,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**POSKasirInternalDtoBrandingSettingsResponse**
+**SettingsBrandingGet200Response**
 
 ### Authorization
 
@@ -50,14 +50,15 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Branding settings fetched successfully |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **settingsBrandingLogoPost**
-> { [key: string]: string; } settingsBrandingLogoPost()
+> SettingsBrandingLogoPost200Response settingsBrandingLogoPost()
 
-Upload and update app logo
+Upload and update the application logo image (Roles: admin)
 
 ### Example
 
@@ -86,7 +87,7 @@ const { status, data } = await apiInstance.settingsBrandingLogoPost(
 
 ### Return type
 
-**{ [key: string]: string; }**
+**SettingsBrandingLogoPost200Response**
 
 ### Authorization
 
@@ -101,14 +102,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Logo updated successfully |  -  |
+|**400** | Logo file is required or file size exceeds limit |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **settingsBrandingPut**
-> POSKasirInternalDtoBrandingSettingsResponse settingsBrandingPut(request)
+> SettingsBrandingGet200Response settingsBrandingPut(request)
 
-Update branding settings
+Update application branding settings (Roles: admin)
 
 ### Example
 
@@ -116,13 +119,13 @@ Update branding settings
 import {
     SettingsApi,
     Configuration,
-    POSKasirInternalDtoUpdateBrandingRequest
+    InternalSettingsUpdateBrandingRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new SettingsApi(configuration);
 
-let request: POSKasirInternalDtoUpdateBrandingRequest; //Update Branding Request
+let request: InternalSettingsUpdateBrandingRequest; //Branding update request
 
 const { status, data } = await apiInstance.settingsBrandingPut(
     request
@@ -133,12 +136,12 @@ const { status, data } = await apiInstance.settingsBrandingPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoUpdateBrandingRequest**| Update Branding Request | |
+| **request** | **InternalSettingsUpdateBrandingRequest**| Branding update request | |
 
 
 ### Return type
 
-**POSKasirInternalDtoBrandingSettingsResponse**
+**SettingsBrandingGet200Response**
 
 ### Authorization
 
@@ -153,14 +156,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Branding settings updated successfully |  -  |
+|**400** | Invalid request body or validation failure |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **settingsPrinterGet**
-> POSKasirInternalDtoPrinterSettingsResponse settingsPrinterGet()
+> SettingsPrinterGet200Response settingsPrinterGet()
 
-Get printer settings like connection string, paper width
+Retrieve printer settings like connection string and paper width (Roles: authenticated)
 
 ### Example
 
@@ -182,7 +187,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**POSKasirInternalDtoPrinterSettingsResponse**
+**SettingsPrinterGet200Response**
 
 ### Authorization
 
@@ -197,14 +202,15 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Printer settings fetched successfully |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **settingsPrinterPut**
-> POSKasirInternalDtoPrinterSettingsResponse settingsPrinterPut(request)
+> SettingsPrinterGet200Response settingsPrinterPut(request)
 
-Update printer settings
+Update global printer configuration (Roles: admin)
 
 ### Example
 
@@ -212,13 +218,13 @@ Update printer settings
 import {
     SettingsApi,
     Configuration,
-    POSKasirInternalDtoUpdatePrinterSettingsRequest
+    InternalSettingsUpdatePrinterSettingsRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new SettingsApi(configuration);
 
-let request: POSKasirInternalDtoUpdatePrinterSettingsRequest; //Update Printer Settings Request
+let request: InternalSettingsUpdatePrinterSettingsRequest; //Printer settings update request
 
 const { status, data } = await apiInstance.settingsPrinterPut(
     request
@@ -229,12 +235,12 @@ const { status, data } = await apiInstance.settingsPrinterPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoUpdatePrinterSettingsRequest**| Update Printer Settings Request | |
+| **request** | **InternalSettingsUpdatePrinterSettingsRequest**| Printer settings update request | |
 
 
 ### Return type
 
-**POSKasirInternalDtoPrinterSettingsResponse**
+**SettingsPrinterGet200Response**
 
 ### Authorization
 
@@ -249,7 +255,9 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Printer settings updated successfully |  -  |
+|**400** | Invalid request body or validation failure |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

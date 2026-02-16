@@ -19,16 +19,26 @@ WHERE
     ($1::uuid IS NULL OR al.user_id = $1)
     AND ($2::timestamptz IS NULL OR al.created_at >= $2)
     AND ($3::timestamptz IS NULL OR al.created_at <= $3)
+    AND ($4::log_action_type IS NULL OR al.action_type = $4::log_action_type)
+    AND ($5::log_entity_type IS NULL OR al.entity_type = $5::log_entity_type)
 `
 
 type CountActivityLogsParams struct {
-	UserID    pgtype.UUID        `json:"user_id"`
-	StartDate pgtype.Timestamptz `json:"start_date"`
-	EndDate   pgtype.Timestamptz `json:"end_date"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	StartDate  pgtype.Timestamptz `json:"start_date"`
+	EndDate    pgtype.Timestamptz `json:"end_date"`
+	ActionType NullLogActionType  `json:"action_type"`
+	EntityType NullLogEntityType  `json:"entity_type"`
 }
 
 func (q *Queries) CountActivityLogs(ctx context.Context, arg CountActivityLogsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countActivityLogs, arg.UserID, arg.StartDate, arg.EndDate)
+	row := q.db.QueryRow(ctx, countActivityLogs,
+		arg.UserID,
+		arg.StartDate,
+		arg.EndDate,
+		arg.ActionType,
+		arg.EntityType,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -83,16 +93,20 @@ WHERE
     ($3::uuid IS NULL OR al.user_id = $3)
     AND ($4::timestamptz IS NULL OR al.created_at >= $4)
     AND ($5::timestamptz IS NULL OR al.created_at <= $5)
+    AND ($6::log_action_type IS NULL OR al.action_type = $6::log_action_type)
+    AND ($7::log_entity_type IS NULL OR al.entity_type = $7::log_entity_type)
 ORDER BY al.created_at DESC
 LIMIT $1 OFFSET $2
 `
 
 type GetActivityLogsParams struct {
-	Limit     int32              `json:"limit"`
-	Offset    int32              `json:"offset"`
-	UserID    pgtype.UUID        `json:"user_id"`
-	StartDate pgtype.Timestamptz `json:"start_date"`
-	EndDate   pgtype.Timestamptz `json:"end_date"`
+	Limit      int32              `json:"limit"`
+	Offset     int32              `json:"offset"`
+	UserID     pgtype.UUID        `json:"user_id"`
+	StartDate  pgtype.Timestamptz `json:"start_date"`
+	EndDate    pgtype.Timestamptz `json:"end_date"`
+	ActionType NullLogActionType  `json:"action_type"`
+	EntityType NullLogEntityType  `json:"entity_type"`
 }
 
 type GetActivityLogsRow struct {
@@ -113,6 +127,8 @@ func (q *Queries) GetActivityLogs(ctx context.Context, arg GetActivityLogsParams
 		arg.UserID,
 		arg.StartDate,
 		arg.EndDate,
+		arg.ActionType,
+		arg.EntityType,
 	)
 	if err != nil {
 		return nil, err

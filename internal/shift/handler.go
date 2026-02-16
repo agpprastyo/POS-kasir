@@ -2,9 +2,9 @@ package shift
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
+	"errors"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -18,45 +18,49 @@ type Handler interface {
 }
 
 type handler struct {
-	service   Service
-	log       logger.ILogger
-	validator validator.Validator
+	service Service
+	log     logger.ILogger
 }
 
-func NewHandler(service Service, log logger.ILogger, validator validator.Validator) Handler {
+func NewHandler(service Service, log logger.ILogger) Handler {
 	return &handler{
-		service:   service,
-		log:       log,
-		validator: validator,
+		service: service,
+		log:     log,
 	}
 }
 
 // StartShiftHandler handles the request to start a new shift
-// @Summary Start a new shift
-// @Tags Shifts
-// @Accept json
-// @Produce json
-// @Param request body dto.StartShiftRequest true "Start Shift Request"
-// @Success 201 {object} common.SuccessResponse{data=dto.ShiftResponse}
-// @Failure 400 {object} common.ErrorResponse
-// @Failure 409 {object} common.ErrorResponse "User already has an open shift"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /shifts/start [post]
+// @Summary      Start a new shift
+// @Description  Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
+// @Tags         Shifts
+// @Accept       json
+// @Produce      json
+// @Param        request body StartShiftRequest true "Start Shift Request"
+// @Success      201 {object} common.SuccessResponse{data=ShiftResponse} "Shift started successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body or validation failure"
+// @Failure      409 {object} common.ErrorResponse "User already has an open shift"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /shifts/start [post]
 func (h *handler) StartShiftHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
-	var req dto.StartShiftRequest
+	var req StartShiftRequest
 	if err := c.Bind().Body(&req); err != nil {
+		h.log.Warnf("Start shift validation failed", "error", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
-			Error:   err.Error(),
-		})
-	}
-
-	if err := h.validator.Validate(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
@@ -76,31 +80,37 @@ func (h *handler) StartShiftHandler(c fiber.Ctx) error {
 }
 
 // EndShiftHandler handles the request to end the current shift
-// @Summary End current shift
-// @Tags Shifts
-// @Accept json
-// @Produce json
-// @Param request body dto.EndShiftRequest true "End Shift Request"
-// @Success 200 {object} common.SuccessResponse{data=dto.ShiftResponse}
-// @Failure 400 {object} common.ErrorResponse
-// @Failure 404 {object} common.ErrorResponse "No open shift found"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /shifts/end [post]
+// @Summary      End current shift
+// @Description  Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
+// @Tags         Shifts
+// @Accept       json
+// @Produce      json
+// @Param        request body EndShiftRequest true "End Shift Request"
+// @Success      200 {object} common.SuccessResponse{data=ShiftResponse} "Shift ended successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body or validation failure"
+// @Failure      404 {object} common.ErrorResponse "No open shift found"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /shifts/end [post]
 func (h *handler) EndShiftHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
-	var req dto.EndShiftRequest
+	var req EndShiftRequest
 	if err := c.Bind().Body(&req); err != nil {
+		h.log.Warnf("End shift validation failed", "error", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
-			Error:   err.Error(),
-		})
-	}
-
-	if err := h.validator.Validate(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
@@ -120,14 +130,16 @@ func (h *handler) EndShiftHandler(c fiber.Ctx) error {
 }
 
 // GetOpenShiftHandler handles the request to get the current open shift
-// @Summary Get current open shift
-// @Tags Shifts
-// @Accept json
-// @Produce json
-// @Success 200 {object} common.SuccessResponse{data=dto.ShiftResponse}
-// @Failure 404 {object} common.ErrorResponse "No open shift found"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /shifts/current [get]
+// @Summary      Get current open shift
+// @Description  Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
+// @Tags         Shifts
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse{data=ShiftResponse} "Open shift retrieved successfully"
+// @Failure      404 {object} common.ErrorResponse "No open shift found"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /shifts/current [get]
 func (h *handler) GetOpenShiftHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
@@ -152,31 +164,37 @@ func (h *handler) GetOpenShiftHandler(c fiber.Ctx) error {
 }
 
 // CreateCashTransactionHandler handles the request to create a cash transaction
-// @Summary Create a cash transaction (Drop/Expense/In)
-// @Tags Shifts
-// @Accept json
-// @Produce json
-// @Param request body dto.CashTransactionRequest true "Cash Transaction Request"
-// @Success 201 {object} common.SuccessResponse{data=dto.CashTransactionResponse}
-// @Failure 400 {object} common.ErrorResponse
-// @Failure 404 {object} common.ErrorResponse "No open shift found"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /shifts/cash-transaction [post]
+// @Summary      Create a cash transaction (Drop/Expense/In)
+// @Description  Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
+// @Tags         Shifts
+// @Accept       json
+// @Produce      json
+// @Param        request body CashTransactionRequest true "Cash Transaction Request"
+// @Success      201 {object} common.SuccessResponse{data=CashTransactionResponse} "Cash transaction created successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body or validation failure"
+// @Failure      404 {object} common.ErrorResponse "No open shift found"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /shifts/cash-transaction [post]
 func (h *handler) CreateCashTransactionHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
 	userID := c.Locals("user_id").(uuid.UUID)
 
-	var req dto.CashTransactionRequest
+	var req CashTransactionRequest
 	if err := c.Bind().Body(&req); err != nil {
+		h.log.Warnf("Create cash transaction validation failed", "error", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
-			Error:   err.Error(),
-		})
-	}
-
-	if err := h.validator.Validate(req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Validation failed",
 			Error:   err.Error(),
 		})
 	}
@@ -194,5 +212,3 @@ func (h *handler) CreateCashTransactionHandler(c fiber.Ctx) error {
 		Data:    tx,
 	})
 }
-
-// fiber:context-methods migrated

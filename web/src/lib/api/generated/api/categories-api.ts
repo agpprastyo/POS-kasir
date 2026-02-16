@@ -22,24 +22,22 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { CategoriesCountGet200Response } from '../models';
-// @ts-ignore
 import type { CategoriesGet200Response } from '../models';
 // @ts-ignore
 import type { CategoriesPost201Response } from '../models';
 // @ts-ignore
+import type { InternalCategoriesCreateCategoryRequest } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoCreateCategoryRequest } from '../models';
 /**
  * CategoriesApi - axios parameter creator
  */
 export const CategoriesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get total number of categories
+         * Get total number of categories with products (Roles: admin, manager, cashier)
          * @summary Get total number of categories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -69,7 +67,7 @@ export const CategoriesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Get all categories
+         * Get all categories with product count (Roles: admin, manager, cashier)
          * @summary Get all categories
          * @param {number} [limit] Number of categories to return
          * @param {number} [offset] Offset for pagination
@@ -109,7 +107,7 @@ export const CategoriesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Delete category by ID
+         * Delete category by ID (Roles: admin, manager)
          * @summary Delete category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -143,7 +141,7 @@ export const CategoriesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Get category by ID
+         * Get category by ID (Roles: admin, manager)
          * @summary Get category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -177,14 +175,14 @@ export const CategoriesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Update category by ID
+         * Update category by ID (Roles: admin, manager)
          * @summary Update category by ID
          * @param {number} id Category ID
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        categoriesIdPut: async (id: number, category: POSKasirInternalDtoCreateCategoryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        categoriesIdPut: async (id: number, category: InternalCategoriesCreateCategoryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('categoriesIdPut', 'id', id)
             // verify required parameter 'category' is not null or undefined
@@ -217,13 +215,13 @@ export const CategoriesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Create a new category
+         * Create a new category (Roles: admin, manager)
          * @summary Create a new category
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        categoriesPost: async (category: POSKasirInternalDtoCreateCategoryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        categoriesPost: async (category: InternalCategoriesCreateCategoryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'category' is not null or undefined
             assertParamExists('categoriesPost', 'category', category)
             const localVarPath = `/categories`;
@@ -262,19 +260,19 @@ export const CategoriesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CategoriesApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get total number of categories
+         * Get total number of categories with products (Roles: admin, manager, cashier)
          * @summary Get total number of categories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async categoriesCountGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoriesCountGet200Response>> {
+        async categoriesCountGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoriesGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.categoriesCountGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CategoriesApi.categoriesCountGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get all categories
+         * Get all categories with product count (Roles: admin, manager, cashier)
          * @summary Get all categories
          * @param {number} [limit] Number of categories to return
          * @param {number} [offset] Offset for pagination
@@ -288,7 +286,7 @@ export const CategoriesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete category by ID
+         * Delete category by ID (Roles: admin, manager)
          * @summary Delete category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -301,7 +299,7 @@ export const CategoriesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get category by ID
+         * Get category by ID (Roles: admin, manager)
          * @summary Get category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -314,27 +312,27 @@ export const CategoriesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update category by ID
+         * Update category by ID (Roles: admin, manager)
          * @summary Update category by ID
          * @param {number} id Category ID
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async categoriesIdPut(id: number, category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async categoriesIdPut(id: number, category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoriesPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.categoriesIdPut(id, category, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CategoriesApi.categoriesIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Create a new category
+         * Create a new category (Roles: admin, manager)
          * @summary Create a new category
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async categoriesPost(category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoriesPost201Response>> {
+        async categoriesPost(category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoriesPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.categoriesPost(category, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CategoriesApi.categoriesPost']?.[localVarOperationServerIndex]?.url;
@@ -350,16 +348,16 @@ export const CategoriesApiFactory = function (configuration?: Configuration, bas
     const localVarFp = CategoriesApiFp(configuration)
     return {
         /**
-         * Get total number of categories
+         * Get total number of categories with products (Roles: admin, manager, cashier)
          * @summary Get total number of categories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        categoriesCountGet(options?: RawAxiosRequestConfig): AxiosPromise<CategoriesCountGet200Response> {
+        categoriesCountGet(options?: RawAxiosRequestConfig): AxiosPromise<CategoriesGet200Response> {
             return localVarFp.categoriesCountGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Get all categories
+         * Get all categories with product count (Roles: admin, manager, cashier)
          * @summary Get all categories
          * @param {number} [limit] Number of categories to return
          * @param {number} [offset] Offset for pagination
@@ -370,7 +368,7 @@ export const CategoriesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.categoriesGet(limit, offset, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete category by ID
+         * Delete category by ID (Roles: admin, manager)
          * @summary Delete category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -380,7 +378,7 @@ export const CategoriesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.categoriesIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get category by ID
+         * Get category by ID (Roles: admin, manager)
          * @summary Get category by ID
          * @param {number} id Category ID
          * @param {*} [options] Override http request option.
@@ -390,24 +388,24 @@ export const CategoriesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.categoriesIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update category by ID
+         * Update category by ID (Roles: admin, manager)
          * @summary Update category by ID
          * @param {number} id Category ID
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        categoriesIdPut(id: number, category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        categoriesIdPut(id: number, category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<CategoriesPost201Response> {
             return localVarFp.categoriesIdPut(id, category, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a new category
+         * Create a new category (Roles: admin, manager)
          * @summary Create a new category
-         * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+         * @param {InternalCategoriesCreateCategoryRequest} category Category details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        categoriesPost(category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<CategoriesPost201Response> {
+        categoriesPost(category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<CategoriesPost201Response> {
             return localVarFp.categoriesPost(category, options).then((request) => request(axios, basePath));
         },
     };
@@ -418,7 +416,7 @@ export const CategoriesApiFactory = function (configuration?: Configuration, bas
  */
 export class CategoriesApi extends BaseAPI {
     /**
-     * Get total number of categories
+     * Get total number of categories with products (Roles: admin, manager, cashier)
      * @summary Get total number of categories
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -428,7 +426,7 @@ export class CategoriesApi extends BaseAPI {
     }
 
     /**
-     * Get all categories
+     * Get all categories with product count (Roles: admin, manager, cashier)
      * @summary Get all categories
      * @param {number} [limit] Number of categories to return
      * @param {number} [offset] Offset for pagination
@@ -440,7 +438,7 @@ export class CategoriesApi extends BaseAPI {
     }
 
     /**
-     * Delete category by ID
+     * Delete category by ID (Roles: admin, manager)
      * @summary Delete category by ID
      * @param {number} id Category ID
      * @param {*} [options] Override http request option.
@@ -451,7 +449,7 @@ export class CategoriesApi extends BaseAPI {
     }
 
     /**
-     * Get category by ID
+     * Get category by ID (Roles: admin, manager)
      * @summary Get category by ID
      * @param {number} id Category ID
      * @param {*} [options] Override http request option.
@@ -462,25 +460,25 @@ export class CategoriesApi extends BaseAPI {
     }
 
     /**
-     * Update category by ID
+     * Update category by ID (Roles: admin, manager)
      * @summary Update category by ID
      * @param {number} id Category ID
-     * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+     * @param {InternalCategoriesCreateCategoryRequest} category Category details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public categoriesIdPut(id: number, category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig) {
+    public categoriesIdPut(id: number, category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig) {
         return CategoriesApiFp(this.configuration).categoriesIdPut(id, category, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Create a new category
+     * Create a new category (Roles: admin, manager)
      * @summary Create a new category
-     * @param {POSKasirInternalDtoCreateCategoryRequest} category Category details
+     * @param {InternalCategoriesCreateCategoryRequest} category Category details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public categoriesPost(category: POSKasirInternalDtoCreateCategoryRequest, options?: RawAxiosRequestConfig) {
+    public categoriesPost(category: InternalCategoriesCreateCategoryRequest, options?: RawAxiosRequestConfig) {
         return CategoriesApiFp(this.configuration).categoriesPost(category, options).then((request) => request(this.axios, this.basePath));
     }
 }

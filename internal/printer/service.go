@@ -2,8 +2,9 @@ package printer
 
 import (
 	"POS-kasir/internal/orders"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/payment_methods"
 	"POS-kasir/internal/settings"
+	user_repo "POS-kasir/internal/user/repository"
 	"POS-kasir/pkg/escpos"
 	"POS-kasir/pkg/logger"
 	"context"
@@ -20,23 +21,24 @@ type IPrinterService interface {
 }
 
 type PrinterService struct {
-	orderService    orders.IOrderService
-	settingsService settings.ISettingsService
-	store           repository.Store
-	log             logger.ILogger
+	orderService         orders.IOrderService
+	settingsService      settings.ISettingsService
+	paymentMethodService payment_methods.IPaymentMethodService
+	userRepo             user_repo.Querier
+	log                  logger.ILogger
 }
 
-func NewPrinterService(orderService orders.IOrderService, settingsService settings.ISettingsService, store repository.Store, log logger.ILogger) IPrinterService {
+func NewPrinterService(orderService orders.IOrderService, settingsService settings.ISettingsService, paymentMethodService payment_methods.IPaymentMethodService, userRepo user_repo.Querier, log logger.ILogger) IPrinterService {
 	return &PrinterService{
-		orderService:    orderService,
-		settingsService: settingsService,
-		store:           store,
-		log:             log,
+		orderService:         orderService,
+		settingsService:      settingsService,
+		paymentMethodService: paymentMethodService,
+		userRepo:             userRepo,
+		log:                  log,
 	}
 }
 
 func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) error {
-	// 1. Fetch Data
 	order, err := s.orderService.GetOrder(ctx, orderID)
 	if err != nil {
 		return fmt.Errorf("failed to get order: %w", err)
@@ -52,10 +54,9 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		return fmt.Errorf("failed to get printer settings: %w", err)
 	}
 
-	// 2a. Fetch Cashier Name
 	var cashierName string = "Unknown"
 	if order.UserID != nil {
-		user, err := s.store.GetUserByID(ctx, *order.UserID)
+		user, err := s.userRepo.GetUserByID(ctx, *order.UserID)
 		if err == nil {
 			cashierName = user.Username
 		} else {
@@ -63,7 +64,6 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		}
 	}
 
-	// 2. Connect to Printer
 	p, err := escpos.NewPrinter(printerSettings.Connection)
 	if err != nil {
 		s.log.Error("Failed to connect to printer", "connection", printerSettings.Connection, "error", err)
@@ -75,8 +75,6 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		return err
 	}
 
-	// 3. Format Receipt
-	// Header
 	p.SetAlign(escpos.AlignCenter)
 	p.SetBold(true)
 	p.SetSize(escpos.DoubleHeightOn)
@@ -88,17 +86,13 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 	p.WriteString("Cashier: " + cashierName + "\n")
 	p.WriteString("--------------------------------\n")
 
-	// Items
 	p.SetAlign(escpos.AlignLeft)
 	for _, item := range order.Items {
-		// Name
 		p.WriteString(item.ProductName + "\n")
 
-		// Qty x Price = Total
 		qtyLine := fmt.Sprintf("%dx %s", item.Quantity, formatCurrency(item.PriceAtSale))
 		totalLine := formatCurrency(item.Subtotal)
 
-		// Simple padding for 58mm (approx 32 chars)
 		padding := 32 - len(qtyLine) - len(totalLine)
 		if padding < 1 {
 			padding = 1
@@ -106,7 +100,6 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 
 		p.WriteString(qtyLine + strings.Repeat(" ", padding) + totalLine + "\n")
 
-		// Options
 		for _, opt := range item.Options {
 			if opt.OptionName != "" {
 				p.WriteString("   + " + opt.OptionName + "\n")
@@ -116,7 +109,6 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 
 	p.WriteString("--------------------------------\n")
 
-	// Totals
 	writeTotalLine(p, "Subtotal", formatCurrency(order.GrossTotal))
 	if order.DiscountAmount > 0 {
 		writeTotalLine(p, "Discount", "-"+formatCurrency(order.DiscountAmount))
@@ -127,10 +119,9 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 
 	p.WriteString("--------------------------------\n")
 
-	// Payment Info
 	if order.PaymentMethodID != nil {
 		var paymentMethodName string = "Unknown"
-		methods, err := s.store.ListPaymentMethods(ctx)
+		methods, err := s.paymentMethodService.ListPaymentMethods(ctx)
 		if err == nil {
 			for _, m := range methods {
 				if m.ID == *order.PaymentMethodID {
@@ -152,13 +143,11 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		p.WriteString("UNPAID\n")
 	}
 
-	// Footer
 	p.SetAlign(escpos.AlignCenter)
 	p.WriteString("\n")
 	p.WriteString("© 2025 " + branding.AppName + "\n")
 	p.WriteString("All rights reserved\n")
 	p.WriteString("\n")
-	// Cut
 	return p.Cut()
 }
 

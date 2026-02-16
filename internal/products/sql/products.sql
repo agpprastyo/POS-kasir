@@ -234,3 +234,28 @@ WHERE id = ANY($1::uuid[]);
 
 -- name: CheckCategoryExists :one
 SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1);
+
+-- name: GetProductsByIDs :many
+SELECT * FROM products
+WHERE id = ANY($1::uuid[]);
+
+-- name: GetProductOptionsByIDs :many
+SELECT * FROM product_options
+WHERE id = ANY($1::uuid[]);
+
+-- name: DecreaseProductStock :one
+UPDATE products
+SET stock = stock - sqlc.arg(quantity)
+WHERE id = sqlc.arg(id)
+RETURNING *;
+
+-- name: AddProductStock :one
+UPDATE products
+SET stock = stock + sqlc.arg(quantity)
+WHERE id = sqlc.arg(id)
+RETURNING *;
+
+-- name: GetProductsForUpdate :many
+SELECT * FROM products
+WHERE id = ANY($1::uuid[])
+FOR UPDATE;

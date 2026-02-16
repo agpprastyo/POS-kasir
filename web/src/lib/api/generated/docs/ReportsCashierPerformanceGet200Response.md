@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoCashierPerformanceResponse&gt;**](POSKasirInternalDtoCashierPerformanceResponse.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalReportCashierPerformanceResponse&gt;**](InternalReportCashierPerformanceResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

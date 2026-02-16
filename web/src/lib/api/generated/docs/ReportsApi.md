@@ -16,6 +16,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **reportsCancellationsGet**
 > ReportsCancellationsGet200Response reportsCancellationsGet()
 
+Get statistics on order cancellations grouped by reason (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -62,15 +63,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Cancellation reports retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsCashierPerformanceGet**
 > ReportsCashierPerformanceGet200Response reportsCashierPerformanceGet()
 
+Get order counts and sales totals handled by each cashier (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -117,15 +119,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Cashier performance data retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsDashboardSummaryGet**
 > ReportsDashboardSummaryGet200Response reportsDashboardSummaryGet()
 
+Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -162,14 +165,15 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Dashboard summary retrieved successfully |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsPaymentMethodsGet**
 > ReportsPaymentMethodsGet200Response reportsPaymentMethodsGet()
 
+Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -216,15 +220,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Payment method performance data retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsProductsGet**
 > ReportsProductsGet200Response reportsProductsGet()
 
+Get sales performance metrics for each product (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -271,15 +276,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Product performance data retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsProfitProductsGet**
 > ReportsProfitProductsGet200Response reportsProfitProductsGet()
 
+Get profitability metrics for each product sold (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -326,15 +332,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Product profit reports retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsProfitSummaryGet**
 > ReportsProfitSummaryGet200Response reportsProfitSummaryGet()
 
+Get gross profit analytics grouped by date (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -381,15 +388,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Profit summary retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **reportsSalesGet**
 > ReportsSalesGet200Response reportsSalesGet()
 
+Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -436,9 +444,9 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Sales reports retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

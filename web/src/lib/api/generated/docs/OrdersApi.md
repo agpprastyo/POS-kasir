@@ -13,10 +13,12 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**ordersIdPayMidtransPost**](#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order|
 |[**ordersIdUpdateStatusPost**](#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status|
 |[**ordersPost**](#orderspost) | **POST** /orders | Create an order|
+|[**ordersWebhookMidtransPost**](#orderswebhookmidtranspost) | **POST** /orders/webhook/midtrans | Midtrans Payment Notification Callback|
 
 # **ordersGet**
 > OrdersGet200Response ordersGet()
 
+Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -69,15 +71,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Orders retrieved successfully |  -  |
+|**400** | Invalid query parameters |  -  |
+|**500** | Failed to retrieve orders |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdApplyPromotionPost**
 > OrdersPost201Response ordersIdApplyPromotionPost(request)
 
+Apply a specific promotion to an existing order by its ID (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -85,14 +88,14 @@ No authorization required
 import {
     OrdersApi,
     Configuration,
-    POSKasirInternalDtoApplyPromotionRequest
+    InternalOrdersApplyPromotionRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
-let request: POSKasirInternalDtoApplyPromotionRequest; //Promotion details
+let request: InternalOrdersApplyPromotionRequest; //Promotion details
 
 const { status, data } = await apiInstance.ordersIdApplyPromotionPost(
     id,
@@ -104,7 +107,7 @@ const { status, data } = await apiInstance.ordersIdApplyPromotionPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoApplyPromotionRequest**| Promotion details | |
+| **request** | **InternalOrdersApplyPromotionRequest**| Promotion details | |
 | **id** | [**string**] | Order ID | defaults to undefined|
 
 
@@ -125,16 +128,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Promotion applied successfully |  -  |
+|**400** | Invalid order ID format or request body |  -  |
+|**404** | Order or Promotion not found |  -  |
+|**500** | Failed to apply promotion |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdCancelPost**
 > POSKasirInternalCommonSuccessResponse ordersIdCancelPost(request)
 
+Cancel an existing order with a reason (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -142,14 +146,14 @@ No authorization required
 import {
     OrdersApi,
     Configuration,
-    POSKasirInternalDtoCancelOrderRequest
+    InternalOrdersCancelOrderRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
-let request: POSKasirInternalDtoCancelOrderRequest; //Cancel order details
+let request: InternalOrdersCancelOrderRequest; //Cancel order details
 
 const { status, data } = await apiInstance.ordersIdCancelPost(
     id,
@@ -161,7 +165,7 @@ const { status, data } = await apiInstance.ordersIdCancelPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoCancelOrderRequest**| Cancel order details | |
+| **request** | **InternalOrdersCancelOrderRequest**| Cancel order details | |
 | **id** | [**string**] | Order ID | defaults to undefined|
 
 
@@ -182,16 +186,18 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Order cancelled successfully |  -  |
+|**400** | Invalid order ID format or request body |  -  |
+|**404** | Order not found |  -  |
+|**409** | Order cannot be cancelled |  -  |
+|**500** | Failed to cancel order |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdGet**
 > OrdersPost201Response ordersIdGet()
 
+Retrieve detailed information of a specific order by its ID (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -235,16 +241,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Order retrieved successfully |  -  |
+|**400** | Invalid order ID format |  -  |
+|**404** | Order not found |  -  |
+|**500** | Failed to retrieve order |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdItemsPut**
 > OrdersPost201Response ordersIdItemsPut(request)
 
+Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -258,7 +265,7 @@ const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
-let request: Array<POSKasirInternalDtoUpdateOrderItemRequest>; //Update order items
+let request: Array<InternalOrdersUpdateOrderItemRequest>; //Update order items
 
 const { status, data } = await apiInstance.ordersIdItemsPut(
     id,
@@ -270,7 +277,7 @@ const { status, data } = await apiInstance.ordersIdItemsPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **Array<POSKasirInternalDtoUpdateOrderItemRequest>**| Update order items | |
+| **request** | **Array<InternalOrdersUpdateOrderItemRequest>**| Update order items | |
 | **id** | [**string**] | Order ID | defaults to undefined|
 
 
@@ -291,16 +298,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Order items updated successfully |  -  |
+|**400** | Invalid order ID format or request body |  -  |
+|**404** | Order not found |  -  |
+|**500** | Failed to update order items |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdPayManualPost**
 > OrdersPost201Response ordersIdPayManualPost(request)
 
+Process a manual payment (Cash) and finalize an order (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -308,14 +316,14 @@ No authorization required
 import {
     OrdersApi,
     Configuration,
-    POSKasirInternalDtoConfirmManualPaymentRequest
+    InternalOrdersConfirmManualPaymentRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
-let request: POSKasirInternalDtoConfirmManualPaymentRequest; //Manual payment details
+let request: InternalOrdersConfirmManualPaymentRequest; //Manual payment details
 
 const { status, data } = await apiInstance.ordersIdPayManualPost(
     id,
@@ -327,7 +335,7 @@ const { status, data } = await apiInstance.ordersIdPayManualPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoConfirmManualPaymentRequest**| Manual payment details | |
+| **request** | **InternalOrdersConfirmManualPaymentRequest**| Manual payment details | |
 | **id** | [**string**] | Order ID | defaults to undefined|
 
 
@@ -348,16 +356,18 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Payment completed successfully |  -  |
+|**400** | Invalid order ID format or request body |  -  |
+|**404** | Order not found |  -  |
+|**409** | Order might have been paid or cancelled |  -  |
+|**500** | Failed to complete payment |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdPayMidtransPost**
 > OrdersIdPayMidtransPost200Response ordersIdPayMidtransPost()
 
+Create a QRIS/Gopay payment session via Midtrans for an existing order (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -401,16 +411,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | QRIS payment initiated successfully |  -  |
+|**400** | Invalid order ID format |  -  |
+|**404** | Order not found |  -  |
+|**500** | Failed to process payment |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdUpdateStatusPost**
 > OrdersPost201Response ordersIdUpdateStatusPost(request)
 
+Update the status of an existing order (e.g., to in_progress, served) (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -418,14 +429,14 @@ No authorization required
 import {
     OrdersApi,
     Configuration,
-    POSKasirInternalDtoUpdateOrderStatusRequest
+    InternalOrdersUpdateOrderStatusRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
 let id: string; //Order ID (default to undefined)
-let request: POSKasirInternalDtoUpdateOrderStatusRequest; //Order status details
+let request: InternalOrdersUpdateOrderStatusRequest; //Order status details
 
 const { status, data } = await apiInstance.ordersIdUpdateStatusPost(
     id,
@@ -437,7 +448,7 @@ const { status, data } = await apiInstance.ordersIdUpdateStatusPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoUpdateOrderStatusRequest**| Order status details | |
+| **request** | **InternalOrdersUpdateOrderStatusRequest**| Order status details | |
 | **id** | [**string**] | Order ID | defaults to undefined|
 
 
@@ -458,16 +469,18 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
+|**200** | Order status updated successfully |  -  |
+|**400** | Invalid order ID format or request body |  -  |
+|**404** | Order not found |  -  |
+|**409** | Invalid status transition |  -  |
+|**500** | Failed to update order status |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersPost**
 > OrdersPost201Response ordersPost(request)
 
+Create a new order with multiple items (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -475,13 +488,13 @@ No authorization required
 import {
     OrdersApi,
     Configuration,
-    POSKasirInternalDtoCreateOrderRequest
+    InternalOrdersCreateOrderRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new OrdersApi(configuration);
 
-let request: POSKasirInternalDtoCreateOrderRequest; //Create order details
+let request: InternalOrdersCreateOrderRequest; //Create order details
 
 const { status, data } = await apiInstance.ordersPost(
     request
@@ -492,7 +505,7 @@ const { status, data } = await apiInstance.ordersPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoCreateOrderRequest**| Create order details | |
+| **request** | **InternalOrdersCreateOrderRequest**| Create order details | |
 
 
 ### Return type
@@ -512,9 +525,63 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**400** | Bad Request |  -  |
-|**500** | Internal Server Error |  -  |
+|**201** | Order created successfully |  -  |
+|**400** | Invalid request body |  -  |
+|**500** | Failed to create order |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ordersWebhookMidtransPost**
+> POSKasirInternalCommonSuccessResponse ordersWebhookMidtransPost(payload)
+
+Webhook for Midtrans to notify order payment status updates
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration,
+    POSKasirPkgPaymentMidtransNotificationPayload
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let payload: POSKasirPkgPaymentMidtransNotificationPayload; //Midtrans Notification Payload
+
+const { status, data } = await apiInstance.ordersWebhookMidtransPost(
+    payload
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **payload** | **POSKasirPkgPaymentMidtransNotificationPayload**| Midtrans Notification Payload | |
+
+
+### Return type
+
+**POSKasirInternalCommonSuccessResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Notification received successfully |  -  |
+|**400** | Invalid notification format |  -  |
+|**500** | Failed to handle notification |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

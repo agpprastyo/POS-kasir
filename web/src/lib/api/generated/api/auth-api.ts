@@ -22,30 +22,70 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { AuthAddPost200Response } from '../models';
+// @ts-ignore
 import type { AuthLoginPost200Response } from '../models';
 // @ts-ignore
-import type { AuthLogoutPost200Response } from '../models';
+import type { AuthRefreshPost200Response } from '../models';
 // @ts-ignore
-import type { AuthMeGet200Response } from '../models';
+import type { InternalUserLoginRequest } from '../models';
+// @ts-ignore
+import type { InternalUserRegisterRequest } from '../models';
+// @ts-ignore
+import type { InternalUserUpdatePasswordRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoLoginRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoUpdatePasswordRequest } from '../models';
+import type { POSKasirInternalCommonSuccessResponse } from '../models';
 /**
  * AuthApi - axios parameter creator
  */
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Login
-         * @summary Login
-         * @param {POSKasirInternalDtoLoginRequest} request Login request
+         * Register a new user with a specific role (Roles: admin)
+         * @summary Add new user
+         * @param {InternalUserRegisterRequest} request New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authLoginPost: async (request: POSKasirInternalDtoLoginRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        authAddPost: async (request: InternalUserRegisterRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('authAddPost', 'request', request)
+            const localVarPath = `/auth/add`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Authenticate user and return access/refresh tokens via cookies and response body (Roles: public)
+         * @summary Login
+         * @param {InternalUserLoginRequest} request Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authLoginPost: async (request: InternalUserLoginRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('authLoginPost', 'request', request)
             const localVarPath = `/auth/login`;
@@ -75,7 +115,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Logout
+         * Clear access and refresh token cookies (Roles: authenticated)
          * @summary Logout
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -105,9 +145,9 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update avatar
+         * Upload and update the profile picture for the current user (Roles: authenticated)
          * @summary Update avatar
-         * @param {File} avatar Avatar file
+         * @param {File} avatar Avatar image file
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -146,8 +186,8 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Get profile
-         * @summary Get profile
+         * Get detailed profile information for the authenticated user session (Roles: authenticated)
+         * @summary Get current profile
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -176,16 +216,16 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update password
+         * Update the password for the current user session (Roles: authenticated)
          * @summary Update password
-         * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
+         * @param {InternalUserUpdatePasswordRequest} request Password update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeUpdatePasswordPost: async (request: POSKasirInternalDtoUpdatePasswordRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        authMePasswordPut: async (request: InternalUserUpdatePasswordRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
-            assertParamExists('authMeUpdatePasswordPost', 'request', request)
-            const localVarPath = `/auth/me/update-password`;
+            assertParamExists('authMePasswordPut', 'request', request)
+            const localVarPath = `/auth/me/password`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -193,7 +233,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -212,7 +252,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Refresh token
+         * Issue a new access token using a valid refresh token cookie (Roles: public/authenticated)
          * @summary Refresh token
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -251,75 +291,88 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Login
-         * @summary Login
-         * @param {POSKasirInternalDtoLoginRequest} request Login request
+         * Register a new user with a specific role (Roles: admin)
+         * @summary Add new user
+         * @param {InternalUserRegisterRequest} request New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authLoginPost(request: POSKasirInternalDtoLoginRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLoginPost200Response>> {
+        async authAddPost(request: InternalUserRegisterRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authAddPost(request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authAddPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Authenticate user and return access/refresh tokens via cookies and response body (Roles: public)
+         * @summary Login
+         * @param {InternalUserLoginRequest} request Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authLoginPost(request: InternalUserLoginRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLoginPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authLoginPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authLoginPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Logout
+         * Clear access and refresh token cookies (Roles: authenticated)
          * @summary Logout
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authLogoutPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLogoutPost200Response>> {
+        async authLogoutPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authLogoutPost(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authLogoutPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update avatar
+         * Upload and update the profile picture for the current user (Roles: authenticated)
          * @summary Update avatar
-         * @param {File} avatar Avatar file
+         * @param {File} avatar Avatar image file
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+        async authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authMeAvatarPut(avatar, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeAvatarPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get profile
-         * @summary Get profile
+         * Get detailed profile information for the authenticated user session (Roles: authenticated)
+         * @summary Get current profile
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+        async authMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authMeGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update password
+         * Update the password for the current user session (Roles: authenticated)
          * @summary Update password
-         * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
+         * @param {InternalUserUpdatePasswordRequest} request Password update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLogoutPost200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authMeUpdatePasswordPost(request, options);
+        async authMePasswordPut(request: InternalUserUpdatePasswordRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authMePasswordPut(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AuthApi.authMeUpdatePasswordPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authMePasswordPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Refresh token
+         * Issue a new access token using a valid refresh token cookie (Roles: public/authenticated)
          * @summary Refresh token
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authRefreshPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthLoginPost200Response>> {
+        async authRefreshPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthRefreshPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authRefreshPost(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authRefreshPost']?.[localVarOperationServerIndex]?.url;
@@ -335,60 +388,70 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
-         * Login
-         * @summary Login
-         * @param {POSKasirInternalDtoLoginRequest} request Login request
+         * Register a new user with a specific role (Roles: admin)
+         * @summary Add new user
+         * @param {InternalUserRegisterRequest} request New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authLoginPost(request: POSKasirInternalDtoLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLoginPost200Response> {
+        authAddPost(request: InternalUserRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
+            return localVarFp.authAddPost(request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Authenticate user and return access/refresh tokens via cookies and response body (Roles: public)
+         * @summary Login
+         * @param {InternalUserLoginRequest} request Login credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authLoginPost(request: InternalUserLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLoginPost200Response> {
             return localVarFp.authLoginPost(request, options).then((request) => request(axios, basePath));
         },
         /**
-         * Logout
+         * Clear access and refresh token cookies (Roles: authenticated)
          * @summary Logout
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authLogoutPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthLogoutPost200Response> {
+        authLogoutPost(options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
             return localVarFp.authLogoutPost(options).then((request) => request(axios, basePath));
         },
         /**
-         * Update avatar
+         * Upload and update the profile picture for the current user (Roles: authenticated)
          * @summary Update avatar
-         * @param {File} avatar Avatar file
+         * @param {File} avatar Avatar image file
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+        authMeAvatarPut(avatar: File, options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
             return localVarFp.authMeAvatarPut(avatar, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get profile
-         * @summary Get profile
+         * Get detailed profile information for the authenticated user session (Roles: authenticated)
+         * @summary Get current profile
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeGet(options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+        authMeGet(options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
             return localVarFp.authMeGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Update password
+         * Update the password for the current user session (Roles: authenticated)
          * @summary Update password
-         * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
+         * @param {InternalUserUpdatePasswordRequest} request Password update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthLogoutPost200Response> {
-            return localVarFp.authMeUpdatePasswordPost(request, options).then((request) => request(axios, basePath));
+        authMePasswordPut(request: InternalUserUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.authMePasswordPut(request, options).then((request) => request(axios, basePath));
         },
         /**
-         * Refresh token
+         * Issue a new access token using a valid refresh token cookie (Roles: public/authenticated)
          * @summary Refresh token
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authRefreshPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthLoginPost200Response> {
+        authRefreshPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthRefreshPost200Response> {
             return localVarFp.authRefreshPost(options).then((request) => request(axios, basePath));
         },
     };
@@ -399,18 +462,29 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  */
 export class AuthApi extends BaseAPI {
     /**
-     * Login
-     * @summary Login
-     * @param {POSKasirInternalDtoLoginRequest} request Login request
+     * Register a new user with a specific role (Roles: admin)
+     * @summary Add new user
+     * @param {InternalUserRegisterRequest} request New user details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authLoginPost(request: POSKasirInternalDtoLoginRequest, options?: RawAxiosRequestConfig) {
+    public authAddPost(request: InternalUserRegisterRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authAddPost(request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Authenticate user and return access/refresh tokens via cookies and response body (Roles: public)
+     * @summary Login
+     * @param {InternalUserLoginRequest} request Login credentials
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authLoginPost(request: InternalUserLoginRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authLoginPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Logout
+     * Clear access and refresh token cookies (Roles: authenticated)
      * @summary Logout
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -420,9 +494,9 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Update avatar
+     * Upload and update the profile picture for the current user (Roles: authenticated)
      * @summary Update avatar
-     * @param {File} avatar Avatar file
+     * @param {File} avatar Avatar image file
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -431,8 +505,8 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Get profile
-     * @summary Get profile
+     * Get detailed profile information for the authenticated user session (Roles: authenticated)
+     * @summary Get current profile
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -441,18 +515,18 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Update password
+     * Update the password for the current user session (Roles: authenticated)
      * @summary Update password
-     * @param {POSKasirInternalDtoUpdatePasswordRequest} request Update password request
+     * @param {InternalUserUpdatePasswordRequest} request Password update details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authMeUpdatePasswordPost(request: POSKasirInternalDtoUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
-        return AuthApiFp(this.configuration).authMeUpdatePasswordPost(request, options).then((request) => request(this.axios, this.basePath));
+    public authMePasswordPut(request: InternalUserUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authMePasswordPut(request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Refresh token
+     * Issue a new access token using a valid refresh token cookie (Roles: public/authenticated)
      * @summary Refresh token
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

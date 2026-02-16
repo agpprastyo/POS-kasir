@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoProductProfitResponse&gt;**](POSKasirInternalDtoProductProfitResponse.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalReportProductProfitResponse&gt;**](InternalReportProductProfitResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

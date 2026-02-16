@@ -2,7 +2,6 @@ package utils
 
 import (
 	"POS-kasir/config"
-	"POS-kasir/internal/repository"
 	"errors"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,8 +12,8 @@ import (
 
 // Manager defines the interface for JWT operations.
 type Manager interface {
-	GenerateToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error)
-	GenerateRefreshToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error)
+	GenerateToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error)
+	GenerateRefreshToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error)
 	VerifyToken(tokenStr string) (JWTClaims, error)
 }
 
@@ -22,33 +21,33 @@ type JWTManager struct {
 	cfg *config.AppConfig
 }
 
-type JWTClaims struct {
-	Username string              `json:"username"`
-	Email    string              `json:"email"`
-	Role     repository.UserRole `json:"role"`
-	UserID   uuid.UUID           `json:"user_id"`
-	Type     string              `json:"type"` // "access" or "refresh"
-	jwt.RegisteredClaims
-}
-
-// NewJWTManager creates a new JWTManager.
 func NewJWTManager(cfg *config.AppConfig) *JWTManager {
 	return &JWTManager{
 		cfg: cfg,
 	}
 }
 
+type JWTClaims struct {
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	Role     string    `json:"role"`
+	UserID   uuid.UUID `json:"user_id"`
+	Type     string    `json:"type"` // "access" or "refresh"
+	jwt.RegisteredClaims
+}
+
+// ...
 // GenerateToken creates a short-lived Access Token.
-func (j *JWTManager) GenerateToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+func (j *JWTManager) GenerateToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	return j.generateToken(username, email, userID, role, "access", j.cfg.JWT.Duration)
 }
 
 // GenerateRefreshToken creates a long-lived Refresh Token.
-func (j *JWTManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role repository.UserRole) (string, time.Time, error) {
+func (j *JWTManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	return j.generateToken(username, email, userID, role, "refresh", j.cfg.JWT.RefreshTokenDuration)
 }
 
-func (j *JWTManager) generateToken(username, email string, userID uuid.UUID, role repository.UserRole, tokenType string, duration time.Duration) (string, time.Time, error) {
+func (j *JWTManager) generateToken(username, email string, userID uuid.UUID, role string, tokenType string, duration time.Duration) (string, time.Time, error) {
 	claims := JWTClaims{
 		Username: username,
 		Email:    email,

@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalShiftCashTransactionResponse } from './internal-shift-cash-transaction-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoCashTransactionResponse } from './poskasir-internal-dto-cash-transaction-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type ShiftsCashTransactionPost201Response

@@ -2,8 +2,8 @@ package report
 
 import (
 	"POS-kasir/internal/activitylog"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/common/store"
+	"POS-kasir/internal/report/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 	"time"
@@ -12,23 +12,33 @@ import (
 )
 
 type IRptService interface {
-	GetDashboardSummary(ctx context.Context) (*dto.DashboardSummaryResponse, error)
-	GetSalesReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.SalesReport, error)
-	GetProductPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductPerformanceResponse, error)
-	GetPaymentMethodPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.PaymentMethodPerformanceResponse, error)
-	GetCashierPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CashierPerformanceResponse, error)
-	GetCancellationReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CancellationReportResponse, error)
-	GetProfitSummary(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProfitSummaryResponse, error)
-	GetProductProfitReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductProfitResponse, error)
+	GetDashboardSummary(ctx context.Context) (*DashboardSummaryResponse, error)
+	GetSalesReports(ctx context.Context, req *SalesReportServiceRequest) (*[]SalesReport, error)
+	GetProductPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]ProductPerformanceResponse, error)
+	GetPaymentMethodPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]PaymentMethodPerformanceResponse, error)
+	GetCashierPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]CashierPerformanceResponse, error)
+	GetCancellationReports(ctx context.Context, req *SalesReportServiceRequest) (*[]CancellationReportResponse, error)
+	GetProfitSummary(ctx context.Context, req *SalesReportServiceRequest) (*[]ProfitSummaryResponse, error)
+	GetProductProfitReports(ctx context.Context, req *SalesReportServiceRequest) (*[]ProductProfitResponse, error)
+}
+
+func NewRptService(store store.Store, repo repository.Querier, activityLogService activitylog.IActivityService, log logger.ILogger) IRptService {
+	return &RptService{
+		repo:               repo,
+		Store:              store,
+		ActivityLogService: activityLogService,
+		Log:                log,
+	}
 }
 
 type RptService struct {
-	Store              repository.Store
+	repo               repository.Querier
+	Store              store.Store
 	ActivityLogService activitylog.IActivityService
 	Log                logger.ILogger
 }
 
-func (r *RptService) GetSalesReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.SalesReport, error) {
+func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServiceRequest) (*[]SalesReport, error) {
 
 	params := repository.GetSalesSummaryParams{
 		CreatedAt: pgtype.Timestamptz{
@@ -41,16 +51,15 @@ func (r *RptService) GetSalesReports(ctx context.Context, req *dto.SalesReportRe
 		},
 	}
 
-	reports, err := r.Store.GetSalesSummary(ctx, params)
-	// r.Log.Infof("GetSalesReports: %v", reports)
+	reports, err := r.repo.GetSalesSummary(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get sales reports", "error", err)
 		return nil, err
 	}
 
-	salesReports := make([]dto.SalesReport, len(reports))
+	salesReports := make([]SalesReport, len(reports))
 	for i, report := range reports {
-		salesReports[i] = dto.SalesReport{
+		salesReports[i] = SalesReport{
 			Date:       report.Date.Time,
 			OrderCount: report.OrderCount,
 			TotalSales: 0, // Default value, will be set if valid
@@ -63,8 +72,8 @@ func (r *RptService) GetSalesReports(ctx context.Context, req *dto.SalesReportRe
 	return &salesReports, nil
 }
 
-func (r *RptService) GetDashboardSummary(ctx context.Context) (*dto.DashboardSummaryResponse, error) {
-	summary, err := r.Store.GetDashboardSummary(ctx)
+func (r *RptService) GetDashboardSummary(ctx context.Context) (*DashboardSummaryResponse, error) {
+	summary, err := r.repo.GetDashboardSummary(ctx)
 	if err != nil {
 		r.Log.Error("Failed to get dashboard summary", "error", err)
 		return nil, err
@@ -76,7 +85,7 @@ func (r *RptService) GetDashboardSummary(ctx context.Context) (*dto.DashboardSum
 		totalSales = f8.Float64
 	}
 
-	response := &dto.DashboardSummaryResponse{
+	response := &DashboardSummaryResponse{
 		TotalSales:    totalSales,
 		TotalOrders:   summary.TotalOrders,
 		UniqueCashier: summary.UniqueCashiers,
@@ -86,7 +95,7 @@ func (r *RptService) GetDashboardSummary(ctx context.Context) (*dto.DashboardSum
 	return response, nil
 }
 
-func (r *RptService) GetProductPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductPerformanceResponse, error) {
+func (r *RptService) GetProductPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]ProductPerformanceResponse, error) {
 	params := repository.GetProductSalesPerformanceParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -98,18 +107,18 @@ func (r *RptService) GetProductPerformance(ctx context.Context, req *dto.SalesRe
 		},
 	}
 
-	results, err := r.Store.GetProductSalesPerformance(ctx, params)
+	results, err := r.repo.GetProductSalesPerformance(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get product performance", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.ProductPerformanceResponse, len(results))
+	responses := make([]ProductPerformanceResponse, len(results))
 	for i, row := range results {
 		// TotalRevenue is int64 in generated code
 		totalRevenue := float64(row.TotalRevenue)
 
-		responses[i] = dto.ProductPerformanceResponse{
+		responses[i] = ProductPerformanceResponse{
 			ProductID:     row.ProductID.String(),
 			ProductName:   row.ProductName,
 			TotalQuantity: row.TotalQuantity,
@@ -120,7 +129,7 @@ func (r *RptService) GetProductPerformance(ctx context.Context, req *dto.SalesRe
 	return &responses, nil
 }
 
-func (r *RptService) GetPaymentMethodPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.PaymentMethodPerformanceResponse, error) {
+func (r *RptService) GetPaymentMethodPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]PaymentMethodPerformanceResponse, error) {
 	params := repository.GetPaymentMethodSalesParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -132,16 +141,15 @@ func (r *RptService) GetPaymentMethodPerformance(ctx context.Context, req *dto.S
 		},
 	}
 
-	results, err := r.Store.GetPaymentMethodSales(ctx, params)
+	results, err := r.repo.GetPaymentMethodSales(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get payment method performance", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.PaymentMethodPerformanceResponse, len(results))
+	responses := make([]PaymentMethodPerformanceResponse, len(results))
 	for i, row := range results {
 		var totalSales float64
-		// TotalSales is interface{} (numeric or int)
 		if n, ok := row.TotalSales.(pgtype.Numeric); ok && n.Valid {
 			f8, _ := n.Float64Value()
 			totalSales = f8.Float64
@@ -149,7 +157,7 @@ func (r *RptService) GetPaymentMethodPerformance(ctx context.Context, req *dto.S
 			totalSales = float64(v)
 		}
 
-		responses[i] = dto.PaymentMethodPerformanceResponse{
+		responses[i] = PaymentMethodPerformanceResponse{
 			PaymentMethodID:   row.PaymentMethodID,
 			PaymentMethodName: row.PaymentMethodName,
 			OrderCount:        row.OrderCount,
@@ -160,7 +168,7 @@ func (r *RptService) GetPaymentMethodPerformance(ctx context.Context, req *dto.S
 	return &responses, nil
 }
 
-func (r *RptService) GetCashierPerformance(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CashierPerformanceResponse, error) {
+func (r *RptService) GetCashierPerformance(ctx context.Context, req *SalesReportServiceRequest) (*[]CashierPerformanceResponse, error) {
 	params := repository.GetCashierPerformanceParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -172,13 +180,13 @@ func (r *RptService) GetCashierPerformance(ctx context.Context, req *dto.SalesRe
 		},
 	}
 
-	results, err := r.Store.GetCashierPerformance(ctx, params)
+	results, err := r.repo.GetCashierPerformance(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get cashier performance", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.CashierPerformanceResponse, len(results))
+	responses := make([]CashierPerformanceResponse, len(results))
 	for i, row := range results {
 		var totalSales float64
 		if n, ok := row.TotalSales.(pgtype.Numeric); ok && n.Valid {
@@ -188,7 +196,7 @@ func (r *RptService) GetCashierPerformance(ctx context.Context, req *dto.SalesRe
 			totalSales = float64(v)
 		}
 
-		responses[i] = dto.CashierPerformanceResponse{
+		responses[i] = CashierPerformanceResponse{
 			UserID:     row.UserID.String(),
 			Username:   row.Username,
 			OrderCount: row.OrderCount,
@@ -199,7 +207,7 @@ func (r *RptService) GetCashierPerformance(ctx context.Context, req *dto.SalesRe
 	return &responses, nil
 }
 
-func (r *RptService) GetCancellationReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.CancellationReportResponse, error) {
+func (r *RptService) GetCancellationReports(ctx context.Context, req *SalesReportServiceRequest) (*[]CancellationReportResponse, error) {
 	params := repository.GetCancellationReasonsParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -211,15 +219,15 @@ func (r *RptService) GetCancellationReports(ctx context.Context, req *dto.SalesR
 		},
 	}
 
-	results, err := r.Store.GetCancellationReasons(ctx, params)
+	results, err := r.repo.GetCancellationReasons(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get cancellation reports", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.CancellationReportResponse, len(results))
+	responses := make([]CancellationReportResponse, len(results))
 	for i, row := range results {
-		responses[i] = dto.CancellationReportResponse{
+		responses[i] = CancellationReportResponse{
 			ReasonID:        row.ReasonID,
 			Reason:          row.Reason,
 			CancelledOrders: row.CancelledOrders,
@@ -229,7 +237,7 @@ func (r *RptService) GetCancellationReports(ctx context.Context, req *dto.SalesR
 	return &responses, nil
 }
 
-func (r *RptService) GetProfitSummary(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProfitSummaryResponse, error) {
+func (r *RptService) GetProfitSummary(ctx context.Context, req *SalesReportServiceRequest) (*[]ProfitSummaryResponse, error) {
 	params := repository.GetProfitSummaryParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -241,13 +249,13 @@ func (r *RptService) GetProfitSummary(ctx context.Context, req *dto.SalesReportR
 		},
 	}
 
-	results, err := r.Store.GetProfitSummary(ctx, params)
+	results, err := r.repo.GetProfitSummary(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get profit summary", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.ProfitSummaryResponse, len(results))
+	responses := make([]ProfitSummaryResponse, len(results))
 	for i, row := range results {
 		var totalRevenue, totalCOGS, grossProfit float64
 
@@ -279,7 +287,7 @@ func (r *RptService) GetProfitSummary(ctx context.Context, req *dto.SalesReportR
 			date = row.Date.Time
 		}
 
-		responses[i] = dto.ProfitSummaryResponse{
+		responses[i] = ProfitSummaryResponse{
 			Date:         date,
 			TotalRevenue: totalRevenue,
 			TotalCOGS:    totalCOGS,
@@ -290,7 +298,7 @@ func (r *RptService) GetProfitSummary(ctx context.Context, req *dto.SalesReportR
 	return &responses, nil
 }
 
-func (r *RptService) GetProductProfitReports(ctx context.Context, req *dto.SalesReportRequest) (*[]dto.ProductProfitResponse, error) {
+func (r *RptService) GetProductProfitReports(ctx context.Context, req *SalesReportServiceRequest) (*[]ProductProfitResponse, error) {
 	params := repository.GetProductProfitReportsParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -302,13 +310,13 @@ func (r *RptService) GetProductProfitReports(ctx context.Context, req *dto.Sales
 		},
 	}
 
-	results, err := r.Store.GetProductProfitReports(ctx, params)
+	results, err := r.repo.GetProductProfitReports(ctx, params)
 	if err != nil {
 		r.Log.Error("Failed to get product profit reports", "error", err)
 		return nil, err
 	}
 
-	responses := make([]dto.ProductProfitResponse, len(results))
+	responses := make([]ProductProfitResponse, len(results))
 	for i, row := range results {
 		var totalRevenue, totalCOGS, grossProfit float64
 
@@ -317,7 +325,7 @@ func (r *RptService) GetProductProfitReports(ctx context.Context, req *dto.Sales
 		totalCOGS = float64(row.TotalCogs)
 		grossProfit = float64(row.GrossProfit)
 
-		responses[i] = dto.ProductProfitResponse{
+		responses[i] = ProductProfitResponse{
 			ProductID:    row.ProductID.String(),
 			ProductName:  row.ProductName,
 			TotalSold:    row.TotalSold,
@@ -328,12 +336,4 @@ func (r *RptService) GetProductProfitReports(ctx context.Context, req *dto.Sales
 	}
 
 	return &responses, nil
-}
-
-func NewRptService(store repository.Store, activityLogService activitylog.IActivityService, log logger.ILogger) IRptService {
-	return &RptService{
-		Store:              store,
-		ActivityLogService: activityLogService,
-		Log:                log,
-	}
 }

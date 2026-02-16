@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { POSKasirInternalCommonErrorResponse } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
 /**
  * PrinterApi - axios parameter creator
@@ -29,7 +31,7 @@ import type { POSKasirInternalCommonSuccessResponse } from '../models';
 export const PrinterApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Trigger printing of invoice for a specific order
+         * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
@@ -63,7 +65,7 @@ export const PrinterApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Send a test print command to the configured printer
+         * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -102,7 +104,7 @@ export const PrinterApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = PrinterApiAxiosParamCreator(configuration)
     return {
         /**
-         * Trigger printing of invoice for a specific order
+         * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
@@ -115,7 +117,7 @@ export const PrinterApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Send a test print command to the configured printer
+         * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -136,7 +138,7 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = PrinterApiFp(configuration)
     return {
         /**
-         * Trigger printing of invoice for a specific order
+         * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
          * @param {*} [options] Override http request option.
@@ -146,7 +148,7 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.ordersIdPrintPost(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Send a test print command to the configured printer
+         * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -162,7 +164,7 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
  */
 export class PrinterApi extends BaseAPI {
     /**
-     * Trigger printing of invoice for a specific order
+     * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
      * @summary Print invoice for an order
      * @param {string} id Order ID
      * @param {*} [options] Override http request option.
@@ -173,7 +175,7 @@ export class PrinterApi extends BaseAPI {
     }
 
     /**
-     * Send a test print command to the configured printer
+     * Send a test print command to the configured printer (Roles: admin)
      * @summary Test printer connection
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

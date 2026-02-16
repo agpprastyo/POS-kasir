@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoMidtransPaymentResponse**](POSKasirInternalDtoMidtransPaymentResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalOrdersMidtransPaymentResponse**](InternalOrdersMidtransPaymentResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

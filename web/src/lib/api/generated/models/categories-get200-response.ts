@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalCategoriesCategoryWithCountResponse } from './internal-categories-category-with-count-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoCategoryWithCountResponse } from './poskasir-internal-dto-category-with-count-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type CategoriesGet200Response

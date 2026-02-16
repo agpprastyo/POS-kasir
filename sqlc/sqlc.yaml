@@ -1,25 +1,5 @@
 version: "2"
 sql:
-  - engine: "postgresql"
-    queries: "queries/"
-    schema: "migrations/"
-    gen:
-      go:
-        package: "repository"
-        out: "../internal/repository"
-        sql_package: "pgx/v5"
-        emit_json_tags: true
-        emit_prepared_queries: true
-        emit_interface: true
-        emit_exact_table_names: false
-        emit_empty_slices: true
-        emit_pointers_for_null_types : true
-        overrides:
-          - db_type: "uuid"
-            go_type:
-              import: "github.com/google/uuid"
-              type: "UUID"
-
 ## Activity Log | internal/activitylog/sql/activity_log.sql
   - engine: "postgresql"
     queries: "../internal/activitylog/sql/"
@@ -82,6 +62,27 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+## Orders | internal/orders/sql/orders.sql
+  - engine: "postgresql"
+    queries: "../internal/orders/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/orders/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
 ## Products | internal/products/sql/products.sql
   - engine: "postgresql"
     queries: "../internal/products/sql/"
@@ -102,3 +103,170 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+
+## Payment Methods | internal/payment_methods/sql/payment_methods.sql
+  - engine: "postgresql"
+    queries: "../internal/payment_methods/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/payment_methods/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+## User | internal/user/sql/user.sql
+  - engine: "postgresql"
+    queries: "../internal/user/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/user/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+## Settings | internal/settings/sql/settings.sql
+  - engine: "postgresql"
+    queries: "../internal/settings/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/settings/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Orders | internal/orders/sql/orders.sql
+  - engine: "postgresql"
+    queries: "../internal/orders/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/orders/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Promotions | internal/promotions/sql/promotions.sql
+  - engine: "postgresql"
+    queries: "../internal/promotions/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/promotions/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Shift | internal/shift/sql/shifts.sql
+  - engine: "postgresql"
+    queries: "../internal/shift/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/shift/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Reports | internal/reports/sql/reports.sql
+  - engine: "postgresql"
+    queries: "../internal/report/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/report/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
+## Shift | internal/shift/sql/shifts.sql
+  - engine: "postgresql"
+    queries: "../internal/shift/sql/"
+    schema: "migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "../internal/shift/repository"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_empty_slices: true
+        emit_pointers_for_null_types : true
+        overrides:
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+

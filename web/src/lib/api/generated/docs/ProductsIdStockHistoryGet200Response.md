@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoPagedStockHistoryResponse**](POSKasirInternalDtoPagedStockHistoryResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalProductsPagedStockHistoryResponse**](InternalProductsPagedStockHistoryResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

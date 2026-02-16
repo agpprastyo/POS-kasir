@@ -58,7 +58,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 	api.Get("/activity-logs", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleAdmin), container.ActivityLogHandler.GetActivityLogs)
 
-	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache), container.OrderHandler.CreateOrderHandler)
+	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache, app.Logger), container.OrderHandler.CreateOrderHandler)
 	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
 	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.GetOrderHandler)
 	api.Patch("/orders/:id/items", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOrderItemsHandler)
@@ -68,7 +68,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Post("/orders/:id/pay/midtrans", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.InitiateMidtransPaymentHandler)
 	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
-	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
+
 	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 

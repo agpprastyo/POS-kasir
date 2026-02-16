@@ -194,7 +194,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// Settings Module
 	settingsRepo := settings_repo.New(app.DB.GetPool())
-	settingsService := settings.NewSettingsService(app.Store, settingsRepo, app.R2, app.Logger)
+	settingsService := settings.NewSettingsService(app.Store, activityService, settingsRepo, app.R2, app.Logger)
 	settingsHandler := settings.NewSettingsHandler(settingsService, app.Logger)
 
 	// Printer Module

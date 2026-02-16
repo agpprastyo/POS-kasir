@@ -110,6 +110,7 @@ const (
 	LogActionTypeUPDATEAVATAR   LogActionType = "UPDATE_AVATAR"
 	LogActionTypeLOGINSUCCESS   LogActionType = "LOGIN_SUCCESS"
 	LogActionTypeLOGINFAILED    LogActionType = "LOGIN_FAILED"
+	LogActionTypeRESTORE        LogActionType = "RESTORE"
 )
 
 func (e *LogActionType) Scan(src interface{}) error {
@@ -150,11 +151,15 @@ func (ns NullLogActionType) Value() (driver.Value, error) {
 type LogEntityType string
 
 const (
-	LogEntityTypePRODUCT   LogEntityType = "PRODUCT"
-	LogEntityTypeCATEGORY  LogEntityType = "CATEGORY"
-	LogEntityTypePROMOTION LogEntityType = "PROMOTION"
-	LogEntityTypeORDER     LogEntityType = "ORDER"
-	LogEntityTypeUSER      LogEntityType = "USER"
+	LogEntityTypePRODUCT            LogEntityType = "PRODUCT"
+	LogEntityTypeCATEGORY           LogEntityType = "CATEGORY"
+	LogEntityTypePROMOTION          LogEntityType = "PROMOTION"
+	LogEntityTypeORDER              LogEntityType = "ORDER"
+	LogEntityTypeUSER               LogEntityType = "USER"
+	LogEntityTypeSETTINGS           LogEntityType = "SETTINGS"
+	LogEntityTypeSHIFT              LogEntityType = "SHIFT"
+	LogEntityTypePAYMENTMETHOD      LogEntityType = "PAYMENT_METHOD"
+	LogEntityTypeCANCELLATIONREASON LogEntityType = "CANCELLATION_REASON"
 )
 
 func (e *LogEntityType) Scan(src interface{}) error {

@@ -62,7 +62,7 @@ func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServic
 		salesReports[i] = SalesReport{
 			Date:       report.Date.Time,
 			OrderCount: report.OrderCount,
-			TotalSales: 0, // Default value, will be set if valid
+			TotalSales: 0, 
 		}
 		if n, ok := report.TotalSales.(pgtype.Numeric); ok && n.Valid {
 			f8, _ := n.Float64Value()

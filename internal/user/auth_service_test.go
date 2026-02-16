@@ -1,10 +1,10 @@
 package user_test
 
 import (
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/user"
 	user_repo "POS-kasir/internal/user/repository"
-	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/mocks"
 	"POS-kasir/pkg/utils"
 	"bytes"
@@ -59,8 +59,8 @@ func TestAuthService_Login(t *testing.T) {
 
 		mockRepo.EXPECT().GetUserByEmail(ctx, req.Email).Return(testUser, nil)
 
-		mockToken.EXPECT().GenerateToken(testUser.Username, testUser.Email, testUser.ID, user_repo.UserRole(testUser.Role)).Return("access_token", time.Now().Add(1*time.Hour), nil)
-		mockToken.EXPECT().GenerateRefreshToken(testUser.Username, testUser.Email, testUser.ID, user_repo.UserRole(testUser.Role)).Return("refresh_token", time.Now().Add(24*time.Hour), nil)
+		mockToken.EXPECT().GenerateToken(testUser.Username, testUser.Email, testUser.ID, string(testUser.Role)).Return("access_token", time.Now().Add(1*time.Hour), nil)
+		mockToken.EXPECT().GenerateRefreshToken(testUser.Username, testUser.Email, testUser.ID, string(testUser.Role)).Return("refresh_token", time.Now().Add(24*time.Hour), nil)
 
 		mockRepo.EXPECT().UpdateRefreshToken(ctx, gomock.Any()).Return(nil)
 
@@ -455,9 +455,9 @@ func TestAuthService_RefreshToken(t *testing.T) {
 
 		newAccessToken := "new_access_token"
 		newRefreshToken := "new_refresh_token"
-		mockToken.EXPECT().GenerateToken(u.Username, u.Email, u.ID, user_repo.UserRole(u.Role)).
+		mockToken.EXPECT().GenerateToken(u.Username, u.Email, u.ID, string(u.Role)).
 			Return(newAccessToken, time.Now().Add(time.Hour), nil)
-		mockToken.EXPECT().GenerateRefreshToken(u.Username, u.Email, u.ID, user_repo.UserRole(u.Role)).
+		mockToken.EXPECT().GenerateRefreshToken(u.Username, u.Email, u.ID, string(u.Role)).
 			Return(newRefreshToken, time.Now().Add(24*time.Hour), nil)
 
 		mockRepo.EXPECT().UpdateRefreshToken(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, arg user_repo.UpdateRefreshTokenParams) error {

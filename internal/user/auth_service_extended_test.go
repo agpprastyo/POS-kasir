@@ -1,10 +1,10 @@
 package user_test
 
 import (
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/user"
 	user_repo "POS-kasir/internal/user/repository"
-	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/mocks"
 	"POS-kasir/pkg/utils"
 	"context"
@@ -48,7 +48,7 @@ func TestAuthService_Login_Extended(t *testing.T) {
 		ctx := context.Background()
 
 		mockRepo.EXPECT().GetUserByEmail(ctx, req.Email).Return(userObj, nil)
-		mockToken.EXPECT().GenerateToken(userObj.Username, userObj.Email, userObj.ID, user_repo.UserRole(userObj.Role)).Return("", time.Time{}, errors.New("token error"))
+		mockToken.EXPECT().GenerateToken(userObj.Username, userObj.Email, userObj.ID, string(userObj.Role)).Return("", time.Time{}, errors.New("token error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 		mockActivity.EXPECT().Log(ctx, userObj.ID, activitylog_repo.LogActionTypeLOGINFAILED, activitylog_repo.LogEntityTypeUSER, userObj.ID.String(), gomock.Any()).Times(1)
 

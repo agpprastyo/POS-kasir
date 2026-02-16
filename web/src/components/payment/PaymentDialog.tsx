@@ -378,9 +378,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                                                                     <div className="h-48 w-48">
                                                                         <img src={qrisUrl} alt={t('order.qr_code_alt')} className="w-full h-full object-contain" />
                                                                     </div>
-                                                                    <div className="h-48 w-48">
-                                                                        <img src={qrisUrl} alt={t('order.qr_code_alt')} className="w-full h-full object-contain" />
-                                                                    </div>
+
                                                                     <span className="text-xs text-muted-foreground font-medium">{t('order.payment_dialog.scan_qr_dynamic')}</span>
                                                                     <p className="text-[10px] text-muted-foreground break-all max-w-[200px] text-center mt-1 select-all">{qrisUrl}</p>
                                                                 </div>

@@ -2,8 +2,8 @@ package settings
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/common/store"
+	"POS-kasir/internal/settings/repository"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/logger"
 	"context"
@@ -11,38 +11,41 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type ISettingsService interface {
-	GetBranding(ctx context.Context) (*dto.BrandingSettingsResponse, error)
-	UpdateBranding(ctx context.Context, req dto.UpdateBrandingRequest) (*dto.BrandingSettingsResponse, error)
-	GetPrinterSettings(ctx context.Context) (*dto.PrinterSettingsResponse, error)
-	UpdatePrinterSettings(ctx context.Context, req dto.UpdatePrinterSettingsRequest) (*dto.PrinterSettingsResponse, error)
+	GetBranding(ctx context.Context) (*BrandingSettingsResponse, error)
+	UpdateBranding(ctx context.Context, req UpdateBrandingRequest) (*BrandingSettingsResponse, error)
+	GetPrinterSettings(ctx context.Context) (*PrinterSettingsResponse, error)
+	UpdatePrinterSettings(ctx context.Context, req UpdatePrinterSettingsRequest) (*PrinterSettingsResponse, error)
 	UpdateLogo(ctx context.Context, data []byte, filename string, contentType string) (string, error)
 }
 
 type SettingsService struct {
-	store    repository.Store
+	repo     repository.Querier
+	store    store.Store
 	r2Client cloudflarer2.IR2
 	log      logger.ILogger
 }
 
-func NewSettingsService(store repository.Store, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
+func NewSettingsService(store store.Store, repo repository.Querier, r2Client cloudflarer2.IR2, log logger.ILogger) ISettingsService {
 	return &SettingsService{
+		repo:     repo,
 		store:    store,
 		r2Client: r2Client,
 		log:      log,
 	}
 }
 
-func (s *SettingsService) GetBranding(ctx context.Context) (*dto.BrandingSettingsResponse, error) {
-	settings, err := s.store.GetSettings(ctx)
+func (s *SettingsService) GetBranding(ctx context.Context) (*BrandingSettingsResponse, error) {
+	settings, err := s.repo.GetSettings(ctx)
 	if err != nil {
 		s.log.Error("Failed to fetch settings", "error", err)
 		return nil, err
 	}
 
-	response := &dto.BrandingSettingsResponse{
+	response := &BrandingSettingsResponse{
 		AppName:        "POS Kasir",
 		FooterText:     "© 2024 POS Kasir. All rights reserved.",
 		ThemeColor:     "#000000",
@@ -67,8 +70,9 @@ func (s *SettingsService) GetBranding(ctx context.Context) (*dto.BrandingSetting
 	return response, nil
 }
 
-func (s *SettingsService) UpdateBranding(ctx context.Context, req dto.UpdateBrandingRequest) (*dto.BrandingSettingsResponse, error) {
-	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+func (s *SettingsService) UpdateBranding(ctx context.Context, req UpdateBrandingRequest) (*BrandingSettingsResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qtx := repository.New(tx)
 		// Update App Name
 		if req.AppName != "" {
 			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
@@ -153,7 +157,7 @@ func (s *SettingsService) UpdateLogo(ctx context.Context, data []byte, filename 
 	}
 
 	// Update setting
-	_, err = s.store.UpsertSetting(ctx, repository.UpsertSettingParams{
+	_, err = s.repo.UpsertSetting(ctx, repository.UpsertSettingParams{
 		Key:   "app_logo",
 		Value: url,
 	})
@@ -165,15 +169,15 @@ func (s *SettingsService) UpdateLogo(ctx context.Context, data []byte, filename 
 	return url, nil
 }
 
-func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*dto.PrinterSettingsResponse, error) {
-	settings, err := s.store.GetSettings(ctx)
+func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*PrinterSettingsResponse, error) {
+	settings, err := s.repo.GetSettings(ctx)
 	if err != nil {
 		s.log.Error("Failed to fetch settings", "error", err)
 		return nil, err
 	}
 
-	response := &dto.PrinterSettingsResponse{
-		Connection: "socket://127.0.0.1:9100", // Default
+	response := &PrinterSettingsResponse{
+		Connection: "socket://127.0.0.1:9100",
 		PaperWidth: "58",
 		AutoPrint:  false,
 	}
@@ -192,8 +196,9 @@ func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*dto.PrinterS
 	return response, nil
 }
 
-func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req dto.UpdatePrinterSettingsRequest) (*dto.PrinterSettingsResponse, error) {
-	txErr := s.store.ExecTx(ctx, func(qtx *repository.Queries) error {
+func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req UpdatePrinterSettingsRequest) (*PrinterSettingsResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qtx := repository.New(tx)
 		// Connection
 		if req.Connection != "" {
 			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{

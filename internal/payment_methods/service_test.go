@@ -1,7 +1,8 @@
-package payment_methods
+package payment_methods_test
 
 import (
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/payment_methods"
+	"POS-kasir/internal/payment_methods/repository"
 	"POS-kasir/mocks"
 	"context"
 	"errors"
@@ -17,9 +18,9 @@ func TestPaymentMethodService_ListPaymentMethods(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockStore := mocks.NewMockStore(ctrl)
+	mockRepo := mocks.NewMockPaymentMethodsRepo(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	service := NewPaymentMethodService(mockStore, mockLogger)
+	service := payment_methods.NewPaymentMethodService(mockRepo, mockLogger)
 
 	ctx := context.Background()
 	now := time.Now()
@@ -40,7 +41,7 @@ func TestPaymentMethodService_ListPaymentMethods(t *testing.T) {
 			},
 		}
 
-		mockStore.EXPECT().ListPaymentMethods(ctx).Return(repoMethods, nil)
+		mockRepo.EXPECT().ListPaymentMethods(ctx).Return(repoMethods, nil)
 
 		resp, err := service.ListPaymentMethods(ctx)
 
@@ -54,7 +55,7 @@ func TestPaymentMethodService_ListPaymentMethods(t *testing.T) {
 
 	t.Run("RepositoryError", func(t *testing.T) {
 		dbErr := errors.New("database error")
-		mockStore.EXPECT().ListPaymentMethods(ctx).Return(nil, dbErr)
+		mockRepo.EXPECT().ListPaymentMethods(ctx).Return(nil, dbErr)
 		mockLogger.EXPECT().Error("Failed to list payment methods from repository", "error", dbErr)
 
 		resp, err := service.ListPaymentMethods(ctx)

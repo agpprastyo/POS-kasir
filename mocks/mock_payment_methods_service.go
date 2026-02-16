@@ -6,11 +6,10 @@
 //	mockgen -package mocks -destination mocks/mock_payment_methods_service.go POS-kasir/internal/payment_methods IPaymentMethodService
 //
 
-// Package mocks is a generated GoMock package.
 package mocks
 
 import (
-	dto "POS-kasir/internal/dto"
+	payment_methods "POS-kasir/internal/payment_methods"
 	context "context"
 	reflect "reflect"
 
@@ -42,10 +41,10 @@ func (m *MockIPaymentMethodService) EXPECT() *MockIPaymentMethodServiceMockRecor
 }
 
 // ListPaymentMethods mocks base method.
-func (m *MockIPaymentMethodService) ListPaymentMethods(ctx context.Context) ([]dto.PaymentMethodResponse, error) {
+func (m *MockIPaymentMethodService) ListPaymentMethods(ctx context.Context) ([]payment_methods.PaymentMethodResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListPaymentMethods", ctx)
-	ret0, _ := ret[0].([]dto.PaymentMethodResponse)
+	ret0, _ := ret[0].([]payment_methods.PaymentMethodResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

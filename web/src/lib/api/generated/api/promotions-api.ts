@@ -22,20 +22,24 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { InternalPromotionsCreatePromotionRequest } from '../models';
+// @ts-ignore
+import type { InternalPromotionsUpdatePromotionRequest } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoCreatePromotionRequest } from '../models';
+import type { PromotionsGet200Response } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoUpdatePromotionRequest } from '../models';
+import type { PromotionsPost201Response } from '../models';
 /**
  * PromotionsApi - axios parameter creator
  */
 export const PromotionsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
+         * Get a list of promotions with pagination and optional trash filter (Roles: admin, manager, cashier)
          * @summary List all promotions
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -80,7 +84,7 @@ export const PromotionsApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * Soft delete a promotion by its ID (Roles: admin, manager)
          * @summary Delete (deactivate) a promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -114,7 +118,7 @@ export const PromotionsApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * Retrieve details of a specific promotion by its ID (Roles: admin, manager, cashier)
          * @summary Get a promotion by ID
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -148,14 +152,14 @@ export const PromotionsApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * Update details of an existing promotion by its ID (Roles: admin, manager)
          * @summary Update a promotion
          * @param {string} id Promotion ID
-         * @param {POSKasirInternalDtoUpdatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsUpdatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsIdPut: async (id: string, request: POSKasirInternalDtoUpdatePromotionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        promotionsIdPut: async (id: string, request: InternalPromotionsUpdatePromotionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('promotionsIdPut', 'id', id)
             // verify required parameter 'request' is not null or undefined
@@ -188,7 +192,7 @@ export const PromotionsApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * Restore a soft-deleted promotion by its ID (Roles: admin, manager)
          * @summary Restore a deleted promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -222,13 +226,13 @@ export const PromotionsApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * 
+         * Create a new promotion with rules and targets (Roles: admin, manager)
          * @summary Create a new promotion
-         * @param {POSKasirInternalDtoCreatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsCreatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsPost: async (request: POSKasirInternalDtoCreatePromotionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        promotionsPost: async (request: InternalPromotionsCreatePromotionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('promotionsPost', 'request', request)
             const localVarPath = `/promotions`;
@@ -267,7 +271,7 @@ export const PromotionsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = PromotionsApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
+         * Get a list of promotions with pagination and optional trash filter (Roles: admin, manager, cashier)
          * @summary List all promotions
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -275,14 +279,14 @@ export const PromotionsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async promotionsGet(page?: number, limit?: number, trash?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async promotionsGet(page?: number, limit?: number, trash?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PromotionsGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.promotionsGet(page, limit, trash, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PromotionsApi.promotionsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Soft delete a promotion by its ID (Roles: admin, manager)
          * @summary Delete (deactivate) a promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -295,34 +299,34 @@ export const PromotionsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Retrieve details of a specific promotion by its ID (Roles: admin, manager, cashier)
          * @summary Get a promotion by ID
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async promotionsIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async promotionsIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PromotionsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.promotionsIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PromotionsApi.promotionsIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Update details of an existing promotion by its ID (Roles: admin, manager)
          * @summary Update a promotion
          * @param {string} id Promotion ID
-         * @param {POSKasirInternalDtoUpdatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsUpdatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async promotionsIdPut(id: string, request: POSKasirInternalDtoUpdatePromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async promotionsIdPut(id: string, request: InternalPromotionsUpdatePromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PromotionsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.promotionsIdPut(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PromotionsApi.promotionsIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Restore a soft-deleted promotion by its ID (Roles: admin, manager)
          * @summary Restore a deleted promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -335,13 +339,13 @@ export const PromotionsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Create a new promotion with rules and targets (Roles: admin, manager)
          * @summary Create a new promotion
-         * @param {POSKasirInternalDtoCreatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsCreatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async promotionsPost(request: POSKasirInternalDtoCreatePromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+        async promotionsPost(request: InternalPromotionsCreatePromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PromotionsPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.promotionsPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PromotionsApi.promotionsPost']?.[localVarOperationServerIndex]?.url;
@@ -357,7 +361,7 @@ export const PromotionsApiFactory = function (configuration?: Configuration, bas
     const localVarFp = PromotionsApiFp(configuration)
     return {
         /**
-         * 
+         * Get a list of promotions with pagination and optional trash filter (Roles: admin, manager, cashier)
          * @summary List all promotions
          * @param {number} [page] Page number
          * @param {number} [limit] Items per page
@@ -365,11 +369,11 @@ export const PromotionsApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsGet(page?: number, limit?: number, trash?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        promotionsGet(page?: number, limit?: number, trash?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<PromotionsGet200Response> {
             return localVarFp.promotionsGet(page, limit, trash, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Soft delete a promotion by its ID (Roles: admin, manager)
          * @summary Delete (deactivate) a promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -379,28 +383,28 @@ export const PromotionsApiFactory = function (configuration?: Configuration, bas
             return localVarFp.promotionsIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Retrieve details of a specific promotion by its ID (Roles: admin, manager, cashier)
          * @summary Get a promotion by ID
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        promotionsIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<PromotionsPost201Response> {
             return localVarFp.promotionsIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Update details of an existing promotion by its ID (Roles: admin, manager)
          * @summary Update a promotion
          * @param {string} id Promotion ID
-         * @param {POSKasirInternalDtoUpdatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsUpdatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsIdPut(id: string, request: POSKasirInternalDtoUpdatePromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        promotionsIdPut(id: string, request: InternalPromotionsUpdatePromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<PromotionsPost201Response> {
             return localVarFp.promotionsIdPut(id, request, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Restore a soft-deleted promotion by its ID (Roles: admin, manager)
          * @summary Restore a deleted promotion
          * @param {string} id Promotion ID
          * @param {*} [options] Override http request option.
@@ -410,13 +414,13 @@ export const PromotionsApiFactory = function (configuration?: Configuration, bas
             return localVarFp.promotionsIdRestorePost(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Create a new promotion with rules and targets (Roles: admin, manager)
          * @summary Create a new promotion
-         * @param {POSKasirInternalDtoCreatePromotionRequest} request Promotion details
+         * @param {InternalPromotionsCreatePromotionRequest} request Promotion details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        promotionsPost(request: POSKasirInternalDtoCreatePromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+        promotionsPost(request: InternalPromotionsCreatePromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<PromotionsPost201Response> {
             return localVarFp.promotionsPost(request, options).then((request) => request(axios, basePath));
         },
     };
@@ -427,7 +431,7 @@ export const PromotionsApiFactory = function (configuration?: Configuration, bas
  */
 export class PromotionsApi extends BaseAPI {
     /**
-     * 
+     * Get a list of promotions with pagination and optional trash filter (Roles: admin, manager, cashier)
      * @summary List all promotions
      * @param {number} [page] Page number
      * @param {number} [limit] Items per page
@@ -440,7 +444,7 @@ export class PromotionsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Soft delete a promotion by its ID (Roles: admin, manager)
      * @summary Delete (deactivate) a promotion
      * @param {string} id Promotion ID
      * @param {*} [options] Override http request option.
@@ -451,7 +455,7 @@ export class PromotionsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Retrieve details of a specific promotion by its ID (Roles: admin, manager, cashier)
      * @summary Get a promotion by ID
      * @param {string} id Promotion ID
      * @param {*} [options] Override http request option.
@@ -462,19 +466,19 @@ export class PromotionsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Update details of an existing promotion by its ID (Roles: admin, manager)
      * @summary Update a promotion
      * @param {string} id Promotion ID
-     * @param {POSKasirInternalDtoUpdatePromotionRequest} request Promotion details
+     * @param {InternalPromotionsUpdatePromotionRequest} request Promotion details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public promotionsIdPut(id: string, request: POSKasirInternalDtoUpdatePromotionRequest, options?: RawAxiosRequestConfig) {
+    public promotionsIdPut(id: string, request: InternalPromotionsUpdatePromotionRequest, options?: RawAxiosRequestConfig) {
         return PromotionsApiFp(this.configuration).promotionsIdPut(id, request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Restore a soft-deleted promotion by its ID (Roles: admin, manager)
      * @summary Restore a deleted promotion
      * @param {string} id Promotion ID
      * @param {*} [options] Override http request option.
@@ -485,13 +489,13 @@ export class PromotionsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Create a new promotion with rules and targets (Roles: admin, manager)
      * @summary Create a new promotion
-     * @param {POSKasirInternalDtoCreatePromotionRequest} request Promotion details
+     * @param {InternalPromotionsCreatePromotionRequest} request Promotion details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public promotionsPost(request: POSKasirInternalDtoCreatePromotionRequest, options?: RawAxiosRequestConfig) {
+    public promotionsPost(request: InternalPromotionsCreatePromotionRequest, options?: RawAxiosRequestConfig) {
         return PromotionsApiFp(this.configuration).promotionsPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 }

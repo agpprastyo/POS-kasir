@@ -31,7 +31,7 @@ import type { PaymentMethodsGet200Response } from '../models';
 export const PaymentMethodsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * List payment methods
+         * Get a list of all active payment methods (e.g., Cash, QRIS)
          * @summary List payment methods
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -70,7 +70,7 @@ export const PaymentMethodsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = PaymentMethodsApiAxiosParamCreator(configuration)
     return {
         /**
-         * List payment methods
+         * Get a list of all active payment methods (e.g., Cash, QRIS)
          * @summary List payment methods
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -91,7 +91,7 @@ export const PaymentMethodsApiFactory = function (configuration?: Configuration,
     const localVarFp = PaymentMethodsApiFp(configuration)
     return {
         /**
-         * List payment methods
+         * Get a list of all active payment methods (e.g., Cash, QRIS)
          * @summary List payment methods
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -107,7 +107,7 @@ export const PaymentMethodsApiFactory = function (configuration?: Configuration,
  */
 export class PaymentMethodsApi extends BaseAPI {
     /**
-     * List payment methods
+     * Get a list of all active payment methods (e.g., Cash, QRIS)
      * @summary List payment methods
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

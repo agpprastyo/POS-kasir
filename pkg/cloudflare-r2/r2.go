@@ -6,16 +6,24 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
+type StorageClient interface {
+	BucketExists(ctx context.Context, bucketName string) (bool, error)
+	PresignedGetObject(ctx context.Context, bucketName string, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
+	PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error)
+}
+
 type CloudflareR2 struct {
 	Cfg    *config.AppConfig
 	Log    logger.ILogger
-	Client *minio.Client
+	Client StorageClient
 }
 
 type IR2 interface {
@@ -24,11 +32,15 @@ type IR2 interface {
 	BucketExists(ctx context.Context) (bool, error)
 }
 
+var NewMinioClient = func(endpoint string, opts *minio.Options) (StorageClient, error) {
+	return minio.New(endpoint, opts)
+}
+
 func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
 
 	endpoint := fmt.Sprintf("%s.r2.cloudflarestorage.com", cfg.CloudflareR2.AccountID)
 
-	client, err := minio.New(endpoint, &minio.Options{
+	client, err := NewMinioClient(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.CloudflareR2.AccessKey, cfg.CloudflareR2.SecretKey, ""),
 		Secure: true,
 	})
@@ -71,7 +83,7 @@ func (r *CloudflareR2) BucketExists(ctx context.Context) (bool, error) {
 }
 
 func (r *CloudflareR2) GetFileShareLink(ctx context.Context, objectName string) (string, error) {
-	
+
 	if r.Cfg.CloudflareR2.PublicDomain != "" {
 		return fmt.Sprintf("%s/%s", r.Cfg.CloudflareR2.PublicDomain, objectName), nil
 	}

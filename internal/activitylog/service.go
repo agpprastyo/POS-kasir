@@ -1,8 +1,8 @@
 package activitylog
 
 import (
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/activitylog/repository"
+
 	"POS-kasir/pkg/logger"
 	"context"
 	"encoding/json"
@@ -15,15 +15,15 @@ import (
 
 type IActivityService interface {
 	Log(ctx context.Context, userID uuid.UUID, action repository.LogActionType, entityType repository.LogEntityType, entityID string, details map[string]interface{})
-	GetActivityLogs(ctx context.Context, req dto.GetActivityLogsRequest) (*dto.ActivityLogListResponse, error)
+	GetActivityLogs(ctx context.Context, req GetActivityLogsRequest) (*ActivityLogListResponse, error)
 }
 
 type ActivityService struct {
-	repo repository.Store
+	repo repository.Querier
 	log  logger.ILogger
 }
 
-func NewActivityService(repo repository.Store, log logger.ILogger) IActivityService {
+func NewActivityService(repo repository.Querier, log logger.ILogger) IActivityService {
 	return &ActivityService{
 		repo: repo,
 		log:  log,
@@ -44,8 +44,8 @@ func (s *ActivityService) Log(ctx context.Context, userID uuid.UUID, action repo
 	go func() {
 		_, err := s.repo.CreateActivityLog(ctx, repository.CreateActivityLogParams{
 			UserID:     pgtype.UUID{Bytes: userID, Valid: true},
-			ActionType: action,
-			EntityType: entityType,
+			ActionType: repository.LogActionType(action),
+			EntityType: repository.LogEntityType(entityType),
 			EntityID:   entityID,
 			Details:    detailsJSON,
 		})
@@ -55,32 +55,51 @@ func (s *ActivityService) Log(ctx context.Context, userID uuid.UUID, action repo
 	}()
 }
 
-func (s *ActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivityLogsRequest) (*dto.ActivityLogListResponse, error) {
+func (s *ActivityService) GetActivityLogs(ctx context.Context, req GetActivityLogsRequest) (*ActivityLogListResponse, error) {
+	page := 1
+	if req.Page != nil {
+		page = *req.Page
+	}
+	limit := 10
+	if req.Limit != nil {
+		limit = *req.Limit
+	}
+
 	arg := repository.GetActivityLogsParams{
-		Limit:  int32(req.Limit),
-		Offset: int32((req.Page - 1) * req.Limit),
+		Limit:  int32(limit),
+		Offset: int32((page - 1) * limit),
 	}
 
 	countArg := repository.CountActivityLogsParams{}
 
-	if req.UserID != "" {
-		uid, err := uuid.Parse(req.UserID)
+	if req.ActionType != nil {
+		arg.ActionType = repository.NullLogActionType{LogActionType: *req.ActionType, Valid: true}
+		countArg.ActionType = repository.NullLogActionType{LogActionType: *req.ActionType, Valid: true}
+	}
+
+	if req.EntityType != nil {
+		arg.EntityType = repository.NullLogEntityType{LogEntityType: *req.EntityType, Valid: true}
+		countArg.EntityType = repository.NullLogEntityType{LogEntityType: *req.EntityType, Valid: true}
+	}
+
+	if req.UserID != nil {
+		uid, err := uuid.Parse(*req.UserID)
 		if err == nil {
 			arg.UserID = pgtype.UUID{Bytes: uid, Valid: true}
 			countArg.UserID = pgtype.UUID{Bytes: uid, Valid: true}
 		}
 	}
 
-	if req.StartDate != "" {
-		t, err := time.Parse("2006-01-02", req.StartDate)
+	if req.StartDate != nil {
+		t, err := time.Parse("2006-01-02", *req.StartDate)
 		if err == nil {
 			arg.StartDate = pgtype.Timestamptz{Time: t, Valid: true}
 			countArg.StartDate = pgtype.Timestamptz{Time: t, Valid: true}
 		}
 	}
 
-	if req.EndDate != "" {
-		t, err := time.Parse("2006-01-02", req.EndDate)
+	if req.EndDate != nil {
+		t, err := time.Parse("2006-01-02", *req.EndDate)
 		if err == nil {
 			t = t.Add(24 * time.Hour).Add(-1 * time.Second)
 			arg.EndDate = pgtype.Timestamptz{Time: t, Valid: true}
@@ -100,12 +119,12 @@ func (s *ActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivi
 		return nil, err
 	}
 
-	response := &dto.ActivityLogListResponse{
-		Logs:       make([]dto.ActivityLogResponse, 0),
+	response := &ActivityLogListResponse{
+		Logs:       make([]ActivityLogResponse, 0),
 		TotalItems: totalItems,
-		Page:       req.Page,
-		Limit:      req.Limit,
-		TotalPages: int(math.Ceil(float64(totalItems) / float64(req.Limit))),
+		Page:       page,
+		Limit:      limit,
+		TotalPages: int(math.Ceil(float64(totalItems) / float64(limit))),
 	}
 
 	for _, log := range logs {
@@ -119,12 +138,12 @@ func (s *ActivityService) GetActivityLogs(ctx context.Context, req dto.GetActivi
 			userName = *log.UserName
 		}
 
-		response.Logs = append(response.Logs, dto.ActivityLogResponse{
+		response.Logs = append(response.Logs, ActivityLogResponse{
 			ID:         log.ID,
 			UserID:     log.UserID.Bytes,
 			UserName:   userName,
-			ActionType: log.ActionType,
-			EntityType: log.EntityType,
+			ActionType: repository.LogActionType(log.ActionType),
+			EntityType: repository.LogEntityType(log.EntityType),
 			EntityID:   log.EntityID,
 			Details:    details,
 			CreatedAt:  log.CreatedAt.Time,

@@ -39,12 +39,12 @@ export const ActivityLogsApiAxiosParamCreator = function (configuration?: Config
          * @param {string} [startDate] Start date (YYYY-MM-DD)
          * @param {string} [endDate] End date (YYYY-MM-DD)
          * @param {string} [userId] User ID
-         * @param {string} [entityType] Entity Type
-         * @param {string} [actionType] Action Type
+         * @param {ActivityLogsGetEntityTypeEnum} [entityType] Entity Type
+         * @param {ActivityLogsGetActionTypeEnum} [actionType] Action Type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        activityLogsGet: async (page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: string, actionType?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        activityLogsGet: async (page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: ActivityLogsGetEntityTypeEnum, actionType?: ActivityLogsGetActionTypeEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/activity-logs`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -118,12 +118,12 @@ export const ActivityLogsApiFp = function(configuration?: Configuration) {
          * @param {string} [startDate] Start date (YYYY-MM-DD)
          * @param {string} [endDate] End date (YYYY-MM-DD)
          * @param {string} [userId] User ID
-         * @param {string} [entityType] Entity Type
-         * @param {string} [actionType] Action Type
+         * @param {ActivityLogsGetEntityTypeEnum} [entityType] Entity Type
+         * @param {ActivityLogsGetActionTypeEnum} [actionType] Action Type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: string, actionType?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ActivityLogsGet200Response>> {
+        async activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: ActivityLogsGetEntityTypeEnum, actionType?: ActivityLogsGetActionTypeEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ActivityLogsGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.activityLogsGet(page, limit, search, startDate, endDate, userId, entityType, actionType, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ActivityLogsApi.activityLogsGet']?.[localVarOperationServerIndex]?.url;
@@ -147,12 +147,12 @@ export const ActivityLogsApiFactory = function (configuration?: Configuration, b
          * @param {string} [startDate] Start date (YYYY-MM-DD)
          * @param {string} [endDate] End date (YYYY-MM-DD)
          * @param {string} [userId] User ID
-         * @param {string} [entityType] Entity Type
-         * @param {string} [actionType] Action Type
+         * @param {ActivityLogsGetEntityTypeEnum} [entityType] Entity Type
+         * @param {ActivityLogsGetActionTypeEnum} [actionType] Action Type
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: string, actionType?: string, options?: RawAxiosRequestConfig): AxiosPromise<ActivityLogsGet200Response> {
+        activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: ActivityLogsGetEntityTypeEnum, actionType?: ActivityLogsGetActionTypeEnum, options?: RawAxiosRequestConfig): AxiosPromise<ActivityLogsGet200Response> {
             return localVarFp.activityLogsGet(page, limit, search, startDate, endDate, userId, entityType, actionType, options).then((request) => request(axios, basePath));
         },
     };
@@ -171,13 +171,35 @@ export class ActivityLogsApi extends BaseAPI {
      * @param {string} [startDate] Start date (YYYY-MM-DD)
      * @param {string} [endDate] End date (YYYY-MM-DD)
      * @param {string} [userId] User ID
-     * @param {string} [entityType] Entity Type
-     * @param {string} [actionType] Action Type
+     * @param {ActivityLogsGetEntityTypeEnum} [entityType] Entity Type
+     * @param {ActivityLogsGetActionTypeEnum} [actionType] Action Type
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: string, actionType?: string, options?: RawAxiosRequestConfig) {
+    public activityLogsGet(page?: number, limit?: number, search?: string, startDate?: string, endDate?: string, userId?: string, entityType?: ActivityLogsGetEntityTypeEnum, actionType?: ActivityLogsGetActionTypeEnum, options?: RawAxiosRequestConfig) {
         return ActivityLogsApiFp(this.configuration).activityLogsGet(page, limit, search, startDate, endDate, userId, entityType, actionType, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+export const ActivityLogsGetEntityTypeEnum = {
+    Product: 'PRODUCT',
+    Category: 'CATEGORY',
+    Promotion: 'PROMOTION',
+    Order: 'ORDER',
+    User: 'USER'
+} as const;
+export type ActivityLogsGetEntityTypeEnum = typeof ActivityLogsGetEntityTypeEnum[keyof typeof ActivityLogsGetEntityTypeEnum];
+export const ActivityLogsGetActionTypeEnum = {
+    Create: 'CREATE',
+    Update: 'UPDATE',
+    Delete: 'DELETE',
+    Cancel: 'CANCEL',
+    ApplyPromotion: 'APPLY_PROMOTION',
+    ProcessPayment: 'PROCESS_PAYMENT',
+    Register: 'REGISTER',
+    UpdatePassword: 'UPDATE_PASSWORD',
+    UpdateAvatar: 'UPDATE_AVATAR',
+    LoginSuccess: 'LOGIN_SUCCESS',
+    LoginFailed: 'LOGIN_FAILED'
+} as const;
+export type ActivityLogsGetActionTypeEnum = typeof ActivityLogsGetActionTypeEnum[keyof typeof ActivityLogsGetActionTypeEnum];

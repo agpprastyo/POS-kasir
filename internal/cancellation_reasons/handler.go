@@ -2,14 +2,13 @@ package cancellation_reasons
 
 import (
 	"POS-kasir/internal/common"
-	_ "POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type ICancellationReasonHandler interface {
-	ListCancellationReasonsHandler(c *fiber.Ctx) error
+	ListCancellationReasonsHandler(c fiber.Ctx) error
 }
 
 type CancellationReasonHandler struct {
@@ -22,13 +21,17 @@ func NewCancellationReasonHandler(service ICancellationReasonService, log logger
 }
 
 // ListCancellationReasonsHandler
-// @Summary List cancellation reasons
-// @Tags Cancellation Reasons
-// @Success 200 {object} common.SuccessResponse{data=[]dto.CancellationReasonResponse} "List of cancellation reasons"
-// @Failure 500 {object} common.ErrorResponse
-// @Router /cancellation-reasons [get]
-func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c *fiber.Ctx) error {
-	reasons, err := h.service.ListCancellationReasons(c.Context())
+// @Summary      List cancellation reasons
+// @Description  Get a list of all active cancellation reasons for orders
+// @Tags         Cancellation Reasons
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse{data=[]CancellationReasonResponse} "List of cancellation reasons"
+// @Failure      500 {object} common.ErrorResponse
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /cancellation-reasons [get]
+func (h *CancellationReasonHandler) ListCancellationReasonsHandler(c fiber.Ctx) error {
+	reasons, err := h.service.ListCancellationReasons(c.RequestCtx())
 	if err != nil {
 		h.log.Error("ListCancellationReasonsHandler | Failed to get cancellation reasons from service", "error", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to retrieve cancellation reasons"})

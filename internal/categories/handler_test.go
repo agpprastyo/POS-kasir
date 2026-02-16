@@ -1,9 +1,10 @@
-package categories
+package categories_test
 
 import (
+	"POS-kasir/internal/categories"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/mocks"
+	"POS-kasir/pkg/validator"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -12,17 +13,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockICtgService, *mocks.MockFieldLogger, ICtgHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockICtgService, *mocks.MockFieldLogger, *categories.CtgHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockICtgService(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	handler := NewCtgHandler(mockService, mockLogger)
-	app := fiber.New()
+	handler := categories.NewCtgHandler(mockService, mockLogger).(*categories.CtgHandler)
+	app := fiber.New(fiber.Config{
+		StructValidator: validator.NewValidator(),
+	})
 	return mockService, mockLogger, handler, app
 }
 
@@ -31,10 +34,10 @@ func TestCtgHandler_GetAllCategoriesHandler(t *testing.T) {
 	app.Get("/categories", handler.GetAllCategoriesHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		categories := []dto.CategoryResponse{
+		categoriesList := []categories.CategoryResponse{
 			{ID: 1, Name: "Category 1", CreatedAt: time.Now()},
 		}
-		mockService.EXPECT().GetAllCategories(gomock.Any(), gomock.Any()).Return(categories, nil)
+		mockService.EXPECT().GetAllCategories(gomock.Any(), gomock.Any()).Return(categoriesList, nil)
 
 		req := httptest.NewRequest("GET", "/categories", nil)
 		resp, _ := app.Test(req)
@@ -57,10 +60,10 @@ func TestCtgHandler_CreateCategoryHandler(t *testing.T) {
 	app.Post("/categories", handler.CreateCategoryHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "New Category"}
+		reqBody := categories.CreateCategoryRequest{Name: "New Category"}
 		body, _ := json.Marshal(reqBody)
 
-		mockService.EXPECT().CreateCategory(gomock.Any(), reqBody).Return(&dto.CategoryResponse{ID: 1, Name: "New Category"}, nil)
+		mockService.EXPECT().CreateCategory(gomock.Any(), reqBody).Return(&categories.CategoryResponse{ID: 1, Name: "New Category"}, nil)
 
 		req := httptest.NewRequest("POST", "/categories", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -70,7 +73,7 @@ func TestCtgHandler_CreateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("Conflict", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "Existing"}
+		reqBody := categories.CreateCategoryRequest{Name: "Existing"}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().CreateCategory(gomock.Any(), reqBody).Return(nil, common.ErrCategoryExists)
@@ -84,7 +87,7 @@ func TestCtgHandler_CreateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "Fail"}
+		reqBody := categories.CreateCategoryRequest{Name: "Fail"}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().CreateCategory(gomock.Any(), reqBody).Return(nil, errors.New("error"))
@@ -108,14 +111,18 @@ func TestCtgHandler_CreateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("MissingName", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: ""}
+		reqBody := categories.CreateCategoryRequest{Name: ""}
 		body, _ := json.Marshal(reqBody)
+
+		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
 
 		req := httptest.NewRequest("POST", "/categories", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		resp, _ := app.Test(req)
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		if resp != nil {
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		}
 	})
 }
 
@@ -124,7 +131,7 @@ func TestCtgHandler_GetCategoryByIDHandler(t *testing.T) {
 	app.Get("/categories/:id", handler.GetCategoryByIDHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		mockService.EXPECT().GetCategoryByID(gomock.Any(), int32(1)).Return(&dto.CategoryResponse{ID: 1, Name: "Found"}, nil)
+		mockService.EXPECT().GetCategoryByID(gomock.Any(), int32(1)).Return(&categories.CategoryResponse{ID: 1, Name: "Found"}, nil)
 
 		req := httptest.NewRequest("GET", "/categories/1", nil)
 		resp, _ := app.Test(req)
@@ -166,10 +173,10 @@ func TestCtgHandler_UpdateCategoryHandler(t *testing.T) {
 	app.Put("/categories/:id", handler.UpdateCategoryHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "Updated"}
+		reqBody := categories.CreateCategoryRequest{Name: "Updated"}
 		body, _ := json.Marshal(reqBody)
 
-		mockService.EXPECT().UpdateCategory(gomock.Any(), int32(1), reqBody).Return(&dto.CategoryResponse{ID: 1, Name: "Updated"}, nil)
+		mockService.EXPECT().UpdateCategory(gomock.Any(), int32(1), reqBody).Return(&categories.CategoryResponse{ID: 1, Name: "Updated"}, nil)
 
 		req := httptest.NewRequest("PUT", "/categories/1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -179,7 +186,7 @@ func TestCtgHandler_UpdateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "UpdateMe"}
+		reqBody := categories.CreateCategoryRequest{Name: "UpdateMe"}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().UpdateCategory(gomock.Any(), int32(99), reqBody).Return(nil, common.ErrCategoryNotFound)
@@ -192,7 +199,7 @@ func TestCtgHandler_UpdateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("Conflict", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "Exists"}
+		reqBody := categories.CreateCategoryRequest{Name: "Exists"}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().UpdateCategory(gomock.Any(), int32(1), reqBody).Return(nil, common.ErrCategoryExists)
@@ -205,7 +212,7 @@ func TestCtgHandler_UpdateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: "Error"}
+		reqBody := categories.CreateCategoryRequest{Name: "Error"}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().UpdateCategory(gomock.Any(), int32(1), reqBody).Return(nil, errors.New("error"))
@@ -237,14 +244,18 @@ func TestCtgHandler_UpdateCategoryHandler(t *testing.T) {
 	})
 
 	t.Run("MissingName", func(t *testing.T) {
-		reqBody := dto.CreateCategoryRequest{Name: ""}
+		reqBody := categories.CreateCategoryRequest{Name: ""}
 		body, _ := json.Marshal(reqBody)
+
+		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
 
 		req := httptest.NewRequest("PUT", "/categories/1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		resp, _ := app.Test(req)
-
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		if resp != nil {
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		}
 	})
 }
 
@@ -306,7 +317,7 @@ func TestCtgHandler_GetCategoryCountHandler(t *testing.T) {
 	app.Get("/categories/count", handler.GetCategoryCountHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		counts := []dto.CategoryWithCountResponse{{ID: 1, Name: "C1", ProductCount: 5}}
+		counts := []categories.CategoryWithCountResponse{{ID: 1, Name: "C1", ProductCount: 5}}
 		mockService.EXPECT().GetCategoryWithProductCount(gomock.Any()).Return(&counts, nil)
 
 		req := httptest.NewRequest("GET", "/categories/count", nil)
@@ -349,7 +360,7 @@ func TestCtgHandler_GetAllCategoriesHandler_Errors(t *testing.T) {
 	})
 
 	t.Run("EmptyResponse", func(t *testing.T) {
-		mockService.EXPECT().GetAllCategories(gomock.Any(), gomock.Any()).Return([]dto.CategoryResponse{}, nil)
+		mockService.EXPECT().GetAllCategories(gomock.Any(), gomock.Any()).Return([]categories.CategoryResponse{}, nil)
 
 		req := httptest.NewRequest("GET", "/categories", nil)
 		resp, _ := app.Test(req)

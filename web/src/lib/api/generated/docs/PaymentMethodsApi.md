@@ -9,7 +9,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **paymentMethodsGet**
 > PaymentMethodsGet200Response paymentMethodsGet()
 
-List payment methods
+Get a list of all active payment methods (e.g., Cash, QRIS)
 
 ### Example
 
@@ -46,7 +46,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success |  -  |
+|**200** | List of payment methods retrieved successfully |  -  |
 |**500** | Internal Server Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

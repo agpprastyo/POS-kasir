@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoCategoryWithCountResponse&gt;**](POSKasirInternalDtoCategoryWithCountResponse.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalCategoriesCategoryWithCountResponse&gt;**](InternalCategoriesCategoryWithCountResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

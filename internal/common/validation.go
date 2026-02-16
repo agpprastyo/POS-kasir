@@ -3,13 +3,13 @@ package common
 import (
 	"errors"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 
 	"POS-kasir/pkg/logger"
 	validatorpkg "POS-kasir/pkg/validator"
 )
 
-func ValidateAndRespond(c *fiber.Ctx, v validatorpkg.Validator, log logger.ILogger, req interface{}) (bool, error) {
+func ValidateAndRespond(c fiber.Ctx, v validatorpkg.Validator, log logger.ILogger, req interface{}) (bool, error) {
 	if err := v.Validate(req); err != nil {
 
 		var ve *validatorpkg.ValidationErrors

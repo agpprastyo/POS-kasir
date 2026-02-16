@@ -22,20 +22,24 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { POSKasirInternalDtoBrandingSettingsResponse } from '../models';
+import type { InternalSettingsUpdateBrandingRequest } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoPrinterSettingsResponse } from '../models';
+import type { InternalSettingsUpdatePrinterSettingsRequest } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoUpdateBrandingRequest } from '../models';
+import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
-import type { POSKasirInternalDtoUpdatePrinterSettingsRequest } from '../models';
+import type { SettingsBrandingGet200Response } from '../models';
+// @ts-ignore
+import type { SettingsBrandingLogoPost200Response } from '../models';
+// @ts-ignore
+import type { SettingsPrinterGet200Response } from '../models';
 /**
  * SettingsApi - axios parameter creator
  */
 export const SettingsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get branding settings like app name, logo, footer text
+         * Retrieve branding settings (app name, logo, footer text, theme colors) for the application (Roles: authenticated)
          * @summary Get branding settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -65,7 +69,7 @@ export const SettingsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Upload and update app logo
+         * Upload and update the application logo image (Roles: admin)
          * @summary Update app logo
          * @param {File} logo Logo image file
          * @param {*} [options] Override http request option.
@@ -106,13 +110,13 @@ export const SettingsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Update branding settings
+         * Update application branding settings (Roles: admin)
          * @summary Update branding settings
-         * @param {POSKasirInternalDtoUpdateBrandingRequest} request Update Branding Request
+         * @param {InternalSettingsUpdateBrandingRequest} request Branding update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsBrandingPut: async (request: POSKasirInternalDtoUpdateBrandingRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        settingsBrandingPut: async (request: InternalSettingsUpdateBrandingRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('settingsBrandingPut', 'request', request)
             const localVarPath = `/settings/branding`;
@@ -142,7 +146,7 @@ export const SettingsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Get printer settings like connection string, paper width
+         * Retrieve printer settings like connection string and paper width (Roles: authenticated)
          * @summary Get printer settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -172,13 +176,13 @@ export const SettingsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Update printer settings
+         * Update global printer configuration (Roles: admin)
          * @summary Update printer settings
-         * @param {POSKasirInternalDtoUpdatePrinterSettingsRequest} request Update Printer Settings Request
+         * @param {InternalSettingsUpdatePrinterSettingsRequest} request Printer settings update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsPrinterPut: async (request: POSKasirInternalDtoUpdatePrinterSettingsRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        settingsPrinterPut: async (request: InternalSettingsUpdatePrinterSettingsRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('settingsPrinterPut', 'request', request)
             const localVarPath = `/settings/printer`;
@@ -217,63 +221,63 @@ export const SettingsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SettingsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get branding settings like app name, logo, footer text
+         * Retrieve branding settings (app name, logo, footer text, theme colors) for the application (Roles: authenticated)
          * @summary Get branding settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async settingsBrandingGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalDtoBrandingSettingsResponse>> {
+        async settingsBrandingGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsBrandingGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.settingsBrandingGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SettingsApi.settingsBrandingGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Upload and update app logo
+         * Upload and update the application logo image (Roles: admin)
          * @summary Update app logo
          * @param {File} logo Logo image file
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async settingsBrandingLogoPost(logo: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{ [key: string]: string; }>> {
+        async settingsBrandingLogoPost(logo: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsBrandingLogoPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.settingsBrandingLogoPost(logo, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SettingsApi.settingsBrandingLogoPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update branding settings
+         * Update application branding settings (Roles: admin)
          * @summary Update branding settings
-         * @param {POSKasirInternalDtoUpdateBrandingRequest} request Update Branding Request
+         * @param {InternalSettingsUpdateBrandingRequest} request Branding update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async settingsBrandingPut(request: POSKasirInternalDtoUpdateBrandingRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalDtoBrandingSettingsResponse>> {
+        async settingsBrandingPut(request: InternalSettingsUpdateBrandingRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsBrandingGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.settingsBrandingPut(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SettingsApi.settingsBrandingPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Get printer settings like connection string, paper width
+         * Retrieve printer settings like connection string and paper width (Roles: authenticated)
          * @summary Get printer settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async settingsPrinterGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalDtoPrinterSettingsResponse>> {
+        async settingsPrinterGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsPrinterGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.settingsPrinterGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SettingsApi.settingsPrinterGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update printer settings
+         * Update global printer configuration (Roles: admin)
          * @summary Update printer settings
-         * @param {POSKasirInternalDtoUpdatePrinterSettingsRequest} request Update Printer Settings Request
+         * @param {InternalSettingsUpdatePrinterSettingsRequest} request Printer settings update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async settingsPrinterPut(request: POSKasirInternalDtoUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalDtoPrinterSettingsResponse>> {
+        async settingsPrinterPut(request: InternalSettingsUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsPrinterGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.settingsPrinterPut(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SettingsApi.settingsPrinterPut']?.[localVarOperationServerIndex]?.url;
@@ -289,51 +293,51 @@ export const SettingsApiFactory = function (configuration?: Configuration, baseP
     const localVarFp = SettingsApiFp(configuration)
     return {
         /**
-         * Get branding settings like app name, logo, footer text
+         * Retrieve branding settings (app name, logo, footer text, theme colors) for the application (Roles: authenticated)
          * @summary Get branding settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsBrandingGet(options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalDtoBrandingSettingsResponse> {
+        settingsBrandingGet(options?: RawAxiosRequestConfig): AxiosPromise<SettingsBrandingGet200Response> {
             return localVarFp.settingsBrandingGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Upload and update app logo
+         * Upload and update the application logo image (Roles: admin)
          * @summary Update app logo
          * @param {File} logo Logo image file
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsBrandingLogoPost(logo: File, options?: RawAxiosRequestConfig): AxiosPromise<{ [key: string]: string; }> {
+        settingsBrandingLogoPost(logo: File, options?: RawAxiosRequestConfig): AxiosPromise<SettingsBrandingLogoPost200Response> {
             return localVarFp.settingsBrandingLogoPost(logo, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update branding settings
+         * Update application branding settings (Roles: admin)
          * @summary Update branding settings
-         * @param {POSKasirInternalDtoUpdateBrandingRequest} request Update Branding Request
+         * @param {InternalSettingsUpdateBrandingRequest} request Branding update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsBrandingPut(request: POSKasirInternalDtoUpdateBrandingRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalDtoBrandingSettingsResponse> {
+        settingsBrandingPut(request: InternalSettingsUpdateBrandingRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingsBrandingGet200Response> {
             return localVarFp.settingsBrandingPut(request, options).then((request) => request(axios, basePath));
         },
         /**
-         * Get printer settings like connection string, paper width
+         * Retrieve printer settings like connection string and paper width (Roles: authenticated)
          * @summary Get printer settings
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsPrinterGet(options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalDtoPrinterSettingsResponse> {
+        settingsPrinterGet(options?: RawAxiosRequestConfig): AxiosPromise<SettingsPrinterGet200Response> {
             return localVarFp.settingsPrinterGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Update printer settings
+         * Update global printer configuration (Roles: admin)
          * @summary Update printer settings
-         * @param {POSKasirInternalDtoUpdatePrinterSettingsRequest} request Update Printer Settings Request
+         * @param {InternalSettingsUpdatePrinterSettingsRequest} request Printer settings update request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        settingsPrinterPut(request: POSKasirInternalDtoUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalDtoPrinterSettingsResponse> {
+        settingsPrinterPut(request: InternalSettingsUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingsPrinterGet200Response> {
             return localVarFp.settingsPrinterPut(request, options).then((request) => request(axios, basePath));
         },
     };
@@ -344,7 +348,7 @@ export const SettingsApiFactory = function (configuration?: Configuration, baseP
  */
 export class SettingsApi extends BaseAPI {
     /**
-     * Get branding settings like app name, logo, footer text
+     * Retrieve branding settings (app name, logo, footer text, theme colors) for the application (Roles: authenticated)
      * @summary Get branding settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -354,7 +358,7 @@ export class SettingsApi extends BaseAPI {
     }
 
     /**
-     * Upload and update app logo
+     * Upload and update the application logo image (Roles: admin)
      * @summary Update app logo
      * @param {File} logo Logo image file
      * @param {*} [options] Override http request option.
@@ -365,18 +369,18 @@ export class SettingsApi extends BaseAPI {
     }
 
     /**
-     * Update branding settings
+     * Update application branding settings (Roles: admin)
      * @summary Update branding settings
-     * @param {POSKasirInternalDtoUpdateBrandingRequest} request Update Branding Request
+     * @param {InternalSettingsUpdateBrandingRequest} request Branding update request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public settingsBrandingPut(request: POSKasirInternalDtoUpdateBrandingRequest, options?: RawAxiosRequestConfig) {
+    public settingsBrandingPut(request: InternalSettingsUpdateBrandingRequest, options?: RawAxiosRequestConfig) {
         return SettingsApiFp(this.configuration).settingsBrandingPut(request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Get printer settings like connection string, paper width
+     * Retrieve printer settings like connection string and paper width (Roles: authenticated)
      * @summary Get printer settings
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -386,13 +390,13 @@ export class SettingsApi extends BaseAPI {
     }
 
     /**
-     * Update printer settings
+     * Update global printer configuration (Roles: admin)
      * @summary Update printer settings
-     * @param {POSKasirInternalDtoUpdatePrinterSettingsRequest} request Update Printer Settings Request
+     * @param {InternalSettingsUpdatePrinterSettingsRequest} request Printer settings update request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public settingsPrinterPut(request: POSKasirInternalDtoUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig) {
+    public settingsPrinterPut(request: InternalSettingsUpdatePrinterSettingsRequest, options?: RawAxiosRequestConfig) {
         return SettingsApiFp(this.configuration).settingsPrinterPut(request, options).then((request) => request(this.axios, this.basePath));
     }
 }

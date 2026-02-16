@@ -1,12 +1,12 @@
 package seeder
 
 import (
-	"POS-kasir/internal/repository"
+	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 )
 
-func SeedCategory(ctx context.Context, q repository.Querier, log logger.ILogger) error {
+func SeedCategory(ctx context.Context, q categories_repo.Querier, log logger.ILogger) error {
 	kategori := []string{
 		"Makanan",
 		"Minuman",

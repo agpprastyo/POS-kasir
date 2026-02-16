@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalOrdersPagedOrderResponse } from './internal-orders-paged-order-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoPagedOrderResponse } from './poskasir-internal-dto-paged-order-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type OrdersGet200Response

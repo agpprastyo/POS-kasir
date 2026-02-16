@@ -10,7 +10,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **ordersIdPrintPost**
 > POSKasirInternalCommonSuccessResponse ordersIdPrintPost()
 
-Trigger printing of invoice for a specific order
+Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -54,14 +54,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Invoice sent to printer |  -  |
+|**400** | Invalid order ID |  -  |
+|**500** | Failed to print invoice |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **settingsPrinterTestPost**
 > POSKasirInternalCommonSuccessResponse settingsPrinterTestPost()
 
-Send a test print command to the configured printer
+Send a test print command to the configured printer (Roles: admin)
 
 ### Example
 
@@ -98,7 +100,8 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Test print command sent associated with configured printer |  -  |
+|**500** | Failed to send test print |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoShiftResponse**](POSKasirInternalDtoShiftResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalShiftShiftResponse**](InternalShiftShiftResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

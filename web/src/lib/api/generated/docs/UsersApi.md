@@ -14,7 +14,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **usersGet**
 > UsersGet200Response usersGet()
 
-Retrieve a list of users with pagination, filtering, and sorting
+Retrieve a list of users with pagination, filtering, and sorting (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -79,9 +79,8 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Users retrieved successfully |  -  |
 |**400** | Invalid query parameters |  -  |
-|**404** | No users found |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -89,6 +88,7 @@ No authorization required
 # **usersIdDelete**
 > POSKasirInternalCommonSuccessResponse usersIdDelete()
 
+Hard delete a user from the system by their ID (Roles: admin)
 
 ### Example
 
@@ -132,16 +132,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
+|**200** | User deleted successfully |  -  |
+|**400** | Invalid user ID format |  -  |
 |**404** | User not found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersIdGet**
-> AuthMeGet200Response usersIdGet()
+> AuthAddPost200Response usersIdGet()
 
+Retrieve detailed profile for a specific user by their ID (Roles: admin, manager)
 
 ### Example
 
@@ -170,7 +171,7 @@ const { status, data } = await apiInstance.usersIdGet(
 
 ### Return type
 
-**AuthMeGet200Response**
+**AuthAddPost200Response**
 
 ### Authorization
 
@@ -185,16 +186,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | User ID is required |  -  |
+|**200** | User retrieved successfully |  -  |
+|**400** | Invalid user ID format |  -  |
 |**404** | User not found |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersIdPut**
-> AuthMeGet200Response usersIdPut(user)
+> AuthAddPost200Response usersIdPut(user)
 
+Update details of an existing user account (Roles: admin)
 
 ### Example
 
@@ -202,14 +204,14 @@ No authorization required
 import {
     UsersApi,
     Configuration,
-    POSKasirInternalDtoUpdateUserRequest
+    InternalUserUpdateUserRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new UsersApi(configuration);
 
 let id: string; //User ID (default to undefined)
-let user: POSKasirInternalDtoUpdateUserRequest; //User details
+let user: InternalUserUpdateUserRequest; //User update details
 
 const { status, data } = await apiInstance.usersIdPut(
     id,
@@ -221,13 +223,13 @@ const { status, data } = await apiInstance.usersIdPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **user** | **POSKasirInternalDtoUpdateUserRequest**| User details | |
+| **user** | **InternalUserUpdateUserRequest**| User update details | |
 | **id** | [**string**] | User ID | defaults to undefined|
 
 
 ### Return type
 
-**AuthMeGet200Response**
+**AuthAddPost200Response**
 
 ### Authorization
 
@@ -242,12 +244,11 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Invalid request body |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | You are not authorized to change user roles |  -  |
+|**200** | User updated successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
+|**403** | Forbidden - higher role assignment attempt |  -  |
 |**404** | User not found |  -  |
-|**409** | Username already exists |  -  |
+|**409** | Username or email already exists |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -255,6 +256,7 @@ No authorization required
 # **usersIdToggleStatusPost**
 > POSKasirInternalCommonSuccessResponse usersIdToggleStatusPost()
 
+Toggle the is_active status of a user (Roles: admin)
 
 ### Example
 
@@ -298,16 +300,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | User ID is required |  -  |
+|**200** | User status toggled successfully |  -  |
+|**400** | Invalid user ID format |  -  |
 |**404** | User not found |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersPost**
-> AuthMeGet200Response usersPost(user)
+> AuthAddPost200Response usersPost(user)
 
+Create a new user account (Roles: admin)
 
 ### Example
 
@@ -315,13 +318,13 @@ No authorization required
 import {
     UsersApi,
     Configuration,
-    POSKasirInternalDtoCreateUserRequest
+    InternalUserCreateUserRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new UsersApi(configuration);
 
-let user: POSKasirInternalDtoCreateUserRequest; //User details
+let user: InternalUserCreateUserRequest; //New user details
 
 const { status, data } = await apiInstance.usersPost(
     user
@@ -332,12 +335,12 @@ const { status, data } = await apiInstance.usersPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **user** | **POSKasirInternalDtoCreateUserRequest**| User details | |
+| **user** | **InternalUserCreateUserRequest**| New user details | |
 
 
 ### Return type
 
-**AuthMeGet200Response**
+**AuthAddPost200Response**
 
 ### Authorization
 
@@ -352,9 +355,9 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**400** | Invalid request body |  -  |
-|**409** | User already exists |  -  |
+|**201** | User created successfully |  -  |
+|**400** | Invalid request body or validation failed |  -  |
+|**409** | User, username, or email already exists |  -  |
 |**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

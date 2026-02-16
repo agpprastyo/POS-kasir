@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalShiftShiftResponse } from './internal-shift-shift-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoShiftResponse } from './poskasir-internal-dto-shift-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type ShiftsCurrentGet200Response

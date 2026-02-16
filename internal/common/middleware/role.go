@@ -1,28 +1,34 @@
 package middleware
 
 import (
-	"POS-kasir/internal/repository"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
-var RoleLevel = map[repository.UserRole]int{
-	repository.UserRoleAdmin:   3,
-	repository.UserRoleManager: 2,
-	repository.UserRoleCashier: 1,
+type UserRole string
+
+const (
+	UserRoleAdmin   UserRole = "admin"
+	UserRoleManager UserRole = "manager"
+	UserRoleCashier UserRole = "cashier"
+)
+
+var RoleLevel = map[UserRole]int{
+	UserRoleAdmin:   3,
+	UserRoleManager: 2,
+	UserRoleCashier: 1,
 }
 
 // RoleMiddleware checks if the user's role meets the minimum required role.
-func RoleMiddleware(minRole repository.UserRole) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+func RoleMiddleware(minRole UserRole) fiber.Handler {
+	return func(c fiber.Ctx) error {
 		roleVal := c.Locals("role")
-		var userRole repository.UserRole
+		var userRole UserRole
 
 		switch v := roleVal.(type) {
-		case repository.UserRole:
+		case UserRole:
 			userRole = v
 		case string:
-			userRole = repository.UserRole(v)
+			userRole = UserRole(v)
 		default:
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "invalid role"})
 		}

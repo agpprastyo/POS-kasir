@@ -22,15 +22,15 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { AuthMeGet200Response } from '../models';
+import type { AuthAddPost200Response } from '../models';
+// @ts-ignore
+import type { InternalUserCreateUserRequest } from '../models';
+// @ts-ignore
+import type { InternalUserUpdateUserRequest } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonSuccessResponse } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoCreateUserRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoUpdateUserRequest } from '../models';
 // @ts-ignore
 import type { UsersGet200Response } from '../models';
 /**
@@ -39,7 +39,7 @@ import type { UsersGet200Response } from '../models';
 export const UsersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieve a list of users with pagination, filtering, and sorting
+         * Retrieve a list of users with pagination, filtering, and sorting (Roles: admin, manager, cashier)
          * @summary Get all users
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
@@ -109,7 +109,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Hard delete a user from the system by their ID (Roles: admin)
          * @summary Delete user
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -143,7 +143,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Retrieve detailed profile for a specific user by their ID (Roles: admin, manager)
          * @summary Get user by ID
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -177,14 +177,14 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Update details of an existing user account (Roles: admin)
          * @summary Update user
          * @param {string} id User ID
-         * @param {POSKasirInternalDtoUpdateUserRequest} user User details
+         * @param {InternalUserUpdateUserRequest} user User update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersIdPut: async (id: string, user: POSKasirInternalDtoUpdateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersIdPut: async (id: string, user: InternalUserUpdateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
             assertParamExists('usersIdPut', 'id', id)
             // verify required parameter 'user' is not null or undefined
@@ -217,7 +217,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Toggle the is_active status of a user (Roles: admin)
          * @summary Toggle user status
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -251,13 +251,13 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Create a new user account (Roles: admin)
          * @summary Create user
-         * @param {POSKasirInternalDtoCreateUserRequest} user User details
+         * @param {InternalUserCreateUserRequest} user New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersPost: async (user: POSKasirInternalDtoCreateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        usersPost: async (user: InternalUserCreateUserRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'user' is not null or undefined
             assertParamExists('usersPost', 'user', user)
             const localVarPath = `/users`;
@@ -296,7 +296,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieve a list of users with pagination, filtering, and sorting
+         * Retrieve a list of users with pagination, filtering, and sorting (Roles: admin, manager, cashier)
          * @summary Get all users
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
@@ -316,7 +316,7 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Hard delete a user from the system by their ID (Roles: admin)
          * @summary Delete user
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -329,34 +329,34 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Retrieve detailed profile for a specific user by their ID (Roles: admin, manager)
          * @summary Get user by ID
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async usersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+        async usersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Update details of an existing user account (Roles: admin)
          * @summary Update user
          * @param {string} id User ID
-         * @param {POSKasirInternalDtoUpdateUserRequest} user User details
+         * @param {InternalUserUpdateUserRequest} user User update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+        async usersIdPut(id: string, user: InternalUserUpdateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.usersIdPut(id, user, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.usersIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Toggle the is_active status of a user (Roles: admin)
          * @summary Toggle user status
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -369,13 +369,13 @@ export const UsersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Create a new user account (Roles: admin)
          * @summary Create user
-         * @param {POSKasirInternalDtoCreateUserRequest} user User details
+         * @param {InternalUserCreateUserRequest} user New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthMeGet200Response>> {
+        async usersPost(user: InternalUserCreateUserRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthAddPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.usersPost(user, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.usersPost']?.[localVarOperationServerIndex]?.url;
@@ -391,7 +391,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = UsersApiFp(configuration)
     return {
         /**
-         * Retrieve a list of users with pagination, filtering, and sorting
+         * Retrieve a list of users with pagination, filtering, and sorting (Roles: admin, manager, cashier)
          * @summary Get all users
          * @param {number} [page] Page number (default 1)
          * @param {number} [limit] Items per page (default 10)
@@ -408,7 +408,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.usersGet(page, limit, search, role, isActive, status, sortBy, sortOrder, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Hard delete a user from the system by their ID (Roles: admin)
          * @summary Delete user
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -418,28 +418,28 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.usersIdDelete(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Retrieve detailed profile for a specific user by their ID (Roles: admin, manager)
          * @summary Get user by ID
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+        usersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
             return localVarFp.usersIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Update details of an existing user account (Roles: admin)
          * @summary Update user
          * @param {string} id User ID
-         * @param {POSKasirInternalDtoUpdateUserRequest} user User details
+         * @param {InternalUserUpdateUserRequest} user User update details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+        usersIdPut(id: string, user: InternalUserUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
             return localVarFp.usersIdPut(id, user, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Toggle the is_active status of a user (Roles: admin)
          * @summary Toggle user status
          * @param {string} id User ID
          * @param {*} [options] Override http request option.
@@ -449,13 +449,13 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.usersIdToggleStatusPost(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Create a new user account (Roles: admin)
          * @summary Create user
-         * @param {POSKasirInternalDtoCreateUserRequest} user User details
+         * @param {InternalUserCreateUserRequest} user New user details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthMeGet200Response> {
+        usersPost(user: InternalUserCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthAddPost200Response> {
             return localVarFp.usersPost(user, options).then((request) => request(axios, basePath));
         },
     };
@@ -466,7 +466,7 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
  */
 export class UsersApi extends BaseAPI {
     /**
-     * Retrieve a list of users with pagination, filtering, and sorting
+     * Retrieve a list of users with pagination, filtering, and sorting (Roles: admin, manager, cashier)
      * @summary Get all users
      * @param {number} [page] Page number (default 1)
      * @param {number} [limit] Items per page (default 10)
@@ -484,7 +484,7 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Hard delete a user from the system by their ID (Roles: admin)
      * @summary Delete user
      * @param {string} id User ID
      * @param {*} [options] Override http request option.
@@ -495,7 +495,7 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Retrieve detailed profile for a specific user by their ID (Roles: admin, manager)
      * @summary Get user by ID
      * @param {string} id User ID
      * @param {*} [options] Override http request option.
@@ -506,19 +506,19 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Update details of an existing user account (Roles: admin)
      * @summary Update user
      * @param {string} id User ID
-     * @param {POSKasirInternalDtoUpdateUserRequest} user User details
+     * @param {InternalUserUpdateUserRequest} user User update details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public usersIdPut(id: string, user: POSKasirInternalDtoUpdateUserRequest, options?: RawAxiosRequestConfig) {
+    public usersIdPut(id: string, user: InternalUserUpdateUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).usersIdPut(id, user, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Toggle the is_active status of a user (Roles: admin)
      * @summary Toggle user status
      * @param {string} id User ID
      * @param {*} [options] Override http request option.
@@ -529,13 +529,13 @@ export class UsersApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Create a new user account (Roles: admin)
      * @summary Create user
-     * @param {POSKasirInternalDtoCreateUserRequest} user User details
+     * @param {InternalUserCreateUserRequest} user New user details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public usersPost(user: POSKasirInternalDtoCreateUserRequest, options?: RawAxiosRequestConfig) {
+    public usersPost(user: InternalUserCreateUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).usersPost(user, options).then((request) => request(this.axios, this.basePath));
     }
 }

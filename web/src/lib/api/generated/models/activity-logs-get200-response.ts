@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalActivitylogActivityLogListResponse } from './internal-activitylog-activity-log-list-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoActivityLogListResponse } from './poskasir-internal-dto-activity-log-list-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type ActivityLogsGet200Response

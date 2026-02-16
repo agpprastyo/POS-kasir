@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoPaymentMethodResponse&gt;**](POSKasirInternalDtoPaymentMethodResponse.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalPaymentMethodsPaymentMethodResponse&gt;**](InternalPaymentMethodsPaymentMethodResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

@@ -1,7 +1,7 @@
-package payment_methods
+package payment_methods_test
 
 import (
-	"POS-kasir/internal/dto"
+	"POS-kasir/internal/payment_methods"
 	"POS-kasir/mocks"
 	"encoding/json"
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -21,13 +21,13 @@ func TestPaymentMethodHandler_ListPaymentMethodsHandler(t *testing.T) {
 
 	mockService := mocks.NewMockIPaymentMethodService(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	handler := NewPaymentMethodHandler(mockService, mockLogger)
+	handler := payment_methods.NewPaymentMethodHandler(mockService, mockLogger)
 
 	app := fiber.New()
 	app.Get("/payment-methods", handler.ListPaymentMethodsHandler)
 
 	t.Run("Success", func(t *testing.T) {
-		methods := []dto.PaymentMethodResponse{
+		methods := []payment_methods.PaymentMethodResponse{
 			{
 				ID:        1,
 				Name:      "Cash",

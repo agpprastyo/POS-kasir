@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**Array&lt;POSKasirInternalDtoSalesReport&gt;**](POSKasirInternalDtoSalesReport.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;InternalReportSalesReport&gt;**](InternalReportSalesReport.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

@@ -2,9 +2,10 @@ package categories
 
 import (
 	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
+	categories_repo "POS-kasir/internal/categories/repository"
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+
 	"POS-kasir/pkg/logger"
 	"context"
 	"errors"
@@ -15,21 +16,21 @@ import (
 )
 
 type CtgService struct {
-	repo            repository.Querier
+	repo            categories_repo.Querier
 	log             logger.ILogger
 	activityService activitylog.IActivityService
 }
 
 type ICtgService interface {
-	GetAllCategories(ctx context.Context, req dto.ListCategoryRequest) ([]dto.CategoryResponse, error)
-	CreateCategory(ctx context.Context, req dto.CreateCategoryRequest) (*dto.CategoryResponse, error)
-	GetCategoryByID(ctx context.Context, categoryID int32) (*dto.CategoryResponse, error)
-	UpdateCategory(ctx context.Context, categoryID int32, req dto.CreateCategoryRequest) (*dto.CategoryResponse, error)
+	GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error)
+	CreateCategory(ctx context.Context, req CreateCategoryRequest) (*CategoryResponse, error)
+	GetCategoryByID(ctx context.Context, categoryID int32) (*CategoryResponse, error)
+	UpdateCategory(ctx context.Context, categoryID int32, req CreateCategoryRequest) (*CategoryResponse, error)
 	DeleteCategory(ctx context.Context, categoryID int32) error
-	GetCategoryWithProductCount(ctx context.Context) (*[]dto.CategoryWithCountResponse, error)
+	GetCategoryWithProductCount(ctx context.Context) (*[]CategoryWithCountResponse, error)
 }
 
-func NewCtgService(repo repository.Querier, log logger.ILogger, activityService activitylog.IActivityService) ICtgService {
+func NewCtgService(repo categories_repo.Querier, log logger.ILogger, activityService activitylog.IActivityService) ICtgService {
 	return &CtgService{
 		repo:            repo,
 		log:             log,
@@ -37,8 +38,8 @@ func NewCtgService(repo repository.Querier, log logger.ILogger, activityService 
 	}
 }
 
-func (s *CtgService) GetCategoryWithProductCount(ctx context.Context) (*[]dto.CategoryWithCountResponse, error) {
-	params := repository.ListCategoriesWithProductsParams{
+func (s *CtgService) GetCategoryWithProductCount(ctx context.Context) (*[]CategoryWithCountResponse, error) {
+	params := categories_repo.ListCategoriesWithProductsParams{
 		Limit:  100,
 		Offset: 0,
 	}
@@ -54,9 +55,9 @@ func (s *CtgService) GetCategoryWithProductCount(ctx context.Context) (*[]dto.Ca
 			return nil, err
 		}
 	}
-	var response []dto.CategoryWithCountResponse
+	var response []CategoryWithCountResponse
 	for _, category := range categories {
-		response = append(response, dto.CategoryWithCountResponse{
+		response = append(response, CategoryWithCountResponse{
 			ID:           category.ID,
 			Name:         category.Name,
 			ProductCount: int32(category.ProductCount),
@@ -123,16 +124,16 @@ func (s *CtgService) DeleteCategory(ctx context.Context, categoryID int32) error
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypeCATEGORY,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypeCATEGORY,
 		strconv.Itoa(int(categoryID)),
 		logDetails,
 	)
 	return nil
 }
 
-func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req dto.CreateCategoryRequest) (*dto.CategoryResponse, error) {
-	params := repository.UpdateCategoryParams{
+func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req CreateCategoryRequest) (*CategoryResponse, error) {
+	params := categories_repo.UpdateCategoryParams{
 		ID:   categoryID,
 		Name: req.Name,
 	}
@@ -149,7 +150,7 @@ func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req d
 		}
 	}
 
-	response := &dto.CategoryResponse{
+	response := &CategoryResponse{
 		ID:        category.ID,
 		Name:      category.Name,
 		CreatedAt: category.CreatedAt.Time,
@@ -159,7 +160,7 @@ func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req d
 	return response, nil
 }
 
-func (s *CtgService) GetCategoryByID(ctx context.Context, categoryID int32) (*dto.CategoryResponse, error) {
+func (s *CtgService) GetCategoryByID(ctx context.Context, categoryID int32) (*CategoryResponse, error) {
 
 	category, err := s.repo.GetCategory(ctx, categoryID)
 	if err != nil {
@@ -174,7 +175,7 @@ func (s *CtgService) GetCategoryByID(ctx context.Context, categoryID int32) (*dt
 		}
 	}
 
-	response := &dto.CategoryResponse{
+	response := &CategoryResponse{
 		ID:        category.ID,
 		Name:      category.Name,
 		CreatedAt: category.CreatedAt.Time,
@@ -184,7 +185,7 @@ func (s *CtgService) GetCategoryByID(ctx context.Context, categoryID int32) (*dt
 	return response, nil
 }
 
-func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryRequest) (*dto.CategoryResponse, error) {
+func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryRequest) (*CategoryResponse, error) {
 
 	category, err := s.repo.CreateCategory(ctx, req.Name)
 	if err != nil {
@@ -192,7 +193,7 @@ func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryR
 		return nil, common.ErrInternal
 	}
 
-	response := &dto.CategoryResponse{
+	response := &CategoryResponse{
 		ID:        category.ID,
 		Name:      category.Name,
 		CreatedAt: category.CreatedAt.Time,
@@ -212,8 +213,8 @@ func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryR
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypeCATEGORY,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypeCATEGORY,
 		strconv.FormatUint(uint64(category.ID), 10),
 		logDetails,
 	)
@@ -221,7 +222,7 @@ func (s *CtgService) CreateCategory(ctx context.Context, req dto.CreateCategoryR
 	return response, nil
 }
 
-func (s *CtgService) GetAllCategories(ctx context.Context, req dto.ListCategoryRequest) ([]dto.CategoryResponse, error) {
+func (s *CtgService) GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error) {
 	limit := int32(10)
 	if req.Limit > 0 {
 		limit = req.Limit
@@ -232,7 +233,7 @@ func (s *CtgService) GetAllCategories(ctx context.Context, req dto.ListCategoryR
 		offset = req.Offset
 	}
 
-	params := repository.ListCategoriesParams{
+	params := categories_repo.ListCategoriesParams{
 		Limit:  limit,
 		Offset: offset,
 	}
@@ -248,9 +249,9 @@ func (s *CtgService) GetAllCategories(ctx context.Context, req dto.ListCategoryR
 		return nil, common.ErrCategoryNotFound
 	}
 
-	var response []dto.CategoryResponse
+	var response []CategoryResponse
 	for _, category := range categories {
-		response = append(response, dto.CategoryResponse{
+		response = append(response, CategoryResponse{
 			ID:        category.ID,
 			Name:      category.Name,
 			CreatedAt: category.CreatedAt.Time,

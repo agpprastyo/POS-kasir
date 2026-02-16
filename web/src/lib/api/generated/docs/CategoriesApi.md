@@ -12,9 +12,9 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**categoriesPost**](#categoriespost) | **POST** /categories | Create a new category|
 
 # **categoriesCountGet**
-> CategoriesCountGet200Response categoriesCountGet()
+> CategoriesGet200Response categoriesCountGet()
 
-Get total number of categories
+Get total number of categories with products (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -36,7 +36,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**CategoriesCountGet200Response**
+**CategoriesGet200Response**
 
 ### Authorization
 
@@ -59,7 +59,7 @@ No authorization required
 # **categoriesGet**
 > CategoriesGet200Response categoriesGet()
 
-Get all categories
+Get all categories with product count (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -115,7 +115,7 @@ No authorization required
 # **categoriesIdDelete**
 > POSKasirInternalCommonSuccessResponse categoriesIdDelete()
 
-Delete category by ID
+Delete category by ID (Roles: admin, manager)
 
 ### Example
 
@@ -170,7 +170,7 @@ No authorization required
 # **categoriesIdGet**
 > CategoriesPost201Response categoriesIdGet()
 
-Get category by ID
+Get category by ID (Roles: admin, manager)
 
 ### Example
 
@@ -222,9 +222,9 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **categoriesIdPut**
-> POSKasirInternalCommonSuccessResponse categoriesIdPut(category)
+> CategoriesPost201Response categoriesIdPut(category)
 
-Update category by ID
+Update category by ID (Roles: admin, manager)
 
 ### Example
 
@@ -232,14 +232,14 @@ Update category by ID
 import {
     CategoriesApi,
     Configuration,
-    POSKasirInternalDtoCreateCategoryRequest
+    InternalCategoriesCreateCategoryRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new CategoriesApi(configuration);
 
 let id: number; //Category ID (default to undefined)
-let category: POSKasirInternalDtoCreateCategoryRequest; //Category details
+let category: InternalCategoriesCreateCategoryRequest; //Category details
 
 const { status, data } = await apiInstance.categoriesIdPut(
     id,
@@ -251,13 +251,13 @@ const { status, data } = await apiInstance.categoriesIdPut(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **category** | **POSKasirInternalDtoCreateCategoryRequest**| Category details | |
+| **category** | **InternalCategoriesCreateCategoryRequest**| Category details | |
 | **id** | [**number**] | Category ID | defaults to undefined|
 
 
 ### Return type
 
-**POSKasirInternalCommonSuccessResponse**
+**CategoriesPost201Response**
 
 ### Authorization
 
@@ -272,7 +272,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Category deleted successfully |  -  |
+|**200** | Category updated successfully |  -  |
 |**400** | Invalid request body |  -  |
 |**404** | Category not found |  -  |
 |**409** | Category with this name already exists |  -  |
@@ -283,7 +283,7 @@ No authorization required
 # **categoriesPost**
 > CategoriesPost201Response categoriesPost(category)
 
-Create a new category
+Create a new category (Roles: admin, manager)
 
 ### Example
 
@@ -291,13 +291,13 @@ Create a new category
 import {
     CategoriesApi,
     Configuration,
-    POSKasirInternalDtoCreateCategoryRequest
+    InternalCategoriesCreateCategoryRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new CategoriesApi(configuration);
 
-let category: POSKasirInternalDtoCreateCategoryRequest; //Category details
+let category: InternalCategoriesCreateCategoryRequest; //Category details
 
 const { status, data } = await apiInstance.categoriesPost(
     category
@@ -308,7 +308,7 @@ const { status, data } = await apiInstance.categoriesPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **category** | **POSKasirInternalDtoCreateCategoryRequest**| Category details | |
+| **category** | **InternalCategoriesCreateCategoryRequest**| Category details | |
 
 
 ### Return type

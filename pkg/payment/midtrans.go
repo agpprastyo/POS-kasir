@@ -2,7 +2,7 @@ package payment
 
 import (
 	"POS-kasir/config"
-	"POS-kasir/internal/dto"
+
 	"POS-kasir/pkg/logger"
 	"crypto/sha512"
 	"encoding/hex"
@@ -15,8 +15,23 @@ import (
 type IMidtrans interface {
 	CreateQRISCharge(orderID string, amount int64) (*coreapi.ChargeResponse, error)
 	GetQRISCharge(orderID string) (*coreapi.TransactionStatusResponse, error)
-	VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error
+	VerifyNotificationSignature(payload MidtransNotificationPayload) error
 	CancelTransaction(orderID string) (*coreapi.CancelResponse, error)
+}
+
+type MidtransNotificationPayload struct {
+	TransactionTime   string `json:"transaction_time"`
+	TransactionStatus string `json:"transaction_status"`
+	TransactionID     string `json:"transaction_id"`
+	StatusMessage     string `json:"status_message"`
+	StatusCode        string `json:"status_code"`
+	SignatureKey      string `json:"signature_key"`
+	PaymentType       string `json:"payment_type"`
+	OrderID           string `json:"order_id"`
+	MerchantID        string `json:"merchant_id"`
+	GrossAmount       string `json:"gross_amount"`
+	FraudStatus       string `json:"fraud_status"`
+	Currency          string `json:"currency"`
 }
 
 type MidtransService struct {
@@ -53,7 +68,7 @@ func NewMidtransService(cfg *config.AppConfig, log logger.ILogger) IMidtrans {
 }
 
 // VerifyNotificationSignature memvalidasi signature key dari payload notifikasi.
-func (s *MidtransService) VerifyNotificationSignature(payload dto.MidtransNotificationPayload) error {
+func (s *MidtransService) VerifyNotificationSignature(payload MidtransNotificationPayload) error {
 
 	sourceString := payload.OrderID + payload.StatusCode + payload.GrossAmount + s.config.Midtrans.ServerKey
 

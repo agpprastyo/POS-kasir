@@ -12,6 +12,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **shiftsCashTransactionPost**
 > ShiftsCashTransactionPost201Response shiftsCashTransactionPost(request)
 
+Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -19,13 +20,13 @@ All URIs are relative to *http://localhost:8080/api/v1*
 import {
     ShiftsApi,
     Configuration,
-    POSKasirInternalDtoCashTransactionRequest
+    InternalShiftCashTransactionRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ShiftsApi(configuration);
 
-let request: POSKasirInternalDtoCashTransactionRequest; //Cash Transaction Request
+let request: InternalShiftCashTransactionRequest; //Cash Transaction Request
 
 const { status, data } = await apiInstance.shiftsCashTransactionPost(
     request
@@ -36,7 +37,7 @@ const { status, data } = await apiInstance.shiftsCashTransactionPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoCashTransactionRequest**| Cash Transaction Request | |
+| **request** | **InternalShiftCashTransactionRequest**| Cash Transaction Request | |
 
 
 ### Return type
@@ -56,16 +57,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**400** | Bad Request |  -  |
+|**201** | Cash transaction created successfully |  -  |
+|**400** | Invalid request body or validation failure |  -  |
 |**404** | No open shift found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **shiftsCurrentGet**
 > ShiftsCurrentGet200Response shiftsCurrentGet()
 
+Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -102,15 +104,16 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
+|**200** | Open shift retrieved successfully |  -  |
 |**404** | No open shift found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **shiftsEndPost**
 > ShiftsCurrentGet200Response shiftsEndPost(request)
 
+Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -118,13 +121,13 @@ No authorization required
 import {
     ShiftsApi,
     Configuration,
-    POSKasirInternalDtoEndShiftRequest
+    InternalShiftEndShiftRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ShiftsApi(configuration);
 
-let request: POSKasirInternalDtoEndShiftRequest; //End Shift Request
+let request: InternalShiftEndShiftRequest; //End Shift Request
 
 const { status, data } = await apiInstance.shiftsEndPost(
     request
@@ -135,7 +138,7 @@ const { status, data } = await apiInstance.shiftsEndPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoEndShiftRequest**| End Shift Request | |
+| **request** | **InternalShiftEndShiftRequest**| End Shift Request | |
 
 
 ### Return type
@@ -155,16 +158,17 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
+|**200** | Shift ended successfully |  -  |
+|**400** | Invalid request body or validation failure |  -  |
 |**404** | No open shift found |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **shiftsStartPost**
 > ShiftsCurrentGet200Response shiftsStartPost(request)
 
+Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
 
 ### Example
 
@@ -172,13 +176,13 @@ No authorization required
 import {
     ShiftsApi,
     Configuration,
-    POSKasirInternalDtoStartShiftRequest
+    InternalShiftStartShiftRequest
 } from 'restClient';
 
 const configuration = new Configuration();
 const apiInstance = new ShiftsApi(configuration);
 
-let request: POSKasirInternalDtoStartShiftRequest; //Start Shift Request
+let request: InternalShiftStartShiftRequest; //Start Shift Request
 
 const { status, data } = await apiInstance.shiftsStartPost(
     request
@@ -189,7 +193,7 @@ const { status, data } = await apiInstance.shiftsStartPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **request** | **POSKasirInternalDtoStartShiftRequest**| Start Shift Request | |
+| **request** | **InternalShiftStartShiftRequest**| Start Shift Request | |
 
 
 ### Return type
@@ -209,10 +213,10 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Created |  -  |
-|**400** | Bad Request |  -  |
+|**201** | Shift started successfully |  -  |
+|**400** | Invalid request body or validation failure |  -  |
 |**409** | User already has an open shift |  -  |
-|**500** | Internal Server Error |  -  |
+|**500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

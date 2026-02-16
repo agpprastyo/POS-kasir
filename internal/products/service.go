@@ -2,10 +2,11 @@ package products
 
 import (
 	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/pagination"
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/common/store"
+	products_repo "POS-kasir/internal/products/repository"
 	"POS-kasir/pkg/logger"
 
 	"context"
@@ -21,35 +22,37 @@ import (
 )
 
 type IPrdService interface {
-	CreateProduct(ctx context.Context, req dto.CreateProductRequest) (*dto.ProductResponse, error)
-	UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*dto.ProductResponse, error)
-	ListProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error)
-	GetProductByID(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error)
-	UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error)
+	CreateProduct(ctx context.Context, req CreateProductRequest) (*ProductResponse, error)
+	UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error)
+	ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error)
+	GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error)
+	UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error)
 	DeleteProduct(ctx context.Context, productID uuid.UUID) error
-	CreateProductOption(ctx context.Context, productID uuid.UUID, req dto.CreateProductOptionRequestStandalone) (*dto.ProductOptionResponse, error)
-	GetStockHistory(ctx context.Context, productID uuid.UUID, req dto.ListStockHistoryRequest) (*dto.PagedStockHistoryResponse, error)
-	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*dto.ProductOptionResponse, error)
-	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req dto.UpdateProductOptionRequest) (*dto.ProductOptionResponse, error)
+	CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error)
+	GetStockHistory(ctx context.Context, productID uuid.UUID, req ListStockHistoryRequest) (*PagedStockHistoryResponse, error)
+	UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error)
+	UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error)
 	DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error
 
 	// Deleted Products Management
-	ListDeletedProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error)
-	GetDeletedProduct(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error)
+	ListDeletedProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error)
+	GetDeletedProduct(ctx context.Context, productID uuid.UUID) (*ProductResponse, error)
 	RestoreProduct(ctx context.Context, productID uuid.UUID) error
-	RestoreProductsBulk(ctx context.Context, req dto.RestoreBulkRequest) error
+	RestoreProductsBulk(ctx context.Context, req RestoreBulkRequest) error
 }
 
 type PrdService struct {
 	log             logger.ILogger
-	store           repository.Store
-	prdRepo         IPrdRepo
+	store           store.Store
+	repo            products_repo.Querier
+	prdRepo         IProductImageRepository
 	activityService activitylog.IActivityService
 }
 
-func NewPrdService(store repository.Store, log logger.ILogger, prdRepo IPrdRepo, activityService activitylog.IActivityService) IPrdService {
+func NewPrdService(store store.Store, repo products_repo.Querier, log logger.ILogger, prdRepo IProductImageRepository, activityService activitylog.IActivityService) IPrdService {
 	return &PrdService{
 		store:           store,
+		repo:            repo,
 		log:             log,
 		prdRepo:         prdRepo,
 		activityService: activityService,
@@ -58,7 +61,7 @@ func NewPrdService(store repository.Store, log logger.ILogger, prdRepo IPrdRepo,
 
 func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionID uuid.UUID) error {
 
-	option, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
+	option, err := s.repo.GetProductOption(ctx, products_repo.GetProductOptionParams{ID: optionID, ProductID: productID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
@@ -68,7 +71,7 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 		return err
 	}
 
-	err = s.store.SoftDeleteProductOption(ctx, optionID)
+	err = s.repo.SoftDeleteProductOption(ctx, optionID)
 	if err != nil {
 		s.log.Errorf("Failed to soft delete product option in repository", "error", err, "optionID", optionID)
 		return err
@@ -83,8 +86,8 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -93,8 +96,8 @@ func (s *PrdService) DeleteProductOption(ctx context.Context, productID, optionI
 	return nil
 }
 
-func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req dto.UpdateProductOptionRequest) (*dto.ProductOptionResponse, error) {
-	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{ID: optionID, ProductID: productID})
+func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionID uuid.UUID, req UpdateProductOptionRequest) (*ProductOptionResponse, error) {
+	_, err := s.repo.GetProductOption(ctx, products_repo.GetProductOptionParams{ID: optionID, ProductID: productID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product option not found or does not belong to the product", "optionID", optionID, "productID", productID)
@@ -104,7 +107,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 		return nil, err
 	}
 
-	updateParams := repository.UpdateProductOptionParams{
+	updateParams := products_repo.UpdateProductOptionParams{
 		ID:   optionID,
 		Name: req.Name,
 	}
@@ -114,7 +117,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 		updateParams.AdditionalPrice = &price
 	}
 
-	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
+	updatedOption, err := s.repo.UpdateProductOption(ctx, updateParams)
 	if err != nil {
 		s.log.Errorf("Failed to update product option in repository", "error", err, "optionID", optionID)
 		return nil, err
@@ -129,8 +132,8 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -148,7 +151,7 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 		updatedOption.ImageUrl = nil
 	}
 
-	return &dto.ProductOptionResponse{
+	return &ProductOptionResponse{
 		ID:              updatedOption.ID,
 		Name:            updatedOption.Name,
 		AdditionalPrice: additionalPrice,
@@ -156,8 +159,8 @@ func (s *PrdService) UpdateProductOption(ctx context.Context, productID, optionI
 	}, nil
 }
 
-func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*dto.ProductOptionResponse, error) {
-	_, err := s.store.GetProductOption(ctx, repository.GetProductOptionParams{
+func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uuid.UUID, optionID uuid.UUID, data []byte) (*ProductOptionResponse, error) {
+	_, err := s.repo.GetProductOption(ctx, products_repo.GetProductOptionParams{
 		ID:        optionID,
 		ProductID: productID,
 	})
@@ -183,11 +186,11 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 
-	updateParams := repository.UpdateProductOptionParams{
+	updateParams := products_repo.UpdateProductOptionParams{
 		ID:       optionID,
 		ImageUrl: &filename,
 	}
-	updatedOption, err := s.store.UpdateProductOption(ctx, updateParams)
+	updatedOption, err := s.repo.UpdateProductOption(ctx, updateParams)
 	if err != nil {
 		s.log.Errorf("Failed to update product option with image URL", "error", err)
 		return nil, fmt.Errorf("could not update product option in database")
@@ -202,8 +205,8 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		optionID.String(),
 		logDetails,
 	)
@@ -217,15 +220,15 @@ func (s *PrdService) UploadProductOptionImage(ctx context.Context, productID uui
 		publicUrl = *updatedOption.ImageUrl
 	}
 
-	return &dto.ProductOptionResponse{
+	return &ProductOptionResponse{
 		ID:              updatedOption.ID,
 		Name:            updatedOption.Name,
 		AdditionalPrice: additionalPrice,
 		ImageURL:        &publicUrl,
 	}, nil
 }
-func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUID, req dto.CreateProductOptionRequestStandalone) (*dto.ProductOptionResponse, error) {
-	_, err := s.store.GetProductWithOptions(ctx, productID)
+func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUID, req CreateProductOptionRequestStandalone) (*ProductOptionResponse, error) {
+	_, err := s.repo.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Parent product not found for new option", "productID", productID)
@@ -236,12 +239,12 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 	}
 
 	additionalPrice := int64(req.AdditionalPrice)
-	params := repository.CreateProductOptionParams{
+	params := products_repo.CreateProductOptionParams{
 		ProductID:       productID,
 		Name:            req.Name,
 		AdditionalPrice: additionalPrice,
 	}
-	newOption, err := s.store.CreateProductOption(ctx, params)
+	newOption, err := s.repo.CreateProductOption(ctx, params)
 	if err != nil {
 		s.log.Errorf("Failed to create product option in repository", "error", err)
 		return nil, err
@@ -256,13 +259,13 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		newOption.ID.String(),
 		logDetails,
 	)
 
-	return &dto.ProductOptionResponse{
+	return &ProductOptionResponse{
 		ID:              newOption.ID,
 		Name:            newOption.Name,
 		AdditionalPrice: float64(newOption.AdditionalPrice),
@@ -271,7 +274,7 @@ func (s *PrdService) CreateProductOption(ctx context.Context, productID uuid.UUI
 }
 func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) error {
 
-	product, err := s.store.GetProductWithOptions(ctx, productID)
+	product, err := s.repo.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found for deletion", "productID", productID)
@@ -281,7 +284,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 		return err
 	}
 
-	err = s.store.SoftDeleteProduct(ctx, productID)
+	err = s.repo.SoftDeleteProduct(ctx, productID)
 	if err != nil {
 		s.log.Errorf("Failed to soft delete product in repository", "error", err, "productID", productID)
 		return err
@@ -295,8 +298,8 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeDELETE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
@@ -305,8 +308,8 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 	return nil
 }
 
-func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error) {
-	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
+func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
+	fullProduct, err := s.repo.GetProductWithOptions(ctx, productID)
 	s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -320,8 +323,8 @@ func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*
 	return s.buildProductResponse(ctx, fullProduct)
 }
 
-func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req dto.UpdateProductRequest) (*dto.ProductResponse, error) {
-	product, err := s.store.GetProductWithOptions(ctx, productID)
+func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req UpdateProductRequest) (*ProductResponse, error) {
+	product, err := s.repo.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found for update", "productID", productID)
@@ -332,7 +335,7 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	}
 
 	if req.CategoryID != nil {
-		exists, err := s.store.ExistsCategory(ctx, *req.CategoryID)
+		exists, err := s.repo.CheckCategoryExists(ctx, *req.CategoryID)
 		if err != nil {
 			s.log.Errorf("Failed to check category existence", "error", err)
 			return nil, err
@@ -343,7 +346,7 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		}
 	}
 
-	updateParams := repository.UpdateProductParams{
+	updateParams := products_repo.UpdateProductParams{
 		ID:         productID,
 		Name:       req.Name,
 		CategoryID: req.CategoryID,
@@ -361,7 +364,7 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		updateParams.CostPrice = numericCost
 	}
 
-	_, err = s.store.UpdateProduct(ctx, updateParams)
+	_, err = s.repo.UpdateProduct(ctx, updateParams)
 	if err != nil {
 		s.log.Errorf("Failed to update product in repository", "error", err, "productID", productID)
 		return nil, err
@@ -374,23 +377,22 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		changeAmount := currentStock - previousStock
 
 		if changeAmount != 0 {
-			changeType := repository.StockChangeTypeCorrection // Default
+			changeType := products_repo.StockChangeTypeCorrection 
 			if req.ChangeType != nil {
-				changeType = repository.StockChangeType(*req.ChangeType)
+				changeType = products_repo.StockChangeType(*req.ChangeType)
 			} else {
-				// Auto-detect simple cases if not provided
+				
 				if changeAmount > 0 {
-					changeType = repository.StockChangeTypeRestock
+					changeType = products_repo.StockChangeTypeRestock
 				}
 			}
 
-			// Safe dereference for Note
 			var note *string
 			if req.Note != nil {
 				note = req.Note
 			}
 
-			// Creator
+			
 			var createdBy pgtype.UUID
 			if actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID); ok {
 				createdBy = pgtype.UUID{Bytes: actorID, Valid: true}
@@ -416,8 +418,8 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
@@ -425,8 +427,8 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	return s.GetProductByID(ctx, productID)
 }
 
-func (s *PrdService) RecordStockChange(ctx context.Context, productID uuid.UUID, changeAmount, previousStock, currentStock int32, changeType repository.StockChangeType, referenceID pgtype.UUID, note *string, createdBy pgtype.UUID) error {
-	params := repository.CreateStockHistoryParams{
+func (s *PrdService) RecordStockChange(ctx context.Context, productID uuid.UUID, changeAmount, previousStock, currentStock int32, changeType products_repo.StockChangeType, referenceID pgtype.UUID, note *string, createdBy pgtype.UUID) error {
+	params := products_repo.CreateStockHistoryParams{
 		ProductID:     productID,
 		ChangeAmount:  changeAmount,
 		PreviousStock: previousStock,
@@ -437,15 +439,15 @@ func (s *PrdService) RecordStockChange(ctx context.Context, productID uuid.UUID,
 		CreatedBy:     createdBy,
 	}
 
-	_, err := s.store.CreateStockHistory(ctx, params)
+	_, err := s.repo.CreateStockHistory(ctx, params)
 	if err != nil {
 		return fmt.Errorf("failed to create stock history: %w", err)
 	}
 
 	return nil
 }
-func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repository.GetProductWithOptionsRow) (*dto.ProductResponse, error) {
-	var optionsResponse []dto.ProductOptionResponse
+func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct products_repo.GetProductWithOptionsRow) (*ProductResponse, error) {
+	var optionsResponse []ProductOptionResponse
 
 	if fullProduct.Options != nil {
 
@@ -455,7 +457,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 			return nil, fmt.Errorf("could not process product options")
 		}
 
-		var options []repository.ProductOption
+		var options []products_repo.ProductOption
 		if err := json.Unmarshal(optionsJSON, &options); err != nil {
 
 			if string(optionsJSON) != "[]" {
@@ -466,7 +468,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 
 		for _, opt := range options {
 			additionalPrice := float64(opt.AdditionalPrice)
-			optionsResponse = append(optionsResponse, dto.ProductOptionResponse{
+			optionsResponse = append(optionsResponse, ProductOptionResponse{
 				ID:              opt.ID,
 				Name:            opt.Name,
 				AdditionalPrice: additionalPrice,
@@ -524,7 +526,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 		costPrice = prodCost.Float64
 	}
 
-	return &dto.ProductResponse{
+	return &ProductResponse{
 		ID:         fullProduct.ID,
 		Name:       fullProduct.Name,
 		CategoryID: fullProduct.CategoryID,
@@ -539,7 +541,7 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct repos
 	}, nil
 }
 
-func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error) {
+func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error) {
 
 	page := 1
 	if req.Page != nil {
@@ -551,13 +553,13 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 	}
 	offset := (page - 1) * limit
 
-	listParams := repository.ListProductsParams{
+	listParams := products_repo.ListProductsParams{
 		Limit:      int32(limit),
 		Offset:     int32(offset),
 		CategoryID: req.CategoryID,
 		SearchText: req.Search,
 	}
-	countParams := repository.CountProductsParams{
+	countParams := products_repo.CountProductsParams{
 		CategoryID: req.CategoryID,
 		SearchText: req.Search,
 	}
@@ -565,7 +567,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 	s.log.Infof("list params list product: %+v", listParams)
 
 	var wg sync.WaitGroup
-	var products []repository.ListProductsRow
+	var products []products_repo.ListProductsRow
 	var totalData int64
 	var listErr, countErr error
 
@@ -573,12 +575,12 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 
 	go func() {
 		defer wg.Done()
-		products, listErr = s.store.ListProducts(ctx, listParams)
+		products, listErr = s.repo.ListProducts(ctx, listParams)
 	}()
 
 	go func() {
 		defer wg.Done()
-		totalData, countErr = s.store.CountProducts(ctx, countParams)
+		totalData, countErr = s.repo.CountProducts(ctx, countParams)
 	}()
 
 	wg.Wait()
@@ -592,20 +594,20 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 		return nil, countErr
 	}
 
-	var productsResponse []dto.ProductListResponse
+	var productsResponse []ProductListResponse
 	for _, p := range products {
 		price := float64(p.Price)
 		if p.ImageUrl != nil && *p.ImageUrl != "" {
 			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
 			if err != nil {
 				s.log.Warnf("Failed to get public URL for product image", "error", err)
-				imageUrl = *p.ImageUrl // Tetap gunakan URL asli jika gagal
+				imageUrl = *p.ImageUrl 
 			}
 			p.ImageUrl = &imageUrl
 		} else {
-			p.ImageUrl = nil // Setel ke nil jika tidak ada URL
+			p.ImageUrl = nil 
 		}
-		productsResponse = append(productsResponse, dto.ProductListResponse{
+		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
 			CategoryID:   p.CategoryID,
@@ -616,7 +618,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 		})
 	}
 
-	response := &dto.ListProductsResponse{
+	response := &ListProductsResponse{
 		Products: productsResponse,
 		Pagination: pagination.BuildPagination(
 			page,
@@ -628,11 +630,12 @@ func (s *PrdService) ListProducts(ctx context.Context, req dto.ListProductsReque
 	return response, nil
 }
 
-func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductRequest) (*dto.ProductResponse, error) {
-	var newProduct repository.Product
-	var createdOptions []repository.ProductOption
+func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest) (*ProductResponse, error) {
+	var newProduct products_repo.Product
+	var createdOptions []products_repo.ProductOption
 
-	txFunc := func(qtx *repository.Queries) error {
+	txFunc := func(tx pgx.Tx) error {
+		qtx := products_repo.New(tx)
 		var err error
 
 		price := int64(req.Price)
@@ -640,13 +643,14 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 		numericCost := pgtype.Numeric{}
 		numericCost.Scan(fmt.Sprintf("%f", req.CostPrice))
 
-		productParams := repository.CreateProductParams{
+		productParams := products_repo.CreateProductParams{
 			Name:       req.Name,
 			CategoryID: &req.CategoryID,
 			Price:      price,
 			Stock:      req.Stock,
 			CostPrice:  numericCost,
 		}
+
 		newProduct, err = qtx.CreateProduct(ctx, productParams)
 		if err != nil {
 			s.log.Errorf("Failed to create product in transaction", "error", err)
@@ -656,7 +660,7 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 		for _, opt := range req.Options {
 			additionalPrice := int64(opt.AdditionalPrice)
 
-			optionParams := repository.CreateProductOptionParams{
+			optionParams := products_repo.CreateProductOptionParams{
 				ProductID:       newProduct.ID,
 				Name:            opt.Name,
 				AdditionalPrice: additionalPrice,
@@ -666,6 +670,7 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 				s.log.Errorf("Failed to create product option in transaction", "error", err)
 				return err
 			}
+
 			createdOptions = append(createdOptions, createdOpt)
 		}
 		return nil
@@ -686,8 +691,8 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeCREATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeCREATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		newProduct.ID.String(),
 		logDetails,
 	)
@@ -695,8 +700,8 @@ func (s *PrdService) CreateProduct(ctx context.Context, req dto.CreateProductReq
 	return s.buildProductResponseFromData(newProduct, createdOptions)
 }
 
-func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*dto.ProductResponse, error) {
-	_, err := s.store.GetProductWithOptions(ctx, productID)
+func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error) {
+	_, err := s.repo.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found for image upload", "productID", productID)
@@ -706,7 +711,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		return nil, err
 	}
 
-	const maxFileSize = 5 * 1024 * 1024 // 2MB
+	const maxFileSize = 5 * 1024 * 1024 
 	if len(data) > maxFileSize {
 		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
 	}
@@ -719,11 +724,11 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		return nil, fmt.Errorf("could not upload image to storage")
 	}
 
-	updateParams := repository.UpdateProductParams{
+	updateParams := products_repo.UpdateProductParams{
 		ID:       productID,
 		ImageUrl: &filename,
 	}
-	_, err = s.store.UpdateProduct(ctx, updateParams)
+	_, err = s.repo.UpdateProduct(ctx, updateParams)
 	if err != nil {
 		s.log.Errorf("Failed to update product with image URL", "error", err)
 		return nil, fmt.Errorf("could not update product in database")
@@ -737,13 +742,13 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	s.activityService.Log(
 		ctx,
 		actorID,
-		repository.LogActionTypeUPDATE,
-		repository.LogEntityTypePRODUCT,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypePRODUCT,
 		productID.String(),
 		logDetails,
 	)
 
-	fullProduct, err := s.store.GetProductWithOptions(ctx, productID)
+	fullProduct, err := s.repo.GetProductWithOptions(ctx, productID)
 	if err != nil {
 		s.log.Errorf("Failed to fetch full product after image upload", "error", err)
 		return nil, err
@@ -752,11 +757,11 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	return s.buildProductResponse(ctx, fullProduct)
 }
 
-func (s *PrdService) buildProductResponseFromData(product repository.Product, options []repository.ProductOption) (*dto.ProductResponse, error) {
-	var optionsResponse []dto.ProductOptionResponse
+func (s *PrdService) buildProductResponseFromData(product products_repo.Product, options []products_repo.ProductOption) (*ProductResponse, error) {
+	var optionsResponse []ProductOptionResponse
 	for _, opt := range options {
 		var additionalPrice = float64(opt.AdditionalPrice)
-		optionsResponse = append(optionsResponse, dto.ProductOptionResponse{
+		optionsResponse = append(optionsResponse, ProductOptionResponse{
 			ID:              opt.ID,
 			Name:            opt.Name,
 			AdditionalPrice: additionalPrice,
@@ -774,7 +779,7 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 	s.log.Infof("product price before assign: %+v", product.Price)
 	s.log.Infof("product price after assign: %+v", productPrice)
 
-	return &dto.ProductResponse{
+	return &ProductResponse{
 		ID:         product.ID,
 		Name:       product.Name,
 		CategoryID: product.CategoryID,
@@ -788,7 +793,7 @@ func (s *PrdService) buildProductResponseFromData(product repository.Product, op
 	}, nil
 }
 
-func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProductsRequest) (*dto.ListProductsResponse, error) {
+func (s *PrdService) ListDeletedProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error) {
 	page := 1
 	if req.Page != nil {
 		page = *req.Page
@@ -799,19 +804,19 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 	}
 	offset := (page - 1) * limit
 
-	listParams := repository.ListDeletedProductsParams{
+	listParams := products_repo.ListDeletedProductsParams{
 		Limit:      int32(limit),
 		Offset:     int32(offset),
 		CategoryID: req.CategoryID,
 		SearchText: req.Search,
 	}
-	countParams := repository.CountDeletedProductsParams{
+	countParams := products_repo.CountDeletedProductsParams{
 		CategoryID: req.CategoryID,
 		SearchText: req.Search,
 	}
 
 	var wg sync.WaitGroup
-	var products []repository.ListDeletedProductsRow
+	var products []products_repo.ListDeletedProductsRow
 	var totalData int64
 	var listErr, countErr error
 
@@ -819,12 +824,12 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 
 	go func() {
 		defer wg.Done()
-		products, listErr = s.store.ListDeletedProducts(ctx, listParams)
+		products, listErr = s.repo.ListDeletedProducts(ctx, listParams)
 	}()
 
 	go func() {
 		defer wg.Done()
-		totalData, countErr = s.store.CountDeletedProducts(ctx, countParams)
+		totalData, countErr = s.repo.CountDeletedProducts(ctx, countParams)
 	}()
 
 	wg.Wait()
@@ -838,7 +843,7 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 		return nil, countErr
 	}
 
-	var productsResponse []dto.ProductListResponse
+	var productsResponse []ProductListResponse
 	for _, p := range products {
 		price := float64(p.Price)
 		var deletedAt *time.Time
@@ -847,7 +852,6 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 			deletedAt = &t
 		}
 
-		// Similar image logic if needed, skipping detailed image check for list view speed or reuse similar logic
 		if p.ImageUrl != nil && *p.ImageUrl != "" {
 			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
 			if err != nil {
@@ -858,7 +862,7 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 			p.ImageUrl = nil
 		}
 
-		productsResponse = append(productsResponse, dto.ProductListResponse{
+		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
 			CategoryID:   p.CategoryID,
@@ -870,7 +874,7 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 		})
 	}
 
-	return &dto.ListProductsResponse{
+	return &ListProductsResponse{
 		Products: productsResponse,
 		Pagination: pagination.BuildPagination(
 			page,
@@ -880,7 +884,7 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req dto.ListProduc
 	}, nil
 }
 
-func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID) (*dto.ProductResponse, error) {
+func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
 	// Need to fetch similar to GetProductWithOptions but for deleted one.
 	// We defined GetDeletedProduct query to return row + options json.
 	// But generated type will be GetDeletedProductRow.
@@ -888,7 +892,7 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 	// Wait, the query GetDeletedProduct in products.sql returns specific columns similar to GetProductWithOptions?
 	// Let's assume standard behavior based on sql definition.
 
-	row, err := s.store.GetDeletedProduct(ctx, productID)
+	row, err := s.repo.GetDeletedProduct(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, common.ErrNotFound
@@ -903,7 +907,7 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 	// SELECT p.*, COALESCE(...) as options FROM products p ...
 	// So fields map to table columns.
 
-	var options []repository.ProductOption
+	var options []products_repo.ProductOption
 	if row.Options != nil {
 		// unmarshal json
 		optionsBytes, _ := json.Marshal(row.Options) // It's already likely []byte or interface{} depending on driver
@@ -932,14 +936,14 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 	// Manual map is safer.
 
 	// Parse Options
-	var optionsResponse []dto.ProductOptionResponse
+	var optionsResponse []ProductOptionResponse
 	if row.Options != nil {
 		optBytes, err := json.Marshal(row.Options)
 		if err == nil {
-			var opts []repository.ProductOption
+			var opts []products_repo.ProductOption
 			if err := json.Unmarshal(optBytes, &opts); err == nil {
 				for _, o := range opts {
-					optionsResponse = append(optionsResponse, dto.ProductOptionResponse{
+					optionsResponse = append(optionsResponse, ProductOptionResponse{
 						ID:              o.ID,
 						Name:            o.Name,
 						AdditionalPrice: float64(o.AdditionalPrice),
@@ -955,7 +959,7 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 		deletedAt = row.DeletedAt.Time
 	}
 
-	return &dto.ProductResponse{
+	return &ProductResponse{
 		ID:         row.ID,
 		Name:       row.Name,
 		CategoryID: row.CategoryID,
@@ -971,7 +975,7 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 
 func (s *PrdService) RestoreProduct(ctx context.Context, productID uuid.UUID) error {
 	// Check if exists in deleted state
-	_, err := s.store.GetDeletedProduct(ctx, productID)
+	_, err := s.repo.GetDeletedProduct(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return common.ErrNotFound
@@ -979,7 +983,7 @@ func (s *PrdService) RestoreProduct(ctx context.Context, productID uuid.UUID) er
 		return err
 	}
 
-	err = s.store.RestoreProduct(ctx, productID)
+	err = s.repo.RestoreProduct(ctx, productID)
 	if err != nil {
 		s.log.Errorf("Failed to restore product", "productID", productID, "error", err)
 		return err
@@ -987,14 +991,14 @@ func (s *PrdService) RestoreProduct(ctx context.Context, productID uuid.UUID) er
 
 	// Log activity
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
-	s.activityService.Log(ctx, actorID, repository.LogActionTypeUPDATE, repository.LogEntityTypePRODUCT, productID.String(), map[string]interface{}{
+	s.activityService.Log(ctx, actorID, activitylog_repo.LogActionTypeUPDATE, activitylog_repo.LogEntityTypePRODUCT, productID.String(), map[string]interface{}{
 		"action": "restore",
 	})
 
 	return nil
 }
 
-func (s *PrdService) RestoreProductsBulk(ctx context.Context, req dto.RestoreBulkRequest) error {
+func (s *PrdService) RestoreProductsBulk(ctx context.Context, req RestoreBulkRequest) error {
 	ids := make([]uuid.UUID, 0, len(req.ProductIDs))
 	for _, idStr := range req.ProductIDs {
 		uid, err := uuid.Parse(idStr)
@@ -1006,7 +1010,7 @@ func (s *PrdService) RestoreProductsBulk(ctx context.Context, req dto.RestoreBul
 		ids = append(ids, uid)
 	}
 
-	err := s.store.RestoreProductsBulk(ctx, ids)
+	err := s.repo.RestoreProductsBulk(ctx, ids)
 	if err != nil {
 		s.log.Errorf("Failed to bulk restore products", "error", err)
 		return err
@@ -1014,7 +1018,7 @@ func (s *PrdService) RestoreProductsBulk(ctx context.Context, req dto.RestoreBul
 
 	// Log activity (maybe one log for all or individually? One log is cleaner)
 	actorID, _ := ctx.Value(common.UserIDKey).(uuid.UUID)
-	s.activityService.Log(ctx, actorID, repository.LogActionTypeUPDATE, repository.LogEntityTypePRODUCT, "bulk", map[string]interface{}{
+	s.activityService.Log(ctx, actorID, activitylog_repo.LogActionTypeUPDATE, activitylog_repo.LogEntityTypePRODUCT, "bulk", map[string]interface{}{
 		"action": "restore_bulk",
 		"count":  len(ids),
 		"ids":    req.ProductIDs,

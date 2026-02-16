@@ -1,8 +1,8 @@
-package activitylog
+package activitylog_test
 
 import (
-	"POS-kasir/internal/dto"
-	"POS-kasir/internal/repository"
+	"POS-kasir/internal/activitylog"
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/mocks"
 	"context"
 	"errors"
@@ -20,22 +20,22 @@ func TestActivityService_Log(t *testing.T) {
 
 	defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockStore(ctrl)
+	mockRepo := mocks.NewMockActivityLogRepository(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 
-	service := NewActivityService(mockRepo, mockLogger)
+	service := activitylog.NewActivityService(mockRepo, mockLogger)
 	ctx := context.Background()
 	userID := uuid.New()
 	entityID := "123"
-	action := repository.LogActionTypeCREATE
-	entityType := repository.LogEntityTypePRODUCT
+	action := activitylog_repo.LogActionTypeCREATE
+	entityType := activitylog_repo.LogEntityTypePRODUCT
 	details := map[string]interface{}{"foo": "bar"}
 
 	t.Run("Success", func(t *testing.T) {
 
 		mockRepo.EXPECT().CreateActivityLog(ctx, gomock.Any()).DoAndReturn(
-			func(ctx context.Context, arg repository.CreateActivityLogParams) (uuid.UUID, error) {
-				if arg.ActionType != action {
+			func(ctx context.Context, arg activitylog_repo.CreateActivityLogParams) (uuid.UUID, error) {
+				if arg.ActionType != activitylog_repo.LogActionType(action) {
 					t.Errorf("expected action %v, got %v", action, arg.ActionType)
 				}
 				if arg.EntityID != entityID {
@@ -84,26 +84,28 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := mocks.NewMockStore(ctrl)
+	mockRepo := mocks.NewMockActivityLogRepository(ctrl)
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
-	service := NewActivityService(mockRepo, mockLogger)
+	service := activitylog.NewActivityService(mockRepo, mockLogger)
 	ctx := context.Background()
 
 	t.Run("SuccessWithFilters", func(t *testing.T) {
-		req := dto.GetActivityLogsRequest{
-			Page:      1,
-			Limit:     10,
-			UserID:    uuid.New().String(),
-			StartDate: "2023-01-01",
-			EndDate:   "2023-01-02",
+		page, limit := 1, 10
+		userID, startDate, endDate := uuid.New().String(), "2023-01-01", "2023-01-02"
+		req := activitylog.GetActivityLogsRequest{
+			Page:      &page,
+			Limit:     &limit,
+			UserID:    &userID,
+			StartDate: &startDate,
+			EndDate:   &endDate,
 		}
 
-		repoLogs := []repository.GetActivityLogsRow{
+		repoLogs := []activitylog_repo.GetActivityLogsRow{
 			{
 				ID:         uuid.New(),
-				UserID:     pgtype.UUID{Bytes: uuid.MustParse(req.UserID), Valid: true},
-				ActionType: repository.LogActionTypeCREATE,
-				EntityType: repository.LogEntityTypePRODUCT,
+				UserID:     pgtype.UUID{Bytes: uuid.MustParse(*req.UserID), Valid: true},
+				ActionType: activitylog_repo.LogActionTypeCREATE,
+				EntityType: activitylog_repo.LogEntityTypePRODUCT,
 				EntityID:   "123",
 				Details:    []byte(`{"foo":"bar"}`),
 				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
@@ -122,12 +124,13 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	})
 
 	t.Run("SuccessNoFilters", func(t *testing.T) {
-		req := dto.GetActivityLogsRequest{
-			Page:  1,
-			Limit: 10,
+		page, limit := 1, 10
+		req := activitylog.GetActivityLogsRequest{
+			Page:  &page,
+			Limit: &limit,
 		}
 
-		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]repository.GetActivityLogsRow{}, nil)
+		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]activitylog_repo.GetActivityLogsRow{}, nil)
 		mockRepo.EXPECT().CountActivityLogs(ctx, gomock.Any()).Return(int64(0), nil)
 
 		resp, err := service.GetActivityLogs(ctx, req)
@@ -137,16 +140,18 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	})
 
 	t.Run("InvalidFilters", func(t *testing.T) {
-		req := dto.GetActivityLogsRequest{
-			Page:      1,
-			Limit:     10,
-			UserID:    "invalid-uuid",
-			StartDate: "invalid-date",
-			EndDate:   "invalid-date",
+		page, limit := 1, 10
+		userID, startDate, endDate := "invalid-uuid", "invalid-date", "invalid-date"
+		req := activitylog.GetActivityLogsRequest{
+			Page:      &page,
+			Limit:     &limit,
+			UserID:    &userID,
+			StartDate: &startDate,
+			EndDate:   &endDate,
 		}
 
 		// It should proceed with empty filters
-		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]repository.GetActivityLogsRow{}, nil)
+		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]activitylog_repo.GetActivityLogsRow{}, nil)
 		mockRepo.EXPECT().CountActivityLogs(ctx, gomock.Any()).Return(int64(0), nil)
 
 		resp, err := service.GetActivityLogs(ctx, req)
@@ -156,7 +161,8 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	})
 
 	t.Run("RepoError_GetActivityLogs", func(t *testing.T) {
-		req := dto.GetActivityLogsRequest{Page: 1, Limit: 10}
+		page, limit := 1, 10
+		req := activitylog.GetActivityLogsRequest{Page: &page, Limit: &limit}
 		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return(nil, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
@@ -167,8 +173,9 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	})
 
 	t.Run("RepoError_CountActivityLogs", func(t *testing.T) {
-		req := dto.GetActivityLogsRequest{Page: 1, Limit: 10}
-		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]repository.GetActivityLogsRow{}, nil)
+		page, limit := 1, 10
+		req := activitylog.GetActivityLogsRequest{Page: &page, Limit: &limit}
+		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return([]activitylog_repo.GetActivityLogsRow{}, nil)
 		mockRepo.EXPECT().CountActivityLogs(ctx, gomock.Any()).Return(int64(0), errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
 
@@ -176,5 +183,31 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
+	})
+
+	t.Run("UnmarshalFailure_Details", func(t *testing.T) {
+		page, limit := 1, 10
+		req := activitylog.GetActivityLogsRequest{Page: &page, Limit: &limit}
+
+		repoLogs := []activitylog_repo.GetActivityLogsRow{
+			{
+				ID:         uuid.New(),
+				ActionType: activitylog_repo.LogActionTypeCREATE,
+				EntityType: activitylog_repo.LogEntityTypePRODUCT,
+				Details:    []byte(`{invalid json}`),
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
+			},
+		}
+
+		mockRepo.EXPECT().GetActivityLogs(ctx, gomock.Any()).Return(repoLogs, nil)
+		mockRepo.EXPECT().CountActivityLogs(ctx, gomock.Any()).Return(int64(1), nil)
+
+		resp, err := service.GetActivityLogs(ctx, req)
+
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Len(t, resp.Logs, 1)
+		// Details should be nil if unmarshal fails but error is ignored in code
+		assert.Nil(t, resp.Logs[0].Details)
 	})
 }

@@ -15,10 +15,10 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
+import type { InternalPaymentMethodsPaymentMethodResponse } from './internal-payment-methods-payment-method-response';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { POSKasirInternalDtoPaymentMethodResponse } from './poskasir-internal-dto-payment-method-response';
+import type { POSKasirInternalCommonSuccessResponse } from './poskasir-internal-common-success-response';
 
 /**
  * @type PaymentMethodsGet200Response

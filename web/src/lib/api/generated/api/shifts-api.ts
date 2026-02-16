@@ -22,13 +22,13 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { InternalShiftCashTransactionRequest } from '../models';
+// @ts-ignore
+import type { InternalShiftEndShiftRequest } from '../models';
+// @ts-ignore
+import type { InternalShiftStartShiftRequest } from '../models';
+// @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoCashTransactionRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoEndShiftRequest } from '../models';
-// @ts-ignore
-import type { POSKasirInternalDtoStartShiftRequest } from '../models';
 // @ts-ignore
 import type { ShiftsCashTransactionPost201Response } from '../models';
 // @ts-ignore
@@ -39,13 +39,13 @@ import type { ShiftsCurrentGet200Response } from '../models';
 export const ShiftsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
+         * Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
          * @summary Create a cash transaction (Drop/Expense/In)
-         * @param {POSKasirInternalDtoCashTransactionRequest} request Cash Transaction Request
+         * @param {InternalShiftCashTransactionRequest} request Cash Transaction Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsCashTransactionPost: async (request: POSKasirInternalDtoCashTransactionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        shiftsCashTransactionPost: async (request: InternalShiftCashTransactionRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('shiftsCashTransactionPost', 'request', request)
             const localVarPath = `/shifts/cash-transaction`;
@@ -75,7 +75,7 @@ export const ShiftsApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * 
+         * Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Get current open shift
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -105,13 +105,13 @@ export const ShiftsApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * 
+         * Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary End current shift
-         * @param {POSKasirInternalDtoEndShiftRequest} request End Shift Request
+         * @param {InternalShiftEndShiftRequest} request End Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsEndPost: async (request: POSKasirInternalDtoEndShiftRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        shiftsEndPost: async (request: InternalShiftEndShiftRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('shiftsEndPost', 'request', request)
             const localVarPath = `/shifts/end`;
@@ -141,13 +141,13 @@ export const ShiftsApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * 
+         * Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Start a new shift
-         * @param {POSKasirInternalDtoStartShiftRequest} request Start Shift Request
+         * @param {InternalShiftStartShiftRequest} request Start Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsStartPost: async (request: POSKasirInternalDtoStartShiftRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        shiftsStartPost: async (request: InternalShiftStartShiftRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'request' is not null or undefined
             assertParamExists('shiftsStartPost', 'request', request)
             const localVarPath = `/shifts/start`;
@@ -186,20 +186,20 @@ export const ShiftsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ShiftsApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
+         * Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
          * @summary Create a cash transaction (Drop/Expense/In)
-         * @param {POSKasirInternalDtoCashTransactionRequest} request Cash Transaction Request
+         * @param {InternalShiftCashTransactionRequest} request Cash Transaction Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async shiftsCashTransactionPost(request: POSKasirInternalDtoCashTransactionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCashTransactionPost201Response>> {
+        async shiftsCashTransactionPost(request: InternalShiftCashTransactionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCashTransactionPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.shiftsCashTransactionPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShiftsApi.shiftsCashTransactionPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Get current open shift
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -211,26 +211,26 @@ export const ShiftsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary End current shift
-         * @param {POSKasirInternalDtoEndShiftRequest} request End Shift Request
+         * @param {InternalShiftEndShiftRequest} request End Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async shiftsEndPost(request: POSKasirInternalDtoEndShiftRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCurrentGet200Response>> {
+        async shiftsEndPost(request: InternalShiftEndShiftRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCurrentGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.shiftsEndPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShiftsApi.shiftsEndPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Start a new shift
-         * @param {POSKasirInternalDtoStartShiftRequest} request Start Shift Request
+         * @param {InternalShiftStartShiftRequest} request Start Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async shiftsStartPost(request: POSKasirInternalDtoStartShiftRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCurrentGet200Response>> {
+        async shiftsStartPost(request: InternalShiftStartShiftRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ShiftsCurrentGet200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.shiftsStartPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ShiftsApi.shiftsStartPost']?.[localVarOperationServerIndex]?.url;
@@ -246,17 +246,17 @@ export const ShiftsApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = ShiftsApiFp(configuration)
     return {
         /**
-         * 
+         * Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
          * @summary Create a cash transaction (Drop/Expense/In)
-         * @param {POSKasirInternalDtoCashTransactionRequest} request Cash Transaction Request
+         * @param {InternalShiftCashTransactionRequest} request Cash Transaction Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsCashTransactionPost(request: POSKasirInternalDtoCashTransactionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCashTransactionPost201Response> {
+        shiftsCashTransactionPost(request: InternalShiftCashTransactionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCashTransactionPost201Response> {
             return localVarFp.shiftsCashTransactionPost(request, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Get current open shift
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -265,23 +265,23 @@ export const ShiftsApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.shiftsCurrentGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary End current shift
-         * @param {POSKasirInternalDtoEndShiftRequest} request End Shift Request
+         * @param {InternalShiftEndShiftRequest} request End Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsEndPost(request: POSKasirInternalDtoEndShiftRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCurrentGet200Response> {
+        shiftsEndPost(request: InternalShiftEndShiftRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCurrentGet200Response> {
             return localVarFp.shiftsEndPost(request, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
          * @summary Start a new shift
-         * @param {POSKasirInternalDtoStartShiftRequest} request Start Shift Request
+         * @param {InternalShiftStartShiftRequest} request Start Shift Request
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        shiftsStartPost(request: POSKasirInternalDtoStartShiftRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCurrentGet200Response> {
+        shiftsStartPost(request: InternalShiftStartShiftRequest, options?: RawAxiosRequestConfig): AxiosPromise<ShiftsCurrentGet200Response> {
             return localVarFp.shiftsStartPost(request, options).then((request) => request(axios, basePath));
         },
     };
@@ -292,18 +292,18 @@ export const ShiftsApiFactory = function (configuration?: Configuration, basePat
  */
 export class ShiftsApi extends BaseAPI {
     /**
-     * 
+     * Record a manual cash entry or exit within the active shift (Roles: admin, manager, cashier)
      * @summary Create a cash transaction (Drop/Expense/In)
-     * @param {POSKasirInternalDtoCashTransactionRequest} request Cash Transaction Request
+     * @param {InternalShiftCashTransactionRequest} request Cash Transaction Request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public shiftsCashTransactionPost(request: POSKasirInternalDtoCashTransactionRequest, options?: RawAxiosRequestConfig) {
+    public shiftsCashTransactionPost(request: InternalShiftCashTransactionRequest, options?: RawAxiosRequestConfig) {
         return ShiftsApiFp(this.configuration).shiftsCashTransactionPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Check for and retrieve the details of an active shift session for the authenticated user (Roles: admin, manager, cashier)
      * @summary Get current open shift
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -313,24 +313,24 @@ export class ShiftsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Close the active shift session for the authenticated user (Roles: admin, manager, cashier)
      * @summary End current shift
-     * @param {POSKasirInternalDtoEndShiftRequest} request End Shift Request
+     * @param {InternalShiftEndShiftRequest} request End Shift Request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public shiftsEndPost(request: POSKasirInternalDtoEndShiftRequest, options?: RawAxiosRequestConfig) {
+    public shiftsEndPost(request: InternalShiftEndShiftRequest, options?: RawAxiosRequestConfig) {
         return ShiftsApiFp(this.configuration).shiftsEndPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Create a new shift session for the authenticated user (Roles: admin, manager, cashier)
      * @summary Start a new shift
-     * @param {POSKasirInternalDtoStartShiftRequest} request Start Shift Request
+     * @param {InternalShiftStartShiftRequest} request Start Shift Request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public shiftsStartPost(request: POSKasirInternalDtoStartShiftRequest, options?: RawAxiosRequestConfig) {
+    public shiftsStartPost(request: InternalShiftStartShiftRequest, options?: RawAxiosRequestConfig) {
         return ShiftsApiFp(this.configuration).shiftsStartPost(request, options).then((request) => request(this.axios, this.basePath));
     }
 }

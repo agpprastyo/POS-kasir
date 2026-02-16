@@ -2,21 +2,20 @@ package categories
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/dto"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/validator"
 	"errors"
-	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type ICtgHandler interface {
-	GetAllCategoriesHandler(c *fiber.Ctx) error
-	GetCategoryCountHandler(c *fiber.Ctx) error
-	CreateCategoryHandler(c *fiber.Ctx) error
-	GetCategoryByIDHandler(c *fiber.Ctx) error
-	UpdateCategoryHandler(c *fiber.Ctx) error
-	DeleteCategoryHandler(c *fiber.Ctx) error
+	GetAllCategoriesHandler(c fiber.Ctx) error
+	CreateCategoryHandler(c fiber.Ctx) error
+	GetCategoryByIDHandler(c fiber.Ctx) error
+	UpdateCategoryHandler(c fiber.Ctx) error
+	DeleteCategoryHandler(c fiber.Ctx) error
+	GetCategoryCountHandler(c fiber.Ctx) error
 }
 
 func NewCtgHandler(service ICtgService, log logger.ILogger) ICtgHandler {
@@ -32,32 +31,31 @@ type CtgHandler struct {
 }
 
 // DeleteCategoryHandler
-// @Summary Delete category by ID
-// @Description Delete category by ID
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Param id path int true "Category ID"
-// @Success 200 {object} common.SuccessResponse "Category deleted successfully"
-// @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
-// @Failure 404 {object} common.ErrorResponse "Category not found"
-// @Failure 409 {object} common.ErrorResponse "Category cannot be deleted because it is in use"
-// @Failure 500 {object} common.ErrorResponse "Failed to delete category"
-// @x-roles ["admin", "manager"]
-// @Router /categories/{id} [delete]
-func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	idStr := c.Params("id")
+// @Summary      Delete category by ID
+// @Description  Delete category by ID (Roles: admin, manager)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Category ID"
+// @Success      200 {object} common.SuccessResponse "Category deleted successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid category ID format"
+// @Failure      404 {object} common.ErrorResponse "Category not found"
+// @Failure      409 {object} common.ErrorResponse "Category cannot be deleted because it is in use"
+// @Failure      500 {object} common.ErrorResponse "Failed to delete category"
+// @x-roles      ["admin", "manager"]
+// @Router       /categories/{id} [delete]
+func (h *CtgHandler) DeleteCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 
-	categoryID, err := strconv.Atoi(idStr)
-	if err != nil {
-		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", idStr)
+	categoryID := fiber.Params[int](c, "id")
+	if categoryID == 0 || c.Params("id") == "" {
+		h.log.Warnf("DeleteCategoryHandler | Invalid category ID format provided: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
 	}
 
-	err = h.service.DeleteCategory(ctx, int32(categoryID))
+	err := h.service.DeleteCategory(ctx, int32(categoryID))
 	if err != nil {
 		h.log.Warnf("DeleteCategoryHandler | Failed to delete category: %v, categoryID: %d", err, categoryID)
 		switch {
@@ -82,52 +80,49 @@ func (h *CtgHandler) DeleteCategoryHandler(c *fiber.Ctx) error {
 }
 
 // UpdateCategoryHandler
-// @Summary Update category by ID
-// @Description Update category by ID
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Param id path int true "Category ID"
-// @Param category body dto.CreateCategoryRequest true "Category details"
-// @Success 200 {object} common.SuccessResponse "Category deleted successfully"
-// @Failure 400 {object} common.ErrorResponse "Invalid request body"
-// @Failure 404 {object} common.ErrorResponse "Category not found"
-// @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
-// @Failure 500 {object} common.ErrorResponse "Failed to update category"
-// @x-roles ["admin", "manager"]
-// @Router /categories/{id} [put]
-func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category ID is required",
-		})
-	}
-
-	categoryID, err := strconv.Atoi(id)
-	if err != nil {
-		h.log.Warnf("UpdateCategoryHandler | Invalid category ID format: %v", err)
+// @Summary      Update category by ID
+// @Description  Update category by ID (Roles: admin, manager)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Category ID"
+// @Param        category body CreateCategoryRequest true "Category details"
+// @Success      200 {object} common.SuccessResponse{data=CategoryResponse} "Category updated successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body"
+// @Failure      404 {object} common.ErrorResponse "Category not found"
+// @Failure      409 {object} common.ErrorResponse "Category with this name already exists"
+// @Failure      500 {object} common.ErrorResponse "Failed to update category"
+// @x-roles      ["admin", "manager"]
+// @Router       /categories/{id} [put]
+func (h *CtgHandler) UpdateCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	id := fiber.Params[int](c, "id")
+	if id == 0 || c.Params("id") == "" {
+		h.log.Warnf("UpdateCategoryHandler | Invalid category ID format: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
 	}
 
-	req := new(dto.CreateCategoryRequest)
-	if err := c.BodyParser(req); err != nil {
+	req := new(CreateCategoryRequest)
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Warnf("UpdateCategoryHandler | Failed to parse request body: %v", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
 		})
 	}
 
-	if req.Name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category name is required",
-		})
-	}
-
-	category, err := h.service.UpdateCategory(ctx, int32(categoryID), *req)
+	category, err := h.service.UpdateCategory(ctx, int32(id), *req)
 	if err != nil {
 		switch {
 		case errors.Is(err, common.ErrCategoryNotFound):
@@ -153,30 +148,23 @@ func (h *CtgHandler) UpdateCategoryHandler(c *fiber.Ctx) error {
 }
 
 // GetCategoryByIDHandler
-// @Summary Get category by ID
-// @Description Get category by ID
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Param id path int true "Category ID"
-// @Success 200 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category retrieved successfully"
-// @Failure 400 {object} common.ErrorResponse "Invalid category ID format"
-// @Failure 404 {object} common.ErrorResponse "Category not found"
-// @Failure 500 {object} common.ErrorResponse "Failed to retrieve category"
-// @x-roles ["admin", "manager"]
-// @Router /categories/{id} [get]
-func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category ID is required",
-		})
-	}
-
-	categoryID, err := strconv.Atoi(id)
-	if err != nil {
-		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", id)
+// @Summary      Get category by ID
+// @Description  Get category by ID (Roles: admin, manager)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Category ID"
+// @Success      200 {object} common.SuccessResponse{data=CategoryResponse} "Category retrieved successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid category ID format"
+// @Failure      404 {object} common.ErrorResponse "Category not found"
+// @Failure      500 {object} common.ErrorResponse "Failed to retrieve category"
+// @x-roles      ["admin", "manager"]
+// @Router       /categories/{id} [get]
+func (h *CtgHandler) GetCategoryByIDHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	categoryID := fiber.Params[int](c, "id")
+	if categoryID == 0 || c.Params("id") == "" {
+		h.log.Warnf("GetCategoryByIDHandler | Invalid category ID format: %s", c.Params("id"))
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid category ID format. ID must be a number.",
 		})
@@ -203,31 +191,35 @@ func (h *CtgHandler) GetCategoryByIDHandler(c *fiber.Ctx) error {
 }
 
 // CreateCategoryHandler
-// @Summary Create a new category
-// @Description Create a new category
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Param category body dto.CreateCategoryRequest true "Category details"
-// @Success 201 {object} common.SuccessResponse{data=dto.CategoryResponse} "Category created successfully"
-// @Failure 400 {object} common.ErrorResponse "Invalid request body"
-// @Failure 409 {object} common.ErrorResponse "Category with this name already exists"
-// @Failure 500 {object} common.ErrorResponse "Failed to create category"
-// @x-roles ["admin", "manager"]
-// @Router /categories [post]
-func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	req := new(dto.CreateCategoryRequest)
-	if err := c.BodyParser(req); err != nil {
+// @Summary      Create a new category
+// @Description  Create a new category (Roles: admin, manager)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Param        category body CreateCategoryRequest true "Category details"
+// @Success      201 {object} common.SuccessResponse{data=CategoryResponse} "Category created successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body"
+// @Failure      409 {object} common.ErrorResponse "Category with this name already exists"
+// @Failure      500 {object} common.ErrorResponse "Failed to create category"
+// @x-roles      ["admin", "manager"]
+// @Router       /categories [post]
+func (h *CtgHandler) CreateCategoryHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	req := new(CreateCategoryRequest)
+	if err := c.Bind().Body(req); err != nil {
 		h.log.Warnf("CreateCategoryHandler | Failed to parse request body: %v", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid request body",
-		})
-	}
-
-	if req.Name == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
-			Message: "Category name is required",
 		})
 	}
 
@@ -253,22 +245,33 @@ func (h *CtgHandler) CreateCategoryHandler(c *fiber.Ctx) error {
 }
 
 // GetAllCategoriesHandler
-// @Summary Get all categories
-// @Description Get all categories
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Param limit query int false "Number of categories to return"
-// @Param offset query int false "Offset for pagination"
-// @Success 200 {object} common.SuccessResponse{data=[]dto.CategoryWithCountResponse} "Categories retrieved successfully"
-// @Failure 400 {object} common.ErrorResponse "Invalid query parameters"
-// @Failure 500 {object} common.ErrorResponse "Failed to retrieve categories"
-// @Router /categories [get]
-func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
-	req := new(dto.ListCategoryRequest)
-	if err := c.QueryParser(req); err != nil {
+// @Summary      Get all categories
+// @Description  Get all categories with product count (Roles: admin, manager, cashier)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Param        limit query int false "Number of categories to return"
+// @Param        offset query int false "Offset for pagination"
+// @Success      200 {object} common.SuccessResponse{data=[]CategoryWithCountResponse} "Categories retrieved successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid query parameters"
+// @Failure      500 {object} common.ErrorResponse "Failed to retrieve categories"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /categories [get]
+func (h *CtgHandler) GetAllCategoriesHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	req := new(ListCategoryRequest)
+	if err := c.Bind().Query(req); err != nil {
 		h.log.Warnf("GetAllCategoriesHandler | Failed to parse query parameters: %v", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 			Message: "Invalid query parameters",
 		})
@@ -301,16 +304,17 @@ func (h *CtgHandler) GetAllCategoriesHandler(c *fiber.Ctx) error {
 }
 
 // GetCategoryCountHandler
-// @Summary Get total number of categories
-// @Description Get total number of categories
-// @Tags Categories
-// @Accept json
-// @Produce json
-// @Success 200 {object} common.SuccessResponse{data=int} "Category count retrieved successfully"
-// @Failure 500 {object} common.ErrorResponse "Failed to retrieve category count"
-// @Router /categories/count [get]
-func (h *CtgHandler) GetCategoryCountHandler(c *fiber.Ctx) error {
-	ctx := c.Context()
+// @Summary      Get total number of categories
+// @Description  Get total number of categories with products (Roles: admin, manager, cashier)
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse{data=[]CategoryWithCountResponse} "Category count retrieved successfully"
+// @Failure      500 {object} common.ErrorResponse "Failed to retrieve category count"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /categories/count [get]
+func (h *CtgHandler) GetCategoryCountHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
 	count, err := h.service.GetCategoryWithProductCount(ctx)
 	if err != nil {
 		h.log.Warnf("GetCategoryCountHandler | Failed to get category count: %v", err)

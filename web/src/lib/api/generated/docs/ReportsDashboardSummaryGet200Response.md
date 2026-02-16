@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoDashboardSummaryResponse**](POSKasirInternalDtoDashboardSummaryResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalReportDashboardSummaryResponse**](InternalReportDashboardSummaryResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

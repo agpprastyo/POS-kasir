@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoUsersResponse**](POSKasirInternalDtoUsersResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalUserUsersResponse**](InternalUserUsersResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

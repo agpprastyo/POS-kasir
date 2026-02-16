@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoPagedOrderResponse**](POSKasirInternalDtoPagedOrderResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalOrdersPagedOrderResponse**](InternalOrdersPagedOrderResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

@@ -9,6 +9,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 # **cancellationReasonsGet**
 > CancellationReasonsGet200Response cancellationReasonsGet()
 
+Get a list of all active cancellation reasons for orders
 
 ### Example
 
@@ -39,7 +40,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: */*
+ - **Accept**: application/json
 
 
 ### HTTP response details

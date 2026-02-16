@@ -31,7 +31,7 @@ import type { POSKasirInternalCommonErrorResponse } from '../models';
 export const CancellationReasonsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
+         * Get a list of all active cancellation reasons for orders
          * @summary List cancellation reasons
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -70,7 +70,7 @@ export const CancellationReasonsApiFp = function(configuration?: Configuration) 
     const localVarAxiosParamCreator = CancellationReasonsApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
+         * Get a list of all active cancellation reasons for orders
          * @summary List cancellation reasons
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -91,7 +91,7 @@ export const CancellationReasonsApiFactory = function (configuration?: Configura
     const localVarFp = CancellationReasonsApiFp(configuration)
     return {
         /**
-         * 
+         * Get a list of all active cancellation reasons for orders
          * @summary List cancellation reasons
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -107,7 +107,7 @@ export const CancellationReasonsApiFactory = function (configuration?: Configura
  */
 export class CancellationReasonsApi extends BaseAPI {
     /**
-     * 
+     * Get a list of all active cancellation reasons for orders
      * @summary List cancellation reasons
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

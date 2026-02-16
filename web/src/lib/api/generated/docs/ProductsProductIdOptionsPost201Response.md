@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**POSKasirInternalDtoProductOptionResponse**](POSKasirInternalDtoProductOptionResponse.md) |  | [optional] [default to undefined]
+**data** | [**InternalProductsProductOptionResponse**](InternalProductsProductOptionResponse.md) |  | [optional] [default to undefined]
 **message** | **string** |  | [optional] [default to undefined]
 
 ## Example

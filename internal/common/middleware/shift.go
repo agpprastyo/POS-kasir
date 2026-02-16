@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"POS-kasir/internal/common"
-	"POS-kasir/internal/repository"
+	shift_repo "POS-kasir/internal/shift/repository"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
@@ -16,8 +16,8 @@ type ShiftCache interface {
 	SetOpen(userID uuid.UUID, open bool)
 }
 
-func ShiftMiddleware(queries repository.Querier, cache ShiftCache) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+func ShiftMiddleware(queries shift_repo.Querier, cache ShiftCache) fiber.Handler {
+	return func(c fiber.Ctx) error {
 		userID, ok := c.Locals("user_id").(uuid.UUID)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(common.ErrorResponse{
@@ -37,7 +37,7 @@ func ShiftMiddleware(queries repository.Querier, cache ShiftCache) fiber.Handler
 		}
 
 		// Check DB if not in cache
-		_, err := queries.GetOpenShiftByUserID(c.Context(), userID)
+		_, err := queries.GetOpenShiftByUserID(c.RequestCtx(), userID)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				cache.SetOpen(userID, false) // Cache the absence of shift
@@ -54,3 +54,5 @@ func ShiftMiddleware(queries repository.Querier, cache ShiftCache) fiber.Handler
 		return c.Next()
 	}
 }
+
+// fiber:context-methods migrated

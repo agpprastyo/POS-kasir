@@ -1,7 +1,7 @@
 package seeder
 
 import (
-	"POS-kasir/internal/repository"
+	payment_methods_repo "POS-kasir/internal/payment_methods/repository"
 	"POS-kasir/pkg/logger"
 	"context"
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func SeedPaymentMethods(ctx context.Context, q repository.Querier, log logger.ILogger) error {
+func SeedPaymentMethods(ctx context.Context, q payment_methods_repo.Querier, log logger.ILogger) error {
 	log.Info("Seeding payment methods...")
 
 	defaultMethods := []string{

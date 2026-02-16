@@ -46,10 +46,10 @@ import {
     useUpdatePromotionMutation
 } from '@/lib/api/query/promotions'
 import {
-    POSKasirInternalRepositoryDiscountType,
-    POSKasirInternalRepositoryPromotionScope,
-    POSKasirInternalRepositoryPromotionRuleType,
-    POSKasirInternalRepositoryPromotionTargetType
+    POSKasirInternalPromotionsRepositoryDiscountType,
+    POSKasirInternalPromotionsRepositoryPromotionScope,
+    POSKasirInternalPromotionsRepositoryPromotionRuleType,
+    POSKasirInternalPromotionsRepositoryPromotionTargetType
 } from '@/lib/api/generated'
 import { useProductsListQuery } from '@/lib/api/query/products'
 import { useCategoriesListQuery } from '@/lib/api/query/categories'
@@ -57,20 +57,20 @@ import { useCategoriesListQuery } from '@/lib/api/query/categories'
 const promotionSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     description: z.string().optional(),
-    scope: z.enum(POSKasirInternalRepositoryPromotionScope),
-    discount_type: z.enum(POSKasirInternalRepositoryDiscountType),
+    scope: z.enum(POSKasirInternalPromotionsRepositoryPromotionScope),
+    discount_type: z.enum(POSKasirInternalPromotionsRepositoryDiscountType),
     discount_value: z.coerce.number().min(0),
     max_discount_amount: z.coerce.number().optional(),
     start_date: z.date(),
     end_date: z.date(),
     is_active: z.boolean().default(true),
     rules: z.array(z.object({
-        rule_type: z.enum(POSKasirInternalRepositoryPromotionRuleType),
+        rule_type: z.enum(POSKasirInternalPromotionsRepositoryPromotionRuleType),
         rule_value: z.string().min(1, "Value required"),
         description: z.string().optional()
     })).default([]),
     targets: z.array(z.object({
-        target_type: z.enum(POSKasirInternalRepositoryPromotionTargetType),
+        target_type: z.enum(POSKasirInternalPromotionsRepositoryPromotionTargetType),
         target_id: z.string().min(1, "ID required")
     })).default([])
 })
@@ -99,8 +99,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
         defaultValues: {
             name: '',
             description: '',
-            scope: POSKasirInternalRepositoryPromotionScope.PromotionScopeORDER,
-            discount_type: POSKasirInternalRepositoryDiscountType.DiscountTypePercentage,
+            scope: POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER,
+            discount_type: POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage,
             discount_value: 0,
             max_discount_amount: 0,
             start_date: new Date(),
@@ -148,8 +148,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                 form.reset({
                     name: '',
                     description: '',
-                    scope: POSKasirInternalRepositoryPromotionScope.PromotionScopeORDER,
-                    discount_type: POSKasirInternalRepositoryDiscountType.DiscountTypePercentage,
+                    scope: POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER,
+                    discount_type: POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage,
                     discount_value: 0,
                     max_discount_amount: 0,
                     start_date: new Date(),
@@ -223,8 +223,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value={POSKasirInternalRepositoryPromotionScope.PromotionScopeORDER}>{t('promotions.scope.ORDER')}</SelectItem>
-                                                <SelectItem value={POSKasirInternalRepositoryPromotionScope.PromotionScopeITEM}>{t('promotions.scope.ITEM')}</SelectItem>
+                                                <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER}>{t('promotions.scope.ORDER')}</SelectItem>
+                                                <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeITEM}>{t('promotions.scope.ITEM')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -261,8 +261,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value={POSKasirInternalRepositoryDiscountType.DiscountTypePercentage}>{t('promotions.types.percentage')}</SelectItem>
-                                                <SelectItem value={POSKasirInternalRepositoryDiscountType.DiscountTypeFixedAmount}>{t('promotions.types.fixed_amount')}</SelectItem>
+                                                <SelectItem value={POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage}>{t('promotions.types.percentage')}</SelectItem>
+                                                <SelectItem value={POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypeFixedAmount}>{t('promotions.types.fixed_amount')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -386,7 +386,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-medium">{t('promotions.form.rules')}</h3>
                                 <Button type="button" variant="outline" size="sm" onClick={() => appendRule({
-                                    rule_type: POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT,
+                                    rule_type: POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT,
                                     rule_value: '0'
                                 })}>
                                     <Plus className="mr-2 h-4 w-4" /> {t('promotions.form.add_rule')}
@@ -407,9 +407,9 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value={POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT}>Min Order Amount</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT}>Required Product</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY}>Required Category</SelectItem>
+                                                        <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT}>Min Order Amount</SelectItem>
+                                                        <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT}>Required Product</SelectItem>
+                                                        <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY}>Required Category</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </FormItem>
@@ -421,7 +421,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         render={({ field }) => {
                                             const ruleType = form.watch(`rules.${index}.rule_type`)
 
-                                            if (ruleType === POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT) {
+                                            if (ruleType === POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT) {
                                                 return (
                                                     <FormItem className="flex-1">
                                                         <FormLabel className="text-xs">{t('promotions.form.rule_value')}</FormLabel>
@@ -441,7 +441,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 )
                                             }
 
-                                            if (ruleType === POSKasirInternalRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY) {
+                                            if (ruleType === POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY) {
                                                 return (
                                                     <FormItem className="flex-1">
                                                         <FormLabel className="text-xs">{t('promotions.form.rule_value')}</FormLabel>
@@ -483,7 +483,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-medium">{t('promotions.form.targets')}</h3>
                                 <Button type="button" variant="outline" size="sm" onClick={() => appendTarget({
-                                    target_type: POSKasirInternalRepositoryPromotionTargetType.PromotionTargetTypePRODUCT,
+                                    target_type: POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT,
                                     target_id: ''
                                 })}>
                                     <Plus className="mr-2 h-4 w-4" /> {t('promotions.form.add_target')}
@@ -504,8 +504,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value={POSKasirInternalRepositoryPromotionTargetType.PromotionTargetTypePRODUCT}>Product</SelectItem>
-                                                        <SelectItem value={POSKasirInternalRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY}>Category</SelectItem>
+                                                        <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT}>Product</SelectItem>
+                                                        <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY}>Category</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </FormItem>
@@ -517,7 +517,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         render={({ field }) => {
                                             const targetType = form.watch(`targets.${index}.target_type`)
 
-                                            if (targetType === POSKasirInternalRepositoryPromotionTargetType.PromotionTargetTypePRODUCT) {
+                                            if (targetType === POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT) {
                                                 return (
                                                     <FormItem className="flex-1">
                                                         <FormLabel className="text-xs">{t('promotions.form.target_id')}</FormLabel>
@@ -537,7 +537,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 )
                                             }
 
-                                            if (targetType === POSKasirInternalRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY) {
+                                            if (targetType === POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY) {
                                                 return (
                                                     <FormItem className="flex-1">
                                                         <FormLabel className="text-xs">{t('promotions.form.target_id')}</FormLabel>

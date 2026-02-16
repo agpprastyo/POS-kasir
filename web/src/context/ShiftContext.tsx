@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState } from "react";
 import { useGetCurrentShift } from "@/hooks/useShift";
-import { POSKasirInternalDtoShiftResponse } from "@/lib/api/generated";
+import { InternalShiftShiftResponse } from "@/lib/api/generated";
 import { useAuth } from "@/context/AuthContext";
 
 interface ShiftContextType {
-    shift: POSKasirInternalDtoShiftResponse | null | undefined;
+    shift: InternalShiftShiftResponse | null | undefined;
     isLoading: boolean;
     isShiftOpen: boolean;
     openShiftModalOpen: boolean;

@@ -1,20 +1,20 @@
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { authApi } from "../../api/client.ts";
 import {
-    POSKasirInternalDtoLoginRequest,
-    POSKasirInternalDtoUpdatePasswordRequest,
-    POSKasirInternalDtoProfileResponse,
-    POSKasirInternalDtoLoginResponse,
+    InternalUserLoginRequest,
+    InternalUserUpdatePasswordRequest,
+    InternalUserProfileResponse,
+    InternalUserLoginResponse,
     POSKasirInternalCommonErrorResponse
 } from "@/lib/api/generated";
 import { AxiosError } from "axios";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 
 // --- QUERY: current user (/auth/me) ---
 export const meQueryOptions = () =>
     queryOptions<
-        POSKasirInternalDtoProfileResponse,
+        InternalUserProfileResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['auth', 'me'],
@@ -35,9 +35,9 @@ export const useLoginMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        POSKasirInternalDtoLoginResponse,
+        InternalUserLoginResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoLoginRequest
+        InternalUserLoginRequest
     >({
         mutationKey: ['auth', 'login'],
         mutationFn: async (body) => {
@@ -83,7 +83,7 @@ export const useUpdateAvatarMutation = () => {
     const qc = useQueryClient()
 
     return useMutation<
-        POSKasirInternalDtoProfileResponse,
+        InternalUserProfileResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>,
         File
     >({
@@ -109,11 +109,11 @@ export const useUpdatePasswordMutation = () => {
     return useMutation<
         any,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoUpdatePasswordRequest
+        InternalUserUpdatePasswordRequest
     >({
         mutationKey: ['auth', 'update-password'],
         mutationFn: async (payload) => {
-            const res = await authApi.authMeUpdatePasswordPost(payload)
+            const res = await authApi.authMePasswordPut(payload)
             return (res.data as any).data;
         },
         onSuccess: async () => {

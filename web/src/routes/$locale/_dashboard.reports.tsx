@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { meQueryOptions } from '@/lib/api/query/auth'
 import { queryClient } from '@/lib/queryClient'
-import { POSKasirInternalRepositoryUserRole } from '@/lib/api/generated/models/poskasir-internal-repository-user-role'
+import { POSKasirInternalUserRepositoryUserRole } from '@/lib/api/generated'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,9 +16,9 @@ export const Route = createFileRoute('/$locale/_dashboard/reports')({
     beforeLoad: async () => {
         const user = await queryClient.ensureQueryData(meQueryOptions())
 
-        const allowedRoles: POSKasirInternalRepositoryUserRole[] = [
-            POSKasirInternalRepositoryUserRole.UserRoleAdmin,
-            POSKasirInternalRepositoryUserRole.UserRoleManager
+        const allowedRoles: POSKasirInternalUserRepositoryUserRole[] = [
+            POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
+            POSKasirInternalUserRepositoryUserRole.UserRoleManager
         ]
 
         if (!user.role || !allowedRoles.includes(user.role)) {

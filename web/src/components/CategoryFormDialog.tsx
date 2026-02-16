@@ -1,4 +1,4 @@
-import { POSKasirInternalDtoCreateCategoryRequest } from "@/lib/api/generated"
+import { InternalCategoriesCreateCategoryRequest } from "@/lib/api/generated"
 import { Category, useCreateCategoryMutation, useUpdateCategoryMutation } from "@/lib/api/query/categories"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog"
 import { Loader2 } from "lucide-react"
@@ -42,7 +42,7 @@ export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        const payload: POSKasirInternalDtoCreateCategoryRequest = {
+        const payload: InternalCategoriesCreateCategoryRequest = {
             name: formData.name
         }
 

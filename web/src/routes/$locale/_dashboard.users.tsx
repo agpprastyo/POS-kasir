@@ -3,7 +3,7 @@ import {useSuspenseQuery} from '@tanstack/react-query'
 import {z} from 'zod'
 import  {useState} from 'react'
 import {usersListQueryOptions} from '@/lib/api/query/user'
-import {POSKasirInternalDtoProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum} from '@/lib/api/generated'
+import {InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum} from '@/lib/api/generated'
 import {queryClient} from '@/lib/queryClient'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -64,7 +64,7 @@ function UsersPage() {
     const pagination = usersQuery.data.pagination
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<POSKasirInternalDtoProfileResponse | null>(null)
+    const [selectedUser, setSelectedUser] = useState<InternalUserProfileResponse | null>(null)
 
     // Handlers
     const handleSearch = (term: string) => {
@@ -89,7 +89,7 @@ function UsersPage() {
         setIsDialogOpen(true)
     }
 
-    const openEditModal = (user: POSKasirInternalDtoProfileResponse) => {
+    const openEditModal = (user: InternalUserProfileResponse) => {
         setSelectedUser(user)
         setIsDialogOpen(true)
     }

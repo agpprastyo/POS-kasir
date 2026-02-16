@@ -1,4 +1,4 @@
-import {POSKasirInternalDtoProfileResponse} from "@/lib/api/generated";
+import {InternalUserProfileResponse} from "@/lib/api/generated";
 import {useTranslation} from "react-i18next";
 import {useDeleteUserMutation, useToggleUserStatusMutation} from "@/lib/api/query/user.ts";
 import React, {useState} from "react";
@@ -23,7 +23,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 
-export function UserActions({user, onEdit}: { user: POSKasirInternalDtoProfileResponse, onEdit: () => void }) {
+export function UserActions({user, onEdit}: { user: InternalUserProfileResponse, onEdit: () => void }) {
     const {t} = useTranslation()
     const deleteMutation = useDeleteUserMutation()
     const toggleMutation = useToggleUserStatusMutation()

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePrinterSettingsQuery, useUpdatePrinterSettingsMutation, useTestPrintMutation } from "@/lib/api/query/settings"
+import { InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum } from "@/lib/api/generated"
 import { Loader2, Printer } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
@@ -22,7 +23,7 @@ export function PrinterSettingsCard() {
     useEffect(() => {
         if (settings) {
             setConnection(settings.connection || "")
-            setPaperWidth(settings.paper_width || "58")
+            setPaperWidth(settings.paper_width || "58mm")
             setAutoPrint(settings.auto_print || false)
         }
     }, [settings])
@@ -30,7 +31,7 @@ export function PrinterSettingsCard() {
     const handleSave = () => {
         updateMutation.mutate({
             connection: connection,
-            paper_width: paperWidth,
+            paper_width: paperWidth as InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum,
             auto_print: autoPrint
         }, {
             onSuccess: () => {
@@ -90,8 +91,8 @@ export function PrinterSettingsCard() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="58">58mm</SelectItem>
-                                <SelectItem value="80">80mm</SelectItem>
+                                <SelectItem value="58mm">58mm</SelectItem>
+                                <SelectItem value="80mm">80mm</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

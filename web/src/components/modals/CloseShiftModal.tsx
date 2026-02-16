@@ -8,7 +8,7 @@ import { useShiftContext } from "@/context/ShiftContext";
 import { useEndShift } from "@/hooks/useShift";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { POSKasirInternalDtoShiftResponse } from "@/lib/api/generated";
+import { InternalShiftShiftResponse } from "@/lib/api/generated";
 
 const endShiftSchema = z.object({
     actualCashEnd: z.coerce.number().min(0, "Actual cash must be non-negative"),
@@ -20,7 +20,7 @@ type EndShiftForm = z.infer<typeof endShiftSchema>;
 export const CloseShiftModal: React.FC = () => {
     const { closeShiftModalOpen, setCloseShiftModalOpen } = useShiftContext();
     const { mutate: endShift, isPending } = useEndShift();
-    const [summary, setSummary] = useState<POSKasirInternalDtoShiftResponse | null>(null);
+    const [summary, setSummary] = useState<InternalShiftShiftResponse | null>(null);
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm<EndShiftForm>({
         resolver: zodResolver(endShiftSchema) as any,

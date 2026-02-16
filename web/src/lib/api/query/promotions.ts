@@ -2,12 +2,12 @@ import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient }
 import { promotionsApi } from "../../api/client"
 import {
     POSKasirInternalCommonErrorResponse,
-    POSKasirInternalDtoCreatePromotionRequest,
-    POSKasirInternalDtoUpdatePromotionRequest,
-    POSKasirInternalRepositoryDiscountType,
-    POSKasirInternalRepositoryPromotionRuleType,
-    POSKasirInternalRepositoryPromotionScope,
-    POSKasirInternalRepositoryPromotionTargetType
+    InternalPromotionsCreatePromotionRequest,
+    InternalPromotionsUpdatePromotionRequest,
+    POSKasirInternalPromotionsRepositoryDiscountType,
+    POSKasirInternalPromotionsRepositoryPromotionRuleType,
+    POSKasirInternalPromotionsRepositoryPromotionScope,
+    POSKasirInternalPromotionsRepositoryPromotionTargetType
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -15,14 +15,14 @@ import { useRBAC } from '@/lib/auth/rbac'
 
 export interface PromotionRuleResponse {
     id: string
-    rule_type: POSKasirInternalRepositoryPromotionRuleType
+    rule_type: POSKasirInternalPromotionsRepositoryPromotionRuleType
     rule_value: string
     description?: string
 }
 
 export interface PromotionTargetResponse {
     id: string
-    target_type: POSKasirInternalRepositoryPromotionTargetType
+    target_type: POSKasirInternalPromotionsRepositoryPromotionTargetType
     target_id: string
 }
 
@@ -30,8 +30,8 @@ export interface Promotion {
     id: string
     name: string
     description?: string
-    scope: POSKasirInternalRepositoryPromotionScope
-    discount_type: POSKasirInternalRepositoryDiscountType
+    scope: POSKasirInternalPromotionsRepositoryPromotionScope
+    discount_type: POSKasirInternalPromotionsRepositoryDiscountType
     discount_value: number
     max_discount_amount?: number
     start_date: string
@@ -134,7 +134,7 @@ export const useCreatePromotionMutation = () => {
     const mutation = useMutation<
         Promotion,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        POSKasirInternalDtoCreatePromotionRequest
+        InternalPromotionsCreatePromotionRequest
     >({
         mutationKey: ['promotions', 'create'],
         mutationFn: async (body) => {
@@ -162,7 +162,7 @@ export const useUpdatePromotionMutation = () => {
     const mutation = useMutation<
         Promotion,
         AxiosError<POSKasirInternalCommonErrorResponse>,
-        { id: string; body: POSKasirInternalDtoUpdatePromotionRequest }
+        { id: string; body: InternalPromotionsUpdatePromotionRequest }
     >({
         mutationKey: ['promotions', 'update'],
         mutationFn: async ({ id, body }) => {

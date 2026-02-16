@@ -1,8 +1,8 @@
 // --- FORM DIALOG (CREATE / EDIT) ---
 import {
-    POSKasirInternalDtoCreateUserRequest,
-    POSKasirInternalDtoProfileResponse,
-    POSKasirInternalDtoUpdateUserRequest,
+    InternalUserCreateUserRequest,
+    InternalUserProfileResponse,
+    InternalUserUpdateUserRequest,
     UsersGetRoleEnum
 } from "@/lib/api/generated";
 import {useTranslation} from "react-i18next";
@@ -26,7 +26,7 @@ import {Loader2} from "lucide-react";
 export function UserFormDialog({open, onOpenChange, userToEdit}: {
     open: boolean,
     onOpenChange: (open: boolean) => void,
-    userToEdit: POSKasirInternalDtoProfileResponse | null
+    userToEdit: InternalUserProfileResponse | null
 }) {
     const {t} = useTranslation()
     const createMutation = useCreateUserMutation()
@@ -64,7 +64,7 @@ export function UserFormDialog({open, onOpenChange, userToEdit}: {
         e.preventDefault()
         try {
             if (userToEdit) {
-                const payload: POSKasirInternalDtoUpdateUserRequest = {
+                const payload: InternalUserUpdateUserRequest = {
                     username: formData.username,
                     email: formData.email,
                     role: formData.role,
@@ -75,7 +75,7 @@ export function UserFormDialog({open, onOpenChange, userToEdit}: {
                 toast.success(t('users.form.success_update'))
             } else {
                 // --- CREATE LOGIC ---
-                const payload: POSKasirInternalDtoCreateUserRequest = {
+                const payload: InternalUserCreateUserRequest = {
                     username: formData.username,
                     email: formData.email,
                     password: formData.password,

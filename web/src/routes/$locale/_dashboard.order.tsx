@@ -22,7 +22,7 @@ import {
 import { useCreateOrderMutation } from '@/lib/api/query/orders'
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
-import { POSKasirInternalDtoProductOptionResponse, POSKasirInternalRepositoryOrderType } from '@/lib/api/generated'
+import { InternalProductsProductOptionResponse, POSKasirInternalOrdersRepositoryOrderType } from '@/lib/api/generated'
 
 const orderSearchSchema = z.object({
     category: z.string().optional().catch('all'),
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/$locale/_dashboard/order')({
 
 interface CartItem {
     product: Product
-    variant?: POSKasirInternalDtoProductOptionResponse
+    variant?: InternalProductsProductOptionResponse
     quantity: number
 }
 
@@ -52,7 +52,7 @@ function OrderPage() {
     const products = productsData?.products || []
 
     const selectedCategory = searchParams.category || "all"
-    const [selectedOrderType, setSelectedOrderType] = useState<POSKasirInternalRepositoryOrderType>(POSKasirInternalRepositoryOrderType.OrderTypeDineIn)
+    const [selectedOrderType, setSelectedOrderType] = useState<POSKasirInternalOrdersRepositoryOrderType>(POSKasirInternalOrdersRepositoryOrderType.OrderTypeDineIn)
 
     const categories = useMemo(() => {
         const unique = new Map<string, string>()
@@ -114,7 +114,7 @@ function OrderPage() {
         }
     }
 
-    const addCartItem = (product: Product, variant?: POSKasirInternalDtoProductOptionResponse) => {
+    const addCartItem = (product: Product, variant?: InternalProductsProductOptionResponse) => {
         setCart(prev => {
             const existing = prev.find(item =>
                 item.product.id === product.id && item.variant?.id === variant?.id
@@ -280,10 +280,10 @@ function OrderPage() {
                 </div>
 
                 <div className="mx-4 mt-4">
-                    <Tabs value={selectedOrderType} onValueChange={(v) => setSelectedOrderType(v as POSKasirInternalRepositoryOrderType)} className="w-full">
+                    <Tabs value={selectedOrderType} onValueChange={(v) => setSelectedOrderType(v as POSKasirInternalOrdersRepositoryOrderType)} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value={POSKasirInternalRepositoryOrderType.OrderTypeDineIn}>{t('order.order_type.dine_in')}</TabsTrigger>
-                            <TabsTrigger value={POSKasirInternalRepositoryOrderType.OrderTypeTakeaway}>{t('order.order_type.take_away')}</TabsTrigger>
+                            <TabsTrigger value={POSKasirInternalOrdersRepositoryOrderType.OrderTypeDineIn}>{t('order.order_type.dine_in')}</TabsTrigger>
+                            <TabsTrigger value={POSKasirInternalOrdersRepositoryOrderType.OrderTypeTakeaway}>{t('order.order_type.take_away')}</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>

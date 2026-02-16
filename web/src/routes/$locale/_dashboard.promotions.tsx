@@ -31,7 +31,7 @@ import { queryClient } from '@/lib/queryClient'
 import { PromotionFormDialog } from '@/components/PromotionFormDialog'
 import { NewPagination } from "@/components/pagination"
 import { formatRupiah } from "@/lib/utils"
-import { POSKasirInternalRepositoryDiscountType } from '@/lib/api/generated'
+import { POSKasirInternalPromotionsRepositoryDiscountType } from '@/lib/api/generated'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RotateCcw } from 'lucide-react'
@@ -210,7 +210,7 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, 
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="font-bold">
-                                            {promo.discount_type === POSKasirInternalRepositoryDiscountType.DiscountTypePercentage
+                                            {promo.discount_type === POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage
                                                 ? `${promo.discount_value}%`
                                                 : formatRupiah(promo.discount_value)}
                                         </span>

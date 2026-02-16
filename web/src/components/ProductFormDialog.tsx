@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ImageIcon, Loader2, Plus, Trash } from 'lucide-react'
-import { POSKasirInternalDtoCreateProductRequest, POSKasirInternalDtoUpdateProductRequest } from "@/lib/api/generated";
+import { InternalProductsCreateProductRequest, InternalProductsUpdateProductRequest } from "@/lib/api/generated";
 import { toast } from "sonner";
 import {
     Dialog,
@@ -166,7 +166,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
             let productId = productToEdit?.id
 
             if (productToEdit && productId) {
-                const payload: POSKasirInternalDtoUpdateProductRequest = {
+                const payload: InternalProductsUpdateProductRequest = {
                     name: formData.name,
                     category_id: formData.category_id,
                     price: Number(formData.price),
@@ -175,7 +175,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                 }
                 await updateMutation.mutateAsync({ id: productId, body: payload })
             } else {
-                const payload: POSKasirInternalDtoCreateProductRequest = {
+                const payload: InternalProductsCreateProductRequest = {
                     name: formData.name,
                     category_id: formData.category_id,
                     price: Number(formData.price),

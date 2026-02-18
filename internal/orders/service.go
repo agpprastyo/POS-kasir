@@ -95,7 +95,7 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 		if err != nil {
 			return common.ErrNotFound
 		}
-		
+
 		if order.Status != orders_repo.OrderStatusOpen {
 			return common.ErrOrderNotModifiable
 		}
@@ -288,9 +288,9 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 	}
 
 	logDetails := map[string]interface{}{
-		"updated_order_id": orderID,
+		"updated_order_id":     orderID,
 		"updated_order_status": finalOrder.Status,
-		"promotion_id": req.PromotionID,
+		"promotion_id":         req.PromotionID,
 	}
 
 	s.activityService.Log(
@@ -600,7 +600,7 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 	}
 
 	logDetails := map[string]interface{}{
-		"updated_order_id": orderID,
+		"updated_order_id":     orderID,
 		"updated_order_status": finalOrder.Status,
 	}
 
@@ -1220,7 +1220,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 	}
 
 	logDetails := map[string]interface{}{
-		"created_order_id": newOrderID,
+		"created_order_id":     newOrderID,
 		"created_order_status": finalOrder.Status,
 	}
 
@@ -1257,7 +1257,6 @@ func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid
 		return nil, err
 	}
 
-	
 	if order.PaymentGatewayReference != nil {
 		s.log.Infof("Order %s already has payment reference: %s. Returning existing.", orderID, *order.PaymentGatewayReference)
 
@@ -1272,7 +1271,7 @@ func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid
 				}, nil
 			}
 		}
-		
+
 	}
 
 	chargeResp, err := s.midtransService.CreateQRISCharge(order.ID.String(), order.NetTotal)

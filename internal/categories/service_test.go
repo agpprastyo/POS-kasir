@@ -1,9 +1,9 @@
 package categories_test
 
 import (
+	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/categories"
 	categories_repo "POS-kasir/internal/categories/repository"
-	activitylog_repo "POS-kasir/internal/activitylog/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/mocks"
 	"context"
@@ -155,14 +155,18 @@ func TestCtgService_GetCategoryByID(t *testing.T) {
 }
 
 func TestCtgService_UpdateCategory(t *testing.T) {
-	mockRepo, mockLogger, _, service := setupTest(t)
+	mockRepo, mockLogger, mockActivity, service := setupTest(t)
 	ctx := context.Background()
 	now := time.Now()
 
 	t.Run("Success", func(t *testing.T) {
+		userID := uuid.New()
+		ctx := context.WithValue(context.Background(), common.UserIDKey, userID)
 		req := categories.CreateCategoryRequest{Name: "Updated"}
 		repoCategory := categories_repo.Category{ID: 1, Name: req.Name, CreatedAt: pgtype.Timestamptz{Time: now, Valid: true}, UpdatedAt: pgtype.Timestamptz{Time: now, Valid: true}}
+
 		mockRepo.EXPECT().UpdateCategory(ctx, categories_repo.UpdateCategoryParams{ID: 1, Name: "Updated"}).Return(repoCategory, nil)
+		mockActivity.EXPECT().Log(ctx, userID, activitylog_repo.LogActionTypeUPDATE, activitylog_repo.LogEntityTypeCATEGORY, "1", gomock.Any())
 
 		resp, err := service.UpdateCategory(ctx, 1, req)
 

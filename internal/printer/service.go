@@ -20,21 +20,25 @@ type IPrinterService interface {
 	TestPrint(ctx context.Context) error
 }
 
+type PrinterFactory func(connectionString string) (escpos.Printer, error)
+
 type PrinterService struct {
 	orderService         orders.IOrderService
 	settingsService      settings.ISettingsService
 	paymentMethodService payment_methods.IPaymentMethodService
 	userRepo             user_repo.Querier
 	log                  logger.ILogger
+	printerFactory       PrinterFactory
 }
 
-func NewPrinterService(orderService orders.IOrderService, settingsService settings.ISettingsService, paymentMethodService payment_methods.IPaymentMethodService, userRepo user_repo.Querier, log logger.ILogger) IPrinterService {
+func NewPrinterService(orderService orders.IOrderService, settingsService settings.ISettingsService, paymentMethodService payment_methods.IPaymentMethodService, userRepo user_repo.Querier, log logger.ILogger, printerFactory PrinterFactory) IPrinterService {
 	return &PrinterService{
 		orderService:         orderService,
 		settingsService:      settingsService,
 		paymentMethodService: paymentMethodService,
 		userRepo:             userRepo,
 		log:                  log,
+		printerFactory:       printerFactory,
 	}
 }
 
@@ -64,7 +68,7 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		}
 	}
 
-	p, err := escpos.NewPrinter(printerSettings.Connection)
+	p, err := s.printerFactory(printerSettings.Connection)
 	if err != nil {
 		s.log.Error("Failed to connect to printer", "connection", printerSettings.Connection, "error", err)
 		return err
@@ -157,7 +161,7 @@ func (s *PrinterService) TestPrint(ctx context.Context) error {
 		return fmt.Errorf("failed to get printer settings: %w", err)
 	}
 
-	p, err := escpos.NewPrinter(printerSettings.Connection)
+	p, err := s.printerFactory(printerSettings.Connection)
 	if err != nil {
 		s.log.Error("Failed to connect to printer", "connection", printerSettings.Connection, "error", err)
 		return err
@@ -179,7 +183,7 @@ func (s *PrinterService) TestPrint(ctx context.Context) error {
 	return p.Cut()
 }
 
-func writeTotalLine(p *escpos.Printer, label, value string) {
+func writeTotalLine(p escpos.Printer, label, value string) {
 	padding := 32 - len(label) - len(value)
 	if padding < 1 {
 		padding = 1

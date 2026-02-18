@@ -7,11 +7,23 @@ import (
 	"time"
 )
 
-type Printer struct {
+type Printer interface {
+	Close() error
+	Write(data []byte) (int, error)
+	WriteString(s string) (int, error)
+	Init() error
+	Cut() error
+	Feed(n int) error
+	SetAlign(align []byte) error
+	SetBold(on bool) error
+	SetSize(size []byte) error
+}
+
+type networkPrinter struct {
 	conn net.Conn
 }
 
-func NewPrinter(connectionString string) (*Printer, error) {
+func NewPrinter(connectionString string) (Printer, error) {
 	// Clean up connection string
 	address := strings.TrimPrefix(connectionString, "socket://")
 	address = strings.TrimPrefix(address, "tcp://")
@@ -21,34 +33,34 @@ func NewPrinter(connectionString string) (*Printer, error) {
 		return nil, fmt.Errorf("failed to connect to printer: %w", err)
 	}
 
-	return &Printer{conn: conn}, nil
+	return &networkPrinter{conn: conn}, nil
 }
 
-func (p *Printer) Close() error {
+func (p *networkPrinter) Close() error {
 	return p.conn.Close()
 }
 
-func (p *Printer) Write(data []byte) (int, error) {
+func (p *networkPrinter) Write(data []byte) (int, error) {
 	return p.conn.Write(data)
 }
 
-func (p *Printer) WriteString(s string) (int, error) {
+func (p *networkPrinter) WriteString(s string) (int, error) {
 	return p.conn.Write([]byte(s))
 }
 
-func (p *Printer) Init() error {
+func (p *networkPrinter) Init() error {
 	_, err := p.Write(Init)
 	return err
 }
 
-func (p *Printer) Cut() error {
+func (p *networkPrinter) Cut() error {
 	// Feed a few lines before cutting
 	p.Feed(3)
 	_, err := p.Write(Cut)
 	return err
 }
 
-func (p *Printer) Feed(n int) error {
+func (p *networkPrinter) Feed(n int) error {
 	for i := 0; i < n; i++ {
 		if _, err := p.Write([]byte{LF}); err != nil {
 			return err
@@ -57,12 +69,12 @@ func (p *Printer) Feed(n int) error {
 	return nil
 }
 
-func (p *Printer) SetAlign(align []byte) error {
+func (p *networkPrinter) SetAlign(align []byte) error {
 	_, err := p.Write(align)
 	return err
 }
 
-func (p *Printer) SetBold(on bool) error {
+func (p *networkPrinter) SetBold(on bool) error {
 	if on {
 		_, err := p.Write(BoldOn)
 		return err
@@ -71,7 +83,7 @@ func (p *Printer) SetBold(on bool) error {
 	return err
 }
 
-func (p *Printer) SetSize(size []byte) error {
+func (p *networkPrinter) SetSize(size []byte) error {
 	_, err := p.Write(size)
 	return err
 }

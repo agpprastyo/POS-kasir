@@ -29,6 +29,7 @@ import (
 	"POS-kasir/pkg/cache"
 	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
+	"POS-kasir/pkg/escpos"
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/payment"
 	"POS-kasir/pkg/utils"
@@ -198,7 +199,7 @@ func BuildAppContainer(app *App) *AppContainer {
 	settingsHandler := settings.NewSettingsHandler(settingsService, app.Logger)
 
 	// Printer Module
-	printerService := printer.NewPrinterService(orderService, settingsService, paymentMethodService, userRepo, app.Logger)
+	printerService := printer.NewPrinterService(orderService, settingsService, paymentMethodService, userRepo, app.Logger, escpos.NewPrinter)
 	printerHandler := printer.NewPrinterHandler(printerService)
 
 	// Shift Module

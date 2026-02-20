@@ -31,6 +31,40 @@ import type { POSKasirInternalCommonSuccessResponse } from '../models';
 export const PrinterApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Get raw invoice print data for FE printing (Roles: admin, manager, cashier)
+         * @summary Get invoice print data
+         * @param {string} id Order ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdPrintDataGet: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('ordersIdPrintDataGet', 'id', id)
+            const localVarPath = `/orders/{id}/print-data`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
@@ -104,6 +138,19 @@ export const PrinterApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = PrinterApiAxiosParamCreator(configuration)
     return {
         /**
+         * Get raw invoice print data for FE printing (Roles: admin, manager, cashier)
+         * @summary Get invoice print data
+         * @param {string} id Order ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersIdPrintDataGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdPrintDataGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PrinterApi.ordersIdPrintDataGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
@@ -138,6 +185,16 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = PrinterApiFp(configuration)
     return {
         /**
+         * Get raw invoice print data for FE printing (Roles: admin, manager, cashier)
+         * @summary Get invoice print data
+         * @param {string} id Order ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersIdPrintDataGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.ordersIdPrintDataGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
          * @summary Print invoice for an order
          * @param {string} id Order ID
@@ -163,6 +220,17 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
  * PrinterApi - object-oriented interface
  */
 export class PrinterApi extends BaseAPI {
+    /**
+     * Get raw invoice print data for FE printing (Roles: admin, manager, cashier)
+     * @summary Get invoice print data
+     * @param {string} id Order ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersIdPrintDataGet(id: string, options?: RawAxiosRequestConfig) {
+        return PrinterApiFp(this.configuration).ordersIdPrintDataGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Trigger printing of invoice for a specific order (Roles: admin, manager, cashier)
      * @summary Print invoice for an order

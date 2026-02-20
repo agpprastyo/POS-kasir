@@ -18,6 +18,7 @@ import (
 type IPrinterService interface {
 	PrintInvoice(ctx context.Context, orderID uuid.UUID) error
 	TestPrint(ctx context.Context) error
+	GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error)
 }
 
 type PrinterFactory func(connectionString string) (escpos.Printer, error)
@@ -43,19 +44,55 @@ func NewPrinterService(orderService orders.IOrderService, settingsService settin
 }
 
 func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) error {
+	printerSettings, err := s.settingsService.GetPrinterSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get printer settings: %w", err)
+	}
+
+	if printerSettings.PrintMethod == "FE" {
+		s.log.Info("Skipping backend print (Print Method set to FE)", "orderID", orderID)
+		return nil
+	}
+
+	order, branding, cashierName, paymentMethodName, err := s.prepareInvoiceData(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	p, err := s.printerFactory(printerSettings.Connection)
+	if err != nil {
+		s.log.Error("Failed to connect to printer", "connection", printerSettings.Connection, "error", err)
+		return err
+	}
+	defer p.Close()
+
+	return s.printInvoiceToPrinter(p, order, branding, cashierName, paymentMethodName)
+}
+
+func (s *PrinterService) GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error) {
+	order, branding, cashierName, paymentMethodName, err := s.prepareInvoiceData(ctx, orderID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	bp := escpos.NewBufferPrinter()
+	if err := s.printInvoiceToPrinter(bp, order, branding, cashierName, paymentMethodName); err != nil {
+		return nil, "", err
+	}
+
+	filename := fmt.Sprintf("invoice_%s.bin", order.ID.String())
+	return bp.Buffer.Bytes(), filename, nil
+}
+
+func (s *PrinterService) prepareInvoiceData(ctx context.Context, orderID uuid.UUID) (*orders.OrderDetailResponse, *settings.BrandingSettingsResponse, string, string, error) {
 	order, err := s.orderService.GetOrder(ctx, orderID)
 	if err != nil {
-		return fmt.Errorf("failed to get order: %w", err)
+		return nil, nil, "", "", fmt.Errorf("failed to get order: %w", err)
 	}
 
 	branding, err := s.settingsService.GetBranding(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to get branding: %w", err)
-	}
-
-	printerSettings, err := s.settingsService.GetPrinterSettings(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get printer settings: %w", err)
+		return nil, nil, "", "", fmt.Errorf("failed to get branding: %w", err)
 	}
 
 	var cashierName string = "Unknown"
@@ -68,13 +105,23 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 		}
 	}
 
-	p, err := s.printerFactory(printerSettings.Connection)
-	if err != nil {
-		s.log.Error("Failed to connect to printer", "connection", printerSettings.Connection, "error", err)
-		return err
+	var paymentMethodName string = "Unknown"
+	if order.PaymentMethodID != nil {
+		methods, err := s.paymentMethodService.ListPaymentMethods(ctx)
+		if err == nil {
+			for _, m := range methods {
+				if m.ID == *order.PaymentMethodID {
+					paymentMethodName = m.Name
+					break
+				}
+			}
+		}
 	}
-	defer p.Close()
 
+	return order, branding, cashierName, paymentMethodName, nil
+}
+
+func (s *PrinterService) printInvoiceToPrinter(p escpos.Printer, order *orders.OrderDetailResponse, branding *settings.BrandingSettingsResponse, cashierName, paymentMethodName string) error {
 	if err := p.Init(); err != nil {
 		return err
 	}
@@ -124,17 +171,6 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 	p.WriteString("--------------------------------\n")
 
 	if order.PaymentMethodID != nil {
-		var paymentMethodName string = "Unknown"
-		methods, err := s.paymentMethodService.ListPaymentMethods(ctx)
-		if err == nil {
-			for _, m := range methods {
-				if m.ID == *order.PaymentMethodID {
-					paymentMethodName = m.Name
-					break
-				}
-			}
-		}
-
 		p.WriteString("Payment: " + paymentMethodName + "\n")
 
 		if order.CashReceived != nil && *order.CashReceived > 0 {

@@ -13,6 +13,7 @@ definitions:
     - UPDATE_AVATAR
     - LOGIN_SUCCESS
     - LOGIN_FAILED
+    - RESTORE
     type: string
     x-enum-varnames:
     - LogActionTypeCREATE
@@ -26,6 +27,7 @@ definitions:
     - LogActionTypeUPDATEAVATAR
     - LogActionTypeLOGINSUCCESS
     - LogActionTypeLOGINFAILED
+    - LogActionTypeRESTORE
   POS-kasir_internal_activitylog_repository.LogEntityType:
     enum:
     - PRODUCT
@@ -33,6 +35,10 @@ definitions:
     - PROMOTION
     - ORDER
     - USER
+    - SETTINGS
+    - SHIFT
+    - PAYMENT_METHOD
+    - CANCELLATION_REASON
     type: string
     x-enum-varnames:
     - LogEntityTypePRODUCT
@@ -40,6 +46,10 @@ definitions:
     - LogEntityTypePROMOTION
     - LogEntityTypeORDER
     - LogEntityTypeUSER
+    - LogEntityTypeSETTINGS
+    - LogEntityTypeSHIFT
+    - LogEntityTypePAYMENTMETHOD
+    - LogEntityTypeCANCELLATIONREASON
   POS-kasir_internal_common.ErrorResponse:
     properties:
       data: {}
@@ -981,6 +991,8 @@ definitions:
         type: string
       paper_width:
         type: string
+      print_method:
+        type: string
     type: object
   internal_settings.UpdateBrandingRequest:
     properties:
@@ -1013,10 +1025,16 @@ definitions:
         - 58mm
         - 80mm
         type: string
+      print_method:
+        enum:
+        - BE
+        - FE
+        type: string
     required:
     - auto_print
     - connection
     - paper_width
+    - print_method
     type: object
   internal_shift.CashTransactionRequest:
     properties:
@@ -2275,6 +2293,41 @@ paths:
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
       summary: Print invoice for an order
+      tags:
+      - Printer
+      x-roles:
+      - admin
+      - manager
+      - cashier
+  /orders/{id}/print-data:
+    get:
+      consumes:
+      - application/json
+      description: 'Get raw invoice print data for FE printing (Roles: admin, manager,
+        cashier)'
+      parameters:
+      - description: Order ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Invoice print data
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid order ID
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to generate print data
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get invoice print data
       tags:
       - Printer
       x-roles:

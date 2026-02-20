@@ -17,8 +17,7 @@ import {
     useConfirmManualPaymentMutation,
     useCancelOrderMutation,
     useInitiateMidtransPaymentMutation,
-    useApplyPromotionMutation,
-    usePrintInvoiceMutation
+    useApplyPromotionMutation
 } from '@/lib/api/query/orders'
 import { usePrinterSettingsQuery } from '@/lib/api/query/settings'
 import { usePaymentMethodsListQuery } from '@/lib/api/query/payment-methods'
@@ -37,6 +36,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { printerService } from "@/lib/printer"
 
 
 interface PaymentDialogProps {
@@ -65,7 +65,6 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
     const confirmManualPaymentMutation = useConfirmManualPaymentMutation()
     const initiateMidtransPaymentMutation = useInitiateMidtransPaymentMutation()
     const cancelOrderMutation = useCancelOrderMutation()
-    const printInvoiceMutation = usePrintInvoiceMutation()
     const { data: printerSettings } = usePrinterSettingsQuery()
 
     // Promo states mostly for display if we keep the promo selection here
@@ -90,7 +89,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
     useEffect(() => {
         if (open && order?.status === 'paid') {
             if (printerSettings?.auto_print) {
-                printInvoiceMutation.mutate({ id: orderId || '' })
+                handlePrint()
             }
 
             if (onPaymentSuccess) onPaymentSuccess()
@@ -100,7 +99,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                 style: { background: '#10B981', color: 'white', border: 'none' },
                 action: {
                     label: 'Print',
-                    onClick: () => printInvoiceMutation.mutate({ id: orderId || '' })
+                    onClick: () => handlePrint()
                 }
             })
         }
@@ -136,6 +135,16 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
         }
     }
 
+    const handlePrint = async () => {
+        if (!orderId) return
+        try {
+            await printerService.printInvoice(orderId)
+            toast.success(t('payment.print_success', { defaultValue: 'Print command sent' }))
+        } catch (error) {
+            console.error(error)
+            toast.error(t('payment.print_failed', { defaultValue: 'Failed to print receipt' }))
+        }
+    }
 
     const handlePayment = async () => {
         if (!orderId || !selectedPaymentMethod) {
@@ -163,7 +172,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
 
                 if (printerSettings?.auto_print) {
-                    printInvoiceMutation.mutate({ id: orderId })
+                    handlePrint()
                 }
 
                 if (onPaymentSuccess) onPaymentSuccess()
@@ -172,7 +181,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                 toast.success(t('order.success.payment_complete'), {
                     action: {
                         label: 'Print',
-                        onClick: () => printInvoiceMutation.mutate({ id: orderId })
+                        onClick: () => handlePrint()
                     }
                 })
             } catch (error) {
@@ -202,7 +211,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
 
                 if (printerSettings?.auto_print) {
-                    printInvoiceMutation.mutate({ id: orderId })
+                    handlePrint()
                 }
 
                 if (onPaymentSuccess) onPaymentSuccess()
@@ -217,7 +226,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
                     style: { background: '#10B981', color: 'white', border: 'none' },
                     action: {
                         label: 'Print',
-                        onClick: () => printInvoiceMutation.mutate({ id: orderId })
+                        onClick: () => handlePrint()
                     }
                 })
             } catch (error) {

@@ -211,9 +211,10 @@ func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*PrinterSetti
 	}
 
 	response := &PrinterSettingsResponse{
-		Connection: "socket://127.0.0.1:9100",
-		PaperWidth: "58",
-		AutoPrint:  false,
+		Connection:  "socket://127.0.0.1:9100",
+		PaperWidth:  "58mm",
+		AutoPrint:   false,
+		PrintMethod: "BE",
 	}
 
 	for _, setting := range settings {
@@ -224,6 +225,8 @@ func (s *SettingsService) GetPrinterSettings(ctx context.Context) (*PrinterSetti
 			response.PaperWidth = setting.Value
 		case "printer_auto_print":
 			response.AutoPrint = setting.Value == "true"
+		case "printer_method":
+			response.PrintMethod = setting.Value
 		}
 	}
 
@@ -270,6 +273,17 @@ func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req UpdateP
 			}
 		}
 
+		// Print Method
+		if req.PrintMethod != "" {
+			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+				Key:   "printer_method",
+				Value: req.PrintMethod,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
@@ -286,7 +300,7 @@ func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req UpdateP
 		activitylog_repo.LogActionTypeUPDATE,
 		activitylog_repo.LogEntityTypeSETTINGS,
 		"settings",
-		map[string]interface{}{"printer_connection": req.Connection, "printer_paper_width": req.PaperWidth, "printer_auto_print": req.AutoPrint},
+		map[string]interface{}{"printer_connection": req.Connection, "printer_paper_width": req.PaperWidth, "printer_auto_print": req.AutoPrint, "printer_method": req.PrintMethod},
 	)
 
 	return s.GetPrinterSettings(ctx)

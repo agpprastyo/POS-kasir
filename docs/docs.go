@@ -1668,6 +1668,56 @@ const docTemplate = `{
                 ]
             }
         },
+        "/orders/{id}/print-data": {
+            "get": {
+                "description": "Get raw invoice print data for FE printing (Roles: admin, manager, cashier)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Get invoice print data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invoice print data",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid order ID",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to generate print data",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
         "/orders/{id}/update-status": {
             "post": {
                 "description": "Update the status of an existing order (e.g., to in_progress, served) (Roles: admin, manager, cashier)",
@@ -4714,7 +4764,8 @@ const docTemplate = `{
                 "UPDATE_PASSWORD",
                 "UPDATE_AVATAR",
                 "LOGIN_SUCCESS",
-                "LOGIN_FAILED"
+                "LOGIN_FAILED",
+                "RESTORE"
             ],
             "x-enum-varnames": [
                 "LogActionTypeCREATE",
@@ -4727,7 +4778,8 @@ const docTemplate = `{
                 "LogActionTypeUPDATEPASSWORD",
                 "LogActionTypeUPDATEAVATAR",
                 "LogActionTypeLOGINSUCCESS",
-                "LogActionTypeLOGINFAILED"
+                "LogActionTypeLOGINFAILED",
+                "LogActionTypeRESTORE"
             ]
         },
         "POS-kasir_internal_activitylog_repository.LogEntityType": {
@@ -4737,14 +4789,22 @@ const docTemplate = `{
                 "CATEGORY",
                 "PROMOTION",
                 "ORDER",
-                "USER"
+                "USER",
+                "SETTINGS",
+                "SHIFT",
+                "PAYMENT_METHOD",
+                "CANCELLATION_REASON"
             ],
             "x-enum-varnames": [
                 "LogEntityTypePRODUCT",
                 "LogEntityTypeCATEGORY",
                 "LogEntityTypePROMOTION",
                 "LogEntityTypeORDER",
-                "LogEntityTypeUSER"
+                "LogEntityTypeUSER",
+                "LogEntityTypeSETTINGS",
+                "LogEntityTypeSHIFT",
+                "LogEntityTypePAYMENTMETHOD",
+                "LogEntityTypeCANCELLATIONREASON"
             ]
         },
         "POS-kasir_internal_common.ErrorResponse": {
@@ -6156,6 +6216,9 @@ const docTemplate = `{
                 },
                 "paper_width": {
                     "type": "string"
+                },
+                "print_method": {
+                    "type": "string"
                 }
             }
         },
@@ -6192,7 +6255,8 @@ const docTemplate = `{
             "required": [
                 "auto_print",
                 "connection",
-                "paper_width"
+                "paper_width",
+                "print_method"
             ],
             "properties": {
                 "auto_print": {
@@ -6206,6 +6270,13 @@ const docTemplate = `{
                     "enum": [
                         "58mm",
                         "80mm"
+                    ]
+                },
+                "print_method": {
+                    "type": "string",
+                    "enum": [
+                        "BE",
+                        "FE"
                     ]
                 }
             }

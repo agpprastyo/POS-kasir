@@ -32,11 +32,12 @@ type PromotionService struct {
 	activityService activitylog.IActivityService
 }
 
-func NewPromotionService(store store.Store, repo repository.Querier, log logger.ILogger) IPromotionService {
+func NewPromotionService(store store.Store, repo repository.Querier, log logger.ILogger, activityService activitylog.IActivityService) IPromotionService {
 	return &PromotionService{
-		repo:  repo,
-		store: store,
-		log:   log,
+		repo:            repo,
+		store:           store,
+		log:             log,
+		activityService: activityService,
 	}
 }
 
@@ -295,7 +296,7 @@ func (s *PromotionService) RestorePromotion(ctx context.Context, id uuid.UUID) e
 	s.activityService.Log(
 		ctx,
 		actorID,
-		activitylog_repo.LogActionTypeDELETE,
+		activitylog_repo.LogActionTypeRESTORE,
 		activitylog_repo.LogEntityTypePROMOTION,
 		id.String(),
 		map[string]interface{}{

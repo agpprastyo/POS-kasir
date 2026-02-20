@@ -77,6 +77,7 @@ Class | Method | HTTP request | Description
 *OrdersApi* | [**ordersPost**](docs/OrdersApi.md#orderspost) | **POST** /orders | Create an order
 *OrdersApi* | [**ordersWebhookMidtransPost**](docs/OrdersApi.md#orderswebhookmidtranspost) | **POST** /orders/webhook/midtrans | Midtrans Payment Notification Callback
 *PaymentMethodsApi* | [**paymentMethodsGet**](docs/PaymentMethodsApi.md#paymentmethodsget) | **GET** /payment-methods | List payment methods
+*PrinterApi* | [**ordersIdPrintDataGet**](docs/PrinterApi.md#ordersidprintdataget) | **GET** /orders/{id}/print-data | Get invoice print data
 *PrinterApi* | [**ordersIdPrintPost**](docs/PrinterApi.md#ordersidprintpost) | **POST** /orders/{id}/print | Print invoice for an order
 *PrinterApi* | [**settingsPrinterTestPost**](docs/PrinterApi.md#settingsprintertestpost) | **POST** /settings/printer/test | Test printer connection
 *ProductsApi* | [**productsGet**](docs/ProductsApi.md#productsget) | **GET** /products | List products

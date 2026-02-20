@@ -18,5 +18,6 @@ export interface InternalSettingsPrinterSettingsResponse {
     'auto_print'?: boolean;
     'connection'?: string;
     'paper_width'?: string;
+    'print_method'?: string;
 }
 

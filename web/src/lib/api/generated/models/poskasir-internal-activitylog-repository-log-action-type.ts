@@ -26,7 +26,8 @@ export const POSKasirInternalActivitylogRepositoryLogActionType = {
     LogActionTypeUPDATEPASSWORD: 'UPDATE_PASSWORD',
     LogActionTypeUPDATEAVATAR: 'UPDATE_AVATAR',
     LogActionTypeLOGINSUCCESS: 'LOGIN_SUCCESS',
-    LogActionTypeLOGINFAILED: 'LOGIN_FAILED'
+    LogActionTypeLOGINFAILED: 'LOGIN_FAILED',
+    LogActionTypeRESTORE: 'RESTORE'
 } as const;
 
 export type POSKasirInternalActivitylogRepositoryLogActionType = typeof POSKasirInternalActivitylogRepositoryLogActionType[keyof typeof POSKasirInternalActivitylogRepositoryLogActionType];

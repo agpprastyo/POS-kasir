@@ -18,6 +18,7 @@ export interface InternalSettingsUpdatePrinterSettingsRequest {
     'auto_print': boolean;
     'connection': string;
     'paper_width': InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum;
+    'print_method': InternalSettingsUpdatePrinterSettingsRequestPrintMethodEnum;
 }
 
 export const InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum = {
@@ -26,5 +27,11 @@ export const InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum = {
 } as const;
 
 export type InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum = typeof InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum[keyof typeof InternalSettingsUpdatePrinterSettingsRequestPaperWidthEnum];
+export const InternalSettingsUpdatePrinterSettingsRequestPrintMethodEnum = {
+    Be: 'BE',
+    Fe: 'FE'
+} as const;
+
+export type InternalSettingsUpdatePrinterSettingsRequestPrintMethodEnum = typeof InternalSettingsUpdatePrinterSettingsRequestPrintMethodEnum[keyof typeof InternalSettingsUpdatePrinterSettingsRequestPrintMethodEnum];
 
 

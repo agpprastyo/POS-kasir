@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **auto_print** | **boolean** |  | [optional] [default to undefined]
 **connection** | **string** |  | [optional] [default to undefined]
 **paper_width** | **string** |  | [optional] [default to undefined]
+**print_method** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -18,6 +19,7 @@ const instance: InternalSettingsPrinterSettingsResponse = {
     auto_print,
     connection,
     paper_width,
+    print_method,
 };
 ```
 

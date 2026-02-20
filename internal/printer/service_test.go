@@ -171,9 +171,9 @@ func TestPrinterService_PrintInvoice(t *testing.T) {
 			},
 		}
 
+		mockSettingsService.On("GetPrinterSettings", ctx).Return(printerSettings, nil).Once()
 		mockOrderService.EXPECT().GetOrder(ctx, orderID).Return(&order, nil)
 		mockSettingsService.On("GetBranding", ctx).Return(branding, nil).Once()
-		mockSettingsService.On("GetPrinterSettings", ctx).Return(printerSettings, nil).Once()
 		mockUserRepo.EXPECT().GetUserByID(ctx, userID).Return(user_repo.User{Username: "Cashier1"}, nil)
 		mockPayment.EXPECT().ListPaymentMethods(ctx).Return([]payment_methods.PaymentMethodResponse{{ID: 1, Name: "Cash"}}, nil)
 
@@ -193,6 +193,7 @@ func TestPrinterService_PrintInvoice(t *testing.T) {
 	})
 
 	t.Run("GetOrderError", func(t *testing.T) {
+		mockSettingsService.On("GetPrinterSettings", ctx).Return(printerSettings, nil).Once()
 		mockOrderService.EXPECT().GetOrder(ctx, orderID).Return(nil, errors.New("db error"))
 
 		err := service.PrintInvoice(ctx, orderID)
@@ -204,13 +205,22 @@ func TestPrinterService_PrintInvoice(t *testing.T) {
 		allowAllLoggerCalls(mockLogger)
 		order := orders.OrderDetailResponse{ID: orderID}
 
+		mockSettingsService.On("GetPrinterSettings", ctx).Return(&settings.PrinterSettingsResponse{Connection: "fail"}, nil).Once()
 		mockOrderService.EXPECT().GetOrder(ctx, orderID).Return(&order, nil)
 		mockSettingsService.On("GetBranding", ctx).Return(branding, nil).Once()
-		mockSettingsService.On("GetPrinterSettings", ctx).Return(&settings.PrinterSettingsResponse{Connection: "fail"}, nil).Once()
 
 		err := service.PrintInvoice(ctx, orderID)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "connection failed")
+	})
+
+	t.Run("Skipped (FE)", func(t *testing.T) {
+		printerSettings := &settings.PrinterSettingsResponse{Connection: "tcp://...", PrintMethod: "FE"}
+		mockSettingsService.On("GetPrinterSettings", ctx).Return(printerSettings, nil).Once()
+
+		err := service.PrintInvoice(ctx, orderID)
+		assert.NoError(t, err)
+		mockSettingsService.AssertExpectations(t)
 	})
 }
 
@@ -243,5 +253,60 @@ func TestPrinterService_TestPrint(t *testing.T) {
 		err := service.TestPrint(ctx)
 		assert.NoError(t, err)
 		mockPrinter.AssertExpectations(t)
+	})
+}
+
+func TestPrinterService_GetInvoiceData(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockOrderService := mocks.NewMockIOrderService(ctrl)
+	mockSettingsService := new(MockSettingsService)
+	mockPayment := mocks.NewMockIPaymentMethodService(ctrl)
+	mockUserRepo := mocks.NewMockUserRepo(ctrl)
+	mockLogger := mocks.NewMockFieldLogger(ctrl)
+
+	// No printer factory needed for GetInvoiceData directly, service needs it but won't use it
+	printerFactory := func(conn string) (escpos.Printer, error) {
+		return nil, nil
+	}
+
+	service := printer.NewPrinterService(mockOrderService, mockSettingsService, mockPayment, mockUserRepo, mockLogger, printerFactory)
+
+	ctx := context.Background()
+	orderID := uuid.New()
+	userID := uuid.New()
+	payMethodID := int32(1)
+
+	branding := &settings.BrandingSettingsResponse{AppName: "Test App"}
+
+	t.Run("Success", func(t *testing.T) {
+		allowAllLoggerCalls(mockLogger)
+
+		order := orders.OrderDetailResponse{
+			ID:              orderID,
+			UserID:          &userID,
+			Status:          orders_repo.OrderStatusPaid,
+			GrossTotal:      50000,
+			NetTotal:        50000,
+			PaymentMethodID: &payMethodID,
+			Items: []orders.OrderItemResponse{
+				{ProductName: "Item 1", Quantity: 1, PriceAtSale: 50000, Subtotal: 50000},
+			},
+		}
+
+		mockOrderService.EXPECT().GetOrder(ctx, orderID).Return(&order, nil)
+		mockSettingsService.On("GetBranding", ctx).Return(branding, nil).Once()
+		mockUserRepo.EXPECT().GetUserByID(ctx, userID).Return(user_repo.User{Username: "Cashier1"}, nil)
+		mockPayment.EXPECT().ListPaymentMethods(ctx).Return([]payment_methods.PaymentMethodResponse{{ID: 1, Name: "Cash"}}, nil)
+
+		data, filename, err := service.GetInvoiceData(ctx, orderID)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, data)
+		assert.Contains(t, filename, "invoice_")
+		assert.Contains(t, string(data), "Test App")
+
+		mockSettingsService.AssertExpectations(t)
 	})
 }

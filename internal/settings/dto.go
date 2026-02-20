@@ -30,13 +30,15 @@ type UpdateBrandingRequest struct {
 }
 
 type PrinterSettingsResponse struct {
-	Connection string `json:"connection"`
-	PaperWidth string `json:"paper_width"`
-	AutoPrint  bool   `json:"auto_print"`
+	Connection  string `json:"connection"`
+	PaperWidth  string `json:"paper_width"`
+	AutoPrint   bool   `json:"auto_print"`
+	PrintMethod string `json:"print_method"`
 }
 
 type UpdatePrinterSettingsRequest struct {
-	Connection string `json:"connection" validate:"required"`
-	PaperWidth string `json:"paper_width" validate:"required,oneof=58mm 80mm"`
-	AutoPrint  *bool  `json:"auto_print" validate:"required"`
+	Connection  string `json:"connection" validate:"required"`
+	PaperWidth  string `json:"paper_width" validate:"required,oneof=58mm 80mm"`
+	AutoPrint   *bool  `json:"auto_print" validate:"required"`
+	PrintMethod string `json:"print_method" validate:"required,oneof=BE FE"`
 }

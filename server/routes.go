@@ -70,6 +70,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 
 	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
+	api.Get("/orders/:id/print-data", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.GetInvoiceDataHandler)
 	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)

@@ -78,3 +78,43 @@ func (h *PrinterHandler) TestPrintHandler(c fiber.Ctx) error {
 		Message: "Test print command sent associated with configured printer",
 	})
 }
+
+// GetInvoiceDataHandler godoc
+// @Summary      Get invoice print data
+// @Description  Get raw invoice print data for FE printing (Roles: admin, manager, cashier)
+// @Tags         Printer
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Order ID" Format(uuid)
+// @Success      200 {object} common.SuccessResponse "Invoice print data"
+// @Failure      400 {object} common.ErrorResponse "Invalid order ID"
+// @Failure      500 {object} common.ErrorResponse "Failed to generate print data"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /orders/{id}/print-data [get]
+func (h *PrinterHandler) GetInvoiceDataHandler(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	orderID, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid order ID",
+			Error:   err.Error(),
+		})
+	}
+
+	ctx := c.RequestCtx()
+	data, filename, err := h.service.GetInvoiceData(ctx, orderID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to generate print data",
+			Error:   err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
+		Message: "Invoice print data generated",
+		Data: fiber.Map{
+			"data":     data,
+			"filename": filename,
+		},
+	})
+}

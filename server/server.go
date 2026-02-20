@@ -190,7 +190,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// Promotion Module
 	promotionsRepo := promotions_repo.New(app.DB.GetPool())
-	promotionService := promotions.NewPromotionService(app.Store, promotionsRepo, app.Logger)
+	promotionService := promotions.NewPromotionService(app.Store, promotionsRepo, app.Logger, activityService)
 	promotionHandler := promotions.NewPromotionHandler(promotionService, app.Logger)
 
 	// Settings Module

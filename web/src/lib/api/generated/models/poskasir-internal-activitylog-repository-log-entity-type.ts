@@ -20,7 +20,11 @@ export const POSKasirInternalActivitylogRepositoryLogEntityType = {
     LogEntityTypeCATEGORY: 'CATEGORY',
     LogEntityTypePROMOTION: 'PROMOTION',
     LogEntityTypeORDER: 'ORDER',
-    LogEntityTypeUSER: 'USER'
+    LogEntityTypeUSER: 'USER',
+    LogEntityTypeSETTINGS: 'SETTINGS',
+    LogEntityTypeSHIFT: 'SHIFT',
+    LogEntityTypePAYMENTMETHOD: 'PAYMENT_METHOD',
+    LogEntityTypeCANCELLATIONREASON: 'CANCELLATION_REASON'
 } as const;
 
 export type POSKasirInternalActivitylogRepositoryLogEntityType = typeof POSKasirInternalActivitylogRepositoryLogEntityType[keyof typeof POSKasirInternalActivitylogRepositoryLogEntityType];

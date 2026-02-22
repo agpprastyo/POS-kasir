@@ -62,6 +62,11 @@ func (s *service) StartShift(ctx context.Context, userID uuid.UUID, req StartShi
 		return nil, err
 	}
 
+	// Update cache to reflect an open shift
+	if s.cache != nil {
+		s.cache.SetOpen(userID, true)
+	}
+
 	return s.mapShiftToResponse(shift), nil
 }
 

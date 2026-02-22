@@ -1,43 +1,42 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@tanstack/react-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useShiftContext } from "@/context/ShiftContext";
 import { useEndShift } from "@/hooks/useShift";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { InternalShiftShiftResponse } from "@/lib/api/generated";
 
 const endShiftSchema = z.object({
-    actualCashEnd: z.coerce.number().min(0, "Actual cash must be non-negative"),
+    actualCashEnd: z.number().min(0, "Actual cash must be non-negative"),
     password: z.string().min(1, "Password is required"),
 });
 
-type EndShiftForm = z.infer<typeof endShiftSchema>;
 
 export const CloseShiftModal: React.FC = () => {
     const { closeShiftModalOpen, setCloseShiftModalOpen } = useShiftContext();
     const { mutate: endShift, isPending } = useEndShift();
     const [summary, setSummary] = useState<InternalShiftShiftResponse | null>(null);
 
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<EndShiftForm>({
-        resolver: zodResolver(endShiftSchema) as any,
+    const form = useForm({
         defaultValues: {
             actualCashEnd: 0,
             password: ""
+        },
+        validators: {
+            onChange: endShiftSchema
+        },
+        onSubmit: async ({ value }) => {
+            endShift({ actual_cash_end: value.actualCashEnd, password: value.password }, {
+                onSuccess: (data) => {
+                    setSummary(data);
+                    form.reset();
+                }
+            });
         }
     });
-
-    const onSubmit = (data: EndShiftForm) => {
-        endShift({ actual_cash_end: data.actualCashEnd, password: data.password }, {
-            onSuccess: (data) => {
-                setSummary(data);
-                reset();
-            }
-        });
-    };
 
     const handleClose = () => {
         setCloseShiftModalOpen(false);
@@ -74,7 +73,7 @@ export const CloseShiftModal: React.FC = () => {
                         </div>
                         <div className="border-t pt-2 flex justify-between">
                             <span className="font-bold">Difference</span>
-                            <span className={`font-bold ${isShort ? "text-red-500" : isOver ? "text-green-500" : ""}`}>
+                            <span className={`font-bold ${isShort ? "text-destructive" : isOver ? "text-primary" : ""}`}>
                                 {diff}
                             </span>
                         </div>
@@ -96,36 +95,61 @@ export const CloseShiftModal: React.FC = () => {
                         Count the cash in drawer and enter the amount to close the shift.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid w-full gap-1.5">
-                        <Label htmlFor="actualCashEnd">Actual Cash</Label>
-                        <Input
-                            id="actualCashEnd"
-                            type="number"
-                            {...register("actualCashEnd")}
-                            placeholder="0"
-                        />
-                        {errors.actualCashEnd && (
-                            <p className="text-sm text-red-500">{errors.actualCashEnd.message}</p>
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.handleSubmit();
+                }} className="space-y-4">
+                    <form.Field
+                        name="actualCashEnd"
+                        children={(field) => (
+                            <div className="grid w-full gap-1.5">
+                                <Label htmlFor={field.name}>Actual Cash</Label>
+                                <Input
+                                    id={field.name}
+                                    type="number"
+                                    name={field.name}
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={(e) => field.handleChange(Number(e.target.value))}
+                                    placeholder="0"
+                                />
+                                {field.state.meta.errors.length > 0 && (
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                )}
+                            </div>
                         )}
-                    </div>
-                    <div className="grid w-full gap-1.5">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            {...register("password")}
-                            placeholder=""
-                        />
-                        {errors.password && (
-                            <p className="text-sm text-red-500">{errors.password.message}</p>
+                    />
+                    <form.Field
+                        name="password"
+                        children={(field) => (
+                            <div className="grid w-full gap-1.5">
+                                <Label htmlFor={field.name}>Password</Label>
+                                <Input
+                                    id={field.name}
+                                    type="password"
+                                    name={field.name}
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={(e) => field.handleChange(e.target.value)}
+                                    placeholder=""
+                                />
+                                {field.state.meta.errors.length > 0 && (
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                )}
+                            </div>
                         )}
-                    </div>
+                    />
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setCloseShiftModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? "Closing..." : "Close Register"}
-                        </Button>
+                        <form.Subscribe
+                            selector={(state) => [state.canSubmit, state.isSubmitting]}
+                            children={([canSubmit, isSubmitting]) => (
+                                <Button type="submit" disabled={!canSubmit || isSubmitting || isPending}>
+                                    {isPending ? "Closing..." : "Close Register"}
+                                </Button>
+                            )}
+                        />
                     </DialogFooter>
                 </form>
             </DialogContent>

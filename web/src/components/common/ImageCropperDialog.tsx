@@ -1,8 +1,9 @@
-import Cropper, {Area} from "react-easy-crop"
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
-import {Button} from "@/components/ui/button"
-import {Slider} from "@/components/ui/slider"
-import {Crop as CropIcon} from "lucide-react"
+import Cropper, { Area } from "react-easy-crop"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Slider } from "@/components/ui/slider"
+import { Crop as CropIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 interface ImageCropperDialogProps {
     open: boolean
@@ -18,28 +19,30 @@ interface ImageCropperDialogProps {
 }
 
 export function ImageCropperDialog({
-                                       open,
-                                       onOpenChange,
-                                       imageSrc,
-                                       crop,
-                                       zoom,
-                                       setCrop,
-                                       setZoom,
-                                       onCropComplete,
-                                       onSave,
-                                       aspectRatio = 1
-                                   }: ImageCropperDialogProps) {
+    open,
+    onOpenChange,
+    imageSrc,
+    crop,
+    zoom,
+    setCrop,
+    setZoom,
+    onCropComplete,
+    onSave,
+    aspectRatio = 1
+}: ImageCropperDialogProps) {
+    const { t } = useTranslation()
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Crop Image</DialogTitle>
+                    <DialogTitle>{t('common.crop.title')}</DialogTitle>
                     <DialogDescription>
-                        Adjust the image to fit the required aspect ratio.
+                        {t('common.crop.description')}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="relative h-[300px] w-full overflow-hidden rounded-md border bg-slate-900">
+                <div className="relative h-[300px] w-full overflow-hidden rounded-md border bg-muted">
                     {imageSrc && (
                         <Cropper
                             image={imageSrc}
@@ -54,7 +57,7 @@ export function ImageCropperDialog({
                 </div>
 
                 <div className="flex items-center space-x-2 pt-2">
-                    <span className="text-xs text-muted-foreground">Zoom</span>
+                    <span className="text-xs text-muted-foreground">{t('common.crop.zoom')}</span>
                     <Slider
                         value={[zoom]}
                         min={1}
@@ -71,11 +74,11 @@ export function ImageCropperDialog({
                         onClick={() => onOpenChange(false)}
                         type="button"
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button onClick={onSave} type="button">
-                        <CropIcon className="mr-2 h-4 w-4"/>
-                        Crop & Save
+                        <CropIcon className="mr-2 h-4 w-4" />
+                        {t('common.crop.save')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import { ReactNode, useState } from "react";
 import { useUpdatePasswordMutation } from "@/lib/api/query/auth.ts";
 import { InternalUserUpdatePasswordRequest } from "@/lib/api/generated";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card.tsx";
@@ -8,46 +8,49 @@ import { Label } from "@/components/ui/label.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { useTranslation } from 'react-i18next';
+import { useForm } from '@tanstack/react-form';
+import * as z from 'zod';
 
 export function UpdatePasswordCard() {
     const { t } = useTranslation();
-    const [formData, setFormData] = useState({
-        old_password: '',
-        new_password: '',
-        confirm_password: ''
-    })
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
     const mutation = useUpdatePasswordMutation()
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
+    const form = useForm({
+        defaultValues: {
+            old_password: '',
+            new_password: '',
+            confirm_password: ''
+        },
+        validators: {
+            onChange: z.object({
+                old_password: z.string().min(1),
+                new_password: z.string().min(6),
+                confirm_password: z.string().min(1)
+            }).refine((data) => data.new_password === data.confirm_password, {
+                message: t('account.password.error_match'),
+                path: ["confirm_password"],
+            })
+        },
+        onSubmit: async ({ value }) => {
+            setMessage(null)
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setMessage(null)
+            try {
+                const payload: InternalUserUpdatePasswordRequest = {
+                    old_password: value.old_password,
+                    new_password: value.new_password
+                }
 
-        if (formData.new_password !== formData.confirm_password) {
-            setMessage({ type: 'error', text: t('account.password.error_match') })
-            return
-        }
-
-        try {
-            const payload: InternalUserUpdatePasswordRequest = {
-                old_password: formData.old_password,
-                new_password: formData.new_password
+                await mutation.mutateAsync(payload)
+                setMessage({ type: 'success', text: t('account.password.success') })
+                form.reset()
+            } catch (error: any) {
+                const msg = error?.response?.data?.message ?? t('account.password.error_fail')
+                setMessage({ type: 'error', text: msg })
             }
-
-            await mutation.mutateAsync(payload)
-            setMessage({ type: 'success', text: t('account.password.success') })
-            setFormData({ old_password: '', new_password: '', confirm_password: '' })
-        } catch (error: any) {
-            const msg = error?.response?.data?.message ?? t('account.password.error_fail')
-            setMessage({ type: 'error', text: msg })
         }
-    }
+    })
 
     return (
         <Card>
@@ -59,62 +62,101 @@ export function UpdatePasswordCard() {
                     {t('account.password.description')}
                 </CardDescription>
             </CardHeader>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+            }}>
                 <CardContent className="grid gap-4">
                     {message && (
                         <Alert
                             variant={(message.type === 'error' ? 'destructive' : 'default') as "default" | "destructive"}
-                            className={message.type === 'success' ? 'border-green-500 text-green-500' : ''}
+                            className={message.type === 'success' ? 'border-primary text-primary' : ''}
                         >
                             <AlertDescription>{message.text}</AlertDescription>
                         </Alert> as ReactNode
                     )}
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="old_password">{t('account.password.current_password')}</Label>
-                        <Input
-                            id="old_password"
-                            name="old_password"
-                            type="password"
-                            value={formData.old_password}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                    <form.Field
+                        name="old_password"
+                        children={(field) => (
+                            <div className="grid gap-2">
+                                <Label htmlFor={field.name}>{t('account.password.current_password')}</Label>
+                                <Input
+                                    id={field.name}
+                                    name={field.name}
+                                    type="password"
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={(e) => field.handleChange(e.target.value)}
+                                />
+                                {field.state.meta.errors.length > 0 && (
+                                    <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                        {field.state.meta.errors.join(', ')}
+                                    </em>
+                                )}
+                            </div>
+                        )}
+                    />
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="new_password">{t('account.password.new_password')}</Label>
-                        <Input
-                            id="new_password"
-                            name="new_password"
-                            type="password"
-                            value={formData.new_password}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                    <form.Field
+                        name="new_password"
+                        children={(field) => (
+                            <div className="grid gap-2">
+                                <Label htmlFor={field.name}>{t('account.password.new_password')}</Label>
+                                <Input
+                                    id={field.name}
+                                    name={field.name}
+                                    type="password"
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={(e) => field.handleChange(e.target.value)}
+                                />
+                                {field.state.meta.errors.length > 0 && (
+                                    <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                        {field.state.meta.errors.join(', ')}
+                                    </em>
+                                )}
+                            </div>
+                        )}
+                    />
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="confirm_password">{t('account.password.confirm_password')}</Label>
-                        <Input
-                            id="confirm_password"
-                            name="confirm_password"
-                            type="password"
-                            value={formData.confirm_password}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                    <form.Field
+                        name="confirm_password"
+                        children={(field) => (
+                            <div className="grid gap-2">
+                                <Label htmlFor={field.name}>{t('account.password.confirm_password')}</Label>
+                                <Input
+                                    id={field.name}
+                                    name={field.name}
+                                    type="password"
+                                    value={field.state.value}
+                                    onBlur={field.handleBlur}
+                                    onChange={(e) => field.handleChange(e.target.value)}
+                                />
+                                {field.state.meta.errors.length > 0 && (
+                                    <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                        {field.state.meta.errors.join(', ')}
+                                    </em>
+                                )}
+                            </div>
+                        )}
+                    />
                 </CardContent>
                 <CardFooter className="justify-end border-t bg-muted/20 px-6 py-4">
-                    <Button type="submit" disabled={mutation.isPending}>
-                        {mutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> as ReactNode
-                        ) : (
-                            <Save className="mr-2 h-4 w-4" /> as ReactNode
+                    <form.Subscribe
+                        selector={(state) => [state.canSubmit, state.isSubmitting]}
+                        children={([canSubmit, isSubmitting]) => (
+                            <Button type="submit" disabled={!canSubmit || isSubmitting || mutation.isPending}>
+                                {(isSubmitting || mutation.isPending) ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> as ReactNode
+                                ) : (
+                                    <Save className="mr-2 h-4 w-4" /> as ReactNode
+                                )}
+                                {t('account.password.button')}
+                            </Button>
                         )}
-                        {t('account.password.button')}
-                    </Button>
+                    />
                 </CardFooter>
             </form>
         </Card>

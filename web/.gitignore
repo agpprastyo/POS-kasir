@@ -18,3 +18,4 @@ web/.env.*
 .wrangler
 .dev.vars*
 
+lighthouse-results/

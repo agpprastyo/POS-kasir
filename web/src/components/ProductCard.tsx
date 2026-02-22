@@ -48,7 +48,7 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                         <Button
                             size="icon"
                             variant="secondary"
-                            className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-sm opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hover:bg-green-100 hover:text-green-600 shadow-sm"
+                            className="h-8 w-8 rounded-full bg-background/90 backdrop-blur-sm opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hover:bg-accent hover:text-accent-foreground shadow-sm"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onRestore(product);

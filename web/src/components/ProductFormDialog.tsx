@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useForm } from '@tanstack/react-form'
+import { z } from 'zod'
 import {
     type Product,
     useCreateProductMutation,
@@ -57,16 +59,109 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
     const updateOptionMutation = useUpdateProductOptionMutation()
     const uploadOptionImageMutation = useUploadProductOptionImageMutation()
 
+    const formatError = (errors: any[]) => {
+        if (!errors || errors.length === 0) return null;
+        return errors.map(err => {
+            if (typeof err === 'string') return err;
+            if (err && typeof err.message === 'string') return err.message;
+            return 'Invalid input';
+        }).join(', ');
+    }
+
     const { data: detailProduct, isLoading: isLoadingDetail } = useProductDetailQuery(productToEdit?.id || '')
 
     const cropper = useImageCropper()
 
-    const [formData, setFormData] = useState({
-        name: '',
-        category_id: 0,
-        price: 0,
-        cost_price: 0,
-        stock: 0
+    const form = useForm({
+        defaultValues: {
+            name: '',
+            category_id: 0,
+            price: 0,
+            cost_price: 0,
+            stock: 0
+        },
+        validators: {
+            onChange: z.object({
+                name: z.string().min(1, t('products.form.error_name_required')),
+                category_id: z.number().min(1, t('products.form.error_category')),
+                price: z.number().min(0),
+                cost_price: z.number().min(0),
+                stock: z.number().min(0)
+            })
+        },
+        onSubmit: async ({ value }) => {
+            try {
+                let productId = productToEdit?.id
+
+                if (productToEdit && productId) {
+                    const payload: InternalProductsUpdateProductRequest = {
+                        name: value.name,
+                        category_id: value.category_id,
+                        price: Number(value.price),
+                        cost_price: Number(value.cost_price),
+                        stock: Number(value.stock)
+                    }
+                    await updateMutation.mutateAsync({ id: productId, body: payload })
+                } else {
+                    const payload: InternalProductsCreateProductRequest = {
+                        name: value.name,
+                        category_id: value.category_id,
+                        price: Number(value.price),
+                        cost_price: Number(value.cost_price),
+                        stock: Number(value.stock),
+                        options: []
+                    }
+                    const newProduct = await createMutation.mutateAsync(payload)
+                    productId = newProduct.id
+                }
+
+                if (selectedFile && productId) {
+                    await uploadImageMutation.mutateAsync({ id: productId, file: selectedFile })
+                }
+
+                // Handle Variants
+                if (productId) {
+                    for (const variant of variants) {
+                        let optionId = variant.id
+
+                        if (variant.isNew && variant.name) {
+                            const newOpt = await createOptionMutation.mutateAsync({
+                                productId,
+                                body: {
+                                    name: variant.name,
+                                    additional_price: Number(variant.additional_price)
+                                }
+                            })
+                            optionId = newOpt.id
+                        } else if (optionId && variant.name) {
+                            await updateOptionMutation.mutateAsync({
+                                productId,
+                                optionId,
+                                body: {
+                                    name: variant.name,
+                                    additional_price: Number(variant.additional_price)
+                                }
+                            })
+                        }
+
+                        if (variant.imageFile && optionId) {
+                            await uploadOptionImageMutation.mutateAsync({
+                                productId,
+                                optionId,
+                                file: variant.imageFile
+                            })
+                        }
+                    }
+                }
+
+                form.reset()
+                onOpenChange(false)
+                toast.success(productToEdit ? t('products.form.success_update') : t('products.form.success_create'))
+
+            } catch (error) {
+                console.error(error)
+            }
+        }
     })
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [preview, setPreview] = useState<string | null>(null)
@@ -77,30 +172,32 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
     useEffect(() => {
         if (open) {
-            if (productToEdit) {
-                setFormData({
-                    name: detailProduct?.name ?? productToEdit.name ?? '',
-                    category_id: detailProduct?.category_id ?? productToEdit.category_id ?? 0,
-                    price: detailProduct?.price ?? productToEdit.price ?? 0,
-                    cost_price: detailProduct?.cost_price ?? productToEdit.cost_price ?? 0,
-                    stock: detailProduct?.stock ?? productToEdit.stock ?? 0
-                })
-                setPreview(detailProduct?.image_url ?? productToEdit.image_url ?? null)
+            // Need setTimeout to ensure form is fully mounted before resetting values in Tanstack Form
+            setTimeout(() => {
+                if (productToEdit) {
+                    form.setFieldValue('name', detailProduct?.name ?? productToEdit.name ?? '')
+                    form.setFieldValue('category_id', detailProduct?.category_id ?? productToEdit.category_id ?? 0)
+                    form.setFieldValue('price', detailProduct?.price ?? productToEdit.price ?? 0)
+                    form.setFieldValue('cost_price', detailProduct?.cost_price ?? productToEdit.cost_price ?? 0)
+                    form.setFieldValue('stock', detailProduct?.stock ?? productToEdit.stock ?? 0)
 
-                const options = detailProduct?.options || []
-                setVariants(options.map(opt => ({
-                    id: opt.id,
-                    name: opt.name || '',
-                    additional_price: opt.additional_price || 0,
-                    image_url: opt.image_url,
-                    isNew: false
-                })))
-            } else {
-                setFormData({ name: '', category_id: 0, price: 0, cost_price: 0, stock: 0 })
-                setPreview(null)
-                setSelectedFile(null)
-                setVariants([])
-            }
+                    setPreview(detailProduct?.image_url ?? productToEdit.image_url ?? null)
+
+                    const options = detailProduct?.options || []
+                    setVariants(options.map(opt => ({
+                        id: opt.id,
+                        name: opt.name || '',
+                        additional_price: opt.additional_price || 0,
+                        image_url: opt.image_url,
+                        isNew: false
+                    })))
+                } else {
+                    form.reset()
+                    setPreview(null)
+                    setSelectedFile(null)
+                    setVariants([])
+                }
+            }, 0)
             setActiveCropContext('main')
         }
     }, [open, productToEdit, detailProduct])
@@ -154,86 +251,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
         setTimeout(() => fileInputRef.current?.click(), 0)
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
 
-        if (!formData.category_id) {
-            toast.error(t('products.form.error_category'))
-            return
-        }
-
-        try {
-            let productId = productToEdit?.id
-
-            if (productToEdit && productId) {
-                const payload: InternalProductsUpdateProductRequest = {
-                    name: formData.name,
-                    category_id: formData.category_id,
-                    price: Number(formData.price),
-                    cost_price: Number(formData.cost_price),
-                    stock: Number(formData.stock)
-                }
-                await updateMutation.mutateAsync({ id: productId, body: payload })
-            } else {
-                const payload: InternalProductsCreateProductRequest = {
-                    name: formData.name,
-                    category_id: formData.category_id,
-                    price: Number(formData.price),
-                    cost_price: Number(formData.cost_price),
-                    stock: Number(formData.stock),
-                    options: []
-                }
-                const newProduct = await createMutation.mutateAsync(payload)
-                productId = newProduct.id
-            }
-
-            if (selectedFile && productId) {
-                await uploadImageMutation.mutateAsync({ id: productId, file: selectedFile })
-            }
-
-            // Handle Variants
-            if (productId) {
-                for (const variant of variants) {
-                    let optionId = variant.id
-
-                    if (variant.isNew) {
-                        const newOpt = await createOptionMutation.mutateAsync({
-                            productId,
-                            body: {
-                                name: variant.name,
-                                additional_price: Number(variant.additional_price)
-                            }
-                        })
-                        optionId = newOpt.id
-                    } else if (optionId) {
-
-                        await updateOptionMutation.mutateAsync({
-                            productId,
-                            optionId,
-                            body: {
-                                name: variant.name,
-                                additional_price: Number(variant.additional_price)
-                            }
-                        })
-                    }
-
-                    if (variant.imageFile && optionId) {
-                        await uploadOptionImageMutation.mutateAsync({
-                            productId,
-                            optionId,
-                            file: variant.imageFile
-                        })
-                    }
-                }
-            }
-
-            onOpenChange(false)
-            toast.success(productToEdit ? t('products.form.success_update') : t('products.form.success_create'))
-
-        } catch (error) {
-            console.error(error)
-        }
-    }
 
     const isSubmitting = createMutation.isPending ||
         updateMutation.isPending ||
@@ -266,7 +284,11 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                     <TabsTrigger value="history" disabled={!productToEdit}>{t('products.form.tab_history')}</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="details" className="mt-4 space-y-4">
-                                    <form id="product-form" onSubmit={handleSubmit} className="grid gap-6 py-4">
+                                    <form id="product-form" onSubmit={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        form.handleSubmit()
+                                    }} className="grid gap-6 py-4">
                                         {/* Image Upload Section */}
                                         <div className="flex flex-col items-center gap-4">
                                             <Avatar
@@ -299,98 +321,148 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
                                         <div className="grid gap-4">
                                             {/* Name */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="name" className="text-right">{t('products.form.name')}</Label>
-                                                <Input
-                                                    id="name"
-                                                    value={formData.name}
-                                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                                    className="col-span-3"
-                                                    required
-                                                />
-                                            </div>
+                                            <form.Field
+                                                name="name"
+                                                children={(field) => (
+                                                    <div className="grid grid-cols-4 items-start gap-4">
+                                                        <Label htmlFor={field.name} className="text-right mt-3:">{t('products.form.name')}</Label>
+                                                        <div className="col-span-3 space-y-1">
+                                                            <Input
+                                                                id={field.name}
+                                                                name={field.name}
+                                                                value={field.state.value}
+                                                                onBlur={field.handleBlur}
+                                                                onChange={e => field.handleChange(e.target.value)}
+                                                            />
+                                                            {field.state.meta.errors.length > 0 && (
+                                                                <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
 
                                             {/* Category */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="category" className="text-right">{t('products.form.category')}</Label>
-                                                <div className="col-span-3">
-                                                    <Select
-                                                        value={formData.category_id ? String(formData.category_id) : ""}
-                                                        onValueChange={val => setFormData({ ...formData, category_id: Number(val) })}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder={t('products.form.select_category')} />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {categories.map((cat: any) => (
-                                                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                                                    {cat.name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </div>
+                                            <form.Field
+                                                name="category_id"
+                                                children={(field) => (
+                                                    <div className="grid grid-cols-4 items-start gap-4">
+                                                        <Label htmlFor={field.name} className="text-right mt-3">{t('products.form.category')}</Label>
+                                                        <div className="col-span-3 space-y-1">
+                                                            <Select
+                                                                value={field.state.value ? String(field.state.value) : ""}
+                                                                onValueChange={val => field.handleChange(Number(val))}
+                                                            >
+                                                                <SelectTrigger id={field.name}>
+                                                                    <SelectValue placeholder={t('products.form.select_category')} />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {categories.map((cat: any) => (
+                                                                        <SelectItem key={cat.id} value={String(cat.id)}>
+                                                                            {cat.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {field.state.meta.errors.length > 0 && (
+                                                                <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
 
                                             {/* Price */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="price" className="text-right">{t('products.form.price')}</Label>
-                                                <div className="col-span-3 relative">
-                                                    <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
-                                                    <Input
-                                                        id="price"
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={formData.price ? formData.price.toLocaleString('id-ID') : ''}
-                                                        onChange={e => {
-                                                            const val = e.target.value.replace(/\D/g, '')
-                                                            setFormData({ ...formData, price: Number(val) })
-                                                        }}
-                                                        className="pl-9"
-                                                        placeholder="0"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
+                                            <form.Field
+                                                name="price"
+                                                children={(field) => (
+                                                    <div className="grid grid-cols-4 items-start gap-4">
+                                                        <Label htmlFor={field.name} className="text-right mt-3">{t('products.form.price')}</Label>
+                                                        <div className="col-span-3 space-y-1">
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
+                                                                <Input
+                                                                    id={field.name}
+                                                                    name={field.name}
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    value={field.state.value ? field.state.value.toLocaleString('id-ID') : ''}
+                                                                    onBlur={field.handleBlur}
+                                                                    onChange={e => {
+                                                                        const val = e.target.value.replace(/\D/g, '')
+                                                                        field.handleChange(Number(val))
+                                                                    }}
+                                                                    className="pl-9"
+                                                                    placeholder="0"
+                                                                />
+                                                            </div>
+                                                            {field.state.meta.errors.length > 0 && (
+                                                                <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
 
                                             {/* Cost Price */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="cost_price" className="text-right">{t('products.form.cost_price') || "Modal"}</Label>
-                                                <div className="col-span-3 relative">
-                                                    <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
-                                                    <Input
-                                                        id="cost_price"
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        value={formData.cost_price ? formData.cost_price.toLocaleString('id-ID') : ''}
-                                                        onChange={e => {
-                                                            const val = e.target.value.replace(/\D/g, '')
-                                                            setFormData({ ...formData, cost_price: Number(val) })
-                                                        }}
-                                                        className="pl-9"
-                                                        placeholder="0"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
+                                            <form.Field
+                                                name="cost_price"
+                                                children={(field) => (
+                                                    <div className="grid grid-cols-4 items-start gap-4">
+                                                        <Label htmlFor={field.name} className="text-right mt-3">{t('products.form.cost_price')}</Label>
+                                                        <div className="col-span-3 space-y-1">
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
+                                                                <Input
+                                                                    id={field.name}
+                                                                    name={field.name}
+                                                                    type="text"
+                                                                    inputMode="numeric"
+                                                                    value={field.state.value ? field.state.value.toLocaleString('id-ID') : ''}
+                                                                    onBlur={field.handleBlur}
+                                                                    onChange={e => {
+                                                                        const val = e.target.value.replace(/\D/g, '')
+                                                                        field.handleChange(Number(val))
+                                                                    }}
+                                                                    className="pl-9"
+                                                                    placeholder="0"
+                                                                />
+                                                            </div>
+                                                            {field.state.meta.errors.length > 0 && (
+                                                                <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
 
                                             {/* Stock */}
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <Label htmlFor="stock" className="text-right">{t('products.form.stock')}</Label>
-                                                <Input
-                                                    id="stock"
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    value={formData.stock ? formData.stock.toLocaleString('id-ID') : ''}
-                                                    onChange={e => {
-                                                        const val = e.target.value.replace(/\D/g, '')
-                                                        setFormData({ ...formData, stock: Number(val) })
-                                                    }}
-                                                    className="col-span-3"
-                                                    placeholder="0"
-                                                    required
-                                                />
-                                            </div>
+                                            <form.Field
+                                                name="stock"
+                                                children={(field) => (
+                                                    <div className="grid grid-cols-4 items-start gap-4">
+                                                        <Label htmlFor={field.name} className="text-right mt-3">{t('products.form.stock')}</Label>
+                                                        <div className="col-span-3 space-y-1">
+                                                            <Input
+                                                                id={field.name}
+                                                                name={field.name}
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                value={field.state.value ? field.state.value.toLocaleString('id-ID') : ''}
+                                                                onBlur={field.handleBlur}
+                                                                onChange={e => {
+                                                                    const val = e.target.value.replace(/\D/g, '')
+                                                                    field.handleChange(Number(val))
+                                                                }}
+                                                                placeholder="0"
+                                                            />
+                                                            {field.state.meta.errors.length > 0 && (
+                                                                <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            />
                                         </div>
 
 
@@ -463,13 +535,18 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                         </div>
                                     </form>
                                     <DialogFooter className="pt-2">
-                                        <Button type="submit" form="product-form" disabled={isSubmitting || (!!productToEdit && isLoadingDetail)}>
-                                            {isSubmitting ? (
-                                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.form.saving')}</>
-                                            ) : (
-                                                t('products.form.save')
+                                        <form.Subscribe
+                                            selector={(state) => [state.canSubmit, state.isSubmitting]}
+                                            children={([canSubmit, isSubmittingForm]) => (
+                                                <Button type="submit" form="product-form" disabled={!canSubmit || isSubmittingForm || isSubmitting || (!!productToEdit && isLoadingDetail)}>
+                                                    {isSubmitting || isSubmittingForm ? (
+                                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('products.form.saving')}</>
+                                                    ) : (
+                                                        t('products.form.save')
+                                                    )}
+                                                </Button>
                                             )}
-                                        </Button>
+                                        />
                                     </DialogFooter>
                                 </TabsContent>
                                 <TabsContent value="history" className="mt-4">
@@ -480,7 +557,6 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                     </div>
                 </DialogContent>
             </Dialog >
-
 
             <ImageCropperDialog
                 open={cropper.isDialogOpen}

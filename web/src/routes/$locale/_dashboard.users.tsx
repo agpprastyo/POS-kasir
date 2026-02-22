@@ -1,21 +1,21 @@
-import {createFileRoute, useNavigate} from '@tanstack/react-router'
-import {useSuspenseQuery} from '@tanstack/react-query'
-import {z} from 'zod'
-import  {useState} from 'react'
-import {usersListQueryOptions} from '@/lib/api/query/user'
-import {InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum} from '@/lib/api/generated'
-import {queryClient} from '@/lib/queryClient'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
-import {Badge} from '@/components/ui/badge'
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
-import {Plus, Search} from 'lucide-react'
-import {NewPagination} from "@/components/pagination.tsx";
-import {useTranslation} from 'react-i18next'
-import {UserActions} from "@/components/userActions.tsx";
-import {UserFormDialog} from "@/components/userFormDialog.tsx";
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { z } from 'zod'
+import { useState } from 'react'
+import { usersListQueryOptions } from '@/lib/api/query/user'
+import { InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum } from '@/lib/api/generated'
+import { queryClient } from '@/lib/queryClient'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Plus, Search } from 'lucide-react'
+import { NewPagination } from "@/components/pagination.tsx";
+import { useTranslation } from 'react-i18next'
+import { UserActions } from "@/components/userActions.tsx";
+import { UserFormDialog } from "@/components/userFormDialog.tsx";
 
 
 const usersSearchSchema = z.object({
@@ -169,7 +169,6 @@ function UsersPage() {
                                     <TableCell>
                                         <Badge
                                             variant={user.is_active ? 'default' : 'destructive'}
-                                            className={user.is_active ? 'bg-green-500 hover:bg-green-600' : ''}
                                         >
                                             {user.is_active ? t('users.status.active') : t('users.status.inactive')}
                                         </Badge>

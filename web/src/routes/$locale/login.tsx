@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { createFileRoute, useRouter, useParams } from '@tanstack/react-router'
 import { redirect } from '@tanstack/react-router'
 import {
@@ -11,6 +11,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { useForm } from '@tanstack/react-form'
+import * as z from 'zod'
 import { meQueryOptions } from "@/lib/api/query/auth.ts";
 import { useAuth } from "@/context/AuthContext";
 import { queryClient } from "@/lib/queryClient.ts";
@@ -46,39 +48,38 @@ function LoginPage() {
 
     const [serverError, setServerError] = useState<string | null>(null)
 
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    })
-
-    const isSubmitting = auth.isLoading
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
-    }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setServerError(null)
-        try {
-            await auth.login({
-                email: formData.email,
-                password: formData.password,
+    const form = useForm({
+        defaultValues: {
+            email: '',
+            password: '',
+        },
+        validators: {
+            onChange: z.object({
+                email: z.string().email(),
+                password: z.string().min(1)
             })
-            await router.invalidate()
-            await router.navigate({
-                to: '/$locale',
-                params: { locale },
-                replace: true
-            })
+        },
+        onSubmit: async ({ value }) => {
+            setServerError(null)
+            try {
+                await auth.login({
+                    email: value.email,
+                    password: value.password,
+                })
+                await router.invalidate()
+                await router.navigate({
+                    to: '/$locale',
+                    params: { locale },
+                    replace: true
+                })
 
-        } catch (error: any) {
-            console.error('Login Failed:', error)
-            const msg = error?.response?.data?.message ?? error?.message ?? t('auth.login_failed')
-            setServerError(msg)
+            } catch (error: any) {
+                console.error('Login Failed:', error)
+                const msg = error?.response?.data?.message ?? error?.message ?? t('auth.login_failed')
+                setServerError(msg)
+            }
         }
-    }
+    })
 
     const demoAccount = {
         email: 'admin@example.com',
@@ -96,51 +97,80 @@ function LoginPage() {
                     <CardDescription>{t('auth.sign_in_subtitle')}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <Label className="mb-1" htmlFor="email">
-                                {t('auth.email')}
-                            </Label>
-                            <Input
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder={t('auth.email_placeholder')}
-                                type="email"
-                                required
-                            />
-                        </div>
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        form.handleSubmit();
+                    }} className="space-y-4">
+                        <form.Field
+                            name="email"
+                            children={(field) => (
+                                <div>
+                                    <Label className="mb-1" htmlFor={field.name}>
+                                        {t('auth.email')}
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        value={field.state.value}
+                                        onBlur={field.handleBlur}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        placeholder={t('auth.email_placeholder')}
+                                        type="email"
+                                    />
+                                    {field.state.meta.errors.length > 0 && (
+                                        <em role="alert" className="text-[0.8rem] font-medium text-destructive mt-1">
+                                            {field.state.meta.errors.join(', ')}
+                                        </em>
+                                    )}
+                                </div>
+                            )}
+                        />
 
-                        <div>
-                            <Label className="mb-1" htmlFor="password">
-                                {t('auth.password')}
-                            </Label>
-                            <Input
-                                id="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder={t('auth.password_placeholder')}
-                                type="password"
-                                required
-                            />
-                        </div>
+                        <form.Field
+                            name="password"
+                            children={(field) => (
+                                <div>
+                                    <Label className="mb-1" htmlFor={field.name}>
+                                        {t('auth.password')}
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        value={field.state.value}
+                                        onBlur={field.handleBlur}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        placeholder={t('auth.password_placeholder')}
+                                        type="password"
+                                    />
+                                    {field.state.meta.errors.length > 0 && (
+                                        <em role="alert" className="text-[0.8rem] font-medium text-destructive mt-1">
+                                            {field.state.meta.errors.join(', ')}
+                                        </em>
+                                    )}
+                                </div>
+                            )}
+                        />
 
                         {serverError && (
                             <div className="text-destructive text-sm">
                                 {serverError}
                             </div>
                         )}
-                        <div className="pt-2">
-                            <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? t('auth.signing_in') : t('auth.sign_in')}
-                            </Button>
-                        </div>
+                        <form.Subscribe
+                            selector={(state) => [state.canSubmit, state.isSubmitting]}
+                            children={([canSubmit, isSubmitting]) => (
+                                <div className="pt-2">
+                                    <Button
+                                        type="submit"
+                                        className="w-full"
+                                        disabled={!canSubmit || isSubmitting || auth.isLoading}
+                                    >
+                                        {isSubmitting || auth.isLoading ? t('auth.signing_in') : t('auth.sign_in')}
+                                    </Button>
+                                </div>
+                            )}
+                        />
                     </form>
                 </CardContent>
 

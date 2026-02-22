@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { useRBAC } from "@/lib/auth/rbac"
+import i18n from '@/lib/i18n'
 
 export type OrdersListParams = {
     limit?: number
@@ -83,7 +84,7 @@ export const useApplyPromotionMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Promo berhasil diterapkan")
+            toast.success(i18n.t('order.promo_applied'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal menerapkan promo"
@@ -112,7 +113,7 @@ export const useCancelOrderMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Order berhasil dibatalkan")
+            toast.success(i18n.t('order.cancel_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal membatalkan order"
@@ -141,7 +142,7 @@ export const useConfirmManualPaymentMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Pembayaran manual berhasil dikonfirmasi")
+            toast.success(i18n.t('order.manual_payment_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal konfirmasi pembayaran manual"
@@ -170,7 +171,7 @@ export const useInitiateMidtransPaymentMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Pembayaran diproses")
+            toast.success(i18n.t('order.payment_processed'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal memproses pembayaran"
@@ -199,7 +200,7 @@ export const useUpdateOrderStatusMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Status order diperbarui")
+            toast.success(i18n.t('order.status_updated'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal memperbarui status order"
@@ -227,7 +228,7 @@ export const useCreateOrderMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
-            toast.success("Order berhasil dibuat")
+            toast.success(i18n.t('order.create_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal membuat order"
@@ -256,7 +257,7 @@ export const useUpdateOrderItemsMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['orders', 'list'] })
             qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
-            toast.success("Item order berhasil diperbarui")
+            toast.success(i18n.t('order.item_updated'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal memperbarui item order"
@@ -283,7 +284,7 @@ export const usePrintInvoiceMutation = () => {
             return (res.data as any).data
         },
         onSuccess: () => {
-            toast.success("Printing invoice...")
+            toast.success(i18n.t('order.printing_invoice'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Failed to print invoice"

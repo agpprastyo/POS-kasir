@@ -89,7 +89,7 @@ export const StockHistoryTable = ({ productId }: StockHistoryTableProps) => {
                                 </TableCell>
                                 <TableCell>
                                     <span className={cn(
-                                        (item.change_amount || 0) > 0 ? "text-green-600" : "text-red-600"
+                                        (item.change_amount || 0) > 0 ? "text-primary" : "text-destructive"
                                     )}>
                                         {(item.change_amount || 0) > 0 ? `+${item.change_amount}` : item.change_amount}
                                     </span>

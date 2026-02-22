@@ -45,13 +45,12 @@ export function CancellationReasonsCard() {
                                 </TableRow>
                             ) : (
                                 reasonsList.map((item: POSKasirInternalDtoCancellationReasonResponse) => (
-                                     <TableRow key={item.id}>
+                                    <TableRow key={item.id}>
                                         <TableCell className="font-medium">{item.reason}</TableCell>
                                         <TableCell>{item.description || '-'}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant={item.is_active ? 'default' : 'secondary'}
-                                                className={item.is_active ? 'bg-green-500 hover:bg-green-600' : ''}
                                             >
                                                 {item.is_active
                                                     ? t('settings.cancellation.status.active')

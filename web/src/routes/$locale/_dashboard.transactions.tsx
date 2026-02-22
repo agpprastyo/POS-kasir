@@ -199,7 +199,7 @@ function TransactionsPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col gap-6  mx-auto w-full">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{t('transactions.title')}</h1>
@@ -269,9 +269,9 @@ function TransactionsPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
                                                     {order.type === 'dine_in' ? (
-                                                        <Utensils className="h-4 w-4 text-orange-500" />
+                                                        <Utensils className="h-4 w-4 text-primary" />
                                                     ) : (
-                                                        <ShoppingBag className="h-4 w-4 text-blue-500" />
+                                                        <ShoppingBag className="h-4 w-4 text-primary" />
                                                     )}
                                                     <div className="flex flex-col">
                                                         <span className="font-medium capitalize">{order.type?.replace('_', ' ')}</span>
@@ -303,11 +303,11 @@ function TransactionsPage() {
                                                 <div className="flex flex-col items-start gap-1">
                                                     <span>{formatRupiah(order.net_total || 0)}</span>
                                                     {order.is_paid ? (
-                                                        <Badge variant="outline" className="text-[10px] h-5 bg-green-50 text-green-700 border-green-200">
+                                                        <Badge variant="default" className="text-[10px] h-5">
                                                             {t('transactions.status_badge.paid')}
                                                         </Badge>
                                                     ) : (
-                                                        <Badge variant="outline" className="text-[10px] h-5 bg-yellow-50 text-yellow-700 border-yellow-200">
+                                                        <Badge variant="secondary" className="text-[10px] h-5">
                                                             {t('transactions.status_badge.unpaid')}
                                                         </Badge>
                                                     )}
@@ -329,7 +329,7 @@ function TransactionsPage() {
                                                     <SelectTrigger className="w-[140px] h-8 border-none bg-transparent hover:bg-muted focus:ring-0 p-0">
                                                         <Badge
                                                             variant={order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid ? 'default' : order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled ? 'destructive' : 'secondary'}
-                                                            className={`capitalize cursor-pointer w-full justify-center ${order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                            className={`capitalize cursor-pointer w-full justify-center`}
                                                         >
                                                             {order.status ? t(`transactions.status.${order.status}`) : order.status}
                                                         </Badge>
@@ -344,13 +344,13 @@ function TransactionsPage() {
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
-                                                        <Button size="sm" variant="default" className="h-8 gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => handleOpenPayment(order)}>
+                                                        <Button size="sm" variant="default" className="h-8 gap-1" onClick={() => handleOpenPayment(order)}>
                                                             <Banknote className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.pay')}
                                                         </Button>
                                                     )}
                                                     {order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed && (
-                                                        <Button size="sm" variant="outline" className="h-8 gap-1 border-green-600 text-green-600 hover:bg-green-50" onClick={() => handleFinish(order)}>
+                                                        <Button size="sm" variant="default" className="h-8 gap-1" onClick={() => handleFinish(order)}>
                                                             <CheckCircle className="h-3.5 w-3.5" />
                                                             {t('transactions.actions_button.complete')}
                                                         </Button>

@@ -17,7 +17,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog"
+import { MoreHorizontal, Loader2 } from "lucide-react"
 
 import {
     promotionsListQueryOptions,
@@ -81,6 +91,8 @@ function PromotionsPage() {
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null)
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [restoreId, setRestoreId] = useState<string | null>(null)
 
     const handlePageChange = (newPage: number) => {
         navigate({ search: (prev) => ({ ...prev, page: newPage }) })
@@ -97,14 +109,26 @@ function PromotionsPage() {
     }
 
     const handleDelete = (id: string) => {
-        if (confirm(t('common.confirm') + '?')) {
-            deleteMutation.mutate(id)
-        }
+        setDeleteId(id)
     }
 
     const handleRestore = (id: string) => {
-        if (confirm(t('common.confirm') + '?')) {
-            restoreMutation.mutate(id)
+        setRestoreId(id)
+    }
+
+    const confirmDelete = () => {
+        if (deleteId) {
+            deleteMutation.mutate(deleteId, {
+                onSuccess: () => setDeleteId(null)
+            })
+        }
+    }
+
+    const confirmRestore = () => {
+        if (restoreId) {
+            restoreMutation.mutate(restoreId, {
+                onSuccess: () => setRestoreId(null)
+            })
         }
     }
 
@@ -126,8 +150,8 @@ function PromotionsPage() {
 
             <Tabs defaultValue="active" onValueChange={setActiveTab} className="w-full">
                 <TabsList>
-                    <TabsTrigger value="active">Active</TabsTrigger>
-                    <TabsTrigger value="trash">Trash</TabsTrigger>
+                    <TabsTrigger value="active">{t('promotions.tabs.active')}</TabsTrigger>
+                    <TabsTrigger value="trash">{t('promotions.tabs.trash')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="active" className="mt-4">
@@ -168,6 +192,49 @@ function PromotionsPage() {
                 onOpenChange={setIsDialogOpen}
                 promotionToEdit={selectedPromotion}
             />
+
+            <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('promotions.delete_title', 'Delete Promotion')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('promotions.delete_confirm', 'Are you sure you want to delete this promotion?')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
+                        >
+                            {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            {t('common.delete', 'Delete')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={!!restoreId} onOpenChange={(open) => !open && setRestoreId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('promotions.restore_title', 'Restore Promotion')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('promotions.restore_confirm', 'Are you sure you want to restore this promotion?')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={restoreMutation.isPending}>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmRestore}
+                            disabled={restoreMutation.isPending}
+                        >
+                            {restoreMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            {t('common.restore', 'Restore')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
@@ -215,7 +282,7 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, 
                                                 : formatRupiah(promo.discount_value)}
                                         </span>
                                         {promo.max_discount_amount && promo.max_discount_amount > 0 && (
-                                            <span className="text-xs text-muted-foreground">Max: {formatRupiah(promo.max_discount_amount)}</span>
+                                            <span className="text-xs text-muted-foreground">{t('promotions.table.max')} {formatRupiah(promo.max_discount_amount)}</span>
                                         )}
                                     </div>
                                 </TableCell>
@@ -226,7 +293,7 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, 
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={promo.is_active ? 'default' : 'secondary'}>
-                                        {promo.is_active ? 'Active' : 'Inactive'}
+                                        {promo.is_active ? t('promotions.status.active') : t('promotions.status.inactive')}
                                     </Badge>
                                 </TableCell>
                                 {hasAnyAction && (
@@ -234,7 +301,7 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, 
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <span className="sr-only">Open menu</span>
+                                                    <span className="sr-only">{t('promotions.actions.open_menu')}</span>
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -257,7 +324,7 @@ function PromotionsTable({ promotions, t, onEdit, onDelete, onRestore, isTrash, 
                                                 )}
                                                 {isTrash && canRestore && (
                                                     <DropdownMenuItem onClick={() => onRestore(promo.id)}>
-                                                        <RotateCcw className="mr-2 h-4 w-4" /> Restore
+                                                        <RotateCcw className="mr-2 h-4 w-4" /> {t('common.restore')}
                                                     </DropdownMenuItem>
                                                 )}
                                             </DropdownMenuContent>

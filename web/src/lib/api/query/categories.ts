@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { useRBAC } from '@/lib/auth/rbac'
+import i18n from '@/lib/i18n'
 
 // Gunakan tipe dari generated, atau definisikan ulang tanpa description
 export type Category = InternalCategoriesCategoryResponse
@@ -73,7 +74,7 @@ export const useCreateCategoryMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['categories', 'list'] })
-            toast.success("Kategori berhasil dibuat")
+            toast.success(i18n.t('category.create_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal membuat kategori"
@@ -104,7 +105,7 @@ export const useUpdateCategoryMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['categories', 'list'] })
-            toast.success("Kategori berhasil diperbarui")
+            toast.success(i18n.t('category.update_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal update kategori"
@@ -135,7 +136,7 @@ export const useDeleteCategoryMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['categories', 'list'] })
-            toast.success("Kategori berhasil dihapus")
+            toast.success(i18n.t('category.delete_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal menghapus kategori"

@@ -15,7 +15,38 @@
         "start_date": "Start Date",
         "end_date": "End Date",
         "sold": "sold",
-        "rev": "rev"
+        "rev": "rev",
+        "no_results": "No results found.",
+        "clear_filters": "Clear Filters",
+        "previous": "Previous",
+        "next": "Next",
+        "page_info": "Page {{current}} of {{total}}",
+        "restore": "Restore",
+        "error": {
+            "title": "Oops!",
+            "subtitle": "Something went wrong",
+            "default_message": "An unexpected error occurred. Please try again later.",
+            "try_again": "Try Again",
+            "go_home": "Go Home",
+            "load_failed": "Failed to load data: {{message}}"
+        },
+        "crop": {
+            "title": "Crop Image",
+            "description": "Adjust the image to fit the required aspect ratio.",
+            "zoom": "Zoom",
+            "save": "Crop & Save"
+        },
+        "theme": {
+            "toggle": "Toggle theme",
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System"
+        },
+        "not_found": {
+            "title": "Page Not Found",
+            "description": "Sorry, the page you are looking for does not exist or has been moved.",
+            "go_home": "Go Back Home"
+        }
     },
     "auth": {
         "welcome_back": "Welcome back",
@@ -28,11 +59,18 @@
         "register": "Register",
         "forgot_password": "Forgot password?",
         "login_failed": "Login failed. Please check your credentials.",
-        "demo_account": "Use demo account:"
+        "email_placeholder": "m.scott@dundermifflin.com",
+        "password_placeholder": "••••••••",
+        "demo_account": "Use demo account:",
+        "logout_failed": "Logout failed: {{message}}",
+        "update_avatar_failed": "Failed to update avatar: {{message}}",
+        "update_password_success": "Password updated successfully",
+        "update_password_failed": "Failed to update password: {{message}}"
     },
     "sidebar": {
         "summary": "Summary",
         "pos": "POS",
+        "date": "Date",
         "transactions": "Transactions",
         "product": "Product",
         "promotions": "Promotions",
@@ -98,12 +136,23 @@
             "confirm": "Confirm Payment",
             "money_insufficient": "Cash insufficient!",
             "success": "Payment Successful! Change:"
+        },
+        "messages": {
+            "fetch_error": "Failed to fetch transactions",
+            "cancel_notes_required": "Cancel notes are required",
+            "order_finished": "Order finished",
+            "use_action_button": "Please use action buttons"
         }
     },
     "dashboard": {
         "title": "Dashboard Summary",
+        "welcome_subtitle": "Here's what's happening with your store today.",
         "toggle_nav": "Toggle navigation menu",
         "widgets": {
+            "quick_actions": "Quick Actions",
+            "quick_actions_desc": "Manage your store efficiently",
+            "manage_products": "Manage Products",
+            "view_reports": "View Full Reports",
             "sales_trend": "Sales Trend (Last 30 Days)",
             "top_products": "Top Products",
             "quantity": "Quantity",
@@ -272,6 +321,8 @@
             "footer_text": "Footer Text",
             "theme_color": "Theme Color (Light Mode)",
             "theme_color_dark": "Theme Color (Dark Mode)",
+            "save_success": "Settings saved successfully",
+            "save_error": "Failed to save settings",
             "update_success": "Branding settings updated successfully!",
             "update_error": "Failed to update branding",
             "uploading": "Uploading logo...",
@@ -292,10 +343,35 @@
             "test_print": "Test Print",
             "update_success": "Printer settings updated successfully!",
             "update_error": "Failed to update printer settings",
+            "save_failed": "Failed to save settings",
+            "print_success": "Receipt printed successfully",
+            "print_failed": "Failed to print receipt",
+            "ip_help": "Will be ignored if not network printer",
+            "connected": "Connected",
+            "connection_failed": "Connection failed",
+            "test_print_success": "Test print successful",
+            "test_print_error": "Test print failed",
+            "interface_type": "Interface Type",
+            "connected_to": "Connected to",
+            "not_connected": "Not Connected",
+            "reconnect": "Reconnect",
+            "connect": "Connect",
+            "fe_help": "Browser handles connection to the printer directly",
+            "printer_ip": "Printer IP / URL",
+            "fe_lan_help": "Input the LAN Printer IP. E.g: 192.168.1.200",
+            "print_method": "Print Method",
+            "method_be": "Server Side (Backend)",
+            "method_fe": "Client Side (Frontend)",
+            "method_be_desc": "Printing is handled by the server (Recommended for network/USB printers)",
+            "method_fe_desc": "Printing is handled by the browser (Recommended for Bluetooth printers)",
             "help_text": "Use socket://IP:PORT for network printers (e.g. 192.168.1.100:9100)."
         }
     },
     "users": {
+        "loading": "Loading shift status...",
+        "register_open": "Register Open",
+        "open_register": "Open Register",
+        "open_shift_title": "Open Shift",
         "title": "Users",
         "description": "Manage user access and roles.",
         "add_button": "Add User",
@@ -348,6 +424,16 @@
             "success_create": "User created successfully",
             "success_update": "User updated successfully",
             "error_save": "Failed to save user"
+        },
+        "messages": {
+            "create_success": "User created successfully",
+            "create_failed": "Failed to create user: {{message}}",
+            "update_success": "User updated successfully",
+            "update_failed": "Failed to update user: {{message}}",
+            "delete_success": "User deleted successfully",
+            "delete_failed": "Failed to delete user: {{message}}",
+            "update_status_success": "User status updated successfully",
+            "update_status_failed": "Failed to update status: {{message}}"
         }
     },
     "pagination": {
@@ -415,7 +501,29 @@
             "success_create": "Product created!",
             "success_update": "Product updated!",
             "error_category": "Please select a category",
-            "error_delete_variant": "Cannot delete existing variants (API limitation)"
+            "error_name_required": "Product name is required",
+            "error_delete_variant": "Cannot delete existing variants (API limitation)",
+            "tab_details": "Details",
+            "tab_history": "History",
+            "cost_price": "Cost Price"
+        },
+        "messages": {
+            "create_success": "Product created successfully",
+            "create_error": "Failed to create product",
+            "update_success": "Product updated successfully",
+            "update_error": "Failed to update product",
+            "delete_success": "Product deleted successfully",
+            "delete_error": "Failed to delete product",
+            "upload_image_success": "Product image uploaded successfully",
+            "upload_image_error": "Failed to upload image",
+            "create_variant_success": "Product variant created successfully",
+            "create_variant_error": "Failed to create variant",
+            "update_variant_success": "Variant updated successfully",
+            "update_variant_error": "Failed to update variant",
+            "upload_variant_image_success": "Variant image uploaded successfully",
+            "upload_variant_image_error": "Failed to upload variant image",
+            "restore_success": "Product restored successfully",
+            "restore_error": "Failed to restore product"
         }
     },
     "promotions": {
@@ -429,8 +537,26 @@
             "period": "Period",
             "status": "Status",
             "actions": "Actions",
-            "empty": "No promotions yet."
+            "empty": "No promotions yet.",
+            "max": "Max:"
         },
+        "tabs": {
+            "active": "Active",
+            "trash": "Trash"
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "actions": {
+            "open_menu": "Open menu"
+        },
+        "delete_toast_success": "Promotion deleted",
+        "delete_toast_error": "Failed to delete promotion",
+        "delete_title": "Delete Promotion",
+        "delete_confirm": "Are you sure you want to delete this promotion? It will be moved to the trash.",
+        "restore_title": "Restore Promotion",
+        "restore_confirm": "Are you sure you want to restore this promotion?",
         "form": {
             "title_create": "Create New Promotion",
             "title_edit": "Edit Promotion",
@@ -466,6 +592,12 @@
         "scope": {
             "ORDER": "Order",
             "ITEM": "Item"
+        },
+        "messages": {
+            "restore_success": "Promotion restored successfully",
+            "create_success": "Promotion created successfully",
+            "update_success": "Promotion updated successfully",
+            "delete_success": "Promotion deleted successfully"
         }
     },
     "order": {
@@ -484,6 +616,7 @@
             "take_away": "Take Away"
         },
         "errors": {
+            "invalid_cart": "Invalid cart state",
             "stock_empty": "Product out of stock",
             "load_failed": "Failed to load product info",
             "insufficient_stock": "Insufficient stock",
@@ -504,6 +637,7 @@
             "title": "Payment Method",
             "desc": "Select how the customer is paying. Total:",
             "process_via": "Process payment via",
+            "pay": "Pay Order",
             "cash_received": "Cash Received",
             "enter_amount": "Enter amount",
             "change": "Change",
@@ -537,7 +671,15 @@
             "desc": "Are you sure you want to cancel this order? This action cannot be undone.",
             "yes": "Yes, Cancel Order"
         },
-        "qr_code_alt": "QR Code"
+        "qr_code_alt": "QR Code",
+        "promo_applied": "Promo applied successfully",
+        "cancel_success": "Order cancelled successfully",
+        "manual_payment_success": "Manual payment confirmed successfully",
+        "payment_processed": "Payment processed",
+        "status_updated": "Order status updated",
+        "create_success": "Order created successfully",
+        "item_updated": "Order item updated successfully",
+        "printing_invoice": "Printing invoice..."
     },
     "errors": {
         "unexpected_error": {
@@ -556,6 +698,19 @@
         "description": "View and filter system activity logs.",
         "list_title": "System Activities",
         "search_placeholder": "Search details or entity ID...",
+        "filters": {
+            "all_actions": "All Actions",
+            "all_entities": "All Entities",
+            "action_type": "Action Type",
+            "entity_type": "Entity Type",
+            "user_id": "User ID",
+            "date_range": "Pick a date range"
+        },
+        "table": {
+            "details": "Details",
+            "id_prefix": "ID:",
+            "toggle": "Toggle"
+        },
         "columns": {
             "date": "Date",
             "user": "User",
@@ -563,5 +718,10 @@
             "entity": "Entity",
             "details": "Details"
         }
+    },
+    "category": {
+        "create_success": "Category created successfully",
+        "update_success": "Category updated successfully",
+        "delete_success": "Category deleted successfully"
     }
 }

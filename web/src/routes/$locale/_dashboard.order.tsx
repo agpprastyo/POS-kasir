@@ -84,14 +84,6 @@ function OrderPage() {
 
     const createOrderMutation = useCreateOrderMutation()
 
-    // We still fetch order details here just to verify existence/status if needed, or we can rely on PaymentDialog
-    // Actually, we might not need this here if PaymentDialog is the only one caring about the created order details
-    // But let's keep it simple. If we don't display order details in the background while dialog is open, we don't need it.
-    // However, the payment dialog is a modal.
-
-    // logic A: User clicks "Charge" -> createOrderMutation -> setCreatedOrderId -> setIsPaymentOpen(true) -> PaymentDialog opens and fetches data.
-
-
     const addToCart = async (product: Product) => {
         if ((product.stock || 0) <= 0) {
             toast.error(t('order.errors.stock_empty'))
@@ -193,7 +185,7 @@ function OrderPage() {
         <div className="flex  h-[calc(100vh-4rem)] gap-2 ">
             {/* Left: Product Grid */}
             <div className="flex-1 flex flex-col gap-4 overflow-hidden   bg-background  min-h-0">
-                <div className="px-4 ">
+                <div className="">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-3 h-6 w-6 text-muted-foreground" />
                         <Input

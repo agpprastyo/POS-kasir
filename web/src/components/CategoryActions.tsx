@@ -41,7 +41,7 @@ export function CategoryActions({ category, onEdit }: { category: Category, onEd
                             e.preventDefault()
                             setShowDeleteDialog(true)
                         }}
-                        className="text-red-600 focus:text-red-600 cursor-pointer"
+                        className="text-destructive focus:text-destructive cursor-pointer"
                     >
                         <Trash2 className="mr-2 h-4 w-4" /> {t('settings.category.actions.delete')}
                     </DropdownMenuItem>
@@ -63,7 +63,7 @@ export function CategoryActions({ category, onEdit }: { category: Category, onEd
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={deleteMutation.isPending}
-                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                            className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
                         >
                             {deleteMutation.isPending ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('settings.category.actions.deleting')}</>

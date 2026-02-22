@@ -12,6 +12,7 @@ import {
     InternalProductsPagedStockHistoryResponse
 } from "../generated"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { AxiosError } from "axios"
 import { useRBAC } from '@/lib/auth/rbac'
 
@@ -67,6 +68,7 @@ export const useProductDetailQuery = (id: string) =>
 
 export const useCreateProductMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products')
 
@@ -82,10 +84,10 @@ export const useCreateProductMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
-            toast.success("Produk berhasil dibuat")
+            toast.success(t('products.messages.create_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal membuat produk"
+            const msg = error.response?.data?.message || t('products.messages.create_error')
             toast.error(msg)
         }
     })
@@ -95,6 +97,7 @@ export const useCreateProductMutation = () => {
 
 export const useUpdateProductMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('PATCH', '/products/{id}')
 
@@ -111,10 +114,10 @@ export const useUpdateProductMutation = () => {
         onSuccess: (data) => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
             qc.invalidateQueries({ queryKey: ['products', 'detail', data.id] })
-            toast.success("Produk berhasil diperbarui")
+            toast.success(t('products.messages.update_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal memperbarui produk"
+            const msg = error.response?.data?.message || t('products.messages.update_error')
             toast.error(msg)
         }
     })
@@ -125,6 +128,7 @@ export const useUpdateProductMutation = () => {
 
 export const useDeleteProductMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('DELETE', '/products/{id}')
 
@@ -140,10 +144,10 @@ export const useDeleteProductMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
-            toast.success("Produk berhasil dihapus")
+            toast.success(t('products.messages.delete_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal menghapus produk"
+            const msg = error.response?.data?.message || t('products.messages.delete_error')
             toast.error(msg)
         }
     })
@@ -153,6 +157,7 @@ export const useDeleteProductMutation = () => {
 
 export const useUploadProductImageMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products/{id}/image')
 
@@ -169,10 +174,10 @@ export const useUploadProductImageMutation = () => {
         onSuccess: (data) => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
             qc.invalidateQueries({ queryKey: ['products', 'detail', data.id] })
-            toast.success("Gambar produk berhasil diupload")
+            toast.success(t('products.messages.upload_image_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal upload gambar"
+            const msg = error.response?.data?.message || t('products.messages.upload_image_error')
             toast.error(msg)
         }
     })
@@ -182,6 +187,7 @@ export const useUploadProductImageMutation = () => {
 
 export const useCreateProductOptionMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products/{product_id}/options')
 
@@ -198,10 +204,10 @@ export const useCreateProductOptionMutation = () => {
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['products', 'detail', variables.productId] })
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
-            toast.success("Varian produk berhasil dibuat")
+            toast.success(t('products.messages.create_variant_success'))
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || "Gagal membuat varian")
+            toast.error(error.response?.data?.message || t('products.messages.create_variant_error'))
         }
     })
 
@@ -210,6 +216,7 @@ export const useCreateProductOptionMutation = () => {
 
 export const useUpdateProductOptionMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('PATCH', '/products/{product_id}/options/{option_id}')
 
@@ -225,10 +232,10 @@ export const useUpdateProductOptionMutation = () => {
         },
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['products', 'detail', variables.productId] })
-            toast.success("Varian berhasil diperbarui")
+            toast.success(t('products.messages.update_variant_success'))
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || "Gagal update varian")
+            toast.error(error.response?.data?.message || t('products.messages.update_variant_error'))
         }
     })
 
@@ -237,6 +244,7 @@ export const useUpdateProductOptionMutation = () => {
 
 export const useUploadProductOptionImageMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products/{product_id}/options/{option_id}/image')
 
@@ -252,10 +260,10 @@ export const useUploadProductOptionImageMutation = () => {
         },
         onSuccess: (_, variables) => {
             qc.invalidateQueries({ queryKey: ['products', 'detail', variables.productId] })
-            toast.success("Gambar varian berhasil diupload")
+            toast.success(t('products.messages.upload_variant_image_success'))
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || "Gagal upload gambar varian")
+            toast.error(error.response?.data?.message || t('products.messages.upload_variant_image_error'))
         }
     })
 
@@ -286,6 +294,7 @@ export const useTrashProductsListQuery = (params?: ProductsListParams) =>
 
 export const useRestoreProductMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products/trash/{id}/restore')
 
@@ -302,10 +311,10 @@ export const useRestoreProductMutation = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
             qc.invalidateQueries({ queryKey: ['products', 'trash'] })
-            toast.success("Produk berhasil dipulihkan")
+            toast.success(t('products.messages.restore_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal memulihkan produk"
+            const msg = error.response?.data?.message || t('products.messages.restore_error')
             toast.error(msg)
         }
     })
@@ -315,6 +324,7 @@ export const useRestoreProductMutation = () => {
 
 export const useRestoreBulkProductMutation = () => {
     const qc = useQueryClient()
+    const { t } = useTranslation()
     const { canAccessApi } = useRBAC()
     const isAllowed = canAccessApi('POST', '/products/trash/restore-bulk')
 
@@ -331,10 +341,10 @@ export const useRestoreBulkProductMutation = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['products', 'list'] })
             qc.invalidateQueries({ queryKey: ['products', 'trash'] })
-            toast.success("Produk berhasil dipulihkan")
+            toast.success(t('products.messages.restore_success'))
         },
         onError: (error) => {
-            const msg = error.response?.data?.message || "Gagal memulihkan produk"
+            const msg = error.response?.data?.message || t('products.messages.restore_error')
             toast.error(msg)
         }
     })

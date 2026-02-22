@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { useRBAC } from '@/lib/auth/rbac'
+import i18n from '@/lib/i18n'
 
 export interface PromotionRuleResponse {
     id: string
@@ -99,7 +100,7 @@ export const useRestorePromotionMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['promotions', 'list'] })
-            toast.success("Promosi berhasil dipulihkan")
+            toast.success(i18n.t('promotions.messages.restore_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal memulihkan promosi"
@@ -143,7 +144,7 @@ export const useCreatePromotionMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['promotions', 'list'] })
-            toast.success("Promosi berhasil dibuat")
+            toast.success(i18n.t('promotions.messages.create_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal membuat promosi"
@@ -172,7 +173,7 @@ export const useUpdatePromotionMutation = () => {
         onSuccess: (data) => {
             qc.invalidateQueries({ queryKey: ['promotions', 'list'] })
             qc.invalidateQueries({ queryKey: ['promotions', 'detail', data.id] })
-            toast.success("Promosi berhasil diperbarui")
+            toast.success(i18n.t('promotions.messages.update_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal memperbarui promosi"
@@ -200,7 +201,7 @@ export const useDeletePromotionMutation = () => {
         },
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['promotions', 'list'] })
-            toast.success("Promosi berhasil dihapus")
+            toast.success(i18n.t('promotions.messages.delete_success'))
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Gagal menghapus promosi"

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { useRBAC } from "@/lib/auth/rbac";
+import i18n from '@/lib/i18n';
 
 
 
@@ -86,11 +87,11 @@ export const useCreateUserMutation = () => {
             },
             onSuccess: async () => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })
-                toast.success("User created successfully")
+                toast.success(i18n.t('users.messages.create_success'))
             },
             onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-                const msg = error.response?.data?.error
-                toast.error("Gagal membuat user: " + msg)
+                const msg = error.response?.data?.error || "Unknown error";
+                toast.error(i18n.t('users.messages.create_failed', { message: msg }))
             }
         }), isAllowed
     }
@@ -111,11 +112,11 @@ export const useUpdateUserMutation = () => {
             onSuccess: async (data) => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })
                 await qc.invalidateQueries({ queryKey: ['users', 'detail', data.id] })
-                toast.success("User updated successfully")
+                toast.success(i18n.t('users.messages.update_success'))
             },
             onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-                const msg = error.response?.data?.error
-                toast.error("Gagal memperbarui user: " + msg)
+                const msg = error.response?.data?.error || "Unknown error";
+                toast.error(i18n.t('users.messages.update_failed', { message: msg }))
             }
         }), isAllowed
     }
@@ -135,11 +136,11 @@ export const useDeleteUserMutation = () => {
             },
             onSuccess: async () => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })
-                toast.success("User deleted successfully")
+                toast.success(i18n.t('users.messages.delete_success'))
             },
             onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-                const msg = error.response?.data?.error
-                toast.error("Gagal menghapus user: " + msg)
+                const msg = error.response?.data?.error || "Unknown error";
+                toast.error(i18n.t('users.messages.delete_failed', { message: msg }))
             }
         }), isAllowed
     }
@@ -160,13 +161,13 @@ export const useToggleUserStatusMutation = () => {
             onSuccess: async (_, id) => {
                 await qc.invalidateQueries({ queryKey: ['users', 'list'] })
                 await qc.invalidateQueries({ queryKey: ['users', 'detail', id] })
-                toast.success("Status user berhasil diubah")
+                toast.success(i18n.t('users.messages.update_status_success'))
             },
             onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
                 console.error("Masuk ke onError Mutation:", error)
 
-                const errorMessage = error.response?.data?.error
-                toast.error("Gagal mengubah status: " + errorMessage)
+                const errorMessage = error.response?.data?.error || "Unknown error";
+                toast.error(i18n.t('users.messages.update_status_failed', { message: errorMessage }))
             }
         }), isAllowed
     }

@@ -7,6 +7,8 @@
         "edit": "Ubah",
         "actions": "Aksi",
         "logout": "Keluar",
+        "email_placeholder": "m.scott@dundermifflin.com",
+        "password_placeholder": "••••••••",
         "confirm": "Konfirmasi",
         "yes": "Ya",
         "no": "Tidak",
@@ -15,7 +17,38 @@
         "start_date": "Tanggal Mulai",
         "end_date": "Tanggal Akhir",
         "sold": "terjual",
-        "rev": "pend"
+        "rev": "pend",
+        "no_results": "Tidak ada hasil.",
+        "clear_filters": "Hapus Filter",
+        "previous": "Sebelumnya",
+        "next": "Selanjutnya",
+        "page_info": "Halaman {{current}} dari {{total}}",
+        "restore": "Pulihkan",
+        "error": {
+            "title": "Aduh!",
+            "subtitle": "Terjadi kesalahan",
+            "default_message": "Terjadi kesalahan yang tidak terduga. Silakan coba lagi nanti.",
+            "try_again": "Coba Lagi",
+            "go_home": "Ke Beranda",
+            "load_failed": "Gagal memuat data: {{message}}"
+        },
+        "crop": {
+            "title": "Potong Gambar",
+            "description": "Sesuaikan gambar agar sesuai dengan rasio aspek yang dibutuhkan.",
+            "zoom": "Perbesar",
+            "save": "Potong & Simpan"
+        },
+        "theme": {
+            "toggle": "Ganti tema",
+            "light": "Terang",
+            "dark": "Gelap",
+            "system": "Sistem"
+        },
+        "not_found": {
+            "title": "Halaman Tidak Ditemukan",
+            "description": "Maaf, halaman yang Anda cari tidak ada atau sudah dipindahkan.",
+            "go_home": "Kembali ke Beranda"
+        }
     },
     "auth": {
         "welcome_back": "Selamat Datang Kembali",
@@ -28,13 +61,18 @@
         "register": "Daftar",
         "forgot_password": "Lupa kata sandi?",
         "login_failed": "Gagal masuk. Silakan periksa kredensial Anda.",
-        "email_placeholder": "anda@contoh.com",
-        "password_placeholder": "Kata sandi anda",
-        "demo_account": "Gunakan akun demo:"
+        "email_placeholder": "m.scott@dundermifflin.com",
+        "password_placeholder": "••••••••",
+        "demo_account": "Gunakan akun demo:",
+        "logout_failed": "Gagal logout: {{message}}",
+        "update_avatar_failed": "Gagal memperbarui avatar: {{message}}",
+        "update_password_success": "Password berhasil diubah",
+        "update_password_failed": "Gagal memperbarui password: {{message}}"
     },
     "sidebar": {
         "summary": "Ringkasan",
         "pos": "Kasir",
+        "date": "Tanggal",
         "transactions": "Transaksi",
         "product": "Produk",
         "promotions": "Promosi",
@@ -48,6 +86,10 @@
         "title": "Transaksi",
         "subtitle": "Pantau pesanan dan kelola pembayaran.",
         "filter_user": "Semua Kasir",
+        "loading": "Memuat status shift...",
+        "register_open": "Mesin Kasir Terbuka",
+        "open_register": "Buka Mesin Kasir",
+        "open_shift_title": "Buka Shift",
         "tabs": {
             "active": "Aktif",
             "history": "Riwayat",
@@ -90,6 +132,12 @@
             "confirm": "Batalkan Pesanan",
             "cancel": "Kembali"
         },
+        "messages": {
+            "fetch_error": "Gagal mengambil transaksi",
+            "cancel_notes_required": "Catatan pembatalan harus diisi",
+            "order_finished": "Pesanan selesai",
+            "use_action_button": "Silakan gunakan tombol aksi"
+        },
         "payment_dialog": {
             "title": "Selesaikan Pembayaran",
             "description": "Proses pembayaran untuk Antrian",
@@ -104,8 +152,13 @@
     },
     "dashboard": {
         "title": "Ringkasan Dashboard",
+        "welcome_subtitle": "Berikut ini ringkasan toko Anda hari ini.",
         "toggle_nav": "Buka menu navigasi",
         "widgets": {
+            "quick_actions": "Aksi Cepat",
+            "quick_actions_desc": "Kelola toko Anda dengan efisien",
+            "manage_products": "Kelola Produk",
+            "view_reports": "Lihat Laporan Lengkap",
             "sales_trend": "Tren Penjualan (30 Hari Terakhir)",
             "top_products": "Produk Terlaris",
             "quantity": "Jumlah",
@@ -292,8 +345,29 @@
             "paper_width": "Lebar Kertas",
             "auto_print": "Cetak Otomatis saat Bayar",
             "test_print": "Tes Print",
+            "save_failed": "Gagal menyimpan pengaturan",
+            "print_success": "Struk berhasil dicetak",
+            "print_failed": "Gagal mencetak struk",
             "update_success": "Pengaturan printer berhasil diperbarui!",
             "update_error": "Gagal memperbarui pengaturan printer",
+            "ip_help": "Akan diabaikan jika bukan jaringan LAN",
+            "connected": "Terhubung",
+            "connection_failed": "Koneksi Gagal",
+            "test_print_success": "Tes print berhasil",
+            "test_print_error": "Tes print gagal",
+            "interface_type": "Tipe Antarmuka",
+            "connected_to": "Tersambung ke",
+            "not_connected": "Tidak Tersambung",
+            "reconnect": "Sambungkan Ulang",
+            "connect": "Sambungkan",
+            "fe_help": "Browser menangani langsung koneksi ke printer",
+            "printer_ip": "IP / URL Printer",
+            "fe_lan_help": "Masukkan IP Printer LAN. Cth: 192.168.1.200",
+            "print_method": "Metode Print",
+            "method_be": "Sisi Server (Backend)",
+            "method_fe": "Sisi Klien (Frontend)",
+            "method_be_desc": "Proses cetak ditangani oleh server (Disarankan untuk printer jaringan/USB)",
+            "method_fe_desc": "Proses cetak ditangani oleh browser (Disarankan untuk printer Bluetooth)",
             "help_text": "Gunakan socket://IP:PORT untuk printer jaringan (misal 192.168.1.100:9100)."
         }
     },
@@ -350,12 +424,17 @@
             "success_create": "Pengguna berhasil dibuat",
             "success_update": "Pengguna berhasil diperbarui",
             "error_save": "Gagal menyimpan pengguna"
+        },
+        "messages": {
+            "create_success": "Pengguna berhasil dibuat",
+            "create_failed": "Gagal membuat pengguna: {{message}}",
+            "update_success": "Pengguna berhasil diperbarui",
+            "update_failed": "Gagal memperbarui pengguna: {{message}}",
+            "delete_success": "Pengguna berhasil dihapus",
+            "delete_failed": "Gagal menghapus pengguna: {{message}}",
+            "update_status_success": "Status pengguna berhasil diubah",
+            "update_status_failed": "Gagal mengubah status: {{message}}"
         }
-    },
-    "pagination": {
-        "page_info": "Halaman {{current}} dari {{total}}",
-        "previous": "Sebelumnya",
-        "next": "Selanjutnya"
     },
     "products": {
         "title": "Produk",
@@ -417,7 +496,29 @@
             "success_create": "Produk berhasil dibuat!",
             "success_update": "Produk berhasil diperbarui!",
             "error_category": "Silakan pilih kategori",
-            "error_delete_variant": "Tidak dapat menghapus varian yang sudah ada (Batasan API)"
+            "error_name_required": "Nama produk wajib diisi",
+            "error_delete_variant": "Tidak dapat menghapus varian yang sudah ada (Batasan API)",
+            "tab_details": "Detail",
+            "tab_history": "Riwayat",
+            "cost_price": "Harga Modal"
+        },
+        "messages": {
+            "create_success": "Produk berhasil dibuat",
+            "create_error": "Gagal membuat produk",
+            "update_success": "Produk berhasil diperbarui",
+            "update_error": "Gagal memperbarui produk",
+            "delete_success": "Produk berhasil dihapus",
+            "delete_error": "Gagal menghapus produk",
+            "upload_image_success": "Gambar produk berhasil diupload",
+            "upload_image_error": "Gagal upload gambar",
+            "create_variant_success": "Varian produk berhasil dibuat",
+            "create_variant_error": "Gagal membuat varian",
+            "update_variant_success": "Varian berhasil diperbarui",
+            "update_variant_error": "Gagal update varian",
+            "upload_variant_image_success": "Gambar varian berhasil diupload",
+            "upload_variant_image_error": "Gagal upload gambar varian",
+            "restore_success": "Produk berhasil dipulihkan",
+            "restore_error": "Gagal memulihkan produk"
         }
     },
     "promotions": {
@@ -431,7 +532,19 @@
             "period": "Periode",
             "status": "Status",
             "actions": "Aksi",
-            "empty": "Belum ada promosi."
+            "empty": "Belum ada promosi.",
+            "max": "Maks:"
+        },
+        "tabs": {
+            "active": "Aktif",
+            "trash": "Sampah"
+        },
+        "status": {
+            "active": "Aktif",
+            "inactive": "Tidak Aktif"
+        },
+        "actions": {
+            "open_menu": "Buka menu"
         },
         "form": {
             "title_create": "Buat Promosi Baru",
@@ -468,6 +581,18 @@
         "scope": {
             "ORDER": "Pesanan",
             "ITEM": "Item"
+        },
+        "delete_toast_success": "Promosi dihapus",
+        "delete_toast_error": "Gagal menghapus promosi",
+        "delete_title": "Hapus Promosi",
+        "delete_confirm": "Apakah Anda yakin ingin menghapus promosi ini? Promosi akan dipindahkan ke tempat sampah.",
+        "restore_title": "Pulihkan Promosi",
+        "restore_confirm": "Apakah Anda yakin ingin memulihkan promosi ini?",
+        "messages": {
+            "restore_success": "Promosi berhasil dipulihkan",
+            "create_success": "Promosi berhasil dibuat",
+            "update_success": "Promosi berhasil diperbarui",
+            "delete_success": "Promosi berhasil dihapus"
         }
     },
     "order": {
@@ -486,6 +611,7 @@
             "take_away": "Bawa Pulang"
         },
         "errors": {
+            "invalid_cart": "Status keranjang tidak valid",
             "stock_empty": "Stok produk habis",
             "load_failed": "Gagal memuat info produk",
             "insufficient_stock": "Stok tidak mencukupi",
@@ -506,6 +632,7 @@
             "title": "Metode Pembayaran",
             "desc": "Pilih cara pembayaran pelanggan. Total:",
             "process_via": "Proses pembayaran via",
+            "pay": "Bayar Pesanan",
             "cash_received": "Uang Diterima",
             "enter_amount": "Masukkan jumlah",
             "change": "Kembalian",
@@ -538,7 +665,15 @@
             "desc": "Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dibatalkan.",
             "yes": "Ya, Batalkan Pesanan"
         },
-        "qr_code_alt": "Kode QR"
+        "qr_code_alt": "Kode QR",
+        "promo_applied": "Promo berhasil diterapkan",
+        "cancel_success": "Order berhasil dibatalkan",
+        "manual_payment_success": "Pembayaran manual berhasil dikonfirmasi",
+        "payment_processed": "Pembayaran diproses",
+        "status_updated": "Status order diperbarui",
+        "create_success": "Order berhasil dibuat",
+        "item_updated": "Item order berhasil diperbarui",
+        "printing_invoice": "Mencetak struk..."
     },
     "errors": {
         "unexpected_error": {
@@ -557,6 +692,19 @@
         "description": "Lihat dan filter log aktivitas sistem.",
         "list_title": "Aktivitas Sistem",
         "search_placeholder": "Cari detail atau ID entitas...",
+        "filters": {
+            "all_actions": "Semua Aksi",
+            "all_entities": "Semua Entitas",
+            "action_type": "Tipe Aksi",
+            "entity_type": "Tipe Entitas",
+            "user_id": "User ID",
+            "date_range": "Pilih rentang tanggal"
+        },
+        "table": {
+            "empty": "Tidak ada log aktivitas ditemukan.",
+            "id_prefix": "ID:",
+            "toggle": "Beralih"
+        },
         "columns": {
             "date": "Tanggal",
             "user": "Pengguna",
@@ -564,5 +712,10 @@
             "entity": "Entitas",
             "details": "Detail"
         }
+    },
+    "category": {
+        "create_success": "Kategori berhasil dibuat",
+        "update_success": "Kategori berhasil diperbarui",
+        "delete_success": "Kategori berhasil dihapus"
     }
 }

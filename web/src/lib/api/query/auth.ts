@@ -9,7 +9,7 @@ import {
 } from "@/lib/api/generated";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
-
+import i18n from "@/lib/i18n";
 
 // --- QUERY: current user (/auth/me) ---
 export const meQueryOptions = () =>
@@ -71,8 +71,8 @@ export const useLogoutMutation = () => {
             await qc.invalidateQueries({ queryKey: ['auth', 'me'] })
         },
         onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-            const msg = error.response?.data?.error
-            toast.error("Gagal logout: " + msg)
+            const msg = error.response?.data?.error || "Unknown error";
+            toast.error(i18n.t('auth.logout_failed', { message: msg }));
         }
     })
 }
@@ -97,8 +97,8 @@ export const useUpdateAvatarMutation = () => {
             return qc.invalidateQueries({ queryKey: ['auth', 'me'] })
         },
         onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-            const msg = error.response?.data?.error
-            toast.error("Gagal memperbarui avatar: " + msg)
+            const msg = error.response?.data?.error || "Unknown error";
+            toast.error(i18n.t('auth.update_avatar_failed', { message: msg }));
         }
     })
 }
@@ -117,11 +117,11 @@ export const useUpdatePasswordMutation = () => {
             return (res.data as any).data;
         },
         onSuccess: async () => {
-            toast.success("Password berhasil diubah")
+            toast.success(i18n.t('auth.update_password_success'))
         },
         onError: (error: AxiosError<POSKasirInternalCommonErrorResponse>) => {
-            const msg = error.response?.data?.error
-            toast.error("Gagal memperbarui password: " + msg)
+            const msg = error.response?.data?.error || "Unknown error";
+            toast.error(i18n.t('auth.update_password_failed', { message: msg }));
         }
     })
 }

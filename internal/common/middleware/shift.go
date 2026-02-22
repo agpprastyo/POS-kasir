@@ -31,7 +31,7 @@ func ShiftMiddleware(queries shift_repo.Querier, cache ShiftCache, log logger.IL
 		hasShift, found := cache.GetOpen(userID)
 		if found {
 			if !hasShift {
-				log.Error("Shift Middleware | User has no open shift", "user_id", userID)
+				log.Error("Shift Middleware | User has no open shift: ", "user_id", userID)
 				return c.Status(fiber.StatusForbidden).JSON(common.ErrorResponse{
 					Message: "You must have an open shift to perform this action",
 				})

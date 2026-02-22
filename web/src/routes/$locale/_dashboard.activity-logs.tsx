@@ -70,28 +70,28 @@ function ActivityLogsPage() {
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">{t('activity_logs.title', 'Activity Logs')}</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">{t('activity_logs.title')}</h2>
                     <p className="text-muted-foreground">
-                        {t('activity_logs.description', 'View and filter system activity logs.')}
+                        {t('activity_logs.description')}
                     </p>
                 </div>
                 <Button variant="outline" onClick={() => navigate({ search: { page: 1, limit: 10 } })}>
                     <X className="mr-2 h-4 w-4" />
-                    {t('common.clear_filters', 'Clear Filters')}
+                    {t('common.clear_filters')}
                 </Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('activity_logs.list_title', 'System Activities')}</CardTitle>
+                    <CardTitle>{t('activity_logs.list_title')}</CardTitle>
                     <div className="flex flex-wrap items-center gap-4 py-4">
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder={t('activity_logs.search_placeholder', 'Search details or entity ID...')}
+                                placeholder={t('activity_logs.search_placeholder')}
                                 className="pl-8"
                                 value={search.search || ''}
                                 onChange={(e) => handleSearch(e.target.value)}
@@ -101,10 +101,10 @@ function ActivityLogsPage() {
                         <div className="w-[180px]">
                             <Select value={search.action_type || 'all'} onValueChange={(val) => updateFilter('action_type', val === 'all' ? undefined : val)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Action Type" />
+                                    <SelectValue placeholder={t('activity_logs.filters.action_type')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Actions</SelectItem>
+                                    <SelectItem value="all">{t('activity_logs.filters.all_actions')}</SelectItem>
                                     {Object.values(ActivityLogsGetActionTypeEnum).map((action) => (
                                         <SelectItem key={action} value={action}>
                                             {action.replace(/_/g, ' ')}
@@ -117,10 +117,10 @@ function ActivityLogsPage() {
                         <div className="w-[180px]">
                             <Select value={search.entity_type || 'all'} onValueChange={(val) => updateFilter('entity_type', val === 'all' ? undefined : val)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Entity Type" />
+                                    <SelectValue placeholder={t('activity_logs.filters.entity_type')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Entities</SelectItem>
+                                    <SelectItem value="all">{t('activity_logs.filters.all_entities')}</SelectItem>
                                     {Object.values(ActivityLogsGetEntityTypeEnum).map((entity) => (
                                         <SelectItem key={entity} value={entity}>
                                             {entity}
@@ -132,7 +132,7 @@ function ActivityLogsPage() {
 
                         <div className="w-[180px]">
                             <Input
-                                placeholder="User ID"
+                                placeholder={t('activity_logs.filters.user_id')}
                                 value={search.user_id || ''}
                                 onChange={(e) => updateFilter('user_id', e.target.value || undefined)}
                             />
@@ -158,7 +158,7 @@ function ActivityLogsPage() {
                                             format(new Date(search.start_date), "LLL dd, y")
                                         )
                                     ) : (
-                                        <span>Pick a date range</span>
+                                        <span>{t('activity_logs.filters.date_range')}</span>
                                     )}
                                 </Button>
                             </PopoverTrigger>
@@ -192,11 +192,11 @@ function ActivityLogsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>{t('activity_logs.columns.date', 'Date')}</TableHead>
-                                    <TableHead>{t('activity_logs.columns.user', 'User')}</TableHead>
-                                    <TableHead>{t('activity_logs.columns.action', 'Action')}</TableHead>
-                                    <TableHead>{t('activity_logs.columns.entity', 'Entity')}</TableHead>
-                                    <TableHead>{t('activity_logs.columns.details', 'Details')}</TableHead>
+                                    <TableHead>{t('activity_logs.columns.date')}</TableHead>
+                                    <TableHead>{t('activity_logs.columns.user')}</TableHead>
+                                    <TableHead>{t('activity_logs.columns.action')}</TableHead>
+                                    <TableHead>{t('activity_logs.columns.entity')}</TableHead>
+                                    <TableHead>{t('activity_logs.columns.details')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -205,7 +205,7 @@ function ActivityLogsPage() {
                                         <TableCell>{format(new Date(log.created_at!), 'PPP p')}</TableCell>
                                         <TableCell>
                                             <div className="font-medium">{log.user_name}</div>
-                                            <div className="text-xs text-muted-foreground">ID: {log.user_id?.substring(0, 8)}...</div>
+                                            <div className="text-xs text-muted-foreground">{t('activity_logs.table.id_prefix')} {log.user_id?.substring(0, 8)}...</div>
                                         </TableCell>
                                         <TableCell>
                                             <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
@@ -222,7 +222,7 @@ function ActivityLogsPage() {
                                                     <CollapsibleTrigger asChild>
                                                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                                                             <ChevronsUpDown className="h-4 w-4" />
-                                                            <span className="sr-only">Toggle</span>
+                                                            <span className="sr-only">{t('activity_logs.table.toggle')}</span>
                                                         </Button>
                                                     </CollapsibleTrigger>
                                                     <span className="text-xs text-muted-foreground truncate max-w-[200px]">
@@ -241,7 +241,7 @@ function ActivityLogsPage() {
                                 {data?.logs?.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="h-24 text-center">
-                                            {t('common.no_results', 'No results found.')}
+                                            {t('common.no_results')}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -257,12 +257,12 @@ function ActivityLogsPage() {
                             disabled={search.page <= 1}
                         >
                             <ChevronLeft className="h-4 w-4" />
-                            {t('common.previous', 'Previous')}
+                            {t('common.previous')}
                         </Button>
                         <div className="text-sm font-medium">
-                            {t('common.page_info', 'Page {{page}} of {{totalPages}}', {
-                                page: data?.page,
-                                totalPages: data?.total_pages || 1
+                            {t('common.page_info', {
+                                current: data?.page,
+                                total: data?.total_pages || 1
                             })}
                         </div>
                         <Button
@@ -271,7 +271,7 @@ function ActivityLogsPage() {
                             onClick={() => handlePageChange(search.page + 1)}
                             disabled={search.page >= (data?.total_pages || 1)}
                         >
-                            {t('common.next', 'Next')}
+                            {t('common.next')}
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>

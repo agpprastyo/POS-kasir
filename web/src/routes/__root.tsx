@@ -1,8 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ThemeProvider } from 'next-themes'
+import { lazy, Suspense } from 'react'
 
 import appCss from '../styles.css?url'
 
@@ -12,9 +11,13 @@ import { queryClient } from "@/lib/queryClient.ts";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import { ThemeManager } from "@/components/ThemeManager.tsx";
 import { ShiftProvider } from "@/context/ShiftContext";
-import { OpenShiftModal } from "@/components/modals/OpenShiftModal";
-import { CloseShiftModal } from "@/components/modals/CloseShiftModal";
 
+// DevTools hanya dimuat di development — tidak memasuki production bundle
+const DevToolsPanel = import.meta.env.DEV
+    ? lazy(() =>
+        import('@/components/DevToolsPanel')
+    )
+    : null
 
 
 export const Route = createRootRoute({
@@ -47,19 +50,15 @@ function RootDocument({ children }: any) {
                             <ShiftProvider>
                                 <ThemeManager />
                                 {children}
-                                <OpenShiftModal />
-                                <CloseShiftModal />
+                                {/* OpenShiftModal & CloseShiftModal dipindahkan ke _dashboard.tsx
+                                    agar hanya dimuat setelah user terautentikasi */}
                             </ShiftProvider>
                         </AuthProvider>
-                        <TanStackDevtools
-                            config={{ position: 'bottom-right' }}
-                            plugins={[
-                                {
-                                    name: 'Tanstack Router',
-                                    render: () => <TanStackRouterDevtoolsPanel />,
-                                },
-                            ]}
-                        />
+                        {import.meta.env.DEV && DevToolsPanel && (
+                            <Suspense fallback={null}>
+                                <DevToolsPanel />
+                            </Suspense>
+                        )}
                     </ThemeProvider>
                 </QueryClientProvider>
                 <Scripts />
@@ -81,10 +80,10 @@ function RootError({ error }: { error: any }) {
         <div className="min-h-screen flex items-center justify-center p-6 ">
             <div className="text-center max-w-md">
                 <h1 className="text-4xl font-extrabold text-white mb-2">{t('errors.unexpected_error.title')}</h1>
-                <p className="text-gray-300 mb-4">
+                <p className="text-muted-foreground mb-4">
                     {t('errors.unexpected_error.desc')}
                 </p>
-                <pre className="text-sm text-red-200 bg-black/40 rounded-md p-3 overflow-auto">
+                <pre className="text-sm text-destructive bg-muted rounded-md p-3 overflow-auto">
                     {String(message)}
                 </pre>
                 <a

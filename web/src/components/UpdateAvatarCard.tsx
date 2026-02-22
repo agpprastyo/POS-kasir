@@ -71,7 +71,7 @@ export function UpdateAvatarCard({ currentAvatar, username }: { currentAvatar?: 
                     {message && (
                         <Alert
                             variant={(message.type === 'error' ? 'destructive' : 'default') as "default" | "destructive"}
-                            className={message.type === 'success' ? 'border-green-500 text-green-500' : ''}
+                            className={message.type === 'success' ? 'border-primary text-primary' : ''}
                         >
                             <AlertDescription>{message.text}</AlertDescription>
                         </Alert> as ReactNode

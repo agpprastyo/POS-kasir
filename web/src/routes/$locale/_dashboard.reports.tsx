@@ -20,9 +20,10 @@ export const Route = createFileRoute('/$locale/_dashboard/reports')({
             POSKasirInternalUserRepositoryUserRole.UserRoleManager
         ]
 
-        if (!user.role || !allowedRoles.includes(user.role)) {
+        if (!user || !user.role || !allowedRoles.includes(user.role)) {
             throw redirect({
-                to: '/',
+                to: '/$locale/login',
+                params: { locale: 'en' },
                 search: {
                     error: 'Unauthorized',
                 },

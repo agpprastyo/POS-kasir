@@ -87,11 +87,11 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
     const form = useForm({
         defaultValues: {
             name: '',
-            description: '',
-            scope: POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER,
-            discount_type: POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage,
+            description: '' as string | undefined,
+            scope: POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER as POSKasirInternalPromotionsRepositoryPromotionScope,
+            discount_type: POSKasirInternalPromotionsRepositoryDiscountType.DiscountTypePercentage as POSKasirInternalPromotionsRepositoryDiscountType,
             discount_value: 0,
-            max_discount_amount: 0,
+            max_discount_amount: 0 as number | undefined,
             start_date: new Date(),
             end_date: new Date(),
             is_active: true,
@@ -106,7 +106,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
             }[]
         },
         validators: {
-            onChange: promotionSchema
+            onChange: promotionSchema as any
         },
         onSubmit: async ({ value }) => {
             const payload = {
@@ -212,7 +212,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                             children={(field) => (
                                 <div className="space-y-2">
                                     <Label htmlFor={field.name}>{t('promotions.form.scope')}</Label>
-                                    <Select onValueChange={field.handleChange} value={field.state.value}>
+                                    <Select onValueChange={(val) => field.handleChange(val as POSKasirInternalPromotionsRepositoryPromotionScope)} value={field.state.value}>
                                         <SelectTrigger id={field.name}>
                                             <SelectValue placeholder="Select scope" />
                                         </SelectTrigger>
@@ -254,7 +254,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                             children={(field) => (
                                 <div className="space-y-2">
                                     <Label htmlFor={field.name}>{t('promotions.form.discount_type')}</Label>
-                                    <Select onValueChange={field.handleChange} value={field.state.value}>
+                                    <Select onValueChange={(val) => field.handleChange(val as POSKasirInternalPromotionsRepositoryDiscountType)} value={field.state.value}>
                                         <SelectTrigger id={field.name}>
                                             <SelectValue />
                                         </SelectTrigger>

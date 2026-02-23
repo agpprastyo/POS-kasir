@@ -59,7 +59,6 @@ axiosInstance.interceptors.response.use(
             }
         }
 
-        // SSR Bypass: Do not throw unhandled promise rejections on the server for 401s
         if (typeof window === 'undefined' && error.response?.status === 401) {
             return Promise.resolve({ data: { data: null, message: "Unauthorized (SSR Muted)" } })
         }

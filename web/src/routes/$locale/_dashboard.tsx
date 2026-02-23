@@ -225,7 +225,6 @@ function DashboardLayout() {
                         </div>
                     </main>
                 </div>
-                {/* Modals shift — hanya mount setelah user terautentikasi */}
                 <OpenShiftModal />
                 <CloseShiftModal />
             </div>

@@ -59,11 +59,30 @@ func NewAuthHandler(service IAuthService, log logger.ILogger, validator validato
 func (h *AthHandler) UpdatePasswordHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
 
-	userUUID, ok := c.Locals("user_id").(uuid.UUID)
-	if !ok {
+	var userUUID uuid.UUID
+	userVal := c.Locals("user_id")
+	if userVal == nil {
 		h.Log.Errorf("UpdatePasswordHandler | Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
+		})
+	}
+	switch v := userVal.(type) {
+	case uuid.UUID:
+		userUUID = v
+	case string:
+		var err error
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			h.Log.Errorf("UpdatePasswordHandler | Invalid userID format in context: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Invalid user ID format",
+			})
+		}
+	default:
+		h.Log.Errorf("UpdatePasswordHandler | Unexpected userID type in context: %T", v)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Invalid user ID format",
 		})
 	}
 
@@ -253,11 +272,32 @@ func (h *AthHandler) LogoutHandler(c fiber.Ctx) error {
 // @Router       /auth/me [get]
 func (h *AthHandler) ProfileHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
-	userUUID, ok := c.Locals("user_id").(uuid.UUID)
-	if !ok {
-		h.Log.Errorf("ProfileHandler | Failed to get userID from context, userId : %v", userUUID)
+	var userUUID uuid.UUID
+	userVal := c.Locals("user_id")
+	if userVal == nil {
+		h.Log.Errorf("ProfileHandler | Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Error:   "No user id in context",
+			Message: "Failed to get user ID",
+		})
+	}
+	switch v := userVal.(type) {
+	case uuid.UUID:
+		userUUID = v
+	case string:
+		var err error
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			h.Log.Errorf("ProfileHandler | Invalid userID format in context: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Error:   "Invalid user id format",
+				Message: "Failed to get user ID",
+			})
+		}
+	default:
+		h.Log.Errorf("ProfileHandler | Unexpected userID type in context: %T", v)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Error:   "Invalid user id type",
 			Message: "Failed to get user ID",
 		})
 	}
@@ -373,11 +413,30 @@ func (h *AthHandler) AddUserHandler(c fiber.Ctx) error {
 // @Router       /auth/me/avatar [put]
 func (h *AthHandler) UpdateAvatarHandler(c fiber.Ctx) error {
 	ctx := c.RequestCtx()
-	userUUID, ok := c.Locals("user_id").(uuid.UUID)
-	if !ok {
+	var userUUID uuid.UUID
+	userVal := c.Locals("user_id")
+	if userVal == nil {
 		h.Log.Errorf("UpdateAvatarHandler | Failed to get userID from context")
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "No user ID in context",
+		})
+	}
+	switch v := userVal.(type) {
+	case uuid.UUID:
+		userUUID = v
+	case string:
+		var err error
+		userUUID, err = uuid.Parse(v)
+		if err != nil {
+			h.Log.Errorf("UpdateAvatarHandler | Invalid userID format in context: %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Invalid user ID format",
+			})
+		}
+	default:
+		h.Log.Errorf("UpdateAvatarHandler | Unexpected userID type in context: %T", v)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Invalid user ID type",
 		})
 	}
 

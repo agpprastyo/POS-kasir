@@ -168,6 +168,11 @@ func (s *SettingsService) UpdateLogo(ctx context.Context, data []byte, filename 
 		return "", common.ErrBadRequest
 	}
 
+	if s.r2Client == nil {
+		s.log.Errorf("UpdateLogo | R2 storage is not initialized")
+		return "", common.ErrInternal
+	}
+
 	// Generate unique filename
 	ext := filepath.Ext(filename)
 	newFilename := fmt.Sprintf("branding/logo_%s%s", uuid.New().String(), ext)

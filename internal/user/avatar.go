@@ -28,6 +28,11 @@ type IAthRepo interface {
 }
 
 func (r *AthRepo) UploadAvatar(ctx context.Context, filename string, data []byte) (string, error) {
+	if r.r2 == nil {
+		r.log.Errorf("UploadAvatar | R2 storage is not initialized")
+		return "", common.ErrUploadAvatar
+	}
+
 	// Upload to R2
 	r2URL, err := r.r2.UploadFile(ctx, filename, data, "image/jpeg")
 	if err != nil {
@@ -44,6 +49,10 @@ func (r *AthRepo) AvatarLink(ctx context.Context, userID uuid.UUID, avatar strin
 	r.log.Infof("AvatarLink | AvatarLink called for user %s with avatar %s", userID.String(), avatar)
 	if avatar == "" {
 		return "", common.ErrAvatarNotFound
+	}
+	if r.r2 == nil {
+		r.log.Warnf("AvatarLink | R2 storage is not initialized, returning empty string for avatar %s", avatar)
+		return "", nil
 	}
 
 	// Get link from R2

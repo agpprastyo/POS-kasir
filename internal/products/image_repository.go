@@ -12,6 +12,10 @@ type ProductImageRepository struct {
 }
 
 func (p ProductImageRepository) UploadImage(ctx context.Context, filename string, data []byte) (string, error) {
+	if p.r2 == nil {
+		p.log.Errorf("UploadImage | R2 storage is not initialized")
+		return "", nil // or error, but let's avoid panic
+	}
 	url, err := p.r2.UploadFile(ctx, filename, data, "image/jpeg")
 	if err != nil {
 		p.log.Errorf("Failed to upload product image to R2: %v", err)
@@ -23,6 +27,10 @@ func (p ProductImageRepository) UploadImage(ctx context.Context, filename string
 func (p ProductImageRepository) PrdImageLink(ctx context.Context, prdID string, image string) (string, error) {
 	p.log.Infof("PrdImageLink called for product %s with image %s", prdID, image)
 	if image == "" {
+		return "", nil
+	}
+	if p.r2 == nil {
+		p.log.Warnf("PrdImageLink | R2 storage is not initialized, returning nil url")
 		return "", nil
 	}
 

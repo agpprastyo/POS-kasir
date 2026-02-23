@@ -4,7 +4,6 @@ import { z } from 'zod'
 import { useState } from 'react'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum } from '@/lib/api/generated'
-import { queryClient } from '@/lib/queryClient'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
@@ -38,7 +37,7 @@ export const Route = createFileRoute('/$locale/_dashboard/users')({
         status: search.status,
     }),
 
-    loader: ({ deps }) => {
+    loader: ({ context: { queryClient }, deps }) => {
         return queryClient.ensureQueryData(usersListQueryOptions({
             page: deps.page,
             limit: deps.limit,

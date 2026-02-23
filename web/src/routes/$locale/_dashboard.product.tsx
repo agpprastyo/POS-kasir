@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation, useCreateProductMutation } from '@/lib/api/query/products'
 import { categoriesListQueryOptions } from '@/lib/api/query/categories'
-import { queryClient } from '@/lib/queryClient'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,7 +44,7 @@ export const Route = createFileRoute('/$locale/_dashboard/product')({
         tab: search.tab,
     }),
 
-    loader: ({ deps }) => {
+    loader: ({ context: { queryClient }, deps }) => {
         return queryClient.ensureQueryData(productsListQueryOptions({
             limit: deps.limit,
             page: deps.page,

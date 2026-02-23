@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useDashboardSummaryQuery, useSalesReportQuery, useProductPerformanceQuery, usePaymentMethodPerformanceQuery } from '@/lib/api/query/reports'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { queryClient } from '@/lib/queryClient'
+import { useQueryClient } from '@tanstack/react-query'
 import { meQueryOptions } from '@/lib/api/query/auth'
 
 // Lazy load Recharts — tidak masuk initial bundle
@@ -14,12 +14,13 @@ const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardChart
 
 export const Route = createFileRoute('/$locale/_dashboard/')(({
     component: DashboardIndex,
-    loader: () => queryClient.ensureQueryData(meQueryOptions()),
+    loader: ({ context: { queryClient } }: any) => queryClient.ensureQueryData(meQueryOptions()),
 } as any))
 
 function DashboardIndex() {
     const { t } = useTranslation()
     const { data: summary, isLoading: isLoadingSummary } = useDashboardSummaryQuery()
+    const queryClient = useQueryClient()
     const user = queryClient.getQueryData(meQueryOptions().queryKey)
 
     const endDate = new Date().toISOString().split('T')[0]

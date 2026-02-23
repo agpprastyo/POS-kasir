@@ -9,7 +9,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/context/AuthContext'
 import { meQueryOptions } from '@/lib/api/query/auth'
-import { queryClient } from '@/lib/queryClient'
 
 import { useTranslation } from 'react-i18next'
 import { SettingsPanel } from "@/components/SettingsPanel.tsx";
@@ -19,7 +18,7 @@ import { useNavigationMenu } from '@/hooks/useNavigationMenu'
 
 
 export const Route = createFileRoute('/$locale/_dashboard')({
-    loader: async ({ params }) => {
+    loader: async ({ context: { queryClient }, params }) => {
         try {
             return await queryClient.ensureQueryData(meQueryOptions())
         } catch (error: any) {

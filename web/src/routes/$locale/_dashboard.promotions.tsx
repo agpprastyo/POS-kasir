@@ -37,7 +37,6 @@ import {
     useCreatePromotionMutation,
     Promotion
 } from '@/lib/api/query/promotions'
-import { queryClient } from '@/lib/queryClient'
 import { PromotionFormDialog } from '@/components/PromotionFormDialog'
 import { NewPagination } from "@/components/pagination"
 import { formatRupiah } from "@/lib/utils"
@@ -57,7 +56,7 @@ export const Route = createFileRoute('/$locale/_dashboard/promotions')({
         page: search.page,
         limit: search.limit,
     }),
-    loader: ({ deps }) => {
+    loader: ({ context: { queryClient }, deps }) => {
         return queryClient.ensureQueryData(promotionsListQueryOptions({
             limit: deps.limit,
             page: deps.page,

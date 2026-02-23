@@ -24,7 +24,6 @@ export const meQueryOptions = () =>
         },
         retry: false,
         staleTime: 1000 * 60 * 5,
-
     })
 
 export const useMeQuery = () => useQuery(meQueryOptions())

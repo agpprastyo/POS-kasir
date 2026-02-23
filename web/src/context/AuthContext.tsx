@@ -4,9 +4,9 @@ import {
     type ReactNode,
     useMemo,
 } from 'react'
-import {InternalUserLoginRequest, InternalUserProfileResponse} from "@/lib/api/generated";
-import {useLoginMutation, useLogoutMutation, useMeQuery} from "@/lib/api/query/auth.ts";
-import { queryClient } from "@/lib/queryClient";
+import { InternalUserLoginRequest, InternalUserProfileResponse } from "@/lib/api/generated";
+import { useLoginMutation, useLogoutMutation, useMeQuery } from "@/lib/api/query/auth.ts";
+import { useQueryClient } from "@tanstack/react-query";
 
 type UserProfile = InternalUserProfileResponse
 
@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const loginMutation = useLoginMutation()
     const logoutMutation = useLogoutMutation()
+    const queryClient = useQueryClient()
 
     const value: AuthContextValue = useMemo(() => {
 

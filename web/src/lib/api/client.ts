@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/login')) {
+        if (typeof window !== 'undefined' && error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/login')) {
             originalRequest._retry = true;
 
             try {
@@ -50,13 +50,18 @@ axiosInstance.interceptors.response.use(
             }
         }
 
-        if (error.response?.status === 401 && !window.location.pathname.includes('/login') && !originalRequest.url?.includes('/auth/login')) {
+        if (typeof window !== 'undefined' && error.response?.status === 401 && !window.location.pathname.includes('/login') && !originalRequest.url?.includes('/auth/login')) {
 
             if (!originalRequest.url?.includes('/auth/refresh')) {
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);
                 const locale = (pathSegments.length > 0 && pathSegments[0].length === 2) ? pathSegments[0] : 'id';
                 window.location.href = `/${locale}/login`;
             }
+        }
+
+        // SSR Bypass: Do not throw unhandled promise rejections on the server for 401s
+        if (typeof window === 'undefined' && error.response?.status === 401) {
+            return Promise.resolve({ data: { data: null, message: "Unauthorized (SSR Muted)" } })
         }
 
         return Promise.reject(error)

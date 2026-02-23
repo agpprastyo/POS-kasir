@@ -10,9 +10,8 @@ import {
     ActivityLogsGetActionTypeEnum,
     ActivityLogsGetEntityTypeEnum
 } from '@/lib/api/generated';
-import { activityLogsListQueryOptions, activityLogsSearchSchema } from '@/lib/api/query/activity-logs';
+import { activityLogsListQueryOptions, activityLogsSearchSchema, ActivityLogsSearch } from '@/lib/api/query/activity-logs';
 import { meQueryOptions } from '@/lib/api/query/auth';
-import { queryClient } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
@@ -22,13 +21,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTranslation } from 'react-i18next';
 
-export const Route = createFileRoute('/$locale/_dashboard/activity-logs')({
+export const Route = createFileRoute('/$locale/_dashboard/activity-logs')(({
     validateSearch: activityLogsSearchSchema,
-    loaderDeps: ({ search }) => search,
-    loader: ({ deps }) => {
+    loaderDeps: ({ search }: any) => search,
+    loader: ({ context: { queryClient }, deps }: any) => {
         queryClient.ensureQueryData(activityLogsListQueryOptions(deps));
     },
-    beforeLoad: async () => {
+    beforeLoad: async ({ context: { queryClient } }: any) => {
         const user = await queryClient.ensureQueryData(meQueryOptions());
         const allowedRoles: POSKasirInternalUserRepositoryUserRole[] = [
             POSKasirInternalUserRepositoryUserRole.UserRoleAdmin,
@@ -43,11 +42,11 @@ export const Route = createFileRoute('/$locale/_dashboard/activity-logs')({
         }
     },
     component: ActivityLogsPage,
-});
+} as any));
 
 function ActivityLogsPage() {
     const { t } = useTranslation();
-    const search = Route.useSearch();
+    const search: ActivityLogsSearch = Route.useSearch();
     const navigate = useNavigate({ from: Route.fullPath });
     const { data } = useSuspenseQuery(activityLogsListQueryOptions(search));
 

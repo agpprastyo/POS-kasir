@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
-    "build": "vite build",
-    "build:client": "vite build && cp dist/client/_shell.html dist/client/index.html",
-    "serve": "vite preview",
+    "dev": "vite dev",
+    "build": "vite build && tsc --noEmit",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
     "test": "vitest run",
     "api:gen": "openapi-generator-cli generate",
     "rbac:gen": "bun run scripts/gen-rbac.ts",
@@ -80,7 +81,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.22.1",
+    "@cloudflare/vite-plugin": "^1.25.2",
     "@openapitools/openapi-generator-cli": "^2.25.2",
     "@tanstack/devtools-vite": "^0.3.11",
     "@testing-library/dom": "^10.4.0",
@@ -96,6 +97,6 @@
     "vite": "^7.1.7",
     "vitest": "^3.0.5",
     "web-vitals": "^5.1.0",
-    "wrangler": "^4.61.1"
+    "wrangler": "^4.67.0"
   }
 }

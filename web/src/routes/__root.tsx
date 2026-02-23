@@ -1,18 +1,16 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { QueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from 'next-themes'
 import { lazy, Suspense } from 'react'
 
 import appCss from '../styles.css?url'
 
-import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/context/AuthContext'
-import { queryClient } from "@/lib/queryClient.ts";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import { ThemeManager } from "@/components/ThemeManager.tsx";
 import { ShiftProvider } from "@/context/ShiftContext";
 
-// DevTools hanya dimuat di development — tidak memasuki production bundle
 const DevToolsPanel = import.meta.env.DEV
     ? lazy(() =>
         import('@/components/DevToolsPanel')
@@ -20,7 +18,9 @@ const DevToolsPanel = import.meta.env.DEV
     : null
 
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+    queryClient: QueryClient
+}>()({
 
     head: () => ({
         meta: [
@@ -38,29 +38,26 @@ export const Route = createRootRoute({
 
 
 function RootDocument({ children }: any) {
+
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
                 <HeadContent />
             </head>
             <body>
-                <QueryClientProvider client={queryClient}>
-                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                        <AuthProvider>
-                            <ShiftProvider>
-                                <ThemeManager />
-                                {children}
-                                {/* OpenShiftModal & CloseShiftModal dipindahkan ke _dashboard.tsx
-                                    agar hanya dimuat setelah user terautentikasi */}
-                            </ShiftProvider>
-                        </AuthProvider>
-                        {import.meta.env.DEV && DevToolsPanel && (
-                            <Suspense fallback={null}>
-                                <DevToolsPanel />
-                            </Suspense>
-                        )}
-                    </ThemeProvider>
-                </QueryClientProvider>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                    <AuthProvider>
+                        <ShiftProvider>
+                            <ThemeManager />
+                            {children}
+                        </ShiftProvider>
+                    </AuthProvider>
+                    {import.meta.env.DEV && DevToolsPanel && (
+                        <Suspense fallback={null}>
+                            <DevToolsPanel />
+                        </Suspense>
+                    )}
+                </ThemeProvider>
                 <Scripts />
                 <Toaster />
             </body>

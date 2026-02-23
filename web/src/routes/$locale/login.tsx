@@ -15,13 +15,12 @@ import { useForm } from '@tanstack/react-form'
 import * as z from 'zod'
 import { meQueryOptions } from "@/lib/api/query/auth.ts";
 import { useAuth } from "@/context/AuthContext";
-import { queryClient } from "@/lib/queryClient.ts";
 import { useTranslation } from 'react-i18next'
 import { SettingsPanel } from "@/components/SettingsPanel.tsx";
 
 export const Route = createFileRoute('/$locale/login')({
     ssr: false,
-    loader: async ({ params }) => {
+    loader: async ({ context: { queryClient }, params }) => {
         try {
             const me = await queryClient.ensureQueryData(meQueryOptions())
             if (me) {

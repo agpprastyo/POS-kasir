@@ -1,7 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { meQueryOptions } from '@/lib/api/query/auth'
-import { queryClient } from '@/lib/queryClient'
 import { POSKasirInternalUserRepositoryUserRole } from '@/lib/api/generated'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 export const Route = createFileRoute('/$locale/_dashboard/reports')({
-    beforeLoad: async () => {
+    beforeLoad: async ({ context: { queryClient } }) => {
         const user = await queryClient.ensureQueryData(meQueryOptions())
 
         const allowedRoles: POSKasirInternalUserRepositoryUserRole[] = [

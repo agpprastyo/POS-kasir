@@ -1,140 +1,223 @@
 # **POS Kasir (Point of Sales System)**
 
-<a href="https://pos-kasir.agprastyo.me/">
-  <img src="https://img.shields.io/badge/🚀_Live_Frontend-Visit_App-2ea44f?style=for-the-badge&logo=web" alt="Live Frontend">
-</a>
+[![CI/CD](https://github.com/agpprastyo/POS-kasir/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/agpprastyo/POS-kasir/actions/workflows/ci-cd.yml)
 
-<a href="https://api-pos.agprastyo.me/api/v1/swagger/index.html">
-  <img src="https://img.shields.io/badge/⚙️_Live_API-Base_URL-orange?style=for-the-badge&logo=swagger" alt="Live API">
-</a>
-
-## **Overview**
+## Overview
 
 **POS Kasir** is a modern, high-performance Fullstack Point of Sales application designed to streamline retail operations. It provides a robust solution for managing products, processing orders, handling payments (including Digital Payments via Midtrans), and analyzing sales performance.
 
-Built with **scalability** and **type-safety** in mind, the backend leverages **Golang** with **Fiber** and **sqlc**, while the frontend offers a seamless user experience using the bleeding-edge **TanStack Start** framework powered by **Bun**.
+Built as a **single-port deployment** — the Go backend serves both the REST API and the React SPA frontend on port `8080`.
 
-**Note:** This project serves as a portfolio showcase demonstrating full-stack development capabilities, system architecture design, and integration of third-party services.
+> **Note:** This project serves as a portfolio showcase demonstrating full-stack development capabilities, system architecture design, and integration of third-party services.
 
-## **✨ Key Features**
+## ✨ Key Features
 
-### **Core Functionality**
+- **User Management & RBAC** — JWT authentication with role-based access control (Admin, Manager, Cashier)
+- **Inventory Management** — Products, categories, variants/options, stock history
+- **Order Processing** — Cart system, order workflow, operational status tracking
+- **Digital Payments** — Integrated with Midtrans Payment Gateway (sandbox mode)
+- **Shift Management** — Cashier shift tracking with cash transactions
+- **Cloud Storage** — Cloudflare R2 / MinIO (S3-compatible) for product images
+- **Dashboard & Analytics** — Sales reports, cashier performance, profit summaries
+- **Activity Logging** — Complete audit trails
+- **Multi-language** — i18n support (English / Indonesian)
+- **Promotions** — Discount and promotion management
+- **Thermal Printing** — ESC/POS receipt printing support
 
-* **User Management & RBAC:** Secure authentication with JWT. Role-based access control for Admins and Cashiers.
-* **Inventory Management:** Create, update, and organize products with categories. Support for product variants/options.
-* **Order Processing:** Efficient cart system and order placement workflow.
-* **Transactions:** Detailed transaction history and receipt generation.
+## Tech Stack
 
-### **Advanced Features**
+### Backend
+- **Go 1.25** + [Fiber v3](https://gofiber.io/) (HTTP framework)
+- **PostgreSQL** + [sqlc](https://sqlc.dev/) (type-safe SQL)
+- **JWT** authentication + RBAC middleware
+- **Swagger** auto-generated API docs
 
-* **Digital Payments:** Integrated with **Midtrans Payment Gateway** for seamless cashless transactions.
-* **Cloud Storage:** Integration with **Cloudflare R2** for efficient and scalable product image storage.
-* **Dashboard & Analytics:** Comprehensive reports on sales, cashier performance, and popular products.
-* **Activity Logging:** Complete audit trails for tracking system changes and user activities.
-* **Multi-language Support:** Frontend i18n support (English/Indonesian).
+### Frontend
+- **React 19** + [TanStack Router](https://tanstack.com/router) (SPA)
+- **Vite 7** (build tool)
+- **Tailwind CSS 4** + [shadcn/ui](https://ui.shadcn.com/) (UI components)
+- **TanStack Query** (data fetching)
+- **OpenAPI Generator** (typed API client)
 
-> ⚠️ Payment integration is running in sandbox mode for demonstration purposes.
+### Infrastructure
+- **Docker** multi-stage build (final image ~30MB Alpine)
+- **GitHub Actions** CI/CD → Docker image to GHCR
+- **PostgreSQL 15** + **MinIO** (S3-compatible storage)
 
-## System Architecture
+## Architecture
 
-Frontend (TanStack Start) communicates with the backend via RESTful API.
-The backend handles authentication, business logic, and integrations with third-party services such as Midtrans and Cloudflare R2.
-PostgreSQL is used as the primary relational database.
-
-Authentication is handled using JWT with role-based access control.
-
-## **Tech Stack**
-
-### **Backend (API)**
-
-* **Language:** [Go (Golang)](https://www.google.com/search?q=https://go.dev/)
-* **Framework:** [Fiber v2](https://www.google.com/search?q=https://gofiber.io/) \- High-performance web framework.
-* **Database:** PostgreSQL.
-* **ORM/Query Builder:** [sqlc](https://www.google.com/search?q=https://sqlc.dev/) \- For generating type-safe Go code from SQL.
-* **Migrations:** Golang Migrate.
-* **Docs:** Swagger (Swaggo).
-* **Utils:** air(hot-reload), Logrus (Logging).
-
-### **Frontend (Web)**
-
-* **Runtime:** [Bun](https://www.google.com/search?q=https://bun.sh/)
-* **Framework:** [TanStack Start](https://www.google.com/search?q=https://tanstack.com/start/latest) (React).
-* **State & Data Fetching:** [TanStack Query](https://www.google.com/search?q=https://tanstack.com/query/latest).
-* **UI Component:** [Shadcn UI](https://www.google.com/search?q=https://ui.shadcn.com/) \+ Tailwind CSS.
-* **Form Handling:** React Hook Form \+ Zod.
-* **API Client:** OpenAPI Generator (generated from Backend Swagger).
-
-### **Infrastructure & Tools**
-
-* **Containerization:** Docker & Docker Compose.
-* **Hot Reload:** Air (Backend).
-* **Automation:** Makefile.
-
-## **Project Structure**
-
-.  
-├── cmd/                \# Main applications entry points  
-│   ├── app/            \# Main server application  
-│   └── seeder/         \# Database seeder  
-├── config/             \# Configuration loading logic  
-├── internal/           \# Private application and business logic  
-│   ├── auth/           \# Authentication logic  
-│   ├── orders/         \# Order processing  
-│   ├── products/       \# Product management  
-│   ├── repository/     \# Generated sqlc code  
-│   └── ...  
-├── pkg/                \# Public library code (Logger, Midtrans, R2, Utils)  
-├── sqlc/               \# SQL queries and schema  
-├── web/                \# Frontend application (TanStack Start)  
-├── docker-compose.yml  \# Docker orchestration  
-└── Makefile            \# Command runner
-
-## **Getting Started**
-
-### **Prerequisites**
-
-* **Go** 1.22+
-* **Bun** 1.0+ (for frontend)
-* **Docker** & **Docker Compose**
-
-### **1\. Clone the Repository**
-
-```bash
-git clone https://github.com/agpprastyo/POS-kasir.git  
-cd POS-kasir
+```
+┌──────────────────────────────┐
+│         Go Backend :8080     │
+│                              │
+│  /api/v1/*    → REST API     │
+│  /swagger/*   → API Docs     │
+│  /healthz     → Health Check │
+│  /*           → React SPA    │
+│               (web/dist/)    │
+└──────────┬───────────────────┘
+           │
+     ┌─────┴─────┐
+     │ PostgreSQL │   MinIO (S3)
+     └───────────┘
 ```
 
-### **2\. Project Setup**
+## 🚀 Quick Start (Docker)
 
-1. Copy environment files and configure your credentials:
+Cara tercepat menjalankan seluruh aplikasi:
 
-    ```bash
-    cp .env.example .env
-    cp web/.env.example web/.env
-    ```
+```bash
+git clone https://github.com/agpprastyo/POS-kasir.git
+cd POS-kasir
 
-2. Update `.env` with your database, Midtrans, and Cloudflare R2 credentials.
-3. start docker containers:
+# 1. Copy dan edit environment
+cp .env.example .env
+# Edit .env → isi DB_PASSWORD dan JWT_SECRET
 
-    ```bash
-    docker-compose up -d
-    ```
+# 2. Jalankan seluruh stack
+docker compose up -d
 
-4. Run database migrations:
+# 3. Buka aplikasi
+# App     → http://localhost:8080
+# Swagger → http://localhost:8080/swagger/index.html
+# MinIO   → http://localhost:9001
+```
 
-    ```bash
-    make migrate-up
-    ```
+### Env yang WAJIB diisi:
 
-5. (Optional) Seed the database with sample data:
+| Variable | Keterangan |
+|----------|-----------|
+| `DB_PASSWORD` | Password PostgreSQL |
+| `JWT_SECRET` | Secret key untuk token (`openssl rand -hex 32`) |
 
-    ```bash
-    make seed
-    ```
+Env lainnya sudah memiliki default yang aman. Lihat [`.env.example`](.env.example) untuk daftar lengkap.
 
-6. visit [http://localhost:3000](http://localhost:3000) for the frontend and [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) for the API docs.
+## 🛠️ Development Setup
 
-## **📸 Screenshots**
+### Prerequisites
+
+- **Go** 1.25+
+- **Node.js** 22+ (npm)
+- **PostgreSQL** 15+
+- **Docker** & Docker Compose (untuk infra)
+
+### 1. Setup Infrastructure
+
+```bash
+# Jalankan PostgreSQL + MinIO via Docker
+docker compose -f docker-compose-infra.yaml up -d
+```
+
+### 2. Setup Environment
+
+```bash
+cp .env.example .env
+# Edit .env:
+#   DB_HOST=localhost
+#   DB_PASSWORD=<password dari docker-compose-infra>
+#   JWT_SECRET=<generate dengan: openssl rand -hex 32>
+```
+
+### 3. Run Backend
+
+```bash
+# Install air untuk hot-reload (opsional)
+go install github.com/air-verse/air@latest
+
+# Run dengan hot-reload
+air
+
+# Atau tanpa hot-reload
+go run ./cmd/app
+```
+
+Backend berjalan di `http://localhost:8080`
+
+### 4. Run Frontend (Dev Mode)
+
+```bash
+cd web
+npm install --legacy-peer-deps
+npm run dev
+```
+
+Frontend dev server di `http://localhost:5173` (dengan proxy ke backend 8080)
+
+### 5. Build Frontend (SPA)
+
+```bash
+cd web
+npm run build
+# Output: web/dist/
+```
+
+Setelah build, akses `http://localhost:8080` — Go backend serve SPA langsung.
+
+## Useful Commands
+
+```bash
+# Database
+make migrate-up          # Jalankan migrations
+make migrate-down-one    # Rollback 1 migration
+make migrate-create name=add_xxx_table   # Buat migration baru
+make seed                # Seed sample data
+
+# Code Generation
+make sqlc-generate       # Generate Go code dari SQL
+make swag                # Generate Swagger docs + API client
+
+# Docker
+docker compose up -d              # Full stack (app + DB + MinIO)
+docker compose -f docker-compose-infra.yaml up -d   # Infra saja
+```
+
+## CI/CD
+
+Pipeline berjalan via **GitHub Actions**:
+
+| Trigger | Job | Keterangan |
+|---------|-----|-----------|
+| Push/PR ke `master` | **test** | Go vet, Go test, FE build |
+| Tag `v*.*.*` | **test** + **build-and-push** | Build Docker image → push ke GHCR |
+
+### Release Flow
+
+```bash
+# 1. Tag versi baru
+git tag -a v1.2.0 -m "v1.2.0: description"
+git push origin v1.2.0
+
+# 2. CI otomatis build & push ke:
+#    ghcr.io/agpprastyo/pos-kasir:1.2.0
+#    ghcr.io/agpprastyo/pos-kasir:1.2
+#    ghcr.io/agpprastyo/pos-kasir:latest
+```
+
+## Project Structure
+
+```
+.
+├── cmd/
+│   ├── app/              # Main server entry point
+│   └── seeder/           # Database seeder
+├── config/               # Configuration loading
+├── internal/             # Business logic (auth, orders, products, etc.)
+├── pkg/                  # Shared libraries (logger, JWT, R2, Midtrans)
+├── server/
+│   ├── server.go         # App init, middleware, lifecycle
+│   ├── routes.go         # API route registration
+│   └── frontend.go       # SPA static file serving
+├── sqlc/                 # SQL queries, schema, migrations
+├── web/                  # Frontend (React SPA)
+│   ├── src/routes/       # TanStack Router file-based routes
+│   ├── src/lib/api/      # Generated API client
+│   └── dist/             # Built SPA output (gitignored)
+├── Dockerfile            # Multi-stage build (Node + Go → Alpine)
+├── docker-compose.yml    # Full stack deployment
+└── Makefile              # Command shortcuts
+```
+
+## 📸 Screenshots
 
 | Login Page | Dashboard |
 | :----: | :----: |
@@ -152,31 +235,20 @@ cd POS-kasir
 | :----: | :----: |
 | ![Reports](screenshots/07_reports.png) | ![Settings](screenshots/08_settings.png) |
 
-| API Documentation (Swagger) |
-| :----: |
-| ![Swagger UI](screenshots/09_swagger.png) |
+## API Documentation
 
-## **API Documentation**
+Auto-generated Swagger documentation available at:
 
-The backend includes auto-generated Swagger documentation.
+- **Local:** http://localhost:8080/swagger/index.html
 
-* **Live Specs:** [https://api-pos.agprastyo.me/swagger/index.html](https://www.google.com/search?q=https://api-pos.agprastyo.me/swagger/index.html)
-* **Live Base URL:** <https://api-pos.agprastyo.me/api/v1>
+## License
 
-**Running Locally:**
-
-Once the local server is running, visit:
-
-<http://localhost:8080/swagger/index.html>
-
-## **License**
-
-This project is licensed under the [MIT License](https://www.google.com/search?q=LICENSE).
+This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
 **Agung Prasetyo**
 
-* GitHub: <https://github.com/agpprastyo>
-* LinkedIn: <https://www.linkedin.com/in/agprastyo>
-* Portfolio: <https://portfolio.agprastyo.me>
+- GitHub: https://github.com/agpprastyo
+- LinkedIn: https://www.linkedin.com/in/agprastyo
+- Portfolio: https://portfolio.agprastyo.me

@@ -100,7 +100,7 @@ func Load() *AppConfig {
 			Port:                   getEnv("APP_PORT", "8080"),
 			CookieDomain:           getEnv("COOKIE_DOMAIN", ""),
 			WebFrontendCrossOrigin: getBool("WEB_FRONTEND_CROSS_ORIGIN", false),
-			CorsAllowOrigins:       getEnv("CORS_ALLOW_ORIGINS", "http://localhost:3000, http://127.0.0.1:3000"),
+			CorsAllowOrigins:       getEnv("CORS_ALLOW_ORIGINS", ""),
 		},
 		JWT: JwtConfig{
 			Secret:               getEnv("JWT_SECRET", "secret"),

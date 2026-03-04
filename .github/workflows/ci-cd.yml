@@ -1,14 +1,14 @@
-name: Build and Release
+name: CI/CD
 
 on:
   push:
     branches:
-      - main
+      - master
     tags:
       - "v*.*.*"
   pull_request:
     branches:
-      - main
+      - master
 
 env:
   REGISTRY: ghcr.io
@@ -22,23 +22,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Backend Checks
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.25"
-      - name: Go Format
-        run: if [ -f server/server.go ]; then go fmt ./...; fi
       - name: Go Vet
-        run: if [ -f server/server.go ]; then go vet ./...; fi
+        run: go vet ./...
       - name: Go Test
-        run: if [ -f server/server.go ]; then go test -v ./...; fi
+        run: go test -v ./...
 
-      # Frontend Checks
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: web/package-lock.json
       - name: Install Frontend Dependencies
@@ -52,11 +48,10 @@ jobs:
     name: Build and Push Docker Image
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' # Only push on merge to main or tags
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
       packages: write
-      attestations: write
       id-token: write
 
     steps:
@@ -79,13 +74,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
 
       - name: Build and push Docker image
-        id: push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -93,3 +86,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

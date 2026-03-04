@@ -242,17 +242,16 @@ func SetupMiddleware(app *App) {
 
 	origins := strings.TrimSpace(app.Config.Server.CorsAllowOrigins)
 
-	if origins == "" {
-		log.Fatal("CORS_ALLOW_ORIGINS is empty or invalid")
+	if origins != "" {
+		app.FiberApp.Use(cors.New(cors.Config{
+			AllowOrigins:     strings.Split(origins, ","),
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods"},
+			AllowCredentials: true,
+			MaxAge:           300,
+		}))
 	}
-	app.FiberApp.Use(cors.New(cors.Config{
-		AllowOrigins:     strings.Split(origins, ","),
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
 	app.FiberApp.Use(fiberlog.New())
 	app.FiberApp.Use(recover.New())
 

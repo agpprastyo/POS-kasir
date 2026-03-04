@@ -15,8 +15,6 @@ import {
     PrinterApi
 } from "@/lib/api/generated";
 
-// Since FE and BE are served from the same origin, use a relative path.
-// In dev mode, Vite proxy forwards /api requests to the Go backend.
 const BASE_PATH = import.meta.env.VITE_API_BASE || '/api/v1'
 
 export const axiosInstance = axios.create({

@@ -15,13 +15,9 @@ import {
     PrinterApi
 } from "@/lib/api/generated";
 
-
-
-const BASE_PATH = import.meta.env.VITE_API_BASE!
-
-if (!BASE_PATH) {
-    throw new Error('VITE_API_BASE is not defined')
-}
+// Since FE and BE are served from the same origin, use a relative path.
+// In dev mode, Vite proxy forwards /api requests to the Go backend.
+const BASE_PATH = import.meta.env.VITE_API_BASE || '/api/v1'
 
 export const axiosInstance = axios.create({
     baseURL: BASE_PATH,
@@ -33,7 +29,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (typeof window !== 'undefined' && error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/login')) {
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh') && !originalRequest.url?.includes('/auth/login')) {
             originalRequest._retry = true;
 
             try {
@@ -50,17 +46,13 @@ axiosInstance.interceptors.response.use(
             }
         }
 
-        if (typeof window !== 'undefined' && error.response?.status === 401 && !window.location.pathname.includes('/login') && !originalRequest.url?.includes('/auth/login')) {
+        if (error.response?.status === 401 && !window.location.pathname.includes('/login') && !originalRequest.url?.includes('/auth/login')) {
 
             if (!originalRequest.url?.includes('/auth/refresh')) {
                 const pathSegments = window.location.pathname.split('/').filter(Boolean);
                 const locale = (pathSegments.length > 0 && pathSegments[0].length === 2) ? pathSegments[0] : 'id';
                 window.location.href = `/${locale}/login`;
             }
-        }
-
-        if (typeof window === 'undefined' && error.response?.status === 401) {
-            return Promise.resolve({ data: { data: null, message: "Unauthorized (SSR Muted)" } })
         }
 
         return Promise.reject(error)

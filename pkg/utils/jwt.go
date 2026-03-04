@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-// Manager defines the interface for JWT operations.
 type Manager interface {
 	GenerateToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error)
 	GenerateRefreshToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error)
@@ -32,17 +31,14 @@ type JWTClaims struct {
 	Email    string    `json:"email"`
 	Role     string    `json:"role"`
 	UserID   uuid.UUID `json:"user_id"`
-	Type     string    `json:"type"` // "access" or "refresh"
+	Type     string    `json:"type"`
 	jwt.RegisteredClaims
 }
 
-// ...
-// GenerateToken creates a short-lived Access Token.
 func (j *JWTManager) GenerateToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	return j.generateToken(username, email, userID, role, "access", j.cfg.JWT.Duration)
 }
 
-// GenerateRefreshToken creates a long-lived Refresh Token.
 func (j *JWTManager) GenerateRefreshToken(username, email string, userID uuid.UUID, role string) (string, time.Time, error) {
 	return j.generateToken(username, email, userID, role, "refresh", j.cfg.JWT.RefreshTokenDuration)
 }

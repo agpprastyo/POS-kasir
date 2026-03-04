@@ -2,7 +2,6 @@ import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { NotFoundPage } from '@/components/NotFoundPage'
 import { ErrorPage } from '@/components/ErrorPage'
 
-// Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import { makeQueryClient } from './lib/queryClient'
@@ -33,7 +32,6 @@ export function createRouter() {
 
 export const getRouter = createRouter
 
-// Register the router instance for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof createRouter>

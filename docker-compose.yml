@@ -1,9 +1,9 @@
 services:
-  backend:
+  app:
     build:
       context: .
-      dockerfile: dockerfile
-    container_name: pos-backend
+      dockerfile: Dockerfile
+    container_name: pos-kasir
     env_file:
       - .env
     ports:
@@ -16,19 +16,6 @@ services:
         limits:
           cpus: '0.50'
           memory: 512M
-
-  frontend:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    container_name: pos-frontend
-    env_file:
-      - web/.env
-    ports:
-      - "3000:80"
-    networks:
-      - pos-network
-    restart: always
 
 networks:
   pos-network:

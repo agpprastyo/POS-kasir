@@ -18,6 +18,7 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 				Message: "unauthorized",
 			})
 		}
+
 		claims, err := tokenManager.VerifyToken(token)
 		if err != nil {
 			log.Warnf("unauthorized access attempt: invalid token - %v", err)
@@ -30,16 +31,10 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 		c.Locals("email", claims.Email)
 		c.Locals("user_id", claims.UserID)
 
-		log.Infof("current user is %v", claims.Username)
-		log.Infof("current role is %v", claims.Role)
-		log.Infof("current email is %v", claims.Email)
-		log.Infof("current user ID is %v", claims.UserID)
+		log.Infof("current user is %v, role is %v, email is %v, user ID is %v", claims.Username, claims.Role, claims.Email, claims.UserID)
 
 		c.RequestCtx().SetUserValue(common.UserIDKey, claims.UserID)
-
-		log.Infof("current user ID is %v", claims.UserID)
 
 		return c.Next()
 	}
 }
-

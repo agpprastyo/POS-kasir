@@ -111,6 +111,39 @@ git push origin master --tags
 
 ---
 
+### Fast Development Workflow (No Rebuild)
+
+Untuk development harian, **jangan** gunakan `docker-compose.yml` utama karena build ulang image memakan waktu lama. Gunakan setup berikut:
+
+#### 1. Jalankan Infrastruktur (DB & MinIO saja)
+```bash
+docker compose -f docker-compose-infra.yaml up -d
+```
+
+#### 2. Setup Backend (Hot-Reload)
+Pastikan sudah install [air](https://github.com/air-verse/air):
+```bash
+# Terminal 1: Backend
+air
+```
+Backend akan otomatis restart setiap kali ada perubahan file `.go`.
+
+#### 3. Setup Frontend (Vite Dev Server)
+```bash
+# Terminal 2: Frontend
+cd web
+npm run dev
+```
+Vite dev server berjalan di `:5173`. Semua request ke `/api` akan otomatis di-proxy ke backend `:8080` (sudah dikonfigurasi di `vite.config.ts`).
+
+#### 4. Keuntungan Setup Ini:
+- **Instant Feedback:** Perubahan UI (CSS/React) langsung muncul via HMR.
+- **Fast Restart:** Backend hanya butuh < 1 detik untuk recompile via `air`.
+- **Easy Debugging:** Bisa pakai debugger IDE dan melihat log langsung di terminal.
+
+
+---
+
 ## 2. Production Setup
 
 ### Minimal VPS Requirements

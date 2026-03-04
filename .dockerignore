@@ -8,7 +8,6 @@ bin/
 *.exe
 *.test
 
-web/
 web/node_modules
 web/build
 web/dist

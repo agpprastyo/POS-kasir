@@ -1,10 +1,8 @@
-import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
 import { QueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ThemeProvider } from 'next-themes'
 import { lazy, Suspense } from 'react'
-
-import appCss from '../styles.css?url'
 
 import { AuthProvider } from '@/context/AuthContext'
 import { Toaster } from "@/components/ui/sonner.tsx";
@@ -21,47 +19,31 @@ const DevToolsPanel = import.meta.env.DEV
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient
 }>()({
-
-    head: () => ({
-        meta: [
-            { charSet: 'utf-8' },
-            { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-            { title: 'POS Kasir' },
-        ],
-        links: [{ rel: 'stylesheet', href: appCss }],
-    }),
-    shellComponent: RootDocument,
     notFoundComponent: NotFound,
     errorComponent: RootError,
+    component: RootComponent,
+})
 
-} as any)
 
-
-function RootDocument({ children }: any) {
+function RootComponent() {
 
     return (
-        <html lang="en" suppressHydrationWarning>
-            <head>
-                <HeadContent />
-            </head>
-            <body>
-                <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                    <AuthProvider>
-                        <ShiftProvider>
-                            <ThemeManager />
-                            {children}
-                        </ShiftProvider>
-                    </AuthProvider>
-                    {import.meta.env.DEV && DevToolsPanel && (
-                        <Suspense fallback={null}>
-                            <DevToolsPanel />
-                        </Suspense>
-                    )}
-                </ThemeProvider>
-                <Scripts />
-                <Toaster />
-            </body>
-        </html>
+        <>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                <AuthProvider>
+                    <ShiftProvider>
+                        <ThemeManager />
+                        <Outlet />
+                    </ShiftProvider>
+                </AuthProvider>
+                {import.meta.env.DEV && DevToolsPanel && (
+                    <Suspense fallback={null}>
+                        <DevToolsPanel />
+                    </Suspense>
+                )}
+            </ThemeProvider>
+            <Toaster />
+        </>
     )
 }
 

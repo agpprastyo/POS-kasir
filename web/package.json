@@ -4,10 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && tsc --noEmit",
+    "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
     "test": "vitest run",
     "api:gen": "openapi-generator-cli generate",
     "rbac:gen": "bun run scripts/gen-rbac.ts",

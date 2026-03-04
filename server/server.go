@@ -8,6 +8,7 @@ import (
 	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/internal/categories"
 	categories_repo "POS-kasir/internal/categories/repository"
+	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/store"
 	"POS-kasir/internal/orders"
 	orders_repo "POS-kasir/internal/orders/repository"
@@ -293,13 +294,14 @@ func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
 		var e *fiber.Error
 		if errors.As(err, &e) {
 			logger.Errorf("Fiber error 1: %v", e)
-			return c.Status(e.Code).JSON(fiber.Map{
-				"error": e.Message,
+			return c.Status(e.Code).JSON(common.ErrorResponse{
+
+				Message: e.Message,
 			})
 		}
 
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Internal Server Error",
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Internal Server Error",
 		})
 	}
 }

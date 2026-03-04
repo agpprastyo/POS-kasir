@@ -1,10 +1,8 @@
 import { defineConfig } from 'vite'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
-
-import { cloudflare } from '@cloudflare/vite-plugin'
 
 const config = defineConfig({
   base: '/',
@@ -12,9 +10,8 @@ const config = defineConfig({
     viteTsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    TanStackRouterVite(),
     tailwindcss(),
-    tanstackStart(),
     viteReact(),
   ],
   build: {
@@ -26,6 +23,13 @@ const config = defineConfig({
           }
         },
       },
+    },
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/swagger': 'http://localhost:8080',
+      '/healthz': 'http://localhost:8080',
     },
   },
 })

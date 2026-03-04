@@ -380,7 +380,6 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 }
 
 func (s *AthService) RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error) {
-	// 1. Verify token signature
 	claims, err := s.Token.VerifyToken(refreshToken)
 	if err != nil {
 		s.Log.Errorf("RefreshToken | Invalid token: %v", err)
@@ -392,7 +391,6 @@ func (s *AthService) RefreshToken(ctx context.Context, refreshToken string) (*Lo
 		return nil, common.ErrUnauthorized
 	}
 
-	// 2. Check token in database (Single Session Enforcement)
 	user, err := s.UserRepo.GetUserByID(ctx, claims.UserID)
 	if err != nil {
 		s.Log.Errorf("RefreshToken | User not found: %v", claims.UserID)
@@ -404,7 +402,6 @@ func (s *AthService) RefreshToken(ctx context.Context, refreshToken string) (*Lo
 		return nil, common.ErrUnauthorized
 	}
 
-	// 3. Generate new tokens (Rotation)
 	newAccessToken, newExpiredAt, err := s.Token.GenerateToken(user.Username, user.Email, user.ID, string(user.Role))
 	if err != nil {
 		s.Log.Errorf("RefreshToken | Failed to generate access token: %v", err)
@@ -417,7 +414,6 @@ func (s *AthService) RefreshToken(ctx context.Context, refreshToken string) (*Lo
 		return nil, common.ErrInternal
 	}
 
-	// 4. Update database with new refresh token
 	if err := s.UserRepo.UpdateRefreshToken(ctx, user_repo.UpdateRefreshTokenParams{
 		ID:           user.ID,
 		RefreshToken: &newRefreshToken,

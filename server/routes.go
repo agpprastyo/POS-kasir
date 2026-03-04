@@ -81,14 +81,13 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/reports/cancellations", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
 	api.Get("/reports/profit-summary", authMiddleware, container.ReportHandler.GetProfitSummaryHandler)
 	api.Get("/reports/profit-products", authMiddleware, container.ReportHandler.GetProductProfitReportsHandler)
-	// Public read access for Cashier (and above)
+
 	promotionsReadGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier))
 	{
 		promotionsReadGroup.Get("/", container.PromotionHandler.ListPromotionsHandler)
 		promotionsReadGroup.Get("/:id", container.PromotionHandler.GetPromotionHandler)
 	}
 
-	// Helper for Manager/Admin operations
 	promotionsWriteGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleManager))
 	{
 		promotionsWriteGroup.Post("/", container.PromotionHandler.CreatePromotionHandler)
@@ -115,4 +114,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 		shiftGroup.Get("/current", container.ShiftHandler.GetOpenShiftHandler)
 		shiftGroup.Post("/cash-transaction", container.ShiftHandler.CreateCashTransactionHandler)
 	}
+
+	// Serve frontend SPA static files (must be last, catch-all)
+	SetupFrontend(app)
 }

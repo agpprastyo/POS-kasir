@@ -112,10 +112,10 @@ jobs:
             cd /home/ubuntu
             
             echo "Menarik image pos-kasir terbaru dari GHCR..."
-            docker compose pull
+            sudo docker compose pull
             
             echo "Me-restart service dengan image baru..."
-            docker compose up -d
+            sudo docker compose up -d
             
             echo "Membersihkan image versi lama untuk menghemat disk..."
-            docker image prune -f
+            sudo docker image prune -f

@@ -10,6 +10,11 @@ Built as a **single-port deployment** — the Go backend serves both the REST AP
 
 > **Note:** This project serves as a portfolio showcase demonstrating full-stack development capabilities, system architecture design, and integration of third-party services.
 
+## Live Deployment
+
+- **App:** https://pos-kasir.agprastyo.me
+- **Swagger docs:** https://pos-kasir.agprastyo.me/swagger/index.html
+
 ## ✨ Key Features
 
 - **User Management & RBAC** — JWT authentication with role-based access control (Admin, Manager, Cashier)
@@ -173,25 +178,21 @@ docker compose -f docker-compose-infra.yaml up -d   # Infra saja
 
 ## CI/CD
 
-Pipeline berjalan via **GitHub Actions**:
+Pipeline berjalan via **GitHub Actions** dan dipicu dari setiap push/PR ke `master` atau tag semver `v*.*.*`.
 
 | Trigger | Job | Keterangan |
-|---------|-----|-----------|
-| Push/PR ke `master` | **test** | Go vet, Go test, FE build |
-| Tag `v*.*.*` | **test** + **build-and-push** | Build Docker image → push ke GHCR |
+|---------|-----|-------------|
+| Push/PR ke `master` | **test** | `go vet`, `go test`, dan build frontend (`npm run build` di `./web`) |
+| Tag `v*.*.*` | **test** + **build-and-push** | Build dan push image ke `ghcr.io/agpprastyo/pos-kasir` dengan tag `X.Y.Z`, `X.Y`, dan `latest` |
+| Tag `v*.*.*` | **deploy** | Koneksi ke VM lewat **Tailscale**, lalu `docker compose pull` + `docker compose up -d` di `/home/ubuntu` untuk memperbarui stack produksi di https://pos-kasir.agprastyo.me |
 
-### Release Flow
+CI mengandalkan variabel berikut:
 
-```bash
-# 1. Tag versi baru
-git tag -a v1.2.0 -m "v1.2.0: description"
-git push origin v1.2.0
+- `REGISTRY` (default `ghcr.io`) dan `IMAGE_NAME` (nama repository) untuk metadata Docker
+- `TAILSCALE_AUTHKEY` untuk autentikasi Tailscale
+- `VM_TAILSCALE_IP` dan `VM_SSH_PRIVATE_KEY` agar `appleboy/ssh-action` bisa mengakses host `ubuntu`
 
-# 2. CI otomatis build & push ke:
-#    ghcr.io/agpprastyo/pos-kasir:1.2.0
-#    ghcr.io/agpprastyo/pos-kasir:1.2
-#    ghcr.io/agpprastyo/pos-kasir:latest
-```
+Setiap tag `vX.Y.Z` memicu release flow otomatis yang menjalankan job `test` → `build-and-push` → `deploy`, meng-update image di `ghcr.io/agpprastyo/pos-kasir`, lalu menerapkan versi baru pada server `pos-kasir.agprastyo.me` berserta Swagger docs live di https://pos-kasir.agprastyo.me/swagger/index.html.
 
 ## Project Structure
 
@@ -240,6 +241,7 @@ git push origin v1.2.0
 Auto-generated Swagger documentation available at:
 
 - **Local:** http://localhost:8080/swagger/index.html
+- **Production:** https://pos-kasir.agprastyo.me/swagger/index.html
 
 ## License
 

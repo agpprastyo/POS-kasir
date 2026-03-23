@@ -17,5 +17,6 @@
 export interface InternalOrdersConfirmManualPaymentRequest {
     'cash_received'?: number;
     'payment_method_id': number;
+    'version': number;
 }
 

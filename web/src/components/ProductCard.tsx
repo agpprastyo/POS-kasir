@@ -87,8 +87,8 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                         >
                             {product.name}
                         </h3>
-                        <p className="text-[11px] text-muted-foreground font-normal truncate">
-                            {product.category_name || t('products.card.uncategorized')}
+                        <p className="text-[11px] text-muted-foreground font-normal truncate" title={(product as any).categories?.map((c: any) => c.name).join(', ')}>
+                            {(product as any).categories?.map((c: any) => c.name).join(', ') || t('products.card.uncategorized')}
                         </p>
                     </div>
 

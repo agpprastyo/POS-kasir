@@ -23,6 +23,7 @@ type IOrderHandler interface {
 	ConfirmManualPaymentHandler(c fiber.Ctx) error
 	UpdateOperationalStatusHandler(c fiber.Ctx) error
 	ApplyPromotionHandler(c fiber.Ctx) error
+	RefundOrderHandler(c fiber.Ctx) error
 }
 
 type OrderHandler struct {
@@ -160,7 +161,7 @@ func (h *OrderHandler) UpdateOperationalStatusHandler(c fiber.Ctx) error {
 // @Success      200 {object} common.SuccessResponse{data=OrderDetailResponse} "Payment completed successfully"
 // @Failure      400 {object} common.ErrorResponse "Invalid order ID format or request body"
 // @Failure      404 {object} common.ErrorResponse "Order not found"
-// @Failure      409 {object} common.ErrorResponse "Order might have been paid or cancelled"
+// @Failure      409 {object} common.ErrorResponse "Order might have been paid, cancelled, or version conflict"
 // @Failure      500 {object} common.ErrorResponse "Failed to complete payment"
 // @x-roles      ["admin", "manager", "cashier"]
 // @Router       /orders/{id}/pay/manual [post]
@@ -196,6 +197,9 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c fiber.Ctx) error {
 		if errors.Is(err, common.ErrOrderNotModifiable) {
 			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{Message: "Order cannot be processed", Error: "Order might have been paid or cancelled."})
 		}
+		if errors.Is(err, common.ErrOrderConflict) {
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{Message: "Order version conflict", Error: err.Error()})
+		}
 		h.log.Errorf("Failed to complete manual payment in service", "error", err, "orderID", orderID)
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to complete payment"})
 	}
@@ -213,20 +217,21 @@ func (h *OrderHandler) ConfirmManualPaymentHandler(c fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Param        id path string true "Order ID" Format(uuid)
-// @Param        request body []UpdateOrderItemRequest true "Update order items"
+// @Param        request body UpdateOrderItemsRequest true "Update order items"
 // @Success      200 {object} common.SuccessResponse{data=OrderDetailResponse} "Order items updated successfully"
 // @Failure      400 {object} common.ErrorResponse "Invalid order ID format or request body"
 // @Failure      404 {object} common.ErrorResponse "Order not found"
+// @Failure      409 {object} common.ErrorResponse "Order version conflict"
 // @Failure      500 {object} common.ErrorResponse "Failed to update order items"
 // @x-roles      ["admin", "manager", "cashier"]
-// @Router       /orders/{id}/items [put]
+// @Router       /orders/{id}/items [patch]
 func (h *OrderHandler) UpdateOrderItemsHandler(c fiber.Ctx) error {
 	orderID, err := fiber.Convert(c.Params("id"), uuid.Parse)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
 	}
 
-	var req []UpdateOrderItemRequest
+	var req UpdateOrderItemsRequest
 	if err := c.Bind().Body(&req); err != nil {
 		var ve *validator.ValidationErrors
 		if errors.As(err, &ve) {
@@ -238,11 +243,14 @@ func (h *OrderHandler) UpdateOrderItemsHandler(c fiber.Ctx) error {
 				},
 			})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body, expected an array of actions"})
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
 	}
 
 	updatedOrder, err := h.orderService.UpdateOrderItems(c.RequestCtx(), orderID, req)
 	if err != nil {
+		if errors.Is(err, common.ErrOrderConflict) {
+			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{Message: "Order has been updated by another user", Error: err.Error()})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to update order items"})
 	}
 
@@ -520,4 +528,54 @@ func (h *OrderHandler) MidtransNotificationHandler(c fiber.Ctx) error {
 
 	h.log.Infof("Successfully handled Midtrans notification", "orderID", payload.OrderID, "status", payload.TransactionStatus)
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{Message: "Notification received successfully"})
+}
+
+// RefundOrderHandler godoc
+// @Summary      Refund a paid order
+// @Description  Refund a paid order by ID
+// @Tags         orders
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string  true  "Order ID (UUID)"
+// @Param        body  body      RefundOrderRequest  true  "Refund Request Body"
+// @Success      200   {object}  common.SuccessResponse{data=OrderDetailResponse}
+// @Failure      400   {object}  common.ErrorResponse
+// @Failure      404   {object}  common.ErrorResponse
+// @Failure      500   {object}  common.ErrorResponse
+// @Router       /api/v1/orders/{id}/refund [post]
+func (h *OrderHandler) RefundOrderHandler(c fiber.Ctx) error {
+	orderID, err := fiber.Convert(c.Params("id"), uuid.Parse)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid order ID format"})
+	}
+
+	var req RefundOrderRequest
+	if err := c.Bind().Body(&req); err != nil {
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data:    map[string]interface{}{"errors": ve.Errors},
+			})
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
+	}
+
+	orderResponse, err := h.orderService.RefundOrder(c.RequestCtx(), orderID, req)
+	if err != nil {
+		if errors.Is(err, common.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(common.ErrorResponse{Message: "Order not found"})
+		}
+		if err.Error() == "only paid orders can be refunded" {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: err.Error()})
+		}
+		h.log.Errorf("Failed to refund order", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to refund order"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Order refunded successfully",
+		Data:    orderResponse,
+	})
 }

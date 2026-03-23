@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { ordersListQueryOptions, useUpdateOrderStatusMutation, useCancelOrderMutation } from '@/lib/api/query/orders'
+import { ordersListQueryOptions, useUpdateOrderStatusMutation, useCancelOrderMutation, useRefundOrderMutation } from '@/lib/api/query/orders'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { useCancellationReasonsListQuery } from '@/lib/api/query/cancel-reason'
 import { Badge } from '@/components/ui/badge'
@@ -126,6 +126,12 @@ function TransactionsPage() {
     const { data: cancellationReasons } = useCancellationReasonsListQuery()
     const updateOrderStatusMutation = useUpdateOrderStatusMutation()
     const cancelOrderMutation = useCancelOrderMutation()
+    const refundOrderMutation = useRefundOrderMutation()
+
+    // Refund Dialog State
+    const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
+    const [orderToRefund, setOrderToRefund] = useState<OrderWithItems | null>(null)
+    const [refundReason, setRefundReason] = useState('')
 
     const handleStatusUpdate = async (id: string, newStatus: POSKasirInternalOrdersRepositoryOrderStatus) => {
         try {
@@ -164,6 +170,27 @@ function TransactionsPage() {
             // Success toast handled by mutation
             setIsCancelDialogOpen(false)
             setOrderToCancel(null)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const handleOpenRefund = (order: OrderWithItems) => {
+        setOrderToRefund(order)
+        setRefundReason('')
+        setIsRefundDialogOpen(true)
+    }
+
+    const handleConfirmRefund = async () => {
+        if (!orderToRefund?.id || !refundReason) return;
+
+        try {
+            await refundOrderMutation.mutateAsync({
+                id: orderToRefund.id,
+                body: { reason: refundReason }
+            })
+            setIsRefundDialogOpen(false)
+            setOrderToRefund(null)
         } catch (error) {
             console.error(error)
         }
@@ -361,6 +388,12 @@ function TransactionsPage() {
                                                             {t('transactions.actions_button.cancel')}
                                                         </Button>
                                                     )}
+                                                    {order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
+                                                        <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleOpenRefund(order)}>
+                                                            <XCircle className="h-3.5 w-3.5" />
+                                                            {t('transactions.actions_button.refund', 'Refund')}
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -438,6 +471,37 @@ function TransactionsPage() {
                         <Button variant="destructive" onClick={handleConfirmCancel} disabled={!cancelReasonId || cancelOrderMutation.isPending}>
                             {cancelOrderMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {t('transactions.cancellation_dialog.confirm')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Refund Dialog */}
+            <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('transactions.refund_dialog.title', 'Refund Order')}</DialogTitle>
+                        <DialogDescription>
+                            {t('transactions.refund_dialog.description', 'Are you sure you want to refund order')} <b>#{orderToRefund?.queue_number}</b>? {t('transactions.refund_dialog.warning', 'This will revert items and totals.')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">{t('transactions.refund_dialog.reason_label', 'Reason for Refund')}</label>
+                            <Textarea
+                                value={refundReason}
+                                onChange={(e) => setRefundReason(e.target.value)}
+                                placeholder={t('transactions.refund_dialog.reason_placeholder', 'Enter refund reason details...')}
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRefundDialogOpen(false)}>{t('transactions.cancellation_dialog.cancel')}</Button>
+                        <Button variant="destructive" onClick={handleConfirmRefund} disabled={!refundReason || refundOrderMutation.isPending}>
+                            {refundOrderMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {t('transactions.actions_button.refund', 'Refund')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

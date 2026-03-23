@@ -12,6 +12,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -53,6 +55,20 @@ services:
       - minio_data:/data
     networks:
       - pos-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: pos-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - pos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

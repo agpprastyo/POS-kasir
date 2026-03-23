@@ -309,7 +309,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 }
 
 func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
-	fullProduct, err := s.repo.GetProductWithOptions(ctx, productID)
+	fullProduct, err := s.repo.GetProductByID(ctx, productID)
 	s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -334,22 +334,38 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		return nil, err
 	}
 
-	if req.CategoryID != nil {
-		exists, err := s.repo.CheckCategoryExists(ctx, *req.CategoryID)
+	if req.CategoryIDs != nil {
+		for _, catID := range *req.CategoryIDs {
+			exists, err := s.repo.CheckCategoryExists(ctx, catID)
+			if err != nil {
+				s.log.Errorf("Failed to check category existence", "error", err)
+				return nil, err
+			}
+			if !exists {
+				s.log.Warnf("Category not found", "categoryID", catID)
+				return nil, common.ErrCategoryNotFound
+			}
+		}
+		err = s.repo.ClearProductCategories(ctx, productID)
 		if err != nil {
-			s.log.Errorf("Failed to check category existence", "error", err)
+			s.log.Errorf("Failed to clear product categories", "error", err)
 			return nil, err
 		}
-		if !exists {
-			s.log.Warnf("Category not found", "categoryID", *req.CategoryID)
-			return nil, common.ErrCategoryNotFound
+		for _, catID := range *req.CategoryIDs {
+			err = s.repo.AssignProductCategory(ctx, products_repo.AssignProductCategoryParams{
+				ProductID:  productID,
+				CategoryID: catID,
+			})
+			if err != nil {
+				s.log.Errorf("Failed to assign product category", "error", err)
+				return nil, err
+			}
 		}
 	}
 
 	updateParams := products_repo.UpdateProductParams{
 		ID:         productID,
 		Name:       req.Name,
-		CategoryID: req.CategoryID,
 		Stock:      req.Stock,
 	}
 
@@ -446,7 +462,24 @@ func (s *PrdService) RecordStockChange(ctx context.Context, productID uuid.UUID,
 
 	return nil
 }
-func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct products_repo.GetProductWithOptionsRow) (*ProductResponse, error) {
+func parseCategoriesJSON(catInterface interface{}) []ProductCategoryResponse {
+	var categories []ProductCategoryResponse
+	if catInterface == nil {
+		return categories
+	}
+	catBytes, ok := catInterface.([]byte)
+	if !ok {
+		if str, isStr := catInterface.(string); isStr {
+			catBytes = []byte(str)
+		}
+	}
+	if len(catBytes) > 0 {
+		_ = json.Unmarshal(catBytes, &categories)
+	}
+	return categories
+}
+
+func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct products_repo.GetProductByIDRow) (*ProductResponse, error) {
 	var optionsResponse []ProductOptionResponse
 
 	if fullProduct.Options != nil {
@@ -526,10 +559,12 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct produ
 		costPrice = prodCost.Float64
 	}
 
+	categories := parseCategoriesJSON(fullProduct.Categories)
+
 	return &ProductResponse{
 		ID:         fullProduct.ID,
 		Name:       fullProduct.Name,
-		CategoryID: fullProduct.CategoryID,
+		Categories: categories,
 
 		ImageURL:  fullProduct.ImageUrl,
 		Price:     productPrice,
@@ -542,26 +577,21 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct produ
 }
 
 func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error) {
+	req.SetDefaults()
 
-	page := 1
-	if req.Page != nil {
-		page = *req.Page
-	}
-	limit := 10
-	if req.Limit != nil {
-		limit = *req.Limit
-	}
+	page := req.Page
+	limit := req.Limit
 	offset := (page - 1) * limit
 
 	listParams := products_repo.ListProductsParams{
 		Limit:      int32(limit),
 		Offset:     int32(offset),
 		CategoryID: req.CategoryID,
-		SearchText: req.Search,
+		SearchText: &req.Search,
 	}
 	countParams := products_repo.CountProductsParams{
 		CategoryID: req.CategoryID,
-		SearchText: req.Search,
+		SearchText: &req.Search,
 	}
 
 	s.log.Infof("list params list product: %+v", listParams)
@@ -607,11 +637,11 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		} else {
 			p.ImageUrl = nil 
 		}
+		categories := parseCategoriesJSON(p.Categories)
 		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
-			CategoryID:   p.CategoryID,
-			CategoryName: p.CategoryName,
+			Categories:   categories,
 			ImageURL:     p.ImageUrl,
 			Price:        price,
 			Stock:        p.Stock,
@@ -645,7 +675,6 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 
 		productParams := products_repo.CreateProductParams{
 			Name:       req.Name,
-			CategoryID: &req.CategoryID,
 			Price:      price,
 			Stock:      req.Stock,
 			CostPrice:  numericCost,
@@ -655,6 +684,17 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		if err != nil {
 			s.log.Errorf("Failed to create product in transaction", "error", err)
 			return err
+		}
+
+		for _, catID := range req.CategoryIDs {
+			err = qtx.AssignProductCategory(ctx, products_repo.AssignProductCategoryParams{
+				ProductID:  newProduct.ID,
+				CategoryID: catID,
+			})
+			if err != nil {
+				s.log.Errorf("Failed to assign category to product in transaction", "error", err)
+				return err
+			}
 		}
 
 		for _, opt := range req.Options {
@@ -697,11 +737,11 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		logDetails,
 	)
 
-	return s.buildProductResponseFromData(newProduct, createdOptions)
+	return s.GetProductByID(ctx, newProduct.ID)
 }
 
 func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID, data []byte) (*ProductResponse, error) {
-	_, err := s.repo.GetProductWithOptions(ctx, productID)
+	_, err := s.repo.GetProductByID(ctx, productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found for image upload", "productID", productID)
@@ -748,7 +788,7 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		logDetails,
 	)
 
-	fullProduct, err := s.repo.GetProductWithOptions(ctx, productID)
+	fullProduct, err := s.repo.GetProductByID(ctx, productID)
 	if err != nil {
 		s.log.Errorf("Failed to fetch full product after image upload", "error", err)
 		return nil, err
@@ -757,62 +797,22 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 	return s.buildProductResponse(ctx, fullProduct)
 }
 
-func (s *PrdService) buildProductResponseFromData(product products_repo.Product, options []products_repo.ProductOption) (*ProductResponse, error) {
-	var optionsResponse []ProductOptionResponse
-	for _, opt := range options {
-		var additionalPrice = float64(opt.AdditionalPrice)
-		optionsResponse = append(optionsResponse, ProductOptionResponse{
-			ID:              opt.ID,
-			Name:            opt.Name,
-			AdditionalPrice: additionalPrice,
-			ImageURL:        opt.ImageUrl,
-		})
-	}
-
-	productPrice := float64(product.Price)
-	costPrice := 0.0
-	if product.CostPrice.Valid {
-		prodCost, _ := product.CostPrice.Float64Value()
-		costPrice = prodCost.Float64
-	}
-
-	s.log.Infof("product price before assign: %+v", product.Price)
-	s.log.Infof("product price after assign: %+v", productPrice)
-
-	return &ProductResponse{
-		ID:         product.ID,
-		Name:       product.Name,
-		CategoryID: product.CategoryID,
-		ImageURL:   product.ImageUrl,
-		Price:      productPrice,
-		CostPrice:  costPrice,
-		Stock:      product.Stock,
-		CreatedAt:  product.CreatedAt.Time,
-		UpdatedAt:  product.UpdatedAt.Time,
-		Options:    optionsResponse,
-	}, nil
-}
-
 func (s *PrdService) ListDeletedProducts(ctx context.Context, req ListProductsRequest) (*ListProductsResponse, error) {
-	page := 1
-	if req.Page != nil {
-		page = *req.Page
-	}
-	limit := 10
-	if req.Limit != nil {
-		limit = *req.Limit
-	}
+	req.SetDefaults()
+
+	page := req.Page
+	limit := req.Limit
 	offset := (page - 1) * limit
 
 	listParams := products_repo.ListDeletedProductsParams{
 		Limit:      int32(limit),
 		Offset:     int32(offset),
 		CategoryID: req.CategoryID,
-		SearchText: req.Search,
+		SearchText: &req.Search,
 	}
 	countParams := products_repo.CountDeletedProductsParams{
 		CategoryID: req.CategoryID,
-		SearchText: req.Search,
+		SearchText: &req.Search,
 	}
 
 	var wg sync.WaitGroup
@@ -862,11 +862,12 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req ListProductsRe
 			p.ImageUrl = nil
 		}
 
+		categories := parseCategoriesJSON(p.Categories)
+
 		productsResponse = append(productsResponse, ProductListResponse{
 			ID:           p.ID,
 			Name:         p.Name,
-			CategoryID:   p.CategoryID,
-			CategoryName: p.CategoryName,
+			Categories:   categories,
 			ImageURL:     p.ImageUrl,
 			Price:        price,
 			Stock:        p.Stock,
@@ -959,10 +960,12 @@ func (s *PrdService) GetDeletedProduct(ctx context.Context, productID uuid.UUID)
 		deletedAt = row.DeletedAt.Time
 	}
 
+	var categories []ProductCategoryResponse
+
 	return &ProductResponse{
 		ID:         row.ID,
 		Name:       row.Name,
-		CategoryID: row.CategoryID,
+		Categories: categories,
 		ImageURL:   row.ImageUrl,
 		Price:      float64(row.Price),
 		Stock:      row.Stock,

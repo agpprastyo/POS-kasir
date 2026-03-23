@@ -13,10 +13,12 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { InternalProductsProductCategoryResponse } from './internal-products-product-category-response';
 
 export interface InternalProductsProductListResponse {
-    'category_id'?: number;
-    'category_name'?: string;
+    'categories'?: Array<InternalProductsProductCategoryResponse>;
     'deleted_at'?: string;
     'id'?: string;
     'image_url'?: string;

@@ -5,8 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**category_id** | **number** |  | [optional] [default to undefined]
-**category_name** | **string** |  | [optional] [default to undefined]
+**categories** | [**Array&lt;InternalProductsProductCategoryResponse&gt;**](InternalProductsProductCategoryResponse.md) |  | [optional] [default to undefined]
 **cost_price** | **number** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
 **deleted_at** | **string** |  | [optional] [default to undefined]
@@ -24,8 +23,7 @@ Name | Type | Description | Notes
 import { InternalProductsProductResponse } from 'restClient';
 
 const instance: InternalProductsProductResponse = {
-    category_id,
-    category_name,
+    categories,
     cost_price,
     created_at,
     deleted_at,

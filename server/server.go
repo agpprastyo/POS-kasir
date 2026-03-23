@@ -8,6 +8,8 @@ import (
 	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/internal/categories"
 	categories_repo "POS-kasir/internal/categories/repository"
+	"POS-kasir/internal/customers"
+	customers_repo "POS-kasir/internal/customers/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/store"
 	"POS-kasir/internal/orders"
@@ -55,6 +57,8 @@ import (
 	"html/template"
 
 	"POS-kasir/sqlc/migrations"
+
+	"github.com/redis/go-redis/v9"
 )
 
 //go:embed swagger_script.js
@@ -71,12 +75,15 @@ type App struct {
 	MidtransService payment.IMidtrans
 	R2              cloudflarer2.IR2
 	Cache           *shift.Cache
+	MemCache        *cache.MemoryCache
+	Redis           *redis.Client
 }
 
 type AppContainer struct {
 	AuthHandler               user.IAuthHandler
 	UserHandler               user.IUsrHandler
 	CategoryHandler           categories.ICtgHandler
+	CustomerHandler           customers.ICustomerHandler
 	ProductHandler            products.IPrdHandler
 	OrderHandler              orders.IOrderHandler
 	PaymentMethodHandler      payment_methods.IPaymentMethodHandler
@@ -88,6 +95,7 @@ type AppContainer struct {
 	PrinterHandler            *printer.PrinterHandler
 	ShiftHandler              shift.Handler
 	ShiftRepo                 shift_repo.Querier
+	ShiftService              shift.Service
 }
 
 func InitApp() *App {
@@ -125,6 +133,12 @@ func InitApp() *App {
 	memCache := cache.NewMemoryCache()
 	shiftCache := shift.NewCache(memCache)
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Host + ":" + cfg.Redis.Port,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+
 	return &App{
 		Config:          cfg,
 		Logger:          log,
@@ -136,6 +150,8 @@ func InitApp() *App {
 		MidtransService: midtransService,
 		R2:              newR2,
 		Cache:           shiftCache,
+		MemCache:        memCache,
+		Redis:           rdb,
 	}
 }
 
@@ -159,6 +175,11 @@ func BuildAppContainer(app *App) *AppContainer {
 	categoryRepo := categories_repo.New(app.DB.GetPool())
 	categoryService := categories.NewCtgService(categoryRepo, app.Logger, activityService)
 	categoryHandler := categories.NewCtgHandler(categoryService, app.Logger)
+
+	// Customer Module
+	customerRepo := customers_repo.New(app.DB.GetPool())
+	customerService := customers.NewCustomerService(customerRepo, app.Logger)
+	customerHandler := customers.NewCustomerHandler(customerService, app.Logger)
 
 	// Product Module
 	prdRepo := products.NewProductImageRepository(app.R2, app.Logger)
@@ -211,6 +232,7 @@ func BuildAppContainer(app *App) *AppContainer {
 		AuthHandler:               authHandler,
 		UserHandler:               userHandler,
 		CategoryHandler:           categoryHandler,
+		CustomerHandler:           customerHandler,
 		ProductHandler:            prdHandler,
 		OrderHandler:              orderHandler,
 		PaymentMethodHandler:      paymentMethodHandler,
@@ -222,14 +244,15 @@ func BuildAppContainer(app *App) *AppContainer {
 		PrinterHandler:            printerHandler,
 		ShiftHandler:              shiftHandler,
 		ShiftRepo:                 shiftRepo,
+		ShiftService:              shiftService,
 	}
 }
 
 func StartServer(app *App) {
-
 	SetupMiddleware(app)
 	container := BuildAppContainer(app)
 
+	SetupCron(app, container)
 	SetupRoutes(app, container)
 
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)
@@ -239,7 +262,6 @@ func StartServer(app *App) {
 }
 
 func SetupMiddleware(app *App) {
-
 	origins := strings.TrimSpace(app.Config.Server.CorsAllowOrigins)
 
 	if origins != "" {
@@ -294,7 +316,6 @@ func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
 		if errors.As(err, &e) {
 			logger.Errorf("Fiber error 1: %v", e)
 			return c.Status(e.Code).JSON(common.ErrorResponse{
-
 				Message: e.Message,
 			})
 		}

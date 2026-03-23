@@ -22,6 +22,11 @@
         "next": "Next",
         "page_info": "Page {{current}} of {{total}}",
         "restore": "Restore",
+        "print": "Print",
+        "open_menu": "Open menu",
+        "language_placeholder": "Language",
+        "language_id": "Bahasa (ID)",
+        "language_en": "English (EN)",
         "error": {
             "title": "Oops!",
             "subtitle": "Something went wrong",
@@ -78,7 +83,8 @@
         "users": "Users",
         "settings": "Settings",
         "account": "Account",
-        "activity_logs": "Activity Logs"
+        "activity_logs": "Activity Logs",
+        "customers": "Customers"
     },
     "transactions": {
         "title": "Transactions",
@@ -114,7 +120,8 @@
         "actions_button": {
             "pay": "Pay",
             "complete": "Complete",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "refund": "Refund"
         },
         "cancellation_dialog": {
             "title": "Cancel Order",
@@ -125,6 +132,13 @@
             "notes_placeholder": "Optional details...",
             "confirm": "Cancel Order",
             "cancel": "Back"
+        },
+        "refund_dialog": {
+            "title": "Refund Order",
+            "description": "Are you sure you want to refund this order?",
+            "warning": "This action will cancel the items and return them to stock.",
+            "reason_label": "Reason",
+            "reason_placeholder": "Select reason"
         },
         "payment_dialog": {
             "title": "Complete Payment",
@@ -182,12 +196,16 @@
     "reports": {
         "title": "Reports Analytics",
         "subtitle": "Comprehensive insights into your business performance.",
+        "export_csv": "Export CSV",
         "tabs": {
             "sales": "Sales",
             "products": "Products",
             "profit": "Profit",
             "performance": "Performance",
-            "cancellations": "Cancellations"
+            "cancellations": "Cancellations",
+            "low_stock": "Low Stock",
+            "promotions": "Promotions",
+            "shifts": "Shifts"
         },
         "sales": {
             "title": "Sales Overview",
@@ -200,7 +218,8 @@
             "description": "Top selling products by quantity and revenue.",
             "product": "Product",
             "quantity": "Quantity Sold",
-            "revenue": "Total Revenue"
+            "revenue": "Total Revenue",
+            "stock": "Stock"
         },
         "performance": {
             "payment_methods": "Payment Method Distribution",
@@ -225,6 +244,27 @@
             "products": "Product Profitability",
             "products_desc": "Profit margin analysis per product.",
             "profit": "Profit"
+        },
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "low_stock": {
+            "title": "Low Stock Products",
+            "description": "Products with stock below minimum threshold."
+        },
+        "promotions": {
+            "title": "Active Promotions",
+            "description": "Check promotions efficacy.",
+            "name": "Promo Name",
+            "discount": "Discount",
+            "type": "Type"
+        },
+        "shifts": {
+            "title": "Work Shifts",
+            "description": "Monitor cash reconcile accurately.",
+            "status": "Status",
+            "expected": "Expected",
+            "actual": "Actual",
+            "diff": "Difference"
         }
     },
     "account": {
@@ -265,6 +305,7 @@
         },
         "cancellation": {
             "title": "Cancellation Reasons",
+            "add_button": "Add Reason",
             "description": "Manage standard reasons for transaction cancellations.",
             "table": {
                 "reason": "Reason",
@@ -331,7 +372,12 @@
             "no_logo": "No Logo",
             "upload_button": "Upload New Logo",
             "remove_button": "Remove/Clear",
-            "logo_help": "Recommended size: 512x512px. Max 5MB. Values are updated immediately upon upload."
+            "logo_help": "Recommended size: 512x512px. Max 5MB. Values are updated immediately upon upload.",
+            "app_name_placeholder": "POS Kasir",
+            "footer_placeholder": "© 2024 POS Kasir",
+            "logo_alt": "App Logo",
+            "color_placeholder": "#000000",
+            "color_dark_placeholder": "#ffffff"
         },
         "printer": {
             "title": "Printer Settings",
@@ -364,7 +410,12 @@
             "method_fe": "Client Side (Frontend)",
             "method_be_desc": "Printing is handled by the server (Recommended for network/USB printers)",
             "method_fe_desc": "Printing is handled by the browser (Recommended for Bluetooth printers)",
-            "help_text": "Use socket://IP:PORT for network printers (e.g. 192.168.1.100:9100)."
+            "help_text": "Use socket://IP:PORT for network printers (e.g. 192.168.1.100:9100).",
+            "bluetooth": "Bluetooth",
+            "lan": "LAN / Network",
+            "lan_placeholder": "e.g. 192.168.1.200 or http://192.168.1.200:80/print",
+            "paper_58": "58mm",
+            "paper_80": "80mm"
         }
     },
     "users": {
@@ -478,7 +529,9 @@
             "delete_title": "Delete Product?",
             "delete_desc": "Are you sure you want to delete",
             "delete_desc_2": "This action cannot be undone.",
-            "deleting": "Deleting..."
+            "deleting": "Deleting...",
+            "cancel": "products.actions.cancel",
+            "delete_confirm": "products.actions.delete_confirm"
         },
         "form": {
             "title_create": "Create New Product",
@@ -524,6 +577,20 @@
             "upload_variant_image_error": "Failed to upload variant image",
             "restore_success": "Product restored successfully",
             "restore_error": "Failed to restore product"
+        },
+        "stock_history": {
+            "no_history": "No stock history found.",
+            "type_sale": "Sale",
+            "type_restock": "Restock",
+            "type_correction": "Correction",
+            "type_return": "Return",
+            "type_damage": "Damage",
+            "date": "Date",
+            "type": "Type",
+            "amount": "Amount",
+            "initial_stock": "Initial Stock",
+            "final_stock": "Final Stock",
+            "note": "Note"
         }
     },
     "promotions": {
@@ -583,11 +650,20 @@
             "save": "Save Promotion",
             "saving": "Saving...",
             "success_create": "Promotion created successfully!",
-            "success_update": "Promotion updated successfully!"
+            "success_update": "Promotion updated successfully!",
+            "pick_date": "Pick a date",
+            "select_scope": "Select scope",
+            "select_product": "Select Product",
+            "select_category": "Select Category",
+            "rule_min_order_amount": "Min Order Amount",
+            "rule_required_product": "Required Product",
+            "rule_required_category": "Required Category"
         },
         "types": {
             "percentage": "Percentage",
-            "fixed_amount": "Fixed Amount"
+            "fixed_amount": "Fixed Amount",
+            "product": "Product",
+            "category": "Category"
         },
         "scope": {
             "ORDER": "Order",
@@ -615,6 +691,11 @@
             "dine_in": "Dine In",
             "take_away": "Take Away"
         },
+        "refund_success": "Order refunded successfully",
+        "select_customer": "Select Customer",
+        "walk_in": "Walk-in",
+        "tax": "Tax",
+        "static_qris": "Static QRIS",
         "errors": {
             "invalid_cart": "Invalid cart state",
             "stock_empty": "Product out of stock",
@@ -723,5 +804,99 @@
         "create_success": "Category created successfully",
         "update_success": "Category updated successfully",
         "delete_success": "Category deleted successfully"
-    }
+    },
+    "customers": {
+        "title": "Customers",
+        "description": "Manage customer information and history.",
+        "add_button": "Add Customer",
+        "search_placeholder": "Search customers...",
+        "table": {
+            "name": "Name",
+            "phone": "Phone",
+            "email": "Email",
+            "address": "Address",
+            "actions": "Actions",
+            "empty": "No customers found."
+        },
+        "form": {
+            "title_create": "Add New Customer",
+            "title_edit": "Edit Customer",
+            "desc_create": "Fill in the details to create a customer.",
+            "desc_edit": "Update customer details.",
+            "name": "Name",
+            "email": "Email",
+            "phone": "Phone",
+            "address": "Address",
+            "save_changes": "Save Changes",
+            "create_customer": "Create Customer"
+        },
+        "messages": {
+            "create_success": "Customer created successfully",
+            "create_failed": "Failed to create customer: {{message}}",
+            "update_success": "Customer updated successfully",
+            "update_failed": "Failed to update customer: {{message}}",
+            "delete_success": "Customer deleted successfully",
+            "delete_failed": "Failed to delete customer: {{message}}",
+            "save_failed": "Failed to save customer: {{message}}"
+        },
+        "actions": {
+            "open_menu": "Open menu",
+            "edit": "Edit",
+            "delete": "Delete",
+            "delete_title": "Delete Customer",
+            "delete_desc": "Are you sure you want to delete this customer?",
+            "delete_desc_2": "This action cannot be undone.",
+            "cancel": "Cancel",
+            "deleting": "Deleting...",
+            "delete_confirm": "Delete"
+        }
+    },
+    "shift": {
+        "loading": "Loading...",
+        "register_open": "Register Open",
+        "open_register": "Open Register",
+        "messages": {
+            "start_success": "Shift started successfully",
+            "end_success": "Shift ended successfully",
+            "transaction_recorded": "Transaction recorded"
+        },
+        "close_modal": {
+            "title": "Close Register",
+            "title_summary": "Shift Closed",
+            "desc": "Count the cash in drawer and enter the amount to close the shift.",
+            "desc_summary": "Shift summary and reconciliation.",
+            "start_cash": "Start Cash",
+            "expected_cash": "Expected Cash",
+            "actual_cash": "Actual Cash",
+            "difference": "Difference",
+            "close": "Close",
+            "password": "Password",
+            "closing": "Closing...",
+            "submit": "Close Register"
+        },
+        "open_modal": {
+            "title": "Open Register",
+            "desc": "Enter the starting cash amount and your password to begin.",
+            "start_cash": "Start Cash",
+            "password": "Password",
+            "opening": "Opening...",
+            "submit": "Open Register"
+        }
+    },
+    "/": "/",
+    "main": "main",
+    "link": "link",
+    "@/components/dashboard/DashboardCharts": "@/components/dashboard/DashboardCharts",
+    "/auth/refresh": "/auth/refresh",
+    "Printing failed": {
+        " Please check printer connection": {
+            "": "Printing failed. Please check printer connection."
+        }
+    },
+    "canvas": "canvas",
+    "2d": "2d",
+    "T": "T",
+    "a": "a",
+    "cancellation": "cancellation",
+    "@/components/DevToolsPanel": "@/components/DevToolsPanel"
 }

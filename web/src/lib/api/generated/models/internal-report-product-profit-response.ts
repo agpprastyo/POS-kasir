@@ -13,13 +13,15 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { InternalReportProductProfitRow } from './internal-report-product-profit-row';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { POSKasirInternalCommonPaginationPagination } from './poskasir-internal-common-pagination-pagination';
 
 export interface InternalReportProductProfitResponse {
-    'gross_profit'?: number;
-    'product_id'?: string;
-    'product_name'?: string;
-    'total_cogs'?: number;
-    'total_revenue'?: number;
-    'total_sold'?: number;
+    'pagination'?: POSKasirInternalCommonPaginationPagination;
+    'products'?: Array<InternalReportProductProfitRow>;
 }
 

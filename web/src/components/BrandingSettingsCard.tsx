@@ -16,16 +16,12 @@ export function BrandingSettingsCard() {
 
     const [appName, setAppName] = useState("")
     const [footerText, setFooterText] = useState("")
-    const [themeColor, setThemeColor] = useState("")
-    const [themeColorDark, setThemeColorDark] = useState("")
     const [logoUrl, setLogoUrl] = useState("")
 
     useEffect(() => {
         if (settings) {
             setAppName(settings.app_name || "")
             setFooterText(settings.footer_text || "")
-            setThemeColor(settings.theme_color || "")
-            setThemeColorDark(settings.theme_color_dark || "")
             setLogoUrl(settings.app_logo || "")
         }
     }, [settings])
@@ -34,8 +30,6 @@ export function BrandingSettingsCard() {
         updateMutation.mutate({
             app_name: appName,
             footer_text: footerText,
-            theme_color: themeColor,
-            theme_color_dark: themeColorDark,
             app_logo: logoUrl
         }, {
             onSuccess: () => {
@@ -82,7 +76,7 @@ export function BrandingSettingsCard() {
                         id="appName"
                         value={appName}
                         onChange={(e) => setAppName(e.target.value)}
-                        placeholder="POS Kasir"
+                        placeholder={t('settings.branding.app_name_placeholder')}
                     />
                 </div>
 
@@ -91,7 +85,7 @@ export function BrandingSettingsCard() {
                     <div className="flex items-start gap-4">
                         <div className="border rounded-lg p-2 h-24 w-24 flex items-center justify-center bg-muted/50 overflow-hidden relative group">
                             {logoUrl ? (
-                                <img src={logoUrl} alt="App Logo" className="max-w-full max-h-full object-contain" />
+                                <img src={logoUrl} alt={t('settings.branding.logo_alt')} className="max-w-full max-h-full object-contain" />
                             ) : (
                                 <span className="text-xs text-muted-foreground">{t('settings.branding.no_logo')}</span>
                             )}
@@ -129,49 +123,11 @@ export function BrandingSettingsCard() {
                         id="footerText"
                         value={footerText}
                         onChange={(e) => setFooterText(e.target.value)}
-                        placeholder="© 2024 POS Kasir"
+                        placeholder={t('settings.branding.footer_placeholder')}
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="grid w-full items-center gap-1.5">
-                        <Label htmlFor="themeColor">{t('settings.branding.theme_color')}</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="themeColor"
-                                type="color"
-                                value={themeColor}
-                                onChange={(e) => setThemeColor(e.target.value)}
-                                className="w-12 p-1 px-1 h-9"
-                            />
-                            <Input
-                                value={themeColor}
-                                onChange={(e) => setThemeColor(e.target.value)}
-                                placeholder="#000000"
-                                className="flex-1"
-                            />
-                        </div>
-                    </div>
 
-                    <div className="grid w-full items-center gap-1.5">
-                        <Label htmlFor="themeColorDark">{t('settings.branding.theme_color_dark')}</Label>
-                        <div className="flex gap-2">
-                            <Input
-                                id="themeColorDark"
-                                type="color"
-                                value={themeColorDark}
-                                onChange={(e) => setThemeColorDark(e.target.value)}
-                                className="w-12 p-1 px-1 h-9"
-                            />
-                            <Input
-                                value={themeColorDark}
-                                onChange={(e) => setThemeColorDark(e.target.value)}
-                                placeholder="#ffffff"
-                                className="flex-1"
-                            />
-                        </div>
-                    </div>
-                </div>
 
                 <div className="flex justify-end">
                     <Button onClick={handleSave} disabled={updateMutation.isPending}>

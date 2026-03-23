@@ -21,6 +21,7 @@ import type { InternalOrdersCreateOrderItemRequest } from './internal-orders-cre
 import type { POSKasirInternalOrdersRepositoryOrderType } from './poskasir-internal-orders-repository-order-type';
 
 export interface InternalOrdersCreateOrderRequest {
+    'customer_id'?: string;
     'items': Array<InternalOrdersCreateOrderItemRequest>;
     'type': POSKasirInternalOrdersRepositoryOrderType;
 }

@@ -20,9 +20,9 @@ LIMIT $1 OFFSET $2;
 
 -- name: ListCategoriesWithProducts :many
 -- Mengambil daftar kategori beserta jumlah produk yang ada di setiap kategori.
-SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(p.id) AS product_count
+SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(pc.product_id) AS product_count
 FROM categories c
-LEFT JOIN products p ON c.id = p.category_id
+LEFT JOIN product_categories pc ON c.id = pc.category_id
 GROUP BY c.id
 ORDER BY c.name ASC
 LIMIT $1 OFFSET $2;
@@ -46,7 +46,7 @@ WHERE id = $1;
 SELECT count(*) FROM categories;
 
 -- name: CountProductsInCategory :one
-SELECT count(*) FROM products WHERE category_id = $1;
+SELECT count(*) FROM product_categories WHERE category_id = $1;
 
 -- name: ExistsCategory :one
 -- Memeriksa apakah kategori dengan ID tertentu ada.

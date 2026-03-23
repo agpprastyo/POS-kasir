@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **cash_received** | **number** |  | [optional] [default to undefined]
 **change_due** | **number** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
+**customer_id** | **string** |  | [optional] [default to undefined]
 **discount_amount** | **number** |  | [optional] [default to undefined]
 **gross_total** | **number** |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
@@ -16,10 +17,13 @@ Name | Type | Description | Notes
 **net_total** | **number** |  | [optional] [default to undefined]
 **payment_gateway_reference** | **string** |  | [optional] [default to undefined]
 **payment_method_id** | **number** |  | [optional] [default to undefined]
+**service_charge_amount** | **number** |  | [optional] [default to undefined]
 **status** | [**POSKasirInternalOrdersRepositoryOrderStatus**](POSKasirInternalOrdersRepositoryOrderStatus.md) |  | [optional] [default to undefined]
+**tax_amount** | **number** |  | [optional] [default to undefined]
 **type** | [**POSKasirInternalOrdersRepositoryOrderType**](POSKasirInternalOrdersRepositoryOrderType.md) |  | [optional] [default to undefined]
 **updated_at** | **string** |  | [optional] [default to undefined]
 **user_id** | **string** |  | [optional] [default to undefined]
+**version** | **number** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -31,6 +35,7 @@ const instance: InternalOrdersOrderDetailResponse = {
     cash_received,
     change_due,
     created_at,
+    customer_id,
     discount_amount,
     gross_total,
     id,
@@ -38,10 +43,13 @@ const instance: InternalOrdersOrderDetailResponse = {
     net_total,
     payment_gateway_reference,
     payment_method_id,
+    service_charge_amount,
     status,
+    tax_amount,
     type,
     updated_at,
     user_id,
+    version,
 };
 ```
 

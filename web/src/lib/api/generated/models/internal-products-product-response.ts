@@ -15,11 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { InternalProductsProductCategoryResponse } from './internal-products-product-category-response';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { InternalProductsProductOptionResponse } from './internal-products-product-option-response';
 
 export interface InternalProductsProductResponse {
-    'category_id'?: number;
-    'category_name'?: string;
+    'categories'?: Array<InternalProductsProductCategoryResponse>;
     'cost_price'?: number;
     'created_at'?: string;
     'deleted_at'?: string;

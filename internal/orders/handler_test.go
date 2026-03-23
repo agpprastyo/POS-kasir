@@ -548,7 +548,7 @@ func TestOrderHandler_UpdateOrderItemsHandler(t *testing.T) {
 		app := fiber.New()
 		app.Put("/orders/:id/items", handler.UpdateOrderItemsHandler)
 
-		jsonBody := fmt.Sprintf(`[{"product_id":"%s","quantity":3}]`, productID.String())
+		jsonBody := fmt.Sprintf(`{"version":1, "items":[{"product_id":"%s","quantity":3}]}`, productID.String())
 
 		mockService.EXPECT().UpdateOrderItems(gomock.Any(), orderID, gomock.Any()).Return(&orders.OrderDetailResponse{
 			ID:     orderID,
@@ -591,7 +591,7 @@ func TestOrderHandler_UpdateOrderItemsHandler(t *testing.T) {
 		app := fiber.New()
 		app.Put("/orders/:id/items", handler.UpdateOrderItemsHandler)
 
-		jsonBody := fmt.Sprintf(`[{"product_id":"%s","quantity":3}]`, productID.String())
+		jsonBody := fmt.Sprintf(`{"version":1, "items":[{"product_id":"%s","quantity":3}]}`, productID.String())
 
 		mockService.EXPECT().UpdateOrderItems(gomock.Any(), orderID, gomock.Any()).Return(nil, errors.New("error"))
 
@@ -616,6 +616,7 @@ func TestOrderHandler_ConfirmManualPaymentHandler(t *testing.T) {
 		reqBody := orders.ConfirmManualPaymentRequest{
 			PaymentMethodID: 1,
 			CashReceived:    50000,
+			Version:         1,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -675,7 +676,7 @@ func TestOrderHandler_ConfirmManualPaymentHandler(t *testing.T) {
 		allowAllHandlerLoggerCalls(mockLogger)
 		app.Post("/orders/:id/pay/manual", handler.ConfirmManualPaymentHandler)
 
-		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000}
+		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000, Version: 1}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().ConfirmManualPayment(gomock.Any(), orderID, gomock.Any()).Return(nil, common.ErrNotFound)
@@ -692,7 +693,7 @@ func TestOrderHandler_ConfirmManualPaymentHandler(t *testing.T) {
 		allowAllHandlerLoggerCalls(mockLogger)
 		app.Post("/orders/:id/pay/manual", handler.ConfirmManualPaymentHandler)
 
-		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000}
+		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000, Version: 1}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().ConfirmManualPayment(gomock.Any(), orderID, gomock.Any()).Return(nil, common.ErrOrderNotModifiable)
@@ -709,7 +710,7 @@ func TestOrderHandler_ConfirmManualPaymentHandler(t *testing.T) {
 		allowAllHandlerLoggerCalls(mockLogger)
 		app.Post("/orders/:id/pay/manual", handler.ConfirmManualPaymentHandler)
 
-		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000}
+		reqBody := orders.ConfirmManualPaymentRequest{PaymentMethodID: 1, CashReceived: 50000, Version: 1}
 		body, _ := json.Marshal(reqBody)
 
 		mockService.EXPECT().ConfirmManualPayment(gomock.Any(), orderID, gomock.Any()).Return(nil, errors.New("db error"))

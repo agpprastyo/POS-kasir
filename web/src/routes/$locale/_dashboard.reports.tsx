@@ -5,11 +5,13 @@ import { POSKasirInternalUserRepositoryUserRole } from '@/lib/api/generated'
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSalesReportQuery, useProductPerformanceQuery, usePaymentMethodPerformanceQuery, useCashierPerformanceQuery, useCancellationReportsQuery, useProfitSummaryQuery, useProductProfitReportsQuery } from '@/lib/api/query/reports'
+import { useSalesReportQuery, useProductPerformanceQuery, usePaymentMethodPerformanceQuery, useCashierPerformanceQuery, useCancellationReportsQuery, useProfitSummaryQuery, useProductProfitReportsQuery, useLowStockReportQuery, usePromotionsReportQuery, useShiftSummaryReportQuery } from '@/lib/api/query/reports'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/$locale/_dashboard/reports')({
     beforeLoad: async ({ context: { queryClient } }) => {
@@ -50,6 +52,33 @@ function ReportsPage() {
     const { data: cancellationData, isLoading: isLoadingCancellation } = useCancellationReportsQuery(dateRange.start, dateRange.end)
     const { data: profitSummaryData, isLoading: isLoadingProfitSummary } = useProfitSummaryQuery(dateRange.start, dateRange.end)
     const { data: productProfitsData, isLoading: isLoadingProductProfits } = useProductProfitReportsQuery(dateRange.start, dateRange.end)
+    
+    const { data: lowStockData, isLoading: isLoadingLowStock } = useLowStockReportQuery(5)
+    const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotionsReportQuery(dateRange.start, dateRange.end)
+    const { data: shiftData, isLoading: isLoadingShift } = useShiftSummaryReportQuery(dateRange.start, dateRange.end)
+
+    const exportToCSV = (data: any[], filename: string, headers: string[]) => {
+         if (!data || data.length === 0) return;
+         const csvRows = [];
+         csvRows.push(headers.join(','));
+         for (const row of data) {
+             const values = headers.map(header => {
+                 const value = row[header];
+                 return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+             });
+             csvRows.push(values.join(','));
+         }
+         const csvString = csvRows.join('\n');
+         const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+         const url = URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.setAttribute('href', url);
+         link.setAttribute('download', `${filename}.csv`);
+         link.style.visibility = 'hidden';
+         document.body.appendChild(link);
+         link.click();
+         document.body.removeChild(link);
+    }
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('id-ID', {
@@ -116,14 +145,22 @@ function ReportsPage() {
                     <TabsTrigger value="products">{t('reports.tabs.products')}</TabsTrigger>
                     <TabsTrigger value="performance">{t('reports.tabs.performance')}</TabsTrigger>
                     <TabsTrigger value="cancellations">{t('reports.tabs.cancellations')}</TabsTrigger>
+                    <TabsTrigger value="low-stock">{t('reports.tabs.low_stock') || 'Low Stock'}</TabsTrigger>
+                    <TabsTrigger value="promotions">{t('reports.tabs.promotions') || 'Promotions'}</TabsTrigger>
+                    <TabsTrigger value="shifts">{t('reports.tabs.shifts') || 'Shifts'}</TabsTrigger>
                 </TabsList>
 
                 {/* Sales Report Tab */}
                 <TabsContent value="sales" className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>{t('reports.sales.title')}</CardTitle>
-                            <CardDescription>{t('reports.sales.description')}</CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>{t('reports.sales.title')}</CardTitle>
+                                <CardDescription>{t('reports.sales.description')}</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => exportToCSV(salesData || [], 'sales_report', ['date', 'total_sales', 'order_count'])}>
+                                <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
+                            </Button>
                         </CardHeader>
                         <CardContent className="pl-2">
                             {isLoadingSales ? (
@@ -184,14 +221,14 @@ function ReportsPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {(productsData || []).map((product) => (
+                                        {(productsData?.products || []).map((product) => (
                                             <TableRow key={product.product_id}>
                                                 <TableCell className="font-medium">{product.product_name}</TableCell>
                                                 <TableCell className="text-right">{product.total_quantity ?? 0}</TableCell>
                                                 <TableCell className="text-right">{formatCurrency(product.total_revenue ?? 0)}</TableCell>
                                             </TableRow>
                                         ))}
-                                        {(!productsData || productsData.length === 0) && (
+                                        {(!productsData?.products || productsData.products.length === 0) && (
                                             <TableRow>
                                                 <TableCell colSpan={3} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
                                             </TableRow>
@@ -351,7 +388,7 @@ function ReportsPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {(productProfitsData || []).map((product) => (
+                                            {(productProfitsData?.products || []).map((product) => (
                                                 <TableRow key={product.product_id}>
                                                     <TableCell className="font-medium">
                                                         <div className="flex flex-col">
@@ -372,7 +409,7 @@ function ReportsPage() {
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
-                                            {(!productProfitsData || productProfitsData.length === 0) && (
+                                            {(!productProfitsData?.products || productProfitsData.products.length === 0) && (
                                                 <TableRow>
                                                     <TableCell colSpan={3} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
                                                 </TableRow>
@@ -416,6 +453,151 @@ function ReportsPage() {
                                         {(!cancellationData || cancellationData.length === 0) && (
                                             <TableRow>
                                                 <TableCell colSpan={2} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Low Stock Reports Tab */}
+                <TabsContent value="low-stock" className="space-y-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>{t('reports.low_stock.title') || 'Low Stock Products'}</CardTitle>
+                                <CardDescription>{t('reports.low_stock.description') || 'Products with stock below minimum threshold.'}</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => exportToCSV(lowStockData || [], 'low_stock_report', ['product_name', 'stock'])}>
+                                <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoadingLowStock ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>{t('reports.products.product')}</TableHead>
+                                            <TableHead className="text-right">{t('reports.products.stock') || 'Stock'}</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {(lowStockData || []).map((product, idx) => (
+                                            <TableRow key={idx}>
+                                                <TableCell className="font-medium">{product.product_name}</TableCell>
+                                                <TableCell className="text-right text-red-500 font-bold">{product.stock ?? 0}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {(!lowStockData || lowStockData.length === 0) && (
+                                            <TableRow>
+                                                <TableCell colSpan={2} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Promotions Reports Tab */}
+                <TabsContent value="promotions" className="space-y-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>{t('reports.promotions.title') || 'Active Promotions'}</CardTitle>
+                                <CardDescription>{t('reports.promotions.description') || 'Check promotions efficacy.'}</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => exportToCSV(promotionsData || [], 'promotions_report', ['name', 'discount_type'])}>
+                                <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoadingPromotions ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>{t('reports.promotions.name') || 'Promo Name'}</TableHead>
+                                            <TableHead>{t('reports.promotions.discount') || 'Discount'}</TableHead>
+                                            <TableHead>{t('reports.promotions.type') || 'Type'}</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {(promotionsData || []).map((promo, idx) => (
+                                            <TableRow key={idx}>
+                                                <TableCell className="font-medium">{promo.name}</TableCell>
+                                                <TableCell>{promo.discount_value}</TableCell>
+                                                <TableCell>{promo.discount_type}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {(!promotionsData || promotionsData.length === 0) && (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Shift Summary Tab */}
+                <TabsContent value="shifts" className="space-y-4">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>{t('reports.shifts.title') || 'Work Shifts'}</CardTitle>
+                                <CardDescription>{t('reports.shifts.description') || 'Monitor cash reconcile accurately.'}</CardDescription>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={() => exportToCSV(shiftData || [], 'shift_report', ['cashier_name', 'status'])}>
+                                <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoadingShift ? (
+                                <div className="space-y-2">
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>{t('reports.performance.staff')}</TableHead>
+                                            <TableHead>{t('reports.shifts.status') || 'Status'}</TableHead>
+                                            <TableHead className="text-right">{t('reports.shifts.expected') || 'Expected'}</TableHead>
+                                            <TableHead className="text-right">{t('reports.shifts.actual') || 'Actual'}</TableHead>
+                                            <TableHead className="text-right">{t('reports.shifts.diff') || 'Difference'}</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {(shiftData || []).map((shift, idx) => (
+                                            <TableRow key={idx}>
+                                                <TableCell className="font-medium">{shift.cashier_name}</TableCell>
+                                                <TableCell>{shift.status}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(shift.expected_cash_end ?? 0)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(shift.actual_cash_end ?? 0)}</TableCell>
+                                                <TableCell className={`text-right font-bold ${(shift.cash_difference ?? 0) < 0 ? 'text-red-500' : (shift.cash_difference ?? 0) > 0 ? 'text-green-500' : ''}`}>
+                                                    {formatCurrency(shift.cash_difference ?? 0)}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        {(!shiftData || shiftData.length === 0) && (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="text-center text-muted-foreground">{t('common.no_data')}</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>

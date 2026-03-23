@@ -5,6 +5,7 @@ import (
 	"POS-kasir/internal/user"
 	user_repo "POS-kasir/internal/user/repository"
 	activitylog_repo "POS-kasir/internal/activitylog/repository"
+	"POS-kasir/internal/common/pagination"
 	"POS-kasir/mocks"
 	"context"
 	"errors"
@@ -396,19 +397,21 @@ func TestGetAllUsers(t *testing.T) {
 
 		page := 2
 		limit := 5
-		sortBy := user_repo.UserOrderColumnUsername
-		sortOrder := user_repo.SortOrderDesc
+		sortBy := string(user_repo.UserOrderColumnUsername)
+		sortOrder := string(user_repo.SortOrderDesc)
 		search := "test"
 		role := user_repo.UserRoleManager
-		isActive := true
+		status := "active"
 		req := user.UsersRequest{
-			Page:      &page,
-			Limit:     &limit,
-			SortBy:    &sortBy,
-			SortOrder: &sortOrder,
-			Search:    &search,
-			Role:      &role,
-			IsActive:  &isActive,
+			PaginationRequest: pagination.PaginationRequest{
+				Page:      page,
+				Limit:     limit,
+				SortBy:    sortBy,
+				SortOrder: sortOrder,
+				Search:    search,
+			},
+			Role:   &role,
+			Status: &status,
 		}
 		users := []user_repo.ListUsersRow{
 			{ID: uuid.New(), Username: "u1", Email: "e1", Role: user_repo.UserRoleManager, IsActive: true},

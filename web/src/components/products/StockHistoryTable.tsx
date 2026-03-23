@@ -111,10 +111,10 @@ export const StockHistoryTable = ({ productId }: StockHistoryTableProps) => {
                     disabled={page === 1}
                 >
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
+                    {t('pagination.previous')}
                 </Button>
                 <div className="text-sm">
-                    Page {pagination?.current_page || 1} of {pagination?.total_page || 1}
+                    {t('pagination.page_info', { current: pagination?.current_page || 1, total: pagination?.total_page || 1 })}
                 </div>
                 <Button
                     variant="outline"
@@ -122,7 +122,7 @@ export const StockHistoryTable = ({ productId }: StockHistoryTableProps) => {
                     onClick={() => setPage((old) => old + 1)}
                     disabled={page >= (pagination?.total_page || 1)}
                 >
-                    Next
+                    {t('pagination.next')}
                     <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
             </div>

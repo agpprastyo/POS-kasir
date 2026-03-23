@@ -13,7 +13,7 @@ import {
 } from '@/lib/api/query/products'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ImageIcon, Loader2, Plus, Trash } from 'lucide-react'
 import { InternalProductsCreateProductRequest, InternalProductsUpdateProductRequest } from "@/lib/api/generated";
@@ -75,7 +75,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
     const form = useForm({
         defaultValues: {
             name: '',
-            category_id: 0,
+            category_ids: [] as number[],
             price: 0,
             cost_price: 0,
             stock: 0
@@ -83,7 +83,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
         validators: {
             onChange: z.object({
                 name: z.string().min(1, t('products.form.error_name_required')),
-                category_id: z.number().min(1, t('products.form.error_category')),
+                category_ids: z.array(z.number()).min(1, t('products.form.error_category')),
                 price: z.number().min(0),
                 cost_price: z.number().min(0),
                 stock: z.number().min(0)
@@ -96,7 +96,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                 if (productToEdit && productId) {
                     const payload: InternalProductsUpdateProductRequest = {
                         name: value.name,
-                        category_id: value.category_id,
+                        category_ids: value.category_ids,
                         price: Number(value.price),
                         cost_price: Number(value.cost_price),
                         stock: Number(value.stock)
@@ -105,7 +105,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                 } else {
                     const payload: InternalProductsCreateProductRequest = {
                         name: value.name,
-                        category_id: value.category_id,
+                        category_ids: value.category_ids,
                         price: Number(value.price),
                         cost_price: Number(value.cost_price),
                         stock: Number(value.stock),
@@ -176,7 +176,10 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
             setTimeout(() => {
                 if (productToEdit) {
                     form.setFieldValue('name', detailProduct?.name ?? productToEdit.name ?? '')
-                    form.setFieldValue('category_id', detailProduct?.category_id ?? productToEdit.category_id ?? 0)
+
+                    const initialCategoryIds = detailProduct?.categories?.map(c => c.id) ?? (productToEdit as any).categories?.map((c: any) => c.id) ?? []
+                    form.setFieldValue('category_ids', initialCategoryIds)
+
                     form.setFieldValue('price', detailProduct?.price ?? productToEdit.price ?? 0)
                     form.setFieldValue('cost_price', detailProduct?.cost_price ?? productToEdit.cost_price ?? 0)
                     form.setFieldValue('stock', detailProduct?.stock ?? productToEdit.stock ?? 0)
@@ -342,28 +345,37 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                 )}
                                             />
 
-                                            {/* Category */}
+                                            {/* Category Multi-Select */}
                                             <form.Field
-                                                name="category_id"
+                                                name="category_ids"
                                                 children={(field) => (
                                                     <div className="grid grid-cols-4 items-start gap-4">
-                                                        <Label htmlFor={field.name} className="text-right mt-3">{t('products.form.category')}</Label>
-                                                        <div className="col-span-3 space-y-1">
-                                                            <Select
-                                                                value={field.state.value ? String(field.state.value) : ""}
-                                                                onValueChange={val => field.handleChange(Number(val))}
-                                                            >
-                                                                <SelectTrigger id={field.name}>
-                                                                    <SelectValue placeholder={t('products.form.select_category')} />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {categories.map((cat: any) => (
-                                                                        <SelectItem key={cat.id} value={String(cat.id)}>
+                                                        <Label className="text-right mt-3">{t('products.form.category')}</Label>
+                                                        <div className="col-span-3 space-y-2">
+                                                            <div className="grid grid-cols-2 gap-2 border rounded-md p-3 max-h-[150px] overflow-y-auto">
+                                                                {categories.map((cat: any) => (
+                                                                    <div key={cat.id} className="flex items-center space-x-2">
+                                                                        <Checkbox
+                                                                            id={`cat-${cat.id}`}
+                                                                            checked={field.state.value?.includes(cat.id)}
+                                                                            onCheckedChange={(checked) => {
+                                                                                const current = field.state.value || []
+                                                                                if (checked) {
+                                                                                    field.handleChange([...current, cat.id])
+                                                                                } else {
+                                                                                    field.handleChange(current.filter((id: number) => id !== cat.id))
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <label
+                                                                            htmlFor={`cat-${cat.id}`}
+                                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                                                        >
                                                                             {cat.name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                        </label>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                             {field.state.meta.errors.length > 0 && (
                                                                 <p className="text-sm font-medium text-destructive">{formatError(field.state.meta.errors)}</p>
                                                             )}

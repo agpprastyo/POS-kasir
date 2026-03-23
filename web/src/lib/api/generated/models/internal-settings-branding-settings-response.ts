@@ -18,7 +18,5 @@ export interface InternalSettingsBrandingSettingsResponse {
     'app_logo'?: string;
     'app_name'?: string;
     'footer_text'?: string;
-    'theme_color'?: string;
-    'theme_color_dark'?: string;
 }
 

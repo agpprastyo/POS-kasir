@@ -337,21 +337,18 @@ func NewUsrService(repo user_repo.Querier, log logger.ILogger, actLog activitylo
 }
 
 func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersResponse, error) {
+	req.SetDefaults()
+
 	orderBy := user_repo.UserOrderColumn("created_at")
-	if req.SortBy != nil {
-		orderBy = user_repo.UserOrderColumn(*req.SortBy)
+	if req.SortBy != "" {
+		orderBy = user_repo.UserOrderColumn(req.SortBy)
 	}
-	limit := int32(10)
-	if req.Limit != nil {
-		limit = int32(*req.Limit)
-	}
-	page := int32(1)
-	if req.Page != nil {
-		page = int32(*req.Page)
-	}
+
+	limit := int32(req.Limit)
+	page := int32(req.Page)
 	sortOrder := user_repo.SortOrderDesc
-	if req.SortOrder != nil {
-		sortOrder = user_repo.SortOrder(*req.SortOrder)
+	if req.SortOrder != "" {
+		sortOrder = user_repo.SortOrder(req.SortOrder)
 	}
 
 	listParams := user_repo.ListUsersParams{
@@ -359,9 +356,10 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		SortOrder: sortOrder,
 		Limit:     limit,
 		Offset:    (page - 1) * limit,
+		Status:    req.Status,
 	}
-	if req.Search != nil && *req.Search != "" {
-		listParams.SearchText = req.Search
+	if req.Search != "" {
+		listParams.SearchText = &req.Search
 	}
 	if req.Role != nil {
 		listParams.Role = user_repo.NullUserRole{
@@ -369,7 +367,6 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 			Valid:    true,
 		}
 	}
-	listParams.IsActive = req.IsActive
 
 	users, err := s.repo.ListUsers(ctx, listParams)
 	if err != nil {
@@ -395,6 +392,7 @@ func (s *UsrService) GetAllUsers(ctx context.Context, req UsersRequest) (*UsersR
 		SearchText: listParams.SearchText,
 		Role:       listParams.Role,
 		IsActive:   listParams.IsActive,
+		Status:     listParams.Status,
 	}
 
 	totalFilteredUsers, err := s.repo.CountUsers(ctx, countParams)

@@ -44,3 +44,7 @@ WHERE shift_id = $1 AND type = $2;
 -- name: GetUserPasswordHash :one
 SELECT password_hash FROM users
 WHERE id = $1 LIMIT 1;
+
+-- name: GetOpenShifts :many
+SELECT * FROM shifts
+WHERE status = 'open';

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 import { useShiftContext } from "@/context/ShiftContext";
 import { useEndShift } from "@/hooks/useShift";
 import * as z from "zod";
@@ -16,6 +17,7 @@ const endShiftSchema = z.object({
 
 
 export const CloseShiftModal: React.FC = () => {
+    const { t } = useTranslation();
     const { closeShiftModalOpen, setCloseShiftModalOpen } = useShiftContext();
     const { mutate: endShift, isPending } = useEndShift();
     const [summary, setSummary] = useState<InternalShiftShiftResponse | null>(null);
@@ -53,33 +55,33 @@ export const CloseShiftModal: React.FC = () => {
             <Dialog open={closeShiftModalOpen} onOpenChange={handleClose}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Shift Closed</DialogTitle>
+                        <DialogTitle>{t('shift.close_modal.title_summary')}</DialogTitle>
                         <DialogDescription>
-                            Shift summary and reconciliation.
+                            {t('shift.close_modal.desc_summary')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Start Cash</span>
+                            <span className="text-muted-foreground">{t('shift.close_modal.start_cash')}</span>
                             <span className="font-medium">{summary.start_cash}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Expected Cash</span>
+                            <span className="text-muted-foreground">{t('shift.close_modal.expected_cash')}</span>
                             <span className="font-medium">{summary.expected_cash_end}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Actual Cash</span>
+                            <span className="text-muted-foreground">{t('shift.close_modal.actual_cash')}</span>
                             <span className="font-medium">{summary.actual_cash_end}</span>
                         </div>
                         <div className="border-t pt-2 flex justify-between">
-                            <span className="font-bold">Difference</span>
+                            <span className="font-bold">{t('shift.close_modal.difference')}</span>
                             <span className={`font-bold ${isShort ? "text-destructive" : isOver ? "text-primary" : ""}`}>
                                 {diff}
                             </span>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleClose}>Close</Button>
+                        <Button onClick={handleClose}>{t('shift.close_modal.close')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -90,9 +92,9 @@ export const CloseShiftModal: React.FC = () => {
         <Dialog open={closeShiftModalOpen} onOpenChange={setCloseShiftModalOpen}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Close Register</DialogTitle>
+                    <DialogTitle>{t('shift.close_modal.title')}</DialogTitle>
                     <DialogDescription>
-                        Count the cash in drawer and enter the amount to close the shift.
+                        {t('shift.close_modal.desc')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={(e) => {
@@ -104,7 +106,7 @@ export const CloseShiftModal: React.FC = () => {
                         name="actualCashEnd"
                         children={(field) => (
                             <div className="grid w-full gap-1.5">
-                                <Label htmlFor={field.name}>Actual Cash</Label>
+                                <Label htmlFor={field.name}>{t('shift.close_modal.actual_cash')}</Label>
                                 <Input
                                     id={field.name}
                                     type="number"
@@ -124,7 +126,7 @@ export const CloseShiftModal: React.FC = () => {
                         name="password"
                         children={(field) => (
                             <div className="grid w-full gap-1.5">
-                                <Label htmlFor={field.name}>Password</Label>
+                                <Label htmlFor={field.name}>{t('shift.close_modal.password')}</Label>
                                 <Input
                                     id={field.name}
                                     type="password"
@@ -141,12 +143,12 @@ export const CloseShiftModal: React.FC = () => {
                         )}
                     />
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setCloseShiftModalOpen(false)}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => setCloseShiftModalOpen(false)}>{t('common.cancel')}</Button>
                         <form.Subscribe
                             selector={(state) => [state.canSubmit, state.isSubmitting]}
                             children={([canSubmit, isSubmitting]) => (
                                 <Button type="submit" disabled={!canSubmit || isSubmitting || isPending}>
-                                    {isPending ? "Closing..." : "Close Register"}
+                                    {isPending ? t('shift.close_modal.closing') : t('shift.close_modal.submit')}
                                 </Button>
                             )}
                         />

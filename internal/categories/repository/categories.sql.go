@@ -24,10 +24,10 @@ func (q *Queries) CountCategories(ctx context.Context) (int64, error) {
 }
 
 const countProductsInCategory = `-- name: CountProductsInCategory :one
-SELECT count(*) FROM products WHERE category_id = $1
+SELECT count(*) FROM product_categories WHERE category_id = $1
 `
 
-func (q *Queries) CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error) {
+func (q *Queries) CountProductsInCategory(ctx context.Context, categoryID int32) (int64, error) {
 	row := q.db.QueryRow(ctx, countProductsInCategory, categoryID)
 	var count int64
 	err := row.Scan(&count)
@@ -140,9 +140,9 @@ func (q *Queries) ListCategories(ctx context.Context, arg ListCategoriesParams) 
 }
 
 const listCategoriesWithProducts = `-- name: ListCategoriesWithProducts :many
-SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(p.id) AS product_count
+SELECT c.id, c.name, c.created_at, c.updated_at, COUNT(pc.product_id) AS product_count
 FROM categories c
-LEFT JOIN products p ON c.id = p.category_id
+LEFT JOIN product_categories pc ON c.id = pc.category_id
 GROUP BY c.id
 ORDER BY c.name ASC
 LIMIT $1 OFFSET $2

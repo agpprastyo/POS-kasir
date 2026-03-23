@@ -665,6 +665,17 @@ type Category struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Customer struct {
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Phone     *string            `json:"phone"`
+	Email     *string            `json:"email"`
+	Address   *string            `json:"address"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
 type Order struct {
 	ID                      uuid.UUID          `json:"id"`
 	UserID                  pgtype.UUID        `json:"user_id"`
@@ -684,6 +695,10 @@ type Order struct {
 	CancellationNotes       *string            `json:"cancellation_notes"`
 	PaymentUrl              *string            `json:"payment_url"`
 	PaymentToken            *string            `json:"payment_token"`
+	Version                 int32              `json:"version"`
+	TaxAmount               int64              `json:"tax_amount"`
+	ServiceChargeAmount     int64              `json:"service_charge_amount"`
+	CustomerID              pgtype.UUID        `json:"customer_id"`
 }
 
 type OrderItem struct {
@@ -714,16 +729,21 @@ type PaymentMethod struct {
 }
 
 type Product struct {
-	ID         uuid.UUID          `json:"id"`
-	Name       string             `json:"name"`
-	CategoryID *int32             `json:"category_id"`
-	ImageUrl   *string            `json:"image_url"`
-	Price      int64              `json:"price"`
-	Stock      int32              `json:"stock"`
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	ImageUrl  *string            `json:"image_url"`
+	Price     int64              `json:"price"`
+	Stock     int32              `json:"stock"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice pgtype.Numeric     `json:"cost_price"`
+}
+
+type ProductCategory struct {
+	ProductID  uuid.UUID          `json:"product_id"`
+	CategoryID int32              `json:"category_id"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
-	CostPrice  pgtype.Numeric     `json:"cost_price"`
 }
 
 type ProductOption struct {

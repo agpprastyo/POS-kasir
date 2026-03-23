@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 import { useShiftContext } from "@/context/ShiftContext";
 import { useStartShift } from "@/hooks/useShift";
 import * as z from "zod";
@@ -15,6 +16,7 @@ const startShiftSchema = z.object({
 
 
 export const OpenShiftModal: React.FC = () => {
+    const { t } = useTranslation();
     const { openShiftModalOpen, setOpenShiftModalOpen } = useShiftContext();
     const { mutate: startShift, isPending } = useStartShift();
 
@@ -40,9 +42,9 @@ export const OpenShiftModal: React.FC = () => {
         <Dialog open={openShiftModalOpen} onOpenChange={setOpenShiftModalOpen}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Open Register</DialogTitle>
+                    <DialogTitle>{t('shift.open_modal.title')}</DialogTitle>
                     <DialogDescription>
-                        Enter the starting cash amount and your password to begin.
+                        {t('shift.open_modal.desc')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={(e) => {
@@ -54,7 +56,7 @@ export const OpenShiftModal: React.FC = () => {
                         name="startCash"
                         children={(field) => (
                             <div className="grid w-full gap-1.5">
-                                <Label htmlFor={field.name}>Start Cash</Label>
+                                <Label htmlFor={field.name}>{t('shift.open_modal.start_cash')}</Label>
                                 <Input
                                     id={field.name}
                                     type="number"
@@ -74,7 +76,7 @@ export const OpenShiftModal: React.FC = () => {
                         name="password"
                         children={(field) => (
                             <div className="grid w-full gap-1.5">
-                                <Label htmlFor={field.name}>Password</Label>
+                                <Label htmlFor={field.name}>{t('shift.open_modal.password')}</Label>
                                 <Input
                                     id={field.name}
                                     type="password"
@@ -91,12 +93,12 @@ export const OpenShiftModal: React.FC = () => {
                         )}
                     />
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setOpenShiftModalOpen(false)}>Cancel</Button>
+                        <Button type="button" variant="outline" onClick={() => setOpenShiftModalOpen(false)}>{t('common.cancel')}</Button>
                         <form.Subscribe
                             selector={(state) => [state.canSubmit, state.isSubmitting]}
                             children={([canSubmit, isSubmitting]) => (
                                 <Button type="submit" disabled={!canSubmit || isSubmitting || isPending}>
-                                    {isPending ? "Opening..." : "Open Register"}
+                                    {isPending ? t('shift.open_modal.opening') : t('shift.open_modal.submit')}
                                 </Button>
                             )}
                         />

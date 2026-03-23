@@ -86,7 +86,7 @@ func (s *CtgService) DeleteCategory(ctx context.Context, categoryID int32) error
 		return common.ErrCategoryNotFound
 	}
 
-	productCount, err := s.repo.CountProductsInCategory(ctx, &categoryID)
+	productCount, err := s.repo.CountProductsInCategory(ctx, categoryID)
 	if err != nil {
 		s.log.Errorf("DeleteCategory | Failed to count products in category: %v, categoryID=%d", err, categoryID)
 		return common.ErrInternal
@@ -163,7 +163,7 @@ func (s *CtgService) UpdateCategory(ctx context.Context, categoryID int32, req C
 	}
 
 	logDetails := map[string]interface{}{
-		"updated_category_id": categoryID,
+		"updated_category_id":   categoryID,
 		"updated_category_name": category.Name,
 	}
 
@@ -242,19 +242,11 @@ func (s *CtgService) CreateCategory(ctx context.Context, req CreateCategoryReque
 }
 
 func (s *CtgService) GetAllCategories(ctx context.Context, req ListCategoryRequest) ([]CategoryResponse, error) {
-	limit := int32(10)
-	if req.Limit > 0 {
-		limit = req.Limit
-	}
-
-	offset := int32(0)
-	if req.Offset > 0 {
-		offset = req.Offset
-	}
+	req.SetDefaults()
 
 	params := categories_repo.ListCategoriesParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int32(req.Limit),
+		Offset: int32((req.Page - 1) * req.Limit),
 	}
 
 	categories, err := s.repo.ListCategories(ctx, params)

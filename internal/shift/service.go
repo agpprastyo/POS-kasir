@@ -17,6 +17,7 @@ type Service interface {
 	EndShift(ctx context.Context, userID uuid.UUID, req EndShiftRequest) (*ShiftResponse, error)
 	GetOpenShift(ctx context.Context, userID uuid.UUID) (*ShiftResponse, error)
 	CreateCashTransaction(ctx context.Context, userID uuid.UUID, req CashTransactionRequest) (*CashTransactionResponse, error)
+	AutoCloseShifts(ctx context.Context) error
 }
 
 type service struct {
@@ -182,6 +183,48 @@ func (s *service) CreateCashTransaction(ctx context.Context, userID uuid.UUID, r
 		Description: tx.Description,
 		CreatedAt:   tx.CreatedAt.Time,
 	}, nil
+}
+
+func (s *service) AutoCloseShifts(ctx context.Context) error {
+	shifts, err := s.repo.GetOpenShifts(ctx)
+	if err != nil {
+		s.log.Errorf("AutoCloseShifts | Failed to get open shifts: %v", err)
+		return err
+	}
+
+	for _, shift := range shifts {
+		s.log.Infof("AutoCloseShifts | Closing shift %v for user %v", shift.ID, shift.UserID)
+
+		// Calculate expected cash
+		cashIn, _ := s.repo.GetCashTotalByShiftIDAndType(ctx, repository.GetCashTotalByShiftIDAndTypeParams{
+			ShiftID: shift.ID,
+			Type:    repository.CashTransactionTypeCashIn,
+		})
+		cashOut, _ := s.repo.GetCashTotalByShiftIDAndType(ctx, repository.GetCashTotalByShiftIDAndTypeParams{
+			ShiftID: shift.ID,
+			Type:    repository.CashTransactionTypeCashOut,
+		})
+
+		expectedCashEnd := shift.StartCash + cashIn - cashOut
+
+		// For auto-close, we assume Actual = Expected to avoid difference.
+		// Or we can just leave actual as nil? The schema allows nil.
+		// But EndShift in repo sets actual_cash_end.
+		_, err := s.repo.EndShift(ctx, repository.EndShiftParams{
+			ID:              shift.ID,
+			ExpectedCashEnd: &expectedCashEnd,
+			ActualCashEnd:   &expectedCashEnd,
+		})
+		if err != nil {
+			s.log.Errorf("AutoCloseShifts | Failed to close shift %v: %v", shift.ID, err)
+			continue
+		}
+
+		// Update cache
+		s.cache.Clear(shift.UserID)
+	}
+
+	return nil
 }
 
 func (s *service) mapShiftToResponse(shift repository.Shift) *ShiftResponse {

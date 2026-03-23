@@ -5,10 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**product_id** | **string** |  | [optional] [default to undefined]
-**product_name** | **string** |  | [optional] [default to undefined]
-**total_quantity** | **number** |  | [optional] [default to undefined]
-**total_revenue** | **number** |  | [optional] [default to undefined]
+**pagination** | [**POSKasirInternalCommonPaginationPagination**](POSKasirInternalCommonPaginationPagination.md) |  | [optional] [default to undefined]
+**products** | [**Array&lt;InternalReportProductPerformanceRow&gt;**](InternalReportProductPerformanceRow.md) |  | [optional] [default to undefined]
 
 ## Example
 
@@ -16,10 +14,8 @@ Name | Type | Description | Notes
 import { InternalReportProductPerformanceResponse } from 'restClient';
 
 const instance: InternalReportProductPerformanceResponse = {
-    product_id,
-    product_name,
-    total_quantity,
-    total_revenue,
+    pagination,
+    products,
 };
 ```
 

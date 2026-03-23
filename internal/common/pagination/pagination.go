@@ -7,6 +7,26 @@ type Pagination struct {
 	PerPage     int `json:"per_page"`
 }
 
+type PaginationRequest struct {
+	Page      int    `json:"page" query:"page" validate:"omitempty,gte=1"`
+	Limit     int    `json:"limit" query:"limit" validate:"omitempty,gte=1,lte=100"`
+	SortBy    string `json:"sortBy" query:"sortBy"`
+	SortOrder string `json:"sortOrder" query:"sortOrder" validate:"omitempty,oneof=asc desc ASC DESC"`
+	Search    string `json:"search" query:"search"`
+}
+
+func (r *PaginationRequest) SetDefaults() {
+	if r.Page <= 0 {
+		r.Page = 1
+	}
+	if r.Limit <= 0 {
+		r.Limit = 10
+	}
+	if r.SortOrder == "" {
+		r.SortOrder = "desc"
+	}
+}
+
 func BuildPagination(currentPage, totalData, perPage int) Pagination {
 	totalPage := totalData / perPage
 	if totalData%perPage != 0 {

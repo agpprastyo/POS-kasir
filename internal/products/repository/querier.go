@@ -12,7 +12,9 @@ import (
 
 type Querier interface {
 	AddProductStock(ctx context.Context, arg AddProductStockParams) (Product, error)
+	AssignProductCategory(ctx context.Context, arg AssignProductCategoryParams) error
 	CheckCategoryExists(ctx context.Context, id int32) (bool, error)
+	ClearProductCategories(ctx context.Context, productID uuid.UUID) error
 	CountDeletedProducts(ctx context.Context, arg CountDeletedProductsParams) (int64, error)
 	// Counts total products for pagination, respecting filters.
 	CountProducts(ctx context.Context, arg CountProductsParams) (int64, error)

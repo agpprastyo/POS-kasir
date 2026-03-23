@@ -271,6 +271,64 @@ definitions:
     required:
     - name
     type: object
+  internal_customers.CreateCustomerRequest:
+    properties:
+      address:
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+    required:
+    - name
+    type: object
+  internal_customers.CustomerResponse:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_customers.PagedCustomerResponse:
+    properties:
+      customers:
+        items:
+          $ref: '#/definitions/internal_customers.CustomerResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+    type: object
+  internal_customers.UpdateCustomerRequest:
+    properties:
+      address:
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+    required:
+    - name
+    type: object
   internal_orders.ApplyPromotionRequest:
     properties:
       promotion_id:
@@ -295,8 +353,11 @@ definitions:
         type: integer
       payment_method_id:
         type: integer
+      version:
+        type: integer
     required:
     - payment_method_id
+    - version
     type: object
   internal_orders.CreateOrderItemOptionRequest:
     properties:
@@ -321,6 +382,8 @@ definitions:
     type: object
   internal_orders.CreateOrderRequest:
     properties:
+      customer_id:
+        type: string
       items:
         items:
           $ref: '#/definitions/internal_orders.CreateOrderItemRequest'
@@ -363,6 +426,8 @@ definitions:
         type: integer
       created_at:
         type: string
+      customer_id:
+        type: string
       discount_amount:
         type: integer
       gross_total:
@@ -379,14 +444,20 @@ definitions:
         type: string
       payment_method_id:
         type: integer
+      service_charge_amount:
+        type: integer
       status:
         $ref: '#/definitions/POS-kasir_internal_orders_repository.OrderStatus'
+      tax_amount:
+        type: integer
       type:
         $ref: '#/definitions/POS-kasir_internal_orders_repository.OrderType'
       updated_at:
         type: string
       user_id:
         type: string
+      version:
+        type: integer
     type: object
   internal_orders.OrderItemOptionResponse:
     properties:
@@ -457,6 +528,13 @@ definitions:
       url:
         type: string
     type: object
+  internal_orders.RefundOrderRequest:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
   internal_orders.UpdateOrderItemRequest:
     properties:
       options:
@@ -470,6 +548,19 @@ definitions:
     required:
     - product_id
     - quantity
+    type: object
+  internal_orders.UpdateOrderItemsRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/internal_orders.UpdateOrderItemRequest'
+        minItems: 1
+        type: array
+      version:
+        type: integer
+    required:
+    - items
+    - version
     type: object
   internal_orders.UpdateOrderStatusRequest:
     properties:
@@ -520,8 +611,10 @@ definitions:
     type: object
   internal_products.CreateProductRequest:
     properties:
-      category_id:
-        type: integer
+      category_ids:
+        items:
+          type: integer
+        type: array
       cost_price:
         minimum: 0
         type: number
@@ -539,7 +632,6 @@ definitions:
         minimum: 0
         type: integer
     required:
-    - category_id
     - cost_price
     - name
     - price
@@ -563,12 +655,19 @@ definitions:
       pagination:
         $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
     type: object
+  internal_products.ProductCategoryResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   internal_products.ProductListResponse:
     properties:
-      category_id:
-        type: integer
-      category_name:
-        type: string
+      categories:
+        items:
+          $ref: '#/definitions/internal_products.ProductCategoryResponse'
+        type: array
       deleted_at:
         type: string
       id:
@@ -595,10 +694,10 @@ definitions:
     type: object
   internal_products.ProductResponse:
     properties:
-      category_id:
-        type: integer
-      category_name:
-        type: string
+      categories:
+        items:
+          $ref: '#/definitions/internal_products.ProductCategoryResponse'
+        type: array
       cost_price:
         type: number
       created_at:
@@ -667,8 +766,10 @@ definitions:
     type: object
   internal_products.UpdateProductRequest:
     properties:
-      category_id:
-        type: integer
+      category_ids:
+        items:
+          type: integer
+        type: array
       change_type:
         enum:
         - sale
@@ -913,6 +1014,15 @@ definitions:
       unique_cashier:
         type: integer
     type: object
+  internal_report.LowStockProductResponse:
+    properties:
+      product_id:
+        type: string
+      product_name:
+        type: string
+      stock:
+        type: integer
+    type: object
   internal_report.PaymentMethodPerformanceResponse:
     properties:
       order_count:
@@ -926,6 +1036,15 @@ definitions:
     type: object
   internal_report.ProductPerformanceResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+      products:
+        items:
+          $ref: '#/definitions/internal_report.ProductPerformanceRow'
+        type: array
+    type: object
+  internal_report.ProductPerformanceRow:
+    properties:
       product_id:
         type: string
       product_name:
@@ -936,6 +1055,15 @@ definitions:
         type: number
     type: object
   internal_report.ProductProfitResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/POS-kasir_internal_common_pagination.Pagination'
+      products:
+        items:
+          $ref: '#/definitions/internal_report.ProductProfitRow'
+        type: array
+    type: object
+  internal_report.ProductProfitRow:
     properties:
       gross_profit:
         type: number
@@ -961,6 +1089,19 @@ definitions:
       total_revenue:
         type: number
     type: object
+  internal_report.PromotionPerformanceResponse:
+    properties:
+      promotion_id:
+        type: string
+      promotion_name:
+        type: string
+      total_discount_given:
+        type: number
+      total_sales_with_promotion:
+        type: number
+      usage_count:
+        type: integer
+    type: object
   internal_report.SalesReport:
     properties:
       date:
@@ -970,6 +1111,27 @@ definitions:
       total_sales:
         type: number
     type: object
+  internal_report.ShiftSummaryResponse:
+    properties:
+      actual_cash_end:
+        type: integer
+      cash_difference:
+        type: integer
+      cashier_name:
+        type: string
+      end_time:
+        type: string
+      expected_cash_end:
+        type: integer
+      shift_id:
+        type: string
+      start_cash:
+        type: integer
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
   internal_settings.BrandingSettingsResponse:
     properties:
       app_logo:
@@ -977,10 +1139,6 @@ definitions:
       app_name:
         type: string
       footer_text:
-        type: string
-      theme_color:
-        type: string
-      theme_color_dark:
         type: string
     type: object
   internal_settings.PrinterSettingsResponse:
@@ -1005,14 +1163,8 @@ definitions:
       footer_text:
         maxLength: 200
         type: string
-      theme_color:
-        type: string
-      theme_color_dark:
-        type: string
     required:
     - app_name
-    - theme_color
-    - theme_color_dark
     type: object
   internal_settings.UpdatePrinterSettingsRequest:
     properties:
@@ -1341,6 +1493,50 @@ paths:
       - ActivityLogs
       x-roles:
       - admin
+  /api/v1/orders/{id}/refund:
+    post:
+      consumes:
+      - application/json
+      description: Refund a paid order by ID
+      parameters:
+      - description: Order ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Refund Request Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_orders.RefundOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_orders.OrderDetailResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Refund a paid order
+      tags:
+      - orders
   /auth/add:
     post:
       consumes:
@@ -1872,6 +2068,212 @@ paths:
       - admin
       - manager
       - cashier
+  /customers:
+    get:
+      consumes:
+      - application/json
+      description: List customers with pagination and search
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size limit
+        in: query
+        name: limit
+        type: integer
+      - description: Search by name, phone, or email
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customers retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_customers.PagedCustomerResponse'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: List customers
+      tags:
+      - Customers
+      x-roles:
+      - admin
+      - manager
+      - cashier
+    post:
+      consumes:
+      - application/json
+      description: 'Create a new customer (Roles: admin, manager, cashier)'
+      parameters:
+      - description: Customer details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_customers.CreateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Customer created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_customers.CustomerResponse'
+              type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Create a customer
+      tags:
+      - Customers
+      x-roles:
+      - admin
+      - manager
+      - cashier
+  /customers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete customer by ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer deleted successfully
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Customer not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Delete a customer
+      tags:
+      - Customers
+      x-roles:
+      - admin
+      - manager
+    get:
+      consumes:
+      - application/json
+      description: Get customer by ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_customers.CustomerResponse'
+              type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Customer not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get a customer
+      tags:
+      - Customers
+      x-roles:
+      - admin
+      - manager
+      - cashier
+    put:
+      consumes:
+      - application/json
+      description: Update customer by ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Customer details to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_customers.UpdateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_customers.CustomerResponse'
+              type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Customer not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Update a customer
+      tags:
+      - Customers
+      x-roles:
+      - admin
+      - manager
   /orders:
     get:
       consumes:
@@ -2115,7 +2517,7 @@ paths:
       - manager
       - cashier
   /orders/{id}/items:
-    put:
+    patch:
       consumes:
       - application/json
       description: 'Update, add, or remove items in an existing open order (Roles:
@@ -2132,9 +2534,7 @@ paths:
         name: request
         required: true
         schema:
-          items:
-            $ref: '#/definitions/internal_orders.UpdateOrderItemRequest'
-          type: array
+          $ref: '#/definitions/internal_orders.UpdateOrderItemsRequest'
       produces:
       - application/json
       responses:
@@ -2153,6 +2553,10 @@ paths:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
         "404":
           description: Order not found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "409":
+          description: Order version conflict
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
         "500":
@@ -2206,7 +2610,7 @@ paths:
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
         "409":
-          description: Order might have been paid or cancelled
+          description: Order might have been paid, cancelled, or version conflict
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
         "500":
@@ -3417,6 +3821,17 @@ paths:
       - application/json
       description: 'Get high-level summary metrics (totals) for the dashboard (Roles:
         admin, manager, cashier)'
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -3429,6 +3844,10 @@ paths:
                 data:
                   $ref: '#/definitions/internal_report.DashboardSummaryResponse'
               type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
         "500":
           description: Internal server error
           schema:
@@ -3440,6 +3859,44 @@ paths:
       - admin
       - manager
       - cashier
+  /reports/low-stock:
+    get:
+      consumes:
+      - application/json
+      description: Get products with stock below threshold
+      parameters:
+      - description: 'Threshold (default: 5)'
+        in: query
+        name: threshold
+        type: integer
+      - description: Export format (csv)
+        in: query
+        name: export
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Low stock products retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/internal_report.LowStockProductResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get low stock products
+      tags:
+      - Reports
+      x-roles:
+      - admin
+      - manager
   /reports/payment-methods:
     get:
       consumes:
@@ -3624,6 +4081,54 @@ paths:
       - admin
       - manager
       - cashier
+  /reports/promotions:
+    get:
+      consumes:
+      - application/json
+      description: Get metrics of promotions usage
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Export format (csv)
+        in: query
+        name: export
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Promotion performance retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/internal_report.PromotionPerformanceResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get promotion performance
+      tags:
+      - Reports
+      x-roles:
+      - admin
+      - manager
   /reports/sales:
     get:
       consumes:
@@ -3670,6 +4175,54 @@ paths:
       - admin
       - manager
       - cashier
+  /reports/shift-summary:
+    get:
+      consumes:
+      - application/json
+      description: Get historical shifts and their cash differences
+      parameters:
+      - description: Start Date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: End Date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      - description: Export format (csv)
+        in: query
+        name: export
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shift summary retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/internal_report.ShiftSummaryResponse'
+                  type: array
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Get shift summary records
+      tags:
+      - Reports
+      x-roles:
+      - admin
+      - manager
   /settings/branding:
     get:
       consumes:

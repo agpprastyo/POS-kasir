@@ -1,6 +1,9 @@
 package categories
 
-import "time"
+import (
+	"POS-kasir/internal/common/pagination"
+	"time"
+)
 
 type CategoryResponse struct {
 	ID        int32     `json:"id"`
@@ -18,8 +21,7 @@ type CategoryWithCountResponse struct {
 }
 
 type ListCategoryRequest struct {
-	Limit  int32 `json:"limit" query:"limit" validate:"omitempty,gte=1,lte=100"`
-	Offset int32 `json:"offset" query:"offset" validate:"omitempty,gte=0"`
+	pagination.PaginationRequest
 }
 
 type CreateCategoryRequest struct {

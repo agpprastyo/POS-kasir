@@ -109,8 +109,11 @@ Env lainnya sudah memiliki default yang aman. Lihat [`.env.example`](.env.exampl
 ### 1. Setup Infrastructure
 
 ```bash
-# Jalankan PostgreSQL + MinIO via Docker
-docker compose -f docker-compose-infra.yaml up -d
+# Jalankan PostgreSQL + MinIO + Redis via Docker
+docker compose -f docker-compose.infra.yml up -d
+
+# Atau menggunakan Makefile
+make dev-infra
 ```
 
 ### 2. Setup Environment

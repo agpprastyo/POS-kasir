@@ -45,14 +45,9 @@ type UpdatePasswordRequest struct {
 }
 
 type UsersRequest struct {
-	Page      *int                        `form:"page" json:"page"`
-	Limit     *int                        `form:"limit" json:"limit"`
-	SortBy    *repository.UserOrderColumn `form:"sortBy" json:"sortBy"`
-	SortOrder *repository.SortOrder       `form:"sortOrder" json:"sortOrder"`
-	Search    *string                     `form:"search" json:"search"`
-	Role      *repository.UserRole        `form:"role" json:"role,omitempty"`
-	IsActive  *bool                       `form:"is_active" json:"is_active,omitempty"`
-	Status    *string                     `form:"status" json:"status" validate:"omitempty,oneof=active deleted all"`
+	pagination.PaginationRequest
+	Role   *repository.UserRole `form:"role" json:"role,omitempty"`
+	Status *string              `form:"status" json:"status" validate:"omitempty,oneof=active deleted all"`
 }
 
 type UsersResponse struct {

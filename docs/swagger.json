@@ -132,6 +132,77 @@
                 ]
             }
         },
+        "/api/v1/orders/{id}/refund": {
+            "post": {
+                "description": "Refund a paid order by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "summary": "Refund a paid order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Refund Request Body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_orders.RefundOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_orders.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/add": {
             "post": {
                 "description": "Register a new user with a specific role (Roles: admin)",
@@ -968,6 +1039,331 @@
                 ]
             }
         },
+        "/customers": {
+            "get": {
+                "description": "List customers with pagination and search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "List customers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name, phone, or email",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customers retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_customers.PagedCustomerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            },
+            "post": {
+                "description": "Create a new customer (Roles: admin, manager, cashier)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Create a customer",
+                "parameters": [
+                    {
+                        "description": "Customer details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_customers.CreateCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Customer created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_customers.CustomerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "description": "Get customer by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Get a customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_customers.CustomerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            },
+            "put": {
+                "description": "Update customer by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Update a customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Customer details to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_customers.UpdateCustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_customers.CustomerResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
+            },
+            "delete": {
+                "description": "Delete customer by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Delete a customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
+            }
+        },
         "/orders": {
             "get": {
                 "description": "Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)",
@@ -1382,7 +1778,7 @@
             }
         },
         "/orders/{id}/items": {
-            "put": {
+            "patch": {
                 "description": "Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)",
                 "consumes": [
                     "application/json"
@@ -1409,10 +1805,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/internal_orders.UpdateOrderItemRequest"
-                            }
+                            "$ref": "#/definitions/internal_orders.UpdateOrderItemsRequest"
                         }
                     }
                 ],
@@ -1443,6 +1836,12 @@
                     },
                     "404": {
                         "description": "Order not found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Order version conflict",
                         "schema": {
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
@@ -1525,7 +1924,7 @@
                         }
                     },
                     "409": {
-                        "description": "Order might have been paid or cancelled",
+                        "description": "Order might have been paid, cancelled, or version conflict",
                         "schema": {
                             "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
                         }
@@ -3347,6 +3746,22 @@
                     "Reports"
                 ],
                 "summary": "Get dashboard summary",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Dashboard summary retrieved successfully",
@@ -3366,6 +3781,12 @@
                             ]
                         }
                     },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -3377,6 +3798,68 @@
                     "admin",
                     "manager",
                     "cashier"
+                ]
+            }
+        },
+        "/reports/low-stock": {
+            "get": {
+                "description": "Get products with stock below threshold",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get low stock products",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Threshold (default: 5)",
+                        "name": "threshold",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Export format (csv)",
+                        "name": "export",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Low stock products retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/internal_report.LowStockProductResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
                 ]
             }
         },
@@ -3664,6 +4147,82 @@
                 ]
             }
         },
+        "/reports/promotions": {
+            "get": {
+                "description": "Get metrics of promotions usage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get promotion performance",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Export format (csv)",
+                        "name": "export",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Promotion performance retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/internal_report.PromotionPerformanceResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
+                ]
+            }
+        },
         "/reports/sales": {
             "get": {
                 "description": "Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)",
@@ -3732,6 +4291,82 @@
                     "admin",
                     "manager",
                     "cashier"
+                ]
+            }
+        },
+        "/reports/shift-summary": {
+            "get": {
+                "description": "Get historical shifts and their cash differences",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get shift summary records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Start Date (YYYY-MM-DD)",
+                        "name": "start_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End Date (YYYY-MM-DD)",
+                        "name": "end_date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Export format (csv)",
+                        "name": "export",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Shift summary retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/internal_report.ShiftSummaryResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager"
                 ]
             }
         },
@@ -5118,6 +5753,92 @@
                 }
             }
         },
+        "internal_customers.CreateCustomerRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 20
+                }
+            }
+        },
+        "internal_customers.CustomerResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_customers.PagedCustomerResponse": {
+            "type": "object",
+            "properties": {
+                "customers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_customers.CustomerResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                }
+            }
+        },
+        "internal_customers.UpdateCustomerRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "phone": {
+                    "type": "string",
+                    "maxLength": 20
+                }
+            }
+        },
         "internal_orders.ApplyPromotionRequest": {
             "type": "object",
             "required": [
@@ -5147,7 +5868,8 @@
         "internal_orders.ConfirmManualPaymentRequest": {
             "type": "object",
             "required": [
-                "payment_method_id"
+                "payment_method_id",
+                "version"
             ],
             "properties": {
                 "cash_received": {
@@ -5155,6 +5877,9 @@
                     "minimum": 0
                 },
                 "payment_method_id": {
+                    "type": "integer"
+                },
+                "version": {
                     "type": "integer"
                 }
             }
@@ -5198,6 +5923,9 @@
                 "type"
             ],
             "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
                 "items": {
                     "type": "array",
                     "minItems": 1,
@@ -5259,6 +5987,9 @@
                 "created_at": {
                     "type": "string"
                 },
+                "customer_id": {
+                    "type": "string"
+                },
                 "discount_amount": {
                     "type": "integer"
                 },
@@ -5283,8 +6014,14 @@
                 "payment_method_id": {
                     "type": "integer"
                 },
+                "service_charge_amount": {
+                    "type": "integer"
+                },
                 "status": {
                     "$ref": "#/definitions/POS-kasir_internal_orders_repository.OrderStatus"
+                },
+                "tax_amount": {
+                    "type": "integer"
                 },
                 "type": {
                     "$ref": "#/definitions/POS-kasir_internal_orders_repository.OrderType"
@@ -5294,6 +6031,9 @@
                 },
                 "user_id": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -5403,6 +6143,17 @@
                 }
             }
         },
+        "internal_orders.RefundOrderRequest": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_orders.UpdateOrderItemRequest": {
             "type": "object",
             "required": [
@@ -5420,6 +6171,25 @@
                     "type": "string"
                 },
                 "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_orders.UpdateOrderItemsRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "version"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/internal_orders.UpdateOrderItemRequest"
+                    }
+                },
+                "version": {
                     "type": "integer"
                 }
             }
@@ -5498,15 +6268,17 @@
         "internal_products.CreateProductRequest": {
             "type": "object",
             "required": [
-                "category_id",
                 "cost_price",
                 "name",
                 "price",
                 "stock"
             ],
             "properties": {
-                "category_id": {
-                    "type": "integer"
+                "category_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "cost_price": {
                     "type": "number",
@@ -5560,14 +6332,25 @@
                 }
             }
         },
+        "internal_products.ProductCategoryResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_products.ProductListResponse": {
             "type": "object",
             "properties": {
-                "category_id": {
-                    "type": "integer"
-                },
-                "category_name": {
-                    "type": "string"
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_products.ProductCategoryResponse"
+                    }
                 },
                 "deleted_at": {
                     "type": "string"
@@ -5609,11 +6392,11 @@
         "internal_products.ProductResponse": {
             "type": "object",
             "properties": {
-                "category_id": {
-                    "type": "integer"
-                },
-                "category_name": {
-                    "type": "string"
+                "categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_products.ProductCategoryResponse"
+                    }
                 },
                 "cost_price": {
                     "type": "number"
@@ -5717,8 +6500,11 @@
         "internal_products.UpdateProductRequest": {
             "type": "object",
             "properties": {
-                "category_id": {
-                    "type": "integer"
+                "category_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "change_type": {
                     "type": "string",
@@ -6091,6 +6877,20 @@
                 }
             }
         },
+        "internal_report.LowStockProductResponse": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string"
+                },
+                "product_name": {
+                    "type": "string"
+                },
+                "stock": {
+                    "type": "integer"
+                }
+            }
+        },
         "internal_report.PaymentMethodPerformanceResponse": {
             "type": "object",
             "properties": {
@@ -6111,6 +6911,20 @@
         "internal_report.ProductPerformanceResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_report.ProductPerformanceRow"
+                    }
+                }
+            }
+        },
+        "internal_report.ProductPerformanceRow": {
+            "type": "object",
+            "properties": {
                 "product_id": {
                     "type": "string"
                 },
@@ -6126,6 +6940,20 @@
             }
         },
         "internal_report.ProductProfitResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/POS-kasir_internal_common_pagination.Pagination"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_report.ProductProfitRow"
+                    }
+                }
+            }
+        },
+        "internal_report.ProductProfitRow": {
             "type": "object",
             "properties": {
                 "gross_profit": {
@@ -6165,6 +6993,26 @@
                 }
             }
         },
+        "internal_report.PromotionPerformanceResponse": {
+            "type": "object",
+            "properties": {
+                "promotion_id": {
+                    "type": "string"
+                },
+                "promotion_name": {
+                    "type": "string"
+                },
+                "total_discount_given": {
+                    "type": "number"
+                },
+                "total_sales_with_promotion": {
+                    "type": "number"
+                },
+                "usage_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "internal_report.SalesReport": {
             "type": "object",
             "properties": {
@@ -6179,6 +7027,38 @@
                 }
             }
         },
+        "internal_report.ShiftSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "actual_cash_end": {
+                    "type": "integer"
+                },
+                "cash_difference": {
+                    "type": "integer"
+                },
+                "cashier_name": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "expected_cash_end": {
+                    "type": "integer"
+                },
+                "shift_id": {
+                    "type": "string"
+                },
+                "start_cash": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_settings.BrandingSettingsResponse": {
             "type": "object",
             "properties": {
@@ -6189,12 +7069,6 @@
                     "type": "string"
                 },
                 "footer_text": {
-                    "type": "string"
-                },
-                "theme_color": {
-                    "type": "string"
-                },
-                "theme_color_dark": {
                     "type": "string"
                 }
             }
@@ -6219,9 +7093,7 @@
         "internal_settings.UpdateBrandingRequest": {
             "type": "object",
             "required": [
-                "app_name",
-                "theme_color",
-                "theme_color_dark"
+                "app_name"
             ],
             "properties": {
                 "app_logo": {
@@ -6235,12 +7107,6 @@
                 "footer_text": {
                     "type": "string",
                     "maxLength": 200
-                },
-                "theme_color": {
-                    "type": "string"
-                },
-                "theme_color_dark": {
-                    "type": "string"
                 }
             }
         },

@@ -14,8 +14,16 @@ type AppConfig struct {
 	JWT            JwtConfig
 	CloudflareR2   CloudflareR2Config
 	Midtrans       MidtransConfig
+	Redis          RedisConfig
 	AutoMigrate    bool
 	MigrationsPath string
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
+	DB       int
 }
 
 type CloudflareR2Config struct {
@@ -77,6 +85,12 @@ func Load() *AppConfig {
 		Midtrans: MidtransConfig{
 			ServerKey: getEnv("MIDTRANS_SERVER_KEY", "SB-Mid-server-1234567890"),
 			IsProd:    getBool("MIDTRANS_IS_PROD", false),
+		},
+		Redis: RedisConfig{
+			Host:     getEnv("REDIS_HOST", "localhost"),
+			Port:     getEnv("REDIS_PORT", "6379"),
+			Password: getEnv("REDIS_PASSWORD", ""),
+			DB:       getInt("REDIS_DB", 0),
 		},
 		DB: DbConfig{
 			Host:        getEnv("DB_HOST", "localhost"),

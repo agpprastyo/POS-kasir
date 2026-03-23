@@ -5,8 +5,8 @@ SELECT
     COUNT(DISTINCT user_id) AS unique_cashiers,
     (SELECT COUNT(*) FROM products WHERE deleted_at IS NULL) AS total_products
 FROM orders
-WHERE created_at::date = CURRENT_DATE
-  AND status IN ('paid', 'served');
+WHERE orders.created_at::date BETWEEN $1 AND $2
+  AND orders.status IN ('paid', 'served');
 
 -- name: GetSalesSummary :many
 SELECT
@@ -31,7 +31,16 @@ FROM order_items oi
 WHERE o.created_at::date BETWEEN $1 AND $2
   AND o.status IN ('paid', 'served')
 GROUP BY p.id, p.name
-ORDER BY total_quantity DESC;
+ORDER BY total_quantity DESC
+LIMIT $3 OFFSET $4;
+
+-- name: CountProductSalesPerformance :one
+SELECT COUNT(DISTINCT p.id)
+FROM order_items oi
+         JOIN products p ON oi.product_id = p.id
+         JOIN orders o ON oi.order_id = o.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served');
 
 -- name: GetCategorySales :many
 SELECT
@@ -85,3 +94,41 @@ WHERE o.status = 'cancelled'
   AND o.created_at::date BETWEEN $1 AND $2
 GROUP BY cr.id, cr.reason
 ORDER BY cancelled_orders DESC;
+
+-- name: GetLowStockProducts :many
+SELECT
+    id, name, stock
+FROM products
+WHERE stock <= $1
+  AND deleted_at IS NULL
+ORDER BY stock ASC;
+
+-- name: GetPromotionPerformance :many
+SELECT
+    p.id AS promotion_id,
+    p.name AS promotion_name,
+    COUNT(o.id) AS usage_count,
+    COALESCE(SUM(o.discount_amount), 0) AS total_discount_given,
+    COALESCE(SUM(o.net_total), 0) AS total_sales_with_promotion
+FROM orders o
+JOIN promotions p ON o.applied_promotion_id = p.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served')
+GROUP BY p.id, p.name
+ORDER BY usage_count DESC;
+
+-- name: GetShiftSummary :many
+SELECT
+    s.id AS shift_id,
+    u.username AS cashier_name,
+    s.start_time,
+    s.end_time,
+    s.status,
+    s.start_cash,
+    s.actual_cash_end,
+    s.expected_cash_end,
+    (s.actual_cash_end - s.expected_cash_end) AS cash_difference
+FROM shifts s
+JOIN users u ON s.user_id = u.id
+WHERE s.start_time::date BETWEEN $1 AND $2
+ORDER BY s.start_time DESC;

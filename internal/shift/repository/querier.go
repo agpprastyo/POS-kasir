@@ -17,6 +17,7 @@ type Querier interface {
 	GetCashTotalByShiftIDAndType(ctx context.Context, arg GetCashTotalByShiftIDAndTypeParams) (int64, error)
 	GetCashTransactionsByShiftID(ctx context.Context, shiftID uuid.UUID) ([]CashTransaction, error)
 	GetOpenShiftByUserID(ctx context.Context, userID uuid.UUID) (Shift, error)
+	GetOpenShifts(ctx context.Context) ([]Shift, error)
 	GetShiftByID(ctx context.Context, id uuid.UUID) (Shift, error)
 	GetUserPasswordHash(ctx context.Context, id uuid.UUID) (string, error)
 }

@@ -33,4 +33,13 @@ JOIN orders o ON oi.order_id = o.id
 WHERE o.created_at::date BETWEEN $1 AND $2
   AND o.status IN ('paid', 'served')
 GROUP BY p.id, p.name
-ORDER BY gross_profit DESC;
+ORDER BY gross_profit DESC
+LIMIT $3 OFFSET $4;
+
+-- name: CountProductProfitReports :one
+SELECT COUNT(DISTINCT p.id)
+FROM order_items oi
+JOIN products p ON oi.product_id = p.id
+JOIN orders o ON oi.order_id = o.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served');

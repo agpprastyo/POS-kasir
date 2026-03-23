@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { ApiV1OrdersIdRefundPost200Response } from '../models';
+// @ts-ignore
 import type { InternalOrdersApplyPromotionRequest } from '../models';
 // @ts-ignore
 import type { InternalOrdersCancelOrderRequest } from '../models';
@@ -30,15 +32,15 @@ import type { InternalOrdersConfirmManualPaymentRequest } from '../models';
 // @ts-ignore
 import type { InternalOrdersCreateOrderRequest } from '../models';
 // @ts-ignore
-import type { InternalOrdersUpdateOrderItemRequest } from '../models';
+import type { InternalOrdersRefundOrderRequest } from '../models';
+// @ts-ignore
+import type { InternalOrdersUpdateOrderItemsRequest } from '../models';
 // @ts-ignore
 import type { InternalOrdersUpdateOrderStatusRequest } from '../models';
 // @ts-ignore
 import type { OrdersGet200Response } from '../models';
 // @ts-ignore
 import type { OrdersIdPayMidtransPost200Response } from '../models';
-// @ts-ignore
-import type { OrdersPost201Response } from '../models';
 // @ts-ignore
 import type { POSKasirInternalCommonErrorResponse } from '../models';
 // @ts-ignore
@@ -50,6 +52,46 @@ import type { POSKasirPkgPaymentMidtransNotificationPayload } from '../models';
  */
 export const OrdersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Refund a paid order by ID
+         * @summary Refund a paid order
+         * @param {string} id Order ID (UUID)
+         * @param {InternalOrdersRefundOrderRequest} body Refund Request Body
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiV1OrdersIdRefundPost: async (id: string, body: InternalOrdersRefundOrderRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('apiV1OrdersIdRefundPost', 'id', id)
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('apiV1OrdersIdRefundPost', 'body', body)
+            const localVarPath = `/api/v1/orders/{id}/refund`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
@@ -218,15 +260,15 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
          * Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
          * @summary Update items in an order
          * @param {string} id Order ID
-         * @param {Array<InternalOrdersUpdateOrderItemRequest>} request Update order items
+         * @param {InternalOrdersUpdateOrderItemsRequest} request Update order items
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdItemsPut: async (id: string, request: Array<InternalOrdersUpdateOrderItemRequest>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        ordersIdItemsPatch: async (id: string, request: InternalOrdersUpdateOrderItemsRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'id' is not null or undefined
-            assertParamExists('ordersIdItemsPut', 'id', id)
+            assertParamExists('ordersIdItemsPatch', 'id', id)
             // verify required parameter 'request' is not null or undefined
-            assertParamExists('ordersIdItemsPut', 'request', request)
+            assertParamExists('ordersIdItemsPatch', 'request', request)
             const localVarPath = `/orders/{id}/items`
                 .replace(`{${"id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -236,7 +278,7 @@ export const OrdersApiAxiosParamCreator = function (configuration?: Configuratio
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -450,6 +492,20 @@ export const OrdersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = OrdersApiAxiosParamCreator(configuration)
     return {
         /**
+         * Refund a paid order by ID
+         * @summary Refund a paid order
+         * @param {string} id Order ID (UUID)
+         * @param {InternalOrdersRefundOrderRequest} body Refund Request Body
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiV1OrdersIdRefundPost(id: string, body: InternalOrdersRefundOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1OrdersIdRefundPost(id, body, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.apiV1OrdersIdRefundPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
          * @param {number} [page] Page number
@@ -473,7 +529,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdApplyPromotionPost(id: string, request: InternalOrdersApplyPromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+        async ordersIdApplyPromotionPost(id: string, request: InternalOrdersApplyPromotionRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdApplyPromotionPost(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdApplyPromotionPost']?.[localVarOperationServerIndex]?.url;
@@ -500,7 +556,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+        async ordersIdGet(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdGet']?.[localVarOperationServerIndex]?.url;
@@ -510,14 +566,14 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
          * @summary Update items in an order
          * @param {string} id Order ID
-         * @param {Array<InternalOrdersUpdateOrderItemRequest>} request Update order items
+         * @param {InternalOrdersUpdateOrderItemsRequest} request Update order items
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdItemsPut(id: string, request: Array<InternalOrdersUpdateOrderItemRequest>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdItemsPut(id, request, options);
+        async ordersIdItemsPatch(id: string, request: InternalOrdersUpdateOrderItemsRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdItemsPatch(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdItemsPut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdItemsPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -528,7 +584,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdPayManualPost(id: string, request: InternalOrdersConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+        async ordersIdPayManualPost(id: string, request: InternalOrdersConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdPayManualPost(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdPayManualPost']?.[localVarOperationServerIndex]?.url;
@@ -555,7 +611,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersIdUpdateStatusPost(id: string, request: InternalOrdersUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+        async ordersIdUpdateStatusPost(id: string, request: InternalOrdersUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersIdUpdateStatusPost(id, request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersIdUpdateStatusPost']?.[localVarOperationServerIndex]?.url;
@@ -568,7 +624,7 @@ export const OrdersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async ordersPost(request: InternalOrdersCreateOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+        async ordersPost(request: InternalOrdersCreateOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrdersIdRefundPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersPost(request, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersPost']?.[localVarOperationServerIndex]?.url;
@@ -597,6 +653,17 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = OrdersApiFp(configuration)
     return {
         /**
+         * Refund a paid order by ID
+         * @summary Refund a paid order
+         * @param {string} id Order ID (UUID)
+         * @param {InternalOrdersRefundOrderRequest} body Refund Request Body
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiV1OrdersIdRefundPost(id: string, body: InternalOrdersRefundOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
+            return localVarFp.apiV1OrdersIdRefundPost(id, body, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
          * @param {number} [page] Page number
@@ -617,7 +684,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdApplyPromotionPost(id: string, request: InternalOrdersApplyPromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+        ordersIdApplyPromotionPost(id: string, request: InternalOrdersApplyPromotionRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
             return localVarFp.ordersIdApplyPromotionPost(id, request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -638,19 +705,19 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+        ordersIdGet(id: string, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
             return localVarFp.ordersIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
          * Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
          * @summary Update items in an order
          * @param {string} id Order ID
-         * @param {Array<InternalOrdersUpdateOrderItemRequest>} request Update order items
+         * @param {InternalOrdersUpdateOrderItemsRequest} request Update order items
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdItemsPut(id: string, request: Array<InternalOrdersUpdateOrderItemRequest>, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
-            return localVarFp.ordersIdItemsPut(id, request, options).then((request) => request(axios, basePath));
+        ordersIdItemsPatch(id: string, request: InternalOrdersUpdateOrderItemsRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
+            return localVarFp.ordersIdItemsPatch(id, request, options).then((request) => request(axios, basePath));
         },
         /**
          * Process a manual payment (Cash) and finalize an order (Roles: admin, manager, cashier)
@@ -660,7 +727,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdPayManualPost(id: string, request: InternalOrdersConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+        ordersIdPayManualPost(id: string, request: InternalOrdersConfirmManualPaymentRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
             return localVarFp.ordersIdPayManualPost(id, request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -681,7 +748,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersIdUpdateStatusPost(id: string, request: InternalOrdersUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+        ordersIdUpdateStatusPost(id: string, request: InternalOrdersUpdateOrderStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
             return localVarFp.ordersIdUpdateStatusPost(id, request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -691,7 +758,7 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        ordersPost(request: InternalOrdersCreateOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+        ordersPost(request: InternalOrdersCreateOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrdersIdRefundPost200Response> {
             return localVarFp.ordersPost(request, options).then((request) => request(axios, basePath));
         },
         /**
@@ -711,6 +778,18 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
  * OrdersApi - object-oriented interface
  */
 export class OrdersApi extends BaseAPI {
+    /**
+     * Refund a paid order by ID
+     * @summary Refund a paid order
+     * @param {string} id Order ID (UUID)
+     * @param {InternalOrdersRefundOrderRequest} body Refund Request Body
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiV1OrdersIdRefundPost(id: string, body: InternalOrdersRefundOrderRequest, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).apiV1OrdersIdRefundPost(id, body, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
      * @summary List orders
@@ -764,12 +843,12 @@ export class OrdersApi extends BaseAPI {
      * Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
      * @summary Update items in an order
      * @param {string} id Order ID
-     * @param {Array<InternalOrdersUpdateOrderItemRequest>} request Update order items
+     * @param {InternalOrdersUpdateOrderItemsRequest} request Update order items
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public ordersIdItemsPut(id: string, request: Array<InternalOrdersUpdateOrderItemRequest>, options?: RawAxiosRequestConfig) {
-        return OrdersApiFp(this.configuration).ordersIdItemsPut(id, request, options).then((request) => request(this.axios, this.basePath));
+    public ordersIdItemsPatch(id: string, request: InternalOrdersUpdateOrderItemsRequest, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersIdItemsPatch(id, request, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -9,24 +9,28 @@ import {
     InternalReportProductPerformanceResponse,
     InternalReportSalesReport,
     InternalReportProfitSummaryResponse,
-    InternalReportProductProfitResponse
+    InternalReportProductProfitResponse,
+    InternalReportLowStockProductResponse,
+    InternalReportShiftSummaryResponse,
+    InternalPromotionsPromotionResponse
 } from "../generated"
 import { AxiosError } from "axios"
 
-export const dashboardSummaryQueryOptions = () =>
+export const dashboardSummaryQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
         InternalReportDashboardSummaryResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
-        queryKey: ['reports', 'dashboard-summary'],
+        queryKey: ['reports', 'dashboard-summary', startDate, endDate],
         queryFn: async () => {
-            const res = await reportsApi.reportsDashboardSummaryGet();
+            const res = await reportsApi.reportsDashboardSummaryGet(startDate, endDate);
             return (res.data as any).data;
         },
+        enabled: !!startDate && !!endDate,
     })
 
-export const useDashboardSummaryQuery = () =>
-    useQuery(dashboardSummaryQueryOptions())
+export const useDashboardSummaryQuery = (startDate: string, endDate: string) =>
+    useQuery(dashboardSummaryQueryOptions(startDate, endDate))
 
 
 export const salesReportQueryOptions = (startDate: string, endDate: string) =>
@@ -48,7 +52,7 @@ export const useSalesReportQuery = (startDate: string, endDate: string) =>
 
 export const productPerformanceQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        InternalReportProductPerformanceResponse[],
+        InternalReportProductPerformanceResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'products', startDate, endDate],
@@ -132,7 +136,7 @@ export const useProfitSummaryQuery = (startDate: string, endDate: string) =>
 
 export const productProfitReportsQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
-        InternalReportProductProfitResponse[],
+        InternalReportProductProfitResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
     >({
         queryKey: ['reports', 'profit-products', startDate, endDate],
@@ -145,3 +149,53 @@ export const productProfitReportsQueryOptions = (startDate: string, endDate: str
 
 export const useProductProfitReportsQuery = (startDate: string, endDate: string) =>
     useQuery(productProfitReportsQueryOptions(startDate, endDate))
+
+
+export const lowStockReportQueryOptions = (threshold?: number) =>
+    queryOptions<
+        InternalReportLowStockProductResponse[],
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['reports', 'low-stock', threshold],
+        queryFn: async () => {
+            const res = await reportsApi.reportsLowStockGet(threshold);
+            return (res.data as any).data;
+        },
+    })
+
+export const useLowStockReportQuery = (threshold?: number) =>
+    useQuery(lowStockReportQueryOptions(threshold))
+
+
+export const promotionsReportQueryOptions = (startDate: string, endDate: string) =>
+    queryOptions<
+        InternalPromotionsPromotionResponse[],
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['reports', 'promotions', startDate, endDate],
+        queryFn: async () => {
+            const res = await reportsApi.reportsPromotionsGet(startDate, endDate);
+            return (res.data as any).data;
+        },
+        enabled: !!startDate && !!endDate,
+    })
+
+export const usePromotionsReportQuery = (startDate: string, endDate: string) =>
+    useQuery(promotionsReportQueryOptions(startDate, endDate))
+
+
+export const shiftSummaryReportQueryOptions = (startDate: string, endDate: string) =>
+    queryOptions<
+        InternalReportShiftSummaryResponse[],
+        AxiosError<POSKasirInternalCommonErrorResponse>
+    >({
+        queryKey: ['reports', 'shift-summary', startDate, endDate],
+        queryFn: async () => {
+            const res = await reportsApi.reportsShiftSummaryGet(startDate, endDate);
+            return (res.data as any).data;
+        },
+        enabled: !!startDate && !!endDate,
+    })
+
+export const useShiftSummaryReportQuery = (startDate: string, endDate: string) =>
+    useQuery(shiftSummaryReportQueryOptions(startDate, endDate))

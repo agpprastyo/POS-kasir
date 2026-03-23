@@ -10,7 +10,11 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api := app.FiberApp.Group("/api/v1")
 
+	// Rate Limiter for API
+	api.Use(middleware.RateLimiter())
+
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
+	idempotencyMiddleware := middleware.Idempotency(app.Redis)
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
 	api.Post("/auth/refresh", container.AuthHandler.RefreshHandler)
@@ -58,15 +62,16 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 	api.Get("/activity-logs", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleAdmin), container.ActivityLogHandler.GetActivityLogs)
 
-	api.Post("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache, app.Logger), container.OrderHandler.CreateOrderHandler)
+	api.Post("/orders", authMiddleware, middleware.RequireIdempotencyKey(), idempotencyMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache, app.Logger), container.OrderHandler.CreateOrderHandler)
 	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
 	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.GetOrderHandler)
 	api.Patch("/orders/:id/items", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOrderItemsHandler)
 
 	api.Post("/orders/:id/cancel", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.CancelOrderHandler)
+	api.Post("/orders/:id/refund", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.RefundOrderHandler)
 	api.Post("/orders/:id/apply-promotion", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ApplyPromotionHandler)
 	api.Post("/orders/:id/pay/midtrans", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.InitiateMidtransPaymentHandler)
-	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
+	api.Post("/orders/:id/pay/manual", authMiddleware, middleware.RequireIdempotencyKey(), idempotencyMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ConfirmManualPaymentHandler)
 	api.Post("/orders/:id/update-status", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.UpdateOperationalStatusHandler)
 
 	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
@@ -81,6 +86,9 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/reports/cancellations", authMiddleware, container.ReportHandler.GetCancellationReportsHandler)
 	api.Get("/reports/profit-summary", authMiddleware, container.ReportHandler.GetProfitSummaryHandler)
 	api.Get("/reports/profit-products", authMiddleware, container.ReportHandler.GetProductProfitReportsHandler)
+	api.Get("/reports/low-stock", authMiddleware, container.ReportHandler.GetLowStockProductsHandler)
+	api.Get("/reports/promotions", authMiddleware, container.ReportHandler.GetPromotionPerformanceHandler)
+	api.Get("/reports/shift-summary", authMiddleware, container.ReportHandler.GetShiftSummaryHandler)
 
 	promotionsReadGroup := api.Group("/promotions", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier))
 	{
@@ -113,6 +121,15 @@ func SetupRoutes(app *App, container *AppContainer) {
 		shiftGroup.Post("/end", container.ShiftHandler.EndShiftHandler)
 		shiftGroup.Get("/current", container.ShiftHandler.GetOpenShiftHandler)
 		shiftGroup.Post("/cash-transaction", container.ShiftHandler.CreateCashTransactionHandler)
+	}
+
+	customerGroup := api.Group("/customers", authMiddleware)
+	{
+		customerGroup.Get("/", container.CustomerHandler.ListCustomersHandler)
+		customerGroup.Post("/", middleware.RoleMiddleware(middleware.UserRoleCashier), container.CustomerHandler.CreateCustomerHandler)
+		customerGroup.Get("/:id", container.CustomerHandler.GetCustomerHandler)
+		customerGroup.Put("/:id", middleware.RoleMiddleware(middleware.UserRoleManager), container.CustomerHandler.UpdateCustomerHandler)
+		customerGroup.Delete("/:id", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.CustomerHandler.DeleteCustomerHandler)
 	}
 
 	// Serve frontend SPA static files (must be last, catch-all)

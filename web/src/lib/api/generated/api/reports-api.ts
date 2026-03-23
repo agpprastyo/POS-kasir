@@ -30,6 +30,8 @@ import type { ReportsCashierPerformanceGet200Response } from '../models';
 // @ts-ignore
 import type { ReportsDashboardSummaryGet200Response } from '../models';
 // @ts-ignore
+import type { ReportsLowStockGet200Response } from '../models';
+// @ts-ignore
 import type { ReportsPaymentMethodsGet200Response } from '../models';
 // @ts-ignore
 import type { ReportsProductsGet200Response } from '../models';
@@ -38,7 +40,11 @@ import type { ReportsProfitProductsGet200Response } from '../models';
 // @ts-ignore
 import type { ReportsProfitSummaryGet200Response } from '../models';
 // @ts-ignore
+import type { ReportsPromotionsGet200Response } from '../models';
+// @ts-ignore
 import type { ReportsSalesGet200Response } from '../models';
+// @ts-ignore
+import type { ReportsShiftSummaryGet200Response } from '../models';
 /**
  * ReportsApi - axios parameter creator
  */
@@ -135,10 +141,16 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        reportsDashboardSummaryGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        reportsDashboardSummaryGet: async (startDate: string, endDate: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'startDate' is not null or undefined
+            assertParamExists('reportsDashboardSummaryGet', 'startDate', startDate)
+            // verify required parameter 'endDate' is not null or undefined
+            assertParamExists('reportsDashboardSummaryGet', 'endDate', endDate)
             const localVarPath = `/reports/dashboard-summary`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -150,6 +162,54 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
+
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get products with stock below threshold
+         * @summary Get low stock products
+         * @param {number} [threshold] Threshold (default: 5)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsLowStockGet: async (threshold?: number, _export?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/reports/low-stock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (threshold !== undefined) {
+                localVarQueryParameter['threshold'] = threshold;
+            }
+
+            if (_export !== undefined) {
+                localVarQueryParameter['export'] = _export;
+            }
 
 
     
@@ -339,6 +399,55 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get metrics of promotions usage
+         * @summary Get promotion performance
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsPromotionsGet: async (startDate: string, endDate: string, _export?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'startDate' is not null or undefined
+            assertParamExists('reportsPromotionsGet', 'startDate', startDate)
+            // verify required parameter 'endDate' is not null or undefined
+            assertParamExists('reportsPromotionsGet', 'endDate', endDate)
+            const localVarPath = `/reports/promotions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
+
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
+
+            if (_export !== undefined) {
+                localVarQueryParameter['export'] = _export;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
@@ -369,6 +478,55 @@ export const ReportsApiAxiosParamCreator = function (configuration?: Configurati
 
             if (endDate !== undefined) {
                 localVarQueryParameter['end_date'] = endDate;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Get historical shifts and their cash differences
+         * @summary Get shift summary records
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsShiftSummaryGet: async (startDate: string, endDate: string, _export?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'startDate' is not null or undefined
+            assertParamExists('reportsShiftSummaryGet', 'startDate', startDate)
+            // verify required parameter 'endDate' is not null or undefined
+            assertParamExists('reportsShiftSummaryGet', 'endDate', endDate)
+            const localVarPath = `/reports/shift-summary`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (startDate !== undefined) {
+                localVarQueryParameter['start_date'] = startDate;
+            }
+
+            if (endDate !== undefined) {
+                localVarQueryParameter['end_date'] = endDate;
+            }
+
+            if (_export !== undefined) {
+                localVarQueryParameter['export'] = _export;
             }
 
 
@@ -422,13 +580,29 @@ export const ReportsApiFp = function(configuration?: Configuration) {
         /**
          * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async reportsDashboardSummaryGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsDashboardSummaryGet200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.reportsDashboardSummaryGet(options);
+        async reportsDashboardSummaryGet(startDate: string, endDate: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsDashboardSummaryGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reportsDashboardSummaryGet(startDate, endDate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ReportsApi.reportsDashboardSummaryGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get products with stock below threshold
+         * @summary Get low stock products
+         * @param {number} [threshold] Threshold (default: 5)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async reportsLowStockGet(threshold?: number, _export?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsLowStockGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reportsLowStockGet(threshold, _export, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReportsApi.reportsLowStockGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -488,6 +662,21 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Get metrics of promotions usage
+         * @summary Get promotion performance
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async reportsPromotionsGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsPromotionsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reportsPromotionsGet(startDate, endDate, _export, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReportsApi.reportsPromotionsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
@@ -499,6 +688,21 @@ export const ReportsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.reportsSalesGet(startDate, endDate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ReportsApi.reportsSalesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Get historical shifts and their cash differences
+         * @summary Get shift summary records
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async reportsShiftSummaryGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReportsShiftSummaryGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reportsShiftSummaryGet(startDate, endDate, _export, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReportsApi.reportsShiftSummaryGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -535,11 +739,24 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
         /**
          * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
          * @summary Get dashboard summary
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        reportsDashboardSummaryGet(options?: RawAxiosRequestConfig): AxiosPromise<ReportsDashboardSummaryGet200Response> {
-            return localVarFp.reportsDashboardSummaryGet(options).then((request) => request(axios, basePath));
+        reportsDashboardSummaryGet(startDate: string, endDate: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportsDashboardSummaryGet200Response> {
+            return localVarFp.reportsDashboardSummaryGet(startDate, endDate, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get products with stock below threshold
+         * @summary Get low stock products
+         * @param {number} [threshold] Threshold (default: 5)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsLowStockGet(threshold?: number, _export?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportsLowStockGet200Response> {
+            return localVarFp.reportsLowStockGet(threshold, _export, options).then((request) => request(axios, basePath));
         },
         /**
          * Get usage counts and totals for each payment method (Roles: admin, manager, cashier)
@@ -586,6 +803,18 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.reportsProfitSummaryGet(startDate, endDate, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get metrics of promotions usage
+         * @summary Get promotion performance
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsPromotionsGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportsPromotionsGet200Response> {
+            return localVarFp.reportsPromotionsGet(startDate, endDate, _export, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
          * @summary Get sales reports
          * @param {string} startDate Start Date (YYYY-MM-DD)
@@ -595,6 +824,18 @@ export const ReportsApiFactory = function (configuration?: Configuration, basePa
          */
         reportsSalesGet(startDate: string, endDate: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportsSalesGet200Response> {
             return localVarFp.reportsSalesGet(startDate, endDate, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Get historical shifts and their cash differences
+         * @summary Get shift summary records
+         * @param {string} startDate Start Date (YYYY-MM-DD)
+         * @param {string} endDate End Date (YYYY-MM-DD)
+         * @param {string} [_export] Export format (csv)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        reportsShiftSummaryGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig): AxiosPromise<ReportsShiftSummaryGet200Response> {
+            return localVarFp.reportsShiftSummaryGet(startDate, endDate, _export, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -630,11 +871,25 @@ export class ReportsApi extends BaseAPI {
     /**
      * Get high-level summary metrics (totals) for the dashboard (Roles: admin, manager, cashier)
      * @summary Get dashboard summary
+     * @param {string} startDate Start Date (YYYY-MM-DD)
+     * @param {string} endDate End Date (YYYY-MM-DD)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public reportsDashboardSummaryGet(options?: RawAxiosRequestConfig) {
-        return ReportsApiFp(this.configuration).reportsDashboardSummaryGet(options).then((request) => request(this.axios, this.basePath));
+    public reportsDashboardSummaryGet(startDate: string, endDate: string, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).reportsDashboardSummaryGet(startDate, endDate, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get products with stock below threshold
+     * @summary Get low stock products
+     * @param {number} [threshold] Threshold (default: 5)
+     * @param {string} [_export] Export format (csv)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public reportsLowStockGet(threshold?: number, _export?: string, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).reportsLowStockGet(threshold, _export, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -686,6 +941,19 @@ export class ReportsApi extends BaseAPI {
     }
 
     /**
+     * Get metrics of promotions usage
+     * @summary Get promotion performance
+     * @param {string} startDate Start Date (YYYY-MM-DD)
+     * @param {string} endDate End Date (YYYY-MM-DD)
+     * @param {string} [_export] Export format (csv)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public reportsPromotionsGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).reportsPromotionsGet(startDate, endDate, _export, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get aggregated sales data grouped by date within a specified range (Roles: admin, manager, cashier)
      * @summary Get sales reports
      * @param {string} startDate Start Date (YYYY-MM-DD)
@@ -695,6 +963,19 @@ export class ReportsApi extends BaseAPI {
      */
     public reportsSalesGet(startDate: string, endDate: string, options?: RawAxiosRequestConfig) {
         return ReportsApiFp(this.configuration).reportsSalesGet(startDate, endDate, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Get historical shifts and their cash differences
+     * @summary Get shift summary records
+     * @param {string} startDate Start Date (YYYY-MM-DD)
+     * @param {string} endDate End Date (YYYY-MM-DD)
+     * @param {string} [_export] Export format (csv)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public reportsShiftSummaryGet(startDate: string, endDate: string, _export?: string, options?: RawAxiosRequestConfig) {
+        return ReportsApiFp(this.configuration).reportsShiftSummaryGet(startDate, endDate, _export, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

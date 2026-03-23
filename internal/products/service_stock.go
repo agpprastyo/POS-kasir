@@ -22,14 +22,10 @@ func (s *PrdService) GetStockHistory(ctx context.Context, productID uuid.UUID, r
 		return nil, err
 	}
 
-	page := 1
-	if req.Page != nil {
-		page = *req.Page
-	}
-	limit := 10
-	if req.Limit != nil {
-		limit = *req.Limit
-	}
+	req.SetDefaults()
+
+	page := req.Page
+	limit := req.Limit
 	offset := (page - 1) * limit
 
 	params := products_repo.GetStockHistoryByProductWithPaginationParams{

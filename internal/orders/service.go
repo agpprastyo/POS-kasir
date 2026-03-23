@@ -33,11 +33,12 @@ type IOrderService interface {
 	HandleMidtransNotification(ctx context.Context, payload payment.MidtransNotificationPayload) error
 	ListOrders(ctx context.Context, req ListOrdersRequest) (*PagedOrderResponse, error)
 	CancelOrder(ctx context.Context, orderID uuid.UUID, req CancelOrderRequest) error
-	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req []UpdateOrderItemRequest) (*OrderDetailResponse, error)
+	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req UpdateOrderItemsRequest) (*OrderDetailResponse, error)
 	// ConfirmManualPayment completes a manual payment (Cash/Static QR)
 	ConfirmManualPayment(ctx context.Context, orderID uuid.UUID, req ConfirmManualPaymentRequest) (*OrderDetailResponse, error)
 	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req UpdateOrderStatusRequest) (*OrderDetailResponse, error)
 	ApplyPromotion(ctx context.Context, orderID uuid.UUID, req ApplyPromotionRequest) (*OrderDetailResponse, error)
+	RefundOrder(ctx context.Context, orderID uuid.UUID, req RefundOrderRequest) (*OrderDetailResponse, error)
 }
 
 type OrderService struct {
@@ -126,17 +127,24 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			return fmt.Errorf("failed to get promotion rules: %w", err)
 		}
 
-		productCache := make(map[uuid.UUID]orders_repo.Product)
-		getProduct := func(id uuid.UUID) (orders_repo.Product, error) {
-			if p, ok := productCache[id]; ok {
-				return p, nil
+		productCategoryCache := make(map[uuid.UUID][]int)
+		getProductCategories := func(id uuid.UUID) []int {
+			if cats, ok := productCategoryCache[id]; ok {
+				return cats
 			}
-			p, err := qtx.GetProductByID(ctx, id)
-			if err != nil {
-				return orders_repo.Product{}, err
+			var cats []int
+			rows, err := tx.Query(ctx, "SELECT category_id FROM product_categories WHERE product_id = $1", id)
+			if err == nil {
+				defer rows.Close()
+				for rows.Next() {
+					var cid int
+					if err := rows.Scan(&cid); err == nil {
+						cats = append(cats, cid)
+					}
+				}
 			}
-			productCache[id] = p
-			return p, nil
+			productCategoryCache[id] = cats
+			return cats
 		}
 
 		for _, rule := range rules {
@@ -176,12 +184,14 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 				}
 				found := false
 				for _, item := range orderItems {
-					prod, err := getProduct(item.ProductID)
-					if err != nil {
-						continue
+					cats := getProductCategories(item.ProductID)
+					for _, cid := range cats {
+						if cid == requiredCategoryID {
+							found = true
+							break
+						}
 					}
-					if prod.CategoryID != nil && int(*prod.CategoryID) == requiredCategoryID {
-						found = true
+					if found {
 						break
 					}
 				}
@@ -210,14 +220,13 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 							break
 						}
 					} else if target.TargetType == orders_repo.PromotionTargetTypeCATEGORY {
-						prod, err := getProduct(item.ProductID)
-						if err != nil {
-							continue
-						}
 						targetCatID, _ := strconv.Atoi(target.TargetID)
-						if prod.CategoryID != nil && int(*prod.CategoryID) == targetCatID {
-							isEligible = true
-							break
+						cats := getProductCategories(item.ProductID)
+						for _, cid := range cats {
+							if cid == targetCatID {
+								isEligible = true
+								break
+							}
 						}
 					}
 				}
@@ -254,13 +263,18 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 			discountAmount = grossTotal
 		}
 
-		netTotal := grossTotal - discountAmount
+		taxAmount := order.TaxAmount
+		serviceChargeAmount := order.ServiceChargeAmount
+		netTotal := grossTotal - discountAmount + taxAmount + serviceChargeAmount
 
 		_, err = qtx.UpdateOrderTotals(ctx, orders_repo.UpdateOrderTotalsParams{
-			ID:             orderID,
-			GrossTotal:     grossTotal,
-			DiscountAmount: discountAmount,
-			NetTotal:       netTotal,
+			ID:                  orderID,
+			GrossTotal:          grossTotal,
+			DiscountAmount:      discountAmount,
+			NetTotal:            netTotal,
+			TaxAmount:           taxAmount,
+			ServiceChargeAmount: serviceChargeAmount,
+			Version:             order.Version,
 		})
 		if err != nil {
 			return err
@@ -395,7 +409,14 @@ func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UU
 			PaymentMethodID: utils.Int32Ptr(int(req.PaymentMethodID)),
 			CashReceived:    &cashReceived,
 			ChangeDue:       &changeDue,
+			Version:         req.Version,
 		})
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return common.ErrOrderConflict
+			}
+			return err
+		}
 
 		finalOrder, err = qtx.GetOrderWithDetails(ctx, orderID)
 		return err
@@ -423,7 +444,7 @@ func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UU
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
-func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, reqs []UpdateOrderItemRequest) (*OrderDetailResponse, error) {
+func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req UpdateOrderItemsRequest) (*OrderDetailResponse, error) {
 	var finalOrder orders_repo.GetOrderWithDetailsRow
 	actorID, userIdOk := ctx.Value(common.UserIDKey).(uuid.UUID)
 
@@ -439,6 +460,10 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 			return common.ErrOrderNotModifiable
 		}
 
+		if order.Version != req.Version {
+			return common.ErrOrderConflict
+		}
+
 		existingItems, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
 		if err != nil {
 			return err
@@ -450,37 +475,37 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 		}
 
 		reqMap := make(map[uuid.UUID]int32)
-		for _, req := range reqs {
-			reqMap[req.ProductID] = req.Quantity
+		for _, item := range req.Items {
+			reqMap[item.ProductID] = item.Quantity
 		}
 
 		var grossTotal int64 = 0
 
-		for _, req := range reqs {
-			product, err := qtx.GetProductByID(ctx, req.ProductID)
+		for _, reqItem := range req.Items {
+			product, err := qtx.GetProductByID(ctx, reqItem.ProductID)
 			if err != nil {
 				return err
 			}
 
 			price := product.Price
 
-			subtotal := price * int64(req.Quantity)
+			subtotal := price * int64(reqItem.Quantity)
 			grossTotal += subtotal
 
-			if existingItem, exists := currentMap[req.ProductID]; exists {
+			if existingItem, exists := currentMap[reqItem.ProductID]; exists {
 
-				qtyDiff := req.Quantity - existingItem.Quantity
+				qtyDiff := reqItem.Quantity - existingItem.Quantity
 
 				if qtyDiff > 0 {
 
 					if product.Stock < qtyDiff {
 						return fmt.Errorf("insufficient stock for update %s", product.Name)
 					}
-					qPrd.DecreaseProductStock(ctx, products_repo.DecreaseProductStockParams{ID: req.ProductID, Quantity: qtyDiff})
+					qPrd.DecreaseProductStock(ctx, products_repo.DecreaseProductStockParams{ID: reqItem.ProductID, Quantity: qtyDiff})
 
 					// Log Stock Decrease
 					qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
-						ProductID:     req.ProductID,
+						ProductID:     reqItem.ProductID,
 						ChangeAmount:  -qtyDiff,
 						PreviousStock: product.Stock,
 						CurrentStock:  product.Stock - qtyDiff,
@@ -492,11 +517,11 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 				} else if qtyDiff < 0 {
 
 					restoreQty := -qtyDiff
-					qtx.AddProductStock(ctx, orders_repo.AddProductStockParams{ID: req.ProductID, Stock: restoreQty})
+					qtx.AddProductStock(ctx, orders_repo.AddProductStockParams{ID: reqItem.ProductID, Stock: restoreQty})
 
 					// Log Stock Increase
 					qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
-						ProductID:     req.ProductID,
+						ProductID:     reqItem.ProductID,
 						ChangeAmount:  restoreQty,
 						PreviousStock: product.Stock,
 						CurrentStock:  product.Stock + restoreQty,
@@ -510,26 +535,26 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 				qtx.UpdateOrderItemQuantity(ctx, orders_repo.UpdateOrderItemQuantityParams{
 					ID:          existingItem.ID,
 					OrderID:     orderID,
-					Quantity:    req.Quantity,
+					Quantity:    reqItem.Quantity,
 					Subtotal:    subtotal,
 					NetSubtotal: subtotal,
 				})
 
-				delete(currentMap, req.ProductID)
+				delete(currentMap, reqItem.ProductID)
 
 			} else {
-				if product.Stock < req.Quantity {
+				if product.Stock < reqItem.Quantity {
 					return fmt.Errorf("insufficient stock for new item %s", product.Name)
 				}
 
-				qPrd.DecreaseProductStock(ctx, products_repo.DecreaseProductStockParams{ID: req.ProductID, Quantity: req.Quantity})
+				qPrd.DecreaseProductStock(ctx, products_repo.DecreaseProductStockParams{ID: reqItem.ProductID, Quantity: reqItem.Quantity})
 
 				// Log Stock Decrease (New Item)
 				qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
-					ProductID:     req.ProductID,
-					ChangeAmount:  -req.Quantity,
+					ProductID:     reqItem.ProductID,
+					ChangeAmount:  -reqItem.Quantity,
 					PreviousStock: product.Stock,
-					CurrentStock:  product.Stock - req.Quantity,
+					CurrentStock:  product.Stock - reqItem.Quantity,
 					ChangeType:    orders_repo.StockChangeTypeSale,
 					ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
 					Note:          utils.StringPtr("Order Item Added"),
@@ -546,8 +571,8 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 
 				qtx.CreateOrderItem(ctx, orders_repo.CreateOrderItemParams{
 					OrderID:         orderID,
-					ProductID:       req.ProductID,
-					Quantity:        req.Quantity,
+					ProductID:       reqItem.ProductID,
+					Quantity:        reqItem.Quantity,
 					PriceAtSale:     price,
 					Subtotal:        subtotal,
 					NetSubtotal:     subtotal,
@@ -561,10 +586,6 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 			params := orders_repo.AddProductStockParams{ID: productID, Stock: item.Quantity}
 			qtx.AddProductStock(ctx, params)
 
-			// Need to catch product for logging history?
-			// The loop iterates over currentMap which contains OrderItem, not Product.
-			// We need to fetch product to get previous stock.
-			// Optimization: Check if we already fetched it? No, loop is separate.
 			prod, err := qtx.GetProductByID(ctx, productID)
 			if err == nil {
 				qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
@@ -584,12 +605,25 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 			qtx.DeleteOrderItem(ctx, orders_repo.DeleteOrderItemParams{ID: item.ID, OrderID: orderID})
 		}
 
+		taxAmount := order.TaxAmount
+		serviceChargeAmount := order.ServiceChargeAmount
+		netTotal := grossTotal - order.DiscountAmount + taxAmount + serviceChargeAmount
+
 		_, err = qtx.UpdateOrderTotals(ctx, orders_repo.UpdateOrderTotalsParams{
-			ID:             orderID,
-			GrossTotal:     grossTotal,
-			NetTotal:       grossTotal,
-			DiscountAmount: 0,
+			ID:                  orderID,
+			GrossTotal:          grossTotal,
+			NetTotal:            netTotal,
+			DiscountAmount:      order.DiscountAmount,
+			TaxAmount:           taxAmount,
+			ServiceChargeAmount: serviceChargeAmount,
+			Version:             req.Version,
 		})
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return common.ErrOrderConflict
+			}
+			return err
+		}
 
 		finalOrder, err = qtx.GetOrderWithDetails(ctx, orderID)
 		return err
@@ -698,11 +732,14 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(ctx context.Conte
 	return &OrderDetailResponse{
 		ID:                      orderWithDetails.ID,
 		UserID:                  utils.NullableUUIDToPointer(orderWithDetails.UserID),
+		CustomerID:              utils.NullableUUIDToPointer(orderWithDetails.CustomerID),
 		Type:                    orderWithDetails.Type,
 		Status:                  orderWithDetails.Status,
 		GrossTotal:              orderWithDetails.GrossTotal,
 		DiscountAmount:          orderWithDetails.DiscountAmount,
 		NetTotal:                orderWithDetails.NetTotal,
+		TaxAmount:               orderWithDetails.TaxAmount,
+		ServiceChargeAmount:     orderWithDetails.ServiceChargeAmount,
 		PaymentMethodID:         orderWithDetails.PaymentMethodID,
 		PaymentGatewayReference: orderWithDetails.PaymentGatewayReference,
 		CashReceived:            orderWithDetails.CashReceived,
@@ -870,16 +907,95 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req C
 	return nil
 }
 
-func (s *OrderService) ListOrders(ctx context.Context, req ListOrdersRequest) (*PagedOrderResponse, error) {
+func (s *OrderService) RefundOrder(ctx context.Context, orderID uuid.UUID, req RefundOrderRequest) (*OrderDetailResponse, error) {
+	actorID, userIdOk := ctx.Value(common.UserIDKey).(uuid.UUID)
 
-	page := 1
-	if req.Page != nil {
-		page = *req.Page
+	var finalOrder orders_repo.GetOrderWithDetailsRow
+
+	txErr := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qtx := orders_repo.New(tx)
+		qPrd := products_repo.New(tx)
+
+		order, err := qtx.GetOrderForUpdate(ctx, orderID)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return common.ErrNotFound
+			}
+			return err
+		}
+
+		if order.Status != orders_repo.OrderStatusPaid {
+			return errors.New("only paid orders can be refunded")
+		}
+
+		_, err = qtx.UpdateOrderStatus(ctx, orders_repo.UpdateOrderStatusParams{
+			ID:     orderID,
+			Status: orders_repo.OrderStatusCancelled,
+		})
+		if err != nil {
+			return err
+		}
+
+		items, err := qtx.GetOrderItemsByOrderID(ctx, orderID)
+		if err != nil {
+			return err
+		}
+
+		for _, item := range items {
+			prod, err := qPrd.GetProductByID(ctx, item.ProductID)
+			if err != nil {
+				return err
+			}
+
+			_, stockErr := qPrd.AddProductStock(ctx, products_repo.AddProductStockParams{
+				ID:       item.ProductID,
+				Quantity: item.Quantity,
+			})
+			if stockErr != nil {
+				return stockErr
+			}
+
+			qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
+				ProductID:     item.ProductID,
+				ChangeAmount:  item.Quantity,
+				PreviousStock: prod.Stock,
+				CurrentStock:  prod.Stock + item.Quantity,
+				ChangeType:    orders_repo.StockChangeTypeReturn,
+				ReferenceID:   pgtype.UUID{Bytes: orderID, Valid: true},
+				Note:          utils.StringPtr("Order Refunded: " + req.Reason),
+				CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: userIdOk},
+			})
+		}
+
+		finalOrder, err = qtx.GetOrderWithDetails(ctx, orderID)
+		return err
+	})
+
+	if txErr != nil {
+		s.log.Error("RefundOrder transaction failed", "error", txErr)
+		return nil, txErr
 	}
-	limit := 10
-	if req.Limit != nil {
-		limit = *req.Limit
-	}
+
+	s.activityService.Log(
+		ctx,
+		actorID,
+		activity_repo.LogActionTypeUPDATE,
+		activity_repo.LogEntityTypeORDER,
+		orderID.String(),
+		map[string]interface{}{
+			"action": "refund",
+			"reason": req.Reason,
+		},
+	)
+
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
+}
+
+func (s *OrderService) ListOrders(ctx context.Context, req ListOrdersRequest) (*PagedOrderResponse, error) {
+	req.SetDefaults()
+
+	page := req.Page
+	limit := req.Limit
 	offset := (page - 1) * limit
 
 	var nullUserID pgtype.UUID
@@ -1027,9 +1143,16 @@ func (s *OrderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 		qtx := orders_repo.New(tx)
 		qPrd := products_repo.New(tx)
 
+		var nullCustomerID pgtype.UUID
+		if req.CustomerID != nil {
+			nullCustomerID.Valid = true
+			nullCustomerID.Bytes = *req.CustomerID
+		}
+
 		orderHeader, err := qtx.CreateOrder(ctx, orders_repo.CreateOrderParams{
-			UserID: pgtype.UUID{Bytes: actorID, Valid: ok},
-			Type:   req.Type,
+			UserID:     pgtype.UUID{Bytes: actorID, Valid: ok},
+			Type:       req.Type,
+			CustomerID: nullCustomerID,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create order header: %w", err)
@@ -1200,11 +1323,18 @@ func (s *OrderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 			}
 		}
 
+		taxAmount := int64(float64(grossTotal) * 0.11) // Default 11% tax
+		serviceChargeAmount := int64(0)
+		netTotal := grossTotal + taxAmount + serviceChargeAmount
+
 		_, err = qtx.UpdateOrderTotals(ctx, orders_repo.UpdateOrderTotalsParams{
-			ID:             newOrderID,
-			GrossTotal:     grossTotal,
-			NetTotal:       grossTotal,
-			DiscountAmount: 0,
+			ID:                  newOrderID,
+			GrossTotal:          grossTotal,
+			NetTotal:            netTotal,
+			DiscountAmount:      0,
+			TaxAmount:           taxAmount,
+			ServiceChargeAmount: serviceChargeAmount,
+			Version:             1,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to update order totals: %w", err)

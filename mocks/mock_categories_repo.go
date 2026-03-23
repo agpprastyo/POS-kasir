@@ -57,7 +57,7 @@ func (mr *MockCategoriesRepositoryMockRecorder) CountCategories(ctx any) *gomock
 }
 
 // CountProductsInCategory mocks base method.
-func (m *MockCategoriesRepository) CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error) {
+func (m *MockCategoriesRepository) CountProductsInCategory(ctx context.Context, categoryID int32) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountProductsInCategory", ctx, categoryID)
 	ret0, _ := ret[0].(int64)

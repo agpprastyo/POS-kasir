@@ -13,29 +13,27 @@ type CreateProductOptionRequest struct {
 }
 
 type CreateProductRequest struct {
-	Name       string                       `json:"name" validate:"required,min=3,max=100"`
-	CategoryID int32                        `json:"category_id" validate:"required,gt=0"`
-	Price      float64                      `json:"price" validate:"required,gt=0"`
-	CostPrice  float64                      `json:"cost_price" validate:"required,gte=0"`
-	Stock      int32                        `json:"stock" validate:"required,gte=0"`
-	Options    []CreateProductOptionRequest `json:"options" validate:"dive"`
+	Name        string                       `json:"name" validate:"required,min=3,max=100"`
+	CategoryIDs []int32                      `json:"category_ids" validate:"omitempty,dive,gt=0"`
+	Price       float64                      `json:"price" validate:"required,gt=0"`
+	CostPrice   float64                      `json:"cost_price" validate:"required,gte=0"`
+	Stock       int32                        `json:"stock" validate:"required,gte=0"`
+	Options     []CreateProductOptionRequest `json:"options" validate:"dive"`
 }
 
 type UpdateProductRequest struct {
-	Name       *string  `json:"name" validate:"omitempty,min=3,max=100"`
-	CategoryID *int32   `json:"category_id" validate:"omitempty,gt=0"`
-	Price      *float64 `json:"price" validate:"omitempty,gt=0"`
-	CostPrice  *float64 `json:"cost_price" validate:"omitempty,gte=0"`
-	Stock      *int32   `json:"stock" validate:"omitempty,gte=0"`
-	Note       *string  `json:"note" validate:"omitempty,max=255"`
-	ChangeType *string  `json:"change_type" validate:"omitempty,oneof=sale restock correction return damage"`
+	Name        *string  `json:"name" validate:"omitempty,min=3,max=100"`
+	CategoryIDs *[]int32 `json:"category_ids" validate:"omitempty,dive,gt=0"`
+	Price       *float64 `json:"price" validate:"omitempty,gt=0"`
+	CostPrice   *float64 `json:"cost_price" validate:"omitempty,gte=0"`
+	Stock       *int32   `json:"stock" validate:"omitempty,gte=0"`
+	Note        *string  `json:"note" validate:"omitempty,max=255"`
+	ChangeType  *string  `json:"change_type" validate:"omitempty,oneof=sale restock correction return damage"`
 }
 
 type ListProductsRequest struct {
-	Page       *int    `query:"page" validate:"omitempty,gte=1"`
-	Limit      *int    `query:"limit" validate:"omitempty,gte=1,lte=100"`
+	pagination.PaginationRequest
 	CategoryID *int32  `query:"category_id" validate:"omitempty,gt=0"`
-	Search     *string `query:"search" validate:"omitempty,min=1,max=100"`
 }
 
 type CreateProductOptionRequestStandalone struct {
@@ -55,30 +53,33 @@ type ProductOptionResponse struct {
 	ImageURL        *string   `json:"image_url,omitempty"`
 }
 
+type ProductCategoryResponse struct {
+	ID   int32  `json:"id"`
+	Name string `json:"name"`
+}
+
 type ProductResponse struct {
-	ID           uuid.UUID               `json:"id"`
-	Name         string                  `json:"name"`
-	CategoryID   *int32                  `json:"category_id,omitempty"`
-	CategoryName *string                 `json:"category_name,omitempty"`
-	ImageURL     *string                 `json:"image_url,omitempty"`
-	Price        float64                 `json:"price"`
-	CostPrice    float64                 `json:"cost_price"`
-	Stock        int32                   `json:"stock"`
-	CreatedAt    time.Time               `json:"created_at"`
-	UpdatedAt    time.Time               `json:"updated_at"`
-	DeletedAt    *time.Time              `json:"deleted_at,omitempty"`
-	Options      []ProductOptionResponse `json:"options,omitempty"`
+	ID         uuid.UUID                 `json:"id"`
+	Name       string                    `json:"name"`
+	Categories []ProductCategoryResponse `json:"categories,omitempty"`
+	ImageURL   *string                   `json:"image_url,omitempty"`
+	Price      float64                   `json:"price"`
+	CostPrice  float64                   `json:"cost_price"`
+	Stock      int32                     `json:"stock"`
+	CreatedAt  time.Time                 `json:"created_at"`
+	UpdatedAt  time.Time                 `json:"updated_at"`
+	DeletedAt  *time.Time                `json:"deleted_at,omitempty"`
+	Options    []ProductOptionResponse   `json:"options,omitempty"`
 }
 
 type ProductListResponse struct {
-	ID           uuid.UUID  `json:"id"`
-	Name         string     `json:"name"`
-	CategoryID   *int32     `json:"category_id,omitempty"`
-	CategoryName *string    `json:"category_name,omitempty"`
-	ImageURL     *string    `json:"image_url,omitempty"`
-	Price        float64    `json:"price"`
-	Stock        int32      `json:"stock"`
-	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
+	ID         uuid.UUID                 `json:"id"`
+	Name       string                    `json:"name"`
+	Categories []ProductCategoryResponse `json:"categories,omitempty"`
+	ImageURL   *string                   `json:"image_url,omitempty"`
+	Price      float64                   `json:"price"`
+	Stock      int32                     `json:"stock"`
+	DeletedAt  *time.Time                `json:"deleted_at,omitempty"`
 }
 
 type ListProductsResponse struct {
@@ -91,8 +92,7 @@ type RestoreBulkRequest struct {
 }
 
 type ListStockHistoryRequest struct {
-	Page  *int `query:"page" validate:"omitempty,gte=1"`
-	Limit *int `query:"limit" validate:"omitempty,gte=1,lte=100"`
+	pagination.PaginationRequest
 }
 
 type StockHistoryResponse struct {

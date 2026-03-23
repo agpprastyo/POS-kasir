@@ -12,6 +12,27 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countProductSalesPerformance = `-- name: CountProductSalesPerformance :one
+SELECT COUNT(DISTINCT p.id)
+FROM order_items oi
+         JOIN products p ON oi.product_id = p.id
+         JOIN orders o ON oi.order_id = o.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served')
+`
+
+type CountProductSalesPerformanceParams struct {
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+}
+
+func (q *Queries) CountProductSalesPerformance(ctx context.Context, arg CountProductSalesPerformanceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countProductSalesPerformance, arg.CreatedAt, arg.CreatedAt_2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getCancellationReasons = `-- name: GetCancellationReasons :many
 SELECT
     cr.id AS reason_id,
@@ -167,9 +188,14 @@ SELECT
     COUNT(DISTINCT user_id) AS unique_cashiers,
     (SELECT COUNT(*) FROM products WHERE deleted_at IS NULL) AS total_products
 FROM orders
-WHERE created_at::date = CURRENT_DATE
-  AND status IN ('paid', 'served')
+WHERE orders.created_at::date BETWEEN $1 AND $2
+  AND orders.status IN ('paid', 'served')
 `
+
+type GetDashboardSummaryParams struct {
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+}
 
 type GetDashboardSummaryRow struct {
 	TotalSales     interface{} `json:"total_sales"`
@@ -178,8 +204,8 @@ type GetDashboardSummaryRow struct {
 	TotalProducts  int64       `json:"total_products"`
 }
 
-func (q *Queries) GetDashboardSummary(ctx context.Context) (GetDashboardSummaryRow, error) {
-	row := q.db.QueryRow(ctx, getDashboardSummary)
+func (q *Queries) GetDashboardSummary(ctx context.Context, arg GetDashboardSummaryParams) (GetDashboardSummaryRow, error) {
+	row := q.db.QueryRow(ctx, getDashboardSummary, arg.CreatedAt, arg.CreatedAt_2)
 	var i GetDashboardSummaryRow
 	err := row.Scan(
 		&i.TotalSales,
@@ -188,6 +214,41 @@ func (q *Queries) GetDashboardSummary(ctx context.Context) (GetDashboardSummaryR
 		&i.TotalProducts,
 	)
 	return i, err
+}
+
+const getLowStockProducts = `-- name: GetLowStockProducts :many
+SELECT
+    id, name, stock
+FROM products
+WHERE stock <= $1
+  AND deleted_at IS NULL
+ORDER BY stock ASC
+`
+
+type GetLowStockProductsRow struct {
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Stock int32     `json:"stock"`
+}
+
+func (q *Queries) GetLowStockProducts(ctx context.Context, stock int32) ([]GetLowStockProductsRow, error) {
+	rows, err := q.db.Query(ctx, getLowStockProducts, stock)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetLowStockProductsRow{}
+	for rows.Next() {
+		var i GetLowStockProductsRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Stock); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPaymentMethodSales = `-- name: GetPaymentMethodSales :many
@@ -254,11 +315,14 @@ WHERE o.created_at::date BETWEEN $1 AND $2
   AND o.status IN ('paid', 'served')
 GROUP BY p.id, p.name
 ORDER BY total_quantity DESC
+LIMIT $3 OFFSET $4
 `
 
 type GetProductSalesPerformanceParams struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+	Limit       int32              `json:"limit"`
+	Offset      int32              `json:"offset"`
 }
 
 type GetProductSalesPerformanceRow struct {
@@ -269,7 +333,12 @@ type GetProductSalesPerformanceRow struct {
 }
 
 func (q *Queries) GetProductSalesPerformance(ctx context.Context, arg GetProductSalesPerformanceParams) ([]GetProductSalesPerformanceRow, error) {
-	rows, err := q.db.Query(ctx, getProductSalesPerformance, arg.CreatedAt, arg.CreatedAt_2)
+	rows, err := q.db.Query(ctx, getProductSalesPerformance,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +351,60 @@ func (q *Queries) GetProductSalesPerformance(ctx context.Context, arg GetProduct
 			&i.ProductName,
 			&i.TotalQuantity,
 			&i.TotalRevenue,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPromotionPerformance = `-- name: GetPromotionPerformance :many
+SELECT
+    p.id AS promotion_id,
+    p.name AS promotion_name,
+    COUNT(o.id) AS usage_count,
+    COALESCE(SUM(o.discount_amount), 0) AS total_discount_given,
+    COALESCE(SUM(o.net_total), 0) AS total_sales_with_promotion
+FROM orders o
+JOIN promotions p ON o.applied_promotion_id = p.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served')
+GROUP BY p.id, p.name
+ORDER BY usage_count DESC
+`
+
+type GetPromotionPerformanceParams struct {
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+}
+
+type GetPromotionPerformanceRow struct {
+	PromotionID             uuid.UUID   `json:"promotion_id"`
+	PromotionName           string      `json:"promotion_name"`
+	UsageCount              int64       `json:"usage_count"`
+	TotalDiscountGiven      interface{} `json:"total_discount_given"`
+	TotalSalesWithPromotion interface{} `json:"total_sales_with_promotion"`
+}
+
+func (q *Queries) GetPromotionPerformance(ctx context.Context, arg GetPromotionPerformanceParams) ([]GetPromotionPerformanceRow, error) {
+	rows, err := q.db.Query(ctx, getPromotionPerformance, arg.CreatedAt, arg.CreatedAt_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetPromotionPerformanceRow{}
+	for rows.Next() {
+		var i GetPromotionPerformanceRow
+		if err := rows.Scan(
+			&i.PromotionID,
+			&i.PromotionName,
+			&i.UsageCount,
+			&i.TotalDiscountGiven,
+			&i.TotalSalesWithPromotion,
 		); err != nil {
 			return nil, err
 		}
@@ -326,6 +449,70 @@ func (q *Queries) GetSalesSummary(ctx context.Context, arg GetSalesSummaryParams
 	for rows.Next() {
 		var i GetSalesSummaryRow
 		if err := rows.Scan(&i.Date, &i.OrderCount, &i.TotalSales); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getShiftSummary = `-- name: GetShiftSummary :many
+SELECT
+    s.id AS shift_id,
+    u.username AS cashier_name,
+    s.start_time,
+    s.end_time,
+    s.status,
+    s.start_cash,
+    s.actual_cash_end,
+    s.expected_cash_end,
+    (s.actual_cash_end - s.expected_cash_end) AS cash_difference
+FROM shifts s
+JOIN users u ON s.user_id = u.id
+WHERE s.start_time::date BETWEEN $1 AND $2
+ORDER BY s.start_time DESC
+`
+
+type GetShiftSummaryParams struct {
+	StartTime   pgtype.Timestamptz `json:"start_time"`
+	StartTime_2 pgtype.Timestamptz `json:"start_time_2"`
+}
+
+type GetShiftSummaryRow struct {
+	ShiftID         uuid.UUID          `json:"shift_id"`
+	CashierName     string             `json:"cashier_name"`
+	StartTime       pgtype.Timestamptz `json:"start_time"`
+	EndTime         pgtype.Timestamptz `json:"end_time"`
+	Status          ShiftStatus        `json:"status"`
+	StartCash       int64              `json:"start_cash"`
+	ActualCashEnd   *int64             `json:"actual_cash_end"`
+	ExpectedCashEnd *int64             `json:"expected_cash_end"`
+	CashDifference  int32              `json:"cash_difference"`
+}
+
+func (q *Queries) GetShiftSummary(ctx context.Context, arg GetShiftSummaryParams) ([]GetShiftSummaryRow, error) {
+	rows, err := q.db.Query(ctx, getShiftSummary, arg.StartTime, arg.StartTime_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetShiftSummaryRow{}
+	for rows.Next() {
+		var i GetShiftSummaryRow
+		if err := rows.Scan(
+			&i.ShiftID,
+			&i.CashierName,
+			&i.StartTime,
+			&i.EndTime,
+			&i.Status,
+			&i.StartCash,
+			&i.ActualCashEnd,
+			&i.ExpectedCashEnd,
+			&i.CashDifference,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -214,7 +214,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                     <Label htmlFor={field.name}>{t('promotions.form.scope')}</Label>
                                     <Select onValueChange={(val) => field.handleChange(val as POSKasirInternalPromotionsRepositoryPromotionScope)} value={field.state.value}>
                                         <SelectTrigger id={field.name}>
-                                            <SelectValue placeholder="Select scope" />
+                                            <SelectValue placeholder={t('promotions.form.select_scope')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionScope.PromotionScopeORDER}>{t('promotions.scope.ORDER')}</SelectItem>
@@ -308,7 +308,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 {field.state.value ? (
                                                     format(field.state.value, "PPP")
                                                 ) : (
-                                                    <span>Pick a date</span>
+                                                    <span>{t('promotions.form.pick_date')}</span>
                                                 )}
                                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                             </Button>
@@ -345,7 +345,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 {field.state.value ? (
                                                     format(field.state.value, "PPP")
                                                 ) : (
-                                                    <span>Pick a date</span>
+                                                    <span>{t('promotions.form.pick_date')}</span>
                                                 )}
                                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                             </Button>
@@ -409,9 +409,9 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT}>Min Order Amount</SelectItem>
-                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT}>Required Product</SelectItem>
-                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY}>Required Category</SelectItem>
+                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeMINIMUMORDERAMOUNT}>{t('promotions.form.rule_min_order_amount')}</SelectItem>
+                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT}>{t('promotions.form.rule_required_product')}</SelectItem>
+                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY}>{t('promotions.form.rule_required_category')}</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -428,7 +428,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <Label className="text-xs">{t('promotions.form.rule_value')}</Label>
                                                             <Select onValueChange={valField.handleChange} value={valField.state.value}>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Product" />
+                                                                    <SelectValue placeholder={t('promotions.form.select_product')} />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {products.map(p => (
@@ -446,7 +446,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <Label className="text-xs">{t('promotions.form.rule_value')}</Label>
                                                             <Select onValueChange={valField.handleChange} value={valField.state.value}>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Category" />
+                                                                    <SelectValue placeholder={t('promotions.form.select_category')} />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {categories.map(c => (
@@ -506,8 +506,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT}>Product</SelectItem>
-                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY}>Category</SelectItem>
+                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT}>{t('promotions.types.product')}</SelectItem>
+                                                            <SelectItem value={POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY}>{t('promotions.types.category')}</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -524,7 +524,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <Label className="text-xs">{t('promotions.form.target_id')}</Label>
                                                             <Select onValueChange={idField.handleChange} value={idField.state.value}>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Product" />
+                                                                    <SelectValue placeholder={t('promotions.form.select_product')} />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {products.map(p => (
@@ -542,7 +542,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                             <Label className="text-xs">{t('promotions.form.target_id')}</Label>
                                                             <Select onValueChange={idField.handleChange} value={idField.state.value}>
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select Category" />
+                                                                    <SelectValue placeholder={t('promotions.form.select_category')} />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {categories.map(c => (

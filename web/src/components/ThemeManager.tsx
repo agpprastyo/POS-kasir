@@ -9,25 +9,6 @@ export function ThemeManager() {
     useEffect(() => {
         if (!branding) return
 
-        const root = document.documentElement
-        const isDark = resolvedTheme === 'dark'
-
-        // Determine the color to use
-        let activeColor = branding.theme_color
-
-        if (isDark && branding.theme_color_dark) {
-            activeColor = branding.theme_color_dark
-        } else if (isDark && !branding.theme_color_dark) {
-            activeColor = branding.theme_color
-        }
-
-        if (activeColor) {
-            // Update primary color
-            root.style.setProperty('--primary', activeColor)
-            root.style.setProperty('--sidebar-primary', activeColor)
-            root.style.setProperty('--ring', activeColor)
-        }
-
         if (branding.app_logo) {
             const link = (document.querySelector("link[rel*='icon']") || document.createElement('link')) as HTMLLinkElement;
             link.type = 'image/x-icon';

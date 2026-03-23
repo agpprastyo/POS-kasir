@@ -161,6 +161,21 @@ func (mr *MockIOrderServiceMockRecorder) ListOrders(ctx, req any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOrders", reflect.TypeOf((*MockIOrderService)(nil).ListOrders), ctx, req)
 }
 
+// RefundOrder mocks base method.
+func (m *MockIOrderService) RefundOrder(ctx context.Context, orderID uuid.UUID, req orders.RefundOrderRequest) (*orders.OrderDetailResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RefundOrder", ctx, orderID, req)
+	ret0, _ := ret[0].(*orders.OrderDetailResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RefundOrder indicates an expected call of RefundOrder.
+func (mr *MockIOrderServiceMockRecorder) RefundOrder(ctx, orderID, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefundOrder", reflect.TypeOf((*MockIOrderService)(nil).RefundOrder), ctx, orderID, req)
+}
+
 // UpdateOperationalStatus mocks base method.
 func (m *MockIOrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req orders.UpdateOrderStatusRequest) (*orders.OrderDetailResponse, error) {
 	m.ctrl.T.Helper()
@@ -177,7 +192,7 @@ func (mr *MockIOrderServiceMockRecorder) UpdateOperationalStatus(ctx, orderID, r
 }
 
 // UpdateOrderItems mocks base method.
-func (m *MockIOrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req []orders.UpdateOrderItemRequest) (*orders.OrderDetailResponse, error) {
+func (m *MockIOrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req orders.UpdateOrderItemsRequest) (*orders.OrderDetailResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateOrderItems", ctx, orderID, req)
 	ret0, _ := ret[0].(*orders.OrderDetailResponse)

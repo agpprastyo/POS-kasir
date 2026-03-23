@@ -194,6 +194,42 @@ func (q *Queries) GetOpenShiftByUserID(ctx context.Context, userID uuid.UUID) (S
 	return i, err
 }
 
+const getOpenShifts = `-- name: GetOpenShifts :many
+SELECT id, user_id, start_time, end_time, start_cash, expected_cash_end, actual_cash_end, status, created_at, updated_at FROM shifts
+WHERE status = 'open'
+`
+
+func (q *Queries) GetOpenShifts(ctx context.Context) ([]Shift, error) {
+	rows, err := q.db.Query(ctx, getOpenShifts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Shift{}
+	for rows.Next() {
+		var i Shift
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.StartTime,
+			&i.EndTime,
+			&i.StartCash,
+			&i.ExpectedCashEnd,
+			&i.ActualCashEnd,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShiftByID = `-- name: GetShiftByID :one
 SELECT id, user_id, start_time, end_time, start_cash, expected_cash_end, actual_cash_end, status, created_at, updated_at FROM shifts
 WHERE id = $1 LIMIT 1

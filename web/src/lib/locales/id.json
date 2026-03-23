@@ -24,6 +24,11 @@
         "next": "Selanjutnya",
         "page_info": "Halaman {{current}} dari {{total}}",
         "restore": "Pulihkan",
+        "print": "Cetak",
+        "open_menu": "Buka menu",
+        "language_placeholder": "Bahasa",
+        "language_id": "Bahasa (ID)",
+        "language_en": "English (EN)",
         "error": {
             "title": "Aduh!",
             "subtitle": "Terjadi kesalahan",
@@ -80,7 +85,8 @@
         "users": "Pengguna",
         "settings": "Pengaturan",
         "account": "Akun",
-        "activity_logs": "Log Aktivitas"
+        "activity_logs": "Log Aktivitas",
+        "customers": "Pelanggan"
     },
     "transactions": {
         "title": "Transaksi",
@@ -120,7 +126,8 @@
         "actions_button": {
             "pay": "Bayar",
             "complete": "Selesai",
-            "cancel": "Batalkan"
+            "cancel": "Batalkan",
+            "refund": "Refund"
         },
         "cancellation_dialog": {
             "title": "Batalkan Pesanan",
@@ -131,6 +138,13 @@
             "notes_placeholder": "Detail opsional...",
             "confirm": "Batalkan Pesanan",
             "cancel": "Kembali"
+        },
+        "refund_dialog": {
+            "title": "Refund Pesanan",
+            "description": "Apakah Anda yakin ingin me-refund pesanan ini?",
+            "warning": "Tindakan ini akan membatalkan item dan mengembalikannya ke stok.",
+            "reason_label": "Alasan",
+            "reason_placeholder": "Pilih alasan"
         },
         "messages": {
             "fetch_error": "Gagal mengambil transaksi",
@@ -188,12 +202,16 @@
     "reports": {
         "title": "Analitik Laporan",
         "subtitle": "Wawasan komprehensif tentang kinerja bisnis Anda.",
+        "export_csv": "Ekspor CSV",
         "tabs": {
             "sales": "Penjualan",
             "products": "Produk",
             "profit": "Keuntungan",
             "performance": "Performa",
-            "cancellations": "Pembatalan"
+            "cancellations": "Pembatalan",
+            "low_stock": "Low Stock",
+            "promotions": "Promotions",
+            "shifts": "Shifts"
         },
         "sales": {
             "title": "Ringkasan Penjualan",
@@ -206,7 +224,8 @@
             "description": "Produk terlaris berdasarkan kuantitas dan pendapatan.",
             "product": "Produk",
             "quantity": "Terjual",
-            "revenue": "Total Pendapatan"
+            "revenue": "Total Pendapatan",
+            "stock": "Stock"
         },
         "performance": {
             "payment_methods": "Distribusi Metode Pembayaran",
@@ -231,6 +250,27 @@
             "products": "Profitabilitas Produk",
             "products_desc": "Analisis margin keuntungan per produk.",
             "profit": "Keuntungan"
+        },
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "low_stock": {
+            "title": "Low Stock Products",
+            "description": "Products with stock below minimum threshold."
+        },
+        "promotions": {
+            "title": "Active Promotions",
+            "description": "Check promotions efficacy.",
+            "name": "Promo Name",
+            "discount": "Discount",
+            "type": "Type"
+        },
+        "shifts": {
+            "title": "Work Shifts",
+            "description": "Monitor cash reconcile accurately.",
+            "status": "Status",
+            "expected": "Expected",
+            "actual": "Actual",
+            "diff": "Difference"
         }
     },
     "account": {
@@ -271,6 +311,7 @@
         },
         "cancellation": {
             "title": "Alasan Pembatalan",
+            "add_button": "Tambah Alasan",
             "description": "Kelola alasan standar untuk pembatalan transaksi.",
             "table": {
                 "reason": "Alasan",
@@ -335,7 +376,12 @@
             "no_logo": "Tidak Ada Logo",
             "upload_button": "Unggah Logo Baru",
             "remove_button": "Hapus/Bersihkan",
-            "logo_help": "Ukuran disarankan: 512x512px. Maks 5MB. Nilai diperbarui segera setelah unggah."
+            "logo_help": "Ukuran disarankan: 512x512px. Maks 5MB. Nilai diperbarui segera setelah unggah.",
+            "app_name_placeholder": "POS Kasir",
+            "footer_placeholder": "© 2024 POS Kasir",
+            "logo_alt": "Logo Aplikasi",
+            "color_placeholder": "#000000",
+            "color_dark_placeholder": "#ffffff"
         },
         "printer": {
             "title": "Pengaturan Printer",
@@ -368,7 +414,12 @@
             "method_fe": "Sisi Klien (Frontend)",
             "method_be_desc": "Proses cetak ditangani oleh server (Disarankan untuk printer jaringan/USB)",
             "method_fe_desc": "Proses cetak ditangani oleh browser (Disarankan untuk printer Bluetooth)",
-            "help_text": "Gunakan socket://IP:PORT untuk printer jaringan (misal 192.168.1.100:9100)."
+            "help_text": "Gunakan socket://IP:PORT untuk printer jaringan (misal 192.168.1.100:9100).",
+            "bluetooth": "Bluetooth",
+            "lan": "LAN / Jaringan",
+            "lan_placeholder": "misal 192.168.1.200 atau http://192.168.1.200:80/print",
+            "paper_58": "58mm",
+            "paper_80": "80mm"
         }
     },
     "users": {
@@ -473,7 +524,9 @@
             "delete_title": "Hapus Produk?",
             "delete_desc": "Apakah Anda yakin ingin menghapus",
             "delete_desc_2": "Tindakan ini tidak dapat dibatalkan.",
-            "deleting": "Menghapus..."
+            "deleting": "Menghapus...",
+            "cancel": "products.actions.cancel",
+            "delete_confirm": "products.actions.delete_confirm"
         },
         "form": {
             "title_create": "Buat Produk Baru",
@@ -519,6 +572,20 @@
             "upload_variant_image_error": "Gagal upload gambar varian",
             "restore_success": "Produk berhasil dipulihkan",
             "restore_error": "Gagal memulihkan produk"
+        },
+        "stock_history": {
+            "no_history": "Tidak ada riwayat stok ditemukan.",
+            "type_sale": "Penjualan",
+            "type_restock": "Restock",
+            "type_correction": "Koreksi",
+            "type_return": "Return",
+            "type_damage": "Rusak",
+            "date": "Tanggal",
+            "type": "Tipe",
+            "amount": "Jumlah",
+            "initial_stock": "Stok Awal",
+            "final_stock": "Stok Akhir",
+            "note": "Catatan"
         }
     },
     "promotions": {
@@ -572,11 +639,20 @@
             "save": "Simpan Promosi",
             "saving": "Menyimpan...",
             "success_create": "Promosi berhasil dibuat!",
-            "success_update": "Promosi berhasil diperbarui!"
+            "success_update": "Promosi berhasil diperbarui!",
+            "pick_date": "Pilih tanggal",
+            "select_scope": "Pilih cakupan",
+            "select_product": "Pilih Produk",
+            "select_category": "Pilih Kategori",
+            "rule_min_order_amount": "Min Nominal Pesanan",
+            "rule_required_product": "Produk Wajib",
+            "rule_required_category": "Kategori Wajib"
         },
         "types": {
             "percentage": "Persentase",
-            "fixed_amount": "Nominal Tetap"
+            "fixed_amount": "Nominal Tetap",
+            "product": "Produk",
+            "category": "Kategori"
         },
         "scope": {
             "ORDER": "Pesanan",
@@ -610,6 +686,11 @@
             "dine_in": "Makan di Tempat",
             "take_away": "Bawa Pulang"
         },
+        "refund_success": "Order berhasil direfund",
+        "select_customer": "Pilih Pelanggan",
+        "walk_in": "Umum/Walk-in",
+        "tax": "Pajak",
+        "static_qris": "QRIS Statis",
         "errors": {
             "invalid_cart": "Status keranjang tidak valid",
             "stock_empty": "Stok produk habis",
@@ -717,5 +798,104 @@
         "create_success": "Kategori berhasil dibuat",
         "update_success": "Kategori berhasil diperbarui",
         "delete_success": "Kategori berhasil dihapus"
-    }
+    },
+    "customers": {
+        "title": "Pelanggan",
+        "description": "Kelola informasi dan riwayat pelanggan.",
+        "add_button": "Tambah Pelanggan",
+        "search_placeholder": "Cari pelanggan...",
+        "table": {
+            "name": "Nama",
+            "phone": "Telepon",
+            "email": "Email",
+            "address": "Alamat",
+            "actions": "Aksi",
+            "empty": "Tidak ada pelanggan ditemukan."
+        },
+        "form": {
+            "title_create": "Tambah Pelanggan Baru",
+            "title_edit": "Edit Pelanggan",
+            "desc_create": "Isi detail untuk menambahkan pelanggan.",
+            "desc_edit": "Perbarui detail pelanggan.",
+            "name": "Nama",
+            "email": "Email",
+            "phone": "Telepon",
+            "address": "Alamat",
+            "save_changes": "Simpan Perubahan",
+            "create_customer": "Tambah Pelanggan"
+        },
+        "messages": {
+            "create_success": "Pelanggan berhasil ditambahkan",
+            "create_failed": "Gagal menambahkan pelanggan: {{message}}",
+            "update_success": "Pelanggan berhasil diperbarui",
+            "update_failed": "Gagal memperbarui pelanggan: {{message}}",
+            "delete_success": "Pelanggan berhasil dihapus",
+            "delete_failed": "Gagal menghapus pelanggan: {{message}}",
+            "save_failed": "Gagal menyimpan pelanggan: {{message}}"
+        },
+        "actions": {
+            "open_menu": "Buka menu",
+            "edit": "Edit",
+            "delete": "Hapus",
+            "delete_title": "Hapus Pelanggan",
+            "delete_desc": "Apakah Anda yakin ingin menghapus pelanggan ini?",
+            "delete_desc_2": "Tindakan ini tidak dapat dibatalkan.",
+            "cancel": "Batal",
+            "deleting": "Menghapus...",
+            "delete_confirm": "Hapus"
+        }
+    },
+    "shift": {
+        "loading": "Memuat...",
+        "register_open": "Mesin Kasir Terbuka",
+        "open_register": "Buka Mesin Kasir",
+        "messages": {
+            "start_success": "Shift berhasil dimulai",
+            "end_success": "Shift berhasil diakhiri",
+            "transaction_recorded": "Transaksi berhasil dicatat"
+        },
+        "close_modal": {
+            "title": "Tutup Mesin Kasir",
+            "title_summary": "Shift Berakhir",
+            "desc": "Hitung uang tunai di laci dan masukkan jumlahnya untuk menutup shift.",
+            "desc_summary": "Ringkasan shift dan rekonsiliasi.",
+            "start_cash": "Uang Modal Awal",
+            "expected_cash": "Uang Diharapkan",
+            "actual_cash": "Uang Aktual",
+            "difference": "Selisih",
+            "close": "Tutup",
+            "password": "Kata Sandi",
+            "closing": "Menutup...",
+            "submit": "Tutup Mesin Kasir"
+        },
+        "open_modal": {
+            "title": "Buka Mesin Kasir",
+            "desc": "Masukkan jumlah uang modal awal dan kata sandi Anda untuk memulai.",
+            "start_cash": "Uang Modal Awal",
+            "password": "Kata Sandi",
+            "opening": "Membuka...",
+            "submit": "Buka Mesin Kasir"
+        }
+    },
+    "/": "/",
+    "main": "main",
+    "link": "link",
+    "@/components/dashboard/DashboardCharts": "@/components/dashboard/DashboardCharts",
+    "pagination": {
+        "previous": "Sebelumnya",
+        "next": "Selanjutnya",
+        "page_info": "Halaman {{current}} dari {{total}}"
+    },
+    "/auth/refresh": "/auth/refresh",
+    "Printing failed": {
+        " Please check printer connection": {
+            "": "Printing failed. Please check printer connection."
+        }
+    },
+    "canvas": "canvas",
+    "2d": "2d",
+    "T": "T",
+    "a": "a",
+    "cancellation": "cancellation",
+    "@/components/DevToolsPanel": "@/components/DevToolsPanel"
 }

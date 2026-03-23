@@ -15,7 +15,7 @@
 
 
 export interface InternalProductsUpdateProductRequest {
-    'category_id'?: number;
+    'category_ids'?: Array<number>;
     'change_type'?: InternalProductsUpdateProductRequestChangeTypeEnum;
     'cost_price'?: number;
     'name'?: string;

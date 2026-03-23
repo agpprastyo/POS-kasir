@@ -21,6 +21,7 @@ import { Route as LocaleDashboardReportsRouteImport } from './routes/$locale/_da
 import { Route as LocaleDashboardPromotionsRouteImport } from './routes/$locale/_dashboard.promotions'
 import { Route as LocaleDashboardProductRouteImport } from './routes/$locale/_dashboard.product'
 import { Route as LocaleDashboardOrderRouteImport } from './routes/$locale/_dashboard.order'
+import { Route as LocaleDashboardCustomersRouteImport } from './routes/$locale/_dashboard.customers'
 import { Route as LocaleDashboardActivityLogsRouteImport } from './routes/$locale/_dashboard.activity-logs'
 import { Route as LocaleDashboardAccountRouteImport } from './routes/$locale/_dashboard.account'
 
@@ -85,6 +86,12 @@ const LocaleDashboardOrderRoute = LocaleDashboardOrderRouteImport.update({
   path: '/order',
   getParentRoute: () => LocaleDashboardRoute,
 } as any)
+const LocaleDashboardCustomersRoute =
+  LocaleDashboardCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => LocaleDashboardRoute,
+  } as any)
 const LocaleDashboardActivityLogsRoute =
   LocaleDashboardActivityLogsRouteImport.update({
     id: '/activity-logs',
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale/account': typeof LocaleDashboardAccountRoute
   '/$locale/activity-logs': typeof LocaleDashboardActivityLogsRoute
+  '/$locale/customers': typeof LocaleDashboardCustomersRoute
   '/$locale/order': typeof LocaleDashboardOrderRoute
   '/$locale/product': typeof LocaleDashboardProductRoute
   '/$locale/promotions': typeof LocaleDashboardPromotionsRoute
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale/account': typeof LocaleDashboardAccountRoute
   '/$locale/activity-logs': typeof LocaleDashboardActivityLogsRoute
+  '/$locale/customers': typeof LocaleDashboardCustomersRoute
   '/$locale/order': typeof LocaleDashboardOrderRoute
   '/$locale/product': typeof LocaleDashboardProductRoute
   '/$locale/promotions': typeof LocaleDashboardPromotionsRoute
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/$locale/login': typeof LocaleLoginRoute
   '/$locale/_dashboard/account': typeof LocaleDashboardAccountRoute
   '/$locale/_dashboard/activity-logs': typeof LocaleDashboardActivityLogsRoute
+  '/$locale/_dashboard/customers': typeof LocaleDashboardCustomersRoute
   '/$locale/_dashboard/order': typeof LocaleDashboardOrderRoute
   '/$locale/_dashboard/product': typeof LocaleDashboardProductRoute
   '/$locale/_dashboard/promotions': typeof LocaleDashboardPromotionsRoute
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/$locale/login'
     | '/$locale/account'
     | '/$locale/activity-logs'
+    | '/$locale/customers'
     | '/$locale/order'
     | '/$locale/product'
     | '/$locale/promotions'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/$locale/login'
     | '/$locale/account'
     | '/$locale/activity-logs'
+    | '/$locale/customers'
     | '/$locale/order'
     | '/$locale/product'
     | '/$locale/promotions'
@@ -181,6 +193,7 @@ export interface FileRouteTypes {
     | '/$locale/login'
     | '/$locale/_dashboard/account'
     | '/$locale/_dashboard/activity-logs'
+    | '/$locale/_dashboard/customers'
     | '/$locale/_dashboard/order'
     | '/$locale/_dashboard/product'
     | '/$locale/_dashboard/promotions'
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleDashboardOrderRouteImport
       parentRoute: typeof LocaleDashboardRoute
     }
+    '/$locale/_dashboard/customers': {
+      id: '/$locale/_dashboard/customers'
+      path: '/customers'
+      fullPath: '/$locale/customers'
+      preLoaderRoute: typeof LocaleDashboardCustomersRouteImport
+      parentRoute: typeof LocaleDashboardRoute
+    }
     '/$locale/_dashboard/activity-logs': {
       id: '/$locale/_dashboard/activity-logs'
       path: '/activity-logs'
@@ -302,6 +322,7 @@ declare module '@tanstack/react-router' {
 interface LocaleDashboardRouteChildren {
   LocaleDashboardAccountRoute: typeof LocaleDashboardAccountRoute
   LocaleDashboardActivityLogsRoute: typeof LocaleDashboardActivityLogsRoute
+  LocaleDashboardCustomersRoute: typeof LocaleDashboardCustomersRoute
   LocaleDashboardOrderRoute: typeof LocaleDashboardOrderRoute
   LocaleDashboardProductRoute: typeof LocaleDashboardProductRoute
   LocaleDashboardPromotionsRoute: typeof LocaleDashboardPromotionsRoute
@@ -315,6 +336,7 @@ interface LocaleDashboardRouteChildren {
 const LocaleDashboardRouteChildren: LocaleDashboardRouteChildren = {
   LocaleDashboardAccountRoute: LocaleDashboardAccountRoute,
   LocaleDashboardActivityLogsRoute: LocaleDashboardActivityLogsRoute,
+  LocaleDashboardCustomersRoute: LocaleDashboardCustomersRoute,
   LocaleDashboardOrderRoute: LocaleDashboardOrderRoute,
   LocaleDashboardProductRoute: LocaleDashboardProductRoute,
   LocaleDashboardPromotionsRoute: LocaleDashboardPromotionsRoute,

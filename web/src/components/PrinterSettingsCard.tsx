@@ -177,10 +177,10 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                         <Tabs value={state.feInterface} onValueChange={(v) => dispatch({ type: 'SET_FIELD', field: 'feInterface', value: v as any })} className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="bluetooth" className="text-xs">
-                                    <Bluetooth className="h-3 w-3 mr-2" /> Bluetooth
+                                    <Bluetooth className="h-3 w-3 mr-2" /> {t('settings.printer.bluetooth')}
                                 </TabsTrigger>
                                 <TabsTrigger value="lan" className="text-xs">
-                                    <Network className="h-3 w-3 mr-2" /> LAN / Network
+                                    <Network className="h-3 w-3 mr-2" /> {t('settings.printer.lan')}
                                 </TabsTrigger>
                             </TabsList>
 
@@ -211,7 +211,7 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                     id="fe-lan"
                                     value={state.feLanAddress}
                                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'feLanAddress', value: e.target.value })}
-                                    placeholder="e.g. 192.168.1.200 or http://192.168.1.200:80/print"
+                                    placeholder={t('settings.printer.lan_placeholder')}
                                 />
                                 <p className="text-[10px] text-muted-foreground">
                                     {t('settings.printer.fe_lan_help', { defaultValue: 'Ensure the printer supports HTTP POST raw printing and allows access from this origin (CORS).' })}
@@ -229,8 +229,8 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="58mm">58mm</SelectItem>
-                                <SelectItem value="80mm">80mm</SelectItem>
+                                <SelectItem value="58mm">{t('settings.printer.paper_58')}</SelectItem>
+                                <SelectItem value="80mm">{t('settings.printer.paper_80')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -66,11 +66,17 @@ Class | Method | HTTP request | Description
 *CategoriesApi* | [**categoriesIdGet**](docs/CategoriesApi.md#categoriesidget) | **GET** /categories/{id} | Get category by ID
 *CategoriesApi* | [**categoriesIdPut**](docs/CategoriesApi.md#categoriesidput) | **PUT** /categories/{id} | Update category by ID
 *CategoriesApi* | [**categoriesPost**](docs/CategoriesApi.md#categoriespost) | **POST** /categories | Create a new category
+*CustomersApi* | [**customersGet**](docs/CustomersApi.md#customersget) | **GET** /customers | List customers
+*CustomersApi* | [**customersIdDelete**](docs/CustomersApi.md#customersiddelete) | **DELETE** /customers/{id} | Delete a customer
+*CustomersApi* | [**customersIdGet**](docs/CustomersApi.md#customersidget) | **GET** /customers/{id} | Get a customer
+*CustomersApi* | [**customersIdPut**](docs/CustomersApi.md#customersidput) | **PUT** /customers/{id} | Update a customer
+*CustomersApi* | [**customersPost**](docs/CustomersApi.md#customerspost) | **POST** /customers | Create a customer
+*OrdersApi* | [**apiV1OrdersIdRefundPost**](docs/OrdersApi.md#apiv1ordersidrefundpost) | **POST** /api/v1/orders/{id}/refund | Refund a paid order
 *OrdersApi* | [**ordersGet**](docs/OrdersApi.md#ordersget) | **GET** /orders | List orders
 *OrdersApi* | [**ordersIdApplyPromotionPost**](docs/OrdersApi.md#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order
 *OrdersApi* | [**ordersIdCancelPost**](docs/OrdersApi.md#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order
 *OrdersApi* | [**ordersIdGet**](docs/OrdersApi.md#ordersidget) | **GET** /orders/{id} | Get an order by ID
-*OrdersApi* | [**ordersIdItemsPut**](docs/OrdersApi.md#ordersiditemsput) | **PUT** /orders/{id}/items | Update items in an order
+*OrdersApi* | [**ordersIdItemsPatch**](docs/OrdersApi.md#ordersiditemspatch) | **PATCH** /orders/{id}/items | Update items in an order
 *OrdersApi* | [**ordersIdPayManualPost**](docs/OrdersApi.md#ordersidpaymanualpost) | **POST** /orders/{id}/pay/manual | Confirm manual payment for an order
 *OrdersApi* | [**ordersIdPayMidtransPost**](docs/OrdersApi.md#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order
 *OrdersApi* | [**ordersIdUpdateStatusPost**](docs/OrdersApi.md#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status
@@ -103,11 +109,14 @@ Class | Method | HTTP request | Description
 *ReportsApi* | [**reportsCancellationsGet**](docs/ReportsApi.md#reportscancellationsget) | **GET** /reports/cancellations | Get cancellation reports
 *ReportsApi* | [**reportsCashierPerformanceGet**](docs/ReportsApi.md#reportscashierperformanceget) | **GET** /reports/cashier-performance | Get cashier performance
 *ReportsApi* | [**reportsDashboardSummaryGet**](docs/ReportsApi.md#reportsdashboardsummaryget) | **GET** /reports/dashboard-summary | Get dashboard summary
+*ReportsApi* | [**reportsLowStockGet**](docs/ReportsApi.md#reportslowstockget) | **GET** /reports/low-stock | Get low stock products
 *ReportsApi* | [**reportsPaymentMethodsGet**](docs/ReportsApi.md#reportspaymentmethodsget) | **GET** /reports/payment-methods | Get payment method performance
 *ReportsApi* | [**reportsProductsGet**](docs/ReportsApi.md#reportsproductsget) | **GET** /reports/products | Get product performance
 *ReportsApi* | [**reportsProfitProductsGet**](docs/ReportsApi.md#reportsprofitproductsget) | **GET** /reports/profit-products | Get product profit reports
 *ReportsApi* | [**reportsProfitSummaryGet**](docs/ReportsApi.md#reportsprofitsummaryget) | **GET** /reports/profit-summary | Get profit summary
+*ReportsApi* | [**reportsPromotionsGet**](docs/ReportsApi.md#reportspromotionsget) | **GET** /reports/promotions | Get promotion performance
 *ReportsApi* | [**reportsSalesGet**](docs/ReportsApi.md#reportssalesget) | **GET** /reports/sales | Get sales reports
+*ReportsApi* | [**reportsShiftSummaryGet**](docs/ReportsApi.md#reportsshiftsummaryget) | **GET** /reports/shift-summary | Get shift summary records
 *SettingsApi* | [**settingsBrandingGet**](docs/SettingsApi.md#settingsbrandingget) | **GET** /settings/branding | Get branding settings
 *SettingsApi* | [**settingsBrandingLogoPost**](docs/SettingsApi.md#settingsbrandinglogopost) | **POST** /settings/branding/logo | Update app logo
 *SettingsApi* | [**settingsBrandingPut**](docs/SettingsApi.md#settingsbrandingput) | **PUT** /settings/branding | Update branding settings
@@ -128,18 +137,25 @@ Class | Method | HTTP request | Description
 ### Documentation For Models
 
  - [ActivityLogsGet200Response](docs/ActivityLogsGet200Response.md)
+ - [ApiV1OrdersIdRefundPost200Response](docs/ApiV1OrdersIdRefundPost200Response.md)
  - [AuthAddPost200Response](docs/AuthAddPost200Response.md)
  - [AuthLoginPost200Response](docs/AuthLoginPost200Response.md)
  - [AuthRefreshPost200Response](docs/AuthRefreshPost200Response.md)
  - [CancellationReasonsGet200Response](docs/CancellationReasonsGet200Response.md)
  - [CategoriesGet200Response](docs/CategoriesGet200Response.md)
  - [CategoriesPost201Response](docs/CategoriesPost201Response.md)
+ - [CustomersGet200Response](docs/CustomersGet200Response.md)
+ - [CustomersPost201Response](docs/CustomersPost201Response.md)
  - [InternalActivitylogActivityLogListResponse](docs/InternalActivitylogActivityLogListResponse.md)
  - [InternalActivitylogActivityLogResponse](docs/InternalActivitylogActivityLogResponse.md)
  - [InternalCancellationReasonsCancellationReasonResponse](docs/InternalCancellationReasonsCancellationReasonResponse.md)
  - [InternalCategoriesCategoryResponse](docs/InternalCategoriesCategoryResponse.md)
  - [InternalCategoriesCategoryWithCountResponse](docs/InternalCategoriesCategoryWithCountResponse.md)
  - [InternalCategoriesCreateCategoryRequest](docs/InternalCategoriesCreateCategoryRequest.md)
+ - [InternalCustomersCreateCustomerRequest](docs/InternalCustomersCreateCustomerRequest.md)
+ - [InternalCustomersCustomerResponse](docs/InternalCustomersCustomerResponse.md)
+ - [InternalCustomersPagedCustomerResponse](docs/InternalCustomersPagedCustomerResponse.md)
+ - [InternalCustomersUpdateCustomerRequest](docs/InternalCustomersUpdateCustomerRequest.md)
  - [InternalOrdersApplyPromotionRequest](docs/InternalOrdersApplyPromotionRequest.md)
  - [InternalOrdersCancelOrderRequest](docs/InternalOrdersCancelOrderRequest.md)
  - [InternalOrdersConfirmManualPaymentRequest](docs/InternalOrdersConfirmManualPaymentRequest.md)
@@ -153,7 +169,9 @@ Class | Method | HTTP request | Description
  - [InternalOrdersOrderListResponse](docs/InternalOrdersOrderListResponse.md)
  - [InternalOrdersPagedOrderResponse](docs/InternalOrdersPagedOrderResponse.md)
  - [InternalOrdersPaymentAction](docs/InternalOrdersPaymentAction.md)
+ - [InternalOrdersRefundOrderRequest](docs/InternalOrdersRefundOrderRequest.md)
  - [InternalOrdersUpdateOrderItemRequest](docs/InternalOrdersUpdateOrderItemRequest.md)
+ - [InternalOrdersUpdateOrderItemsRequest](docs/InternalOrdersUpdateOrderItemsRequest.md)
  - [InternalOrdersUpdateOrderStatusRequest](docs/InternalOrdersUpdateOrderStatusRequest.md)
  - [InternalPaymentMethodsPaymentMethodResponse](docs/InternalPaymentMethodsPaymentMethodResponse.md)
  - [InternalProductsCreateProductOptionRequest](docs/InternalProductsCreateProductOptionRequest.md)
@@ -161,6 +179,7 @@ Class | Method | HTTP request | Description
  - [InternalProductsCreateProductRequest](docs/InternalProductsCreateProductRequest.md)
  - [InternalProductsListProductsResponse](docs/InternalProductsListProductsResponse.md)
  - [InternalProductsPagedStockHistoryResponse](docs/InternalProductsPagedStockHistoryResponse.md)
+ - [InternalProductsProductCategoryResponse](docs/InternalProductsProductCategoryResponse.md)
  - [InternalProductsProductListResponse](docs/InternalProductsProductListResponse.md)
  - [InternalProductsProductOptionResponse](docs/InternalProductsProductOptionResponse.md)
  - [InternalProductsProductResponse](docs/InternalProductsProductResponse.md)
@@ -179,11 +198,16 @@ Class | Method | HTTP request | Description
  - [InternalReportCancellationReportResponse](docs/InternalReportCancellationReportResponse.md)
  - [InternalReportCashierPerformanceResponse](docs/InternalReportCashierPerformanceResponse.md)
  - [InternalReportDashboardSummaryResponse](docs/InternalReportDashboardSummaryResponse.md)
+ - [InternalReportLowStockProductResponse](docs/InternalReportLowStockProductResponse.md)
  - [InternalReportPaymentMethodPerformanceResponse](docs/InternalReportPaymentMethodPerformanceResponse.md)
  - [InternalReportProductPerformanceResponse](docs/InternalReportProductPerformanceResponse.md)
+ - [InternalReportProductPerformanceRow](docs/InternalReportProductPerformanceRow.md)
  - [InternalReportProductProfitResponse](docs/InternalReportProductProfitResponse.md)
+ - [InternalReportProductProfitRow](docs/InternalReportProductProfitRow.md)
  - [InternalReportProfitSummaryResponse](docs/InternalReportProfitSummaryResponse.md)
+ - [InternalReportPromotionPerformanceResponse](docs/InternalReportPromotionPerformanceResponse.md)
  - [InternalReportSalesReport](docs/InternalReportSalesReport.md)
+ - [InternalReportShiftSummaryResponse](docs/InternalReportShiftSummaryResponse.md)
  - [InternalSettingsBrandingSettingsResponse](docs/InternalSettingsBrandingSettingsResponse.md)
  - [InternalSettingsPrinterSettingsResponse](docs/InternalSettingsPrinterSettingsResponse.md)
  - [InternalSettingsUpdateBrandingRequest](docs/InternalSettingsUpdateBrandingRequest.md)
@@ -203,7 +227,6 @@ Class | Method | HTTP request | Description
  - [InternalUserUsersResponse](docs/InternalUserUsersResponse.md)
  - [OrdersGet200Response](docs/OrdersGet200Response.md)
  - [OrdersIdPayMidtransPost200Response](docs/OrdersIdPayMidtransPost200Response.md)
- - [OrdersPost201Response](docs/OrdersPost201Response.md)
  - [POSKasirInternalActivitylogRepositoryLogActionType](docs/POSKasirInternalActivitylogRepositoryLogActionType.md)
  - [POSKasirInternalActivitylogRepositoryLogEntityType](docs/POSKasirInternalActivitylogRepositoryLogEntityType.md)
  - [POSKasirInternalCommonErrorResponse](docs/POSKasirInternalCommonErrorResponse.md)
@@ -229,11 +252,14 @@ Class | Method | HTTP request | Description
  - [ReportsCancellationsGet200Response](docs/ReportsCancellationsGet200Response.md)
  - [ReportsCashierPerformanceGet200Response](docs/ReportsCashierPerformanceGet200Response.md)
  - [ReportsDashboardSummaryGet200Response](docs/ReportsDashboardSummaryGet200Response.md)
+ - [ReportsLowStockGet200Response](docs/ReportsLowStockGet200Response.md)
  - [ReportsPaymentMethodsGet200Response](docs/ReportsPaymentMethodsGet200Response.md)
  - [ReportsProductsGet200Response](docs/ReportsProductsGet200Response.md)
  - [ReportsProfitProductsGet200Response](docs/ReportsProfitProductsGet200Response.md)
  - [ReportsProfitSummaryGet200Response](docs/ReportsProfitSummaryGet200Response.md)
+ - [ReportsPromotionsGet200Response](docs/ReportsPromotionsGet200Response.md)
  - [ReportsSalesGet200Response](docs/ReportsSalesGet200Response.md)
+ - [ReportsShiftSummaryGet200Response](docs/ReportsShiftSummaryGet200Response.md)
  - [SettingsBrandingGet200Response](docs/SettingsBrandingGet200Response.md)
  - [SettingsBrandingLogoPost200Response](docs/SettingsBrandingLogoPost200Response.md)
  - [SettingsPrinterGet200Response](docs/SettingsPrinterGet200Response.md)

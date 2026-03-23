@@ -5,13 +5,12 @@
 -- Product options should be created separately in a transaction.
 INSERT INTO products (
     name,
-    category_id,
     image_url,
     price,
     stock,
     cost_price
 ) VALUES (
-             $1, $2, $3, $4, $5, $6
+             $1, $2, $3, $4, $5
          ) RETURNING *;
 
 -- name: GetProductWithOptions :one
@@ -43,14 +42,17 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
-    c.name as category_name,
-    c.id as category_id
+    COALESCE(
+        (SELECT json_agg(c.*) 
+         FROM product_categories pc 
+         JOIN categories c ON pc.category_id = c.id 
+         WHERE pc.product_id = p.id),
+        '[]'::json
+    ) AS categories
 FROM
     products p
-        LEFT JOIN
-    categories c ON p.category_id = c.id
 WHERE
-    (sqlc.narg(category_id)::int IS NULL OR p.category_id = sqlc.narg(category_id))
+    (sqlc.narg(category_id)::int IS NULL OR EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = sqlc.narg(category_id)))
   AND
     (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
   AND p.deleted_at IS NULL
@@ -63,7 +65,6 @@ LIMIT $1 OFFSET $2;
 UPDATE products
 SET
     name = COALESCE(sqlc.narg(name), name),
-    category_id = COALESCE(sqlc.narg(category_id), category_id),
     image_url = COALESCE(sqlc.narg(image_url), image_url),
     price = COALESCE(sqlc.narg(price), price),
     stock = COALESCE(sqlc.narg(stock), stock),
@@ -79,12 +80,12 @@ WHERE id = $1;
 
 -- name: CountProducts :one
 -- Counts total products for pagination, respecting filters.
-SELECT count(*) FROM products
+SELECT count(*) FROM products p
 WHERE
-    (sqlc.narg(category_id)::int IS NULL OR category_id = sqlc.narg(category_id))
+    (sqlc.narg(category_id)::int IS NULL OR EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = sqlc.narg(category_id)))
   AND
-    (sqlc.narg(search_text)::text IS NULL OR name ILIKE '%' || sqlc.narg(search_text) || '%')
-  AND deleted_at IS NULL;
+    (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND p.deleted_at IS NULL;
 
 
 -- Queries for Product Options (Variants)
@@ -141,7 +142,6 @@ LIMIT 1;
 SELECT
     po.*,
     p.name AS product_name,
-    p.category_id AS product_category_id,
     p.image_url AS product_image_url,
     p.price AS product_price,
     p.stock AS product_stock
@@ -165,9 +165,16 @@ SELECT
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
-             WHERE po.product_id = p.id AND po.deleted_at IS NULL), -- <-- TAMBAHAN DI SINI
+             WHERE po.product_id = p.id AND po.deleted_at IS NULL), 
             '[]'::json
-    ) AS options
+    ) AS options,
+    COALESCE(
+        (SELECT json_agg(c.*) 
+         FROM product_categories pc 
+         JOIN categories c ON pc.category_id = c.id 
+         WHERE pc.product_id = p.id),
+        '[]'::json
+    ) AS categories
 FROM
     products p
 WHERE
@@ -182,15 +189,18 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
-    c.name as category_name,
-    c.id as category_id,
+    COALESCE(
+        (SELECT json_agg(c.*) 
+         FROM product_categories pc 
+         JOIN categories c ON pc.category_id = c.id 
+         WHERE pc.product_id = p.id),
+        '[]'::json
+    ) AS categories,
     p.deleted_at
 FROM
     products p
-        LEFT JOIN
-    categories c ON p.category_id = c.id
 WHERE
-    (sqlc.narg(category_id)::int IS NULL OR p.category_id = sqlc.narg(category_id))
+    (sqlc.narg(category_id)::int IS NULL OR EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = sqlc.narg(category_id)))
   AND
     (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
   AND p.deleted_at IS NOT NULL
@@ -199,12 +209,18 @@ ORDER BY
 LIMIT $1 OFFSET $2;
 
 -- name: CountDeletedProducts :one
-SELECT count(*) FROM products
+SELECT count(*) FROM products p
 WHERE
-    (sqlc.narg(category_id)::int IS NULL OR category_id = sqlc.narg(category_id))
+    (sqlc.narg(category_id)::int IS NULL OR EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = sqlc.narg(category_id)))
   AND
-    (sqlc.narg(search_text)::text IS NULL OR name ILIKE '%' || sqlc.narg(search_text) || '%')
-  AND deleted_at IS NOT NULL;
+    (sqlc.narg(search_text)::text IS NULL OR p.name ILIKE '%' || sqlc.narg(search_text) || '%')
+  AND p.deleted_at IS NOT NULL;
+
+-- name: AssignProductCategory :exec
+INSERT INTO product_categories (product_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING;
+
+-- name: ClearProductCategories :exec
+DELETE FROM product_categories WHERE product_id = $1;
 
 -- name: GetDeletedProduct :one
 SELECT

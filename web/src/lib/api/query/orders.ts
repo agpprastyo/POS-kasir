@@ -10,6 +10,7 @@ import {
     InternalOrdersUpdateOrderItemRequest,
     InternalOrdersOrderDetailResponse,
     InternalOrdersMidtransPaymentResponse,
+    InternalOrdersRefundOrderRequest,
 } from "../generated"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
@@ -251,7 +252,7 @@ export const useUpdateOrderItemsMutation = () => {
     >({
         mutationKey: ['orders', 'update-items'],
         mutationFn: async ({ id, body }) => {
-            const res = await ordersApi.ordersIdItemsPut(id, body)
+            const res = await ordersApi.ordersIdItemsPatch(id, body as any) // cast body to any if needed or adjust type
             return (res.data as any).data
         },
         onSuccess: (_, variables) => {
@@ -288,6 +289,35 @@ export const usePrintInvoiceMutation = () => {
         },
         onError: (error) => {
             const msg = error.response?.data?.message || "Failed to print invoice"
+            toast.error(msg)
+        }
+    })
+
+    return { ...mutation, isAllowed }
+}
+
+export const useRefundOrderMutation = () => {
+    const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/{id}/refund')
+
+    const mutation = useMutation<
+        any,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        { id: string; body: InternalOrdersRefundOrderRequest }
+    >({
+        mutationKey: ['orders', 'refund'],
+        mutationFn: async ({ id, body }) => {
+            const res = await ordersApi.apiV1OrdersIdRefundPost(id, body)
+            return (res.data as any).data
+        },
+        onSuccess: (_, variables) => {
+            qc.invalidateQueries({ queryKey: ['orders', 'list'] })
+            qc.invalidateQueries({ queryKey: ['orders', 'detail', variables.id] })
+            toast.success(i18n.t('order.refund_success', 'Order refunded successfully'))
+        },
+        onError: (error) => {
+            const msg = error.response?.data?.message || "Gagal melakukan refund order"
             toast.error(msg)
         }
     })

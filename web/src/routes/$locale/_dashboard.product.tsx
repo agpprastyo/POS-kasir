@@ -241,7 +241,11 @@ function ProductsPage() {
                                                     {product.name}
                                                 </TableCell>
                                                 <TableCell className="hidden md:table-cell">
-                                                    <Badge variant="outline">{product.category_name || '-'}</Badge>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {(product as any).categories?.map((cat: any) => (
+                                                            <Badge key={cat.id} variant="outline" className="text-xs">{cat.name}</Badge>
+                                                        )) || '-'}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     {formatRupiah(product.price || 0)}
@@ -323,7 +327,11 @@ function ProductsPage() {
                                                     {product.name}
                                                 </TableCell>
                                                 <TableCell className="hidden md:table-cell">
-                                                    <Badge variant="outline" className="opacity-50">{product.category_name || '-'}</Badge>
+                                                    <div className="flex flex-wrap gap-1 opacity-50">
+                                                        {(product as any).categories?.map((cat: any) => (
+                                                            <Badge key={cat.id} variant="outline" className="text-xs">{cat.name}</Badge>
+                                                        )) || '-'}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-muted-foreground">
                                                     {formatRupiah(product.price || 0)}

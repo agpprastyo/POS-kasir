@@ -10,7 +10,7 @@ import {
 import { Globe } from 'lucide-react';
 
 export function LanguageSwitcher() {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const location = useLocation();
 
@@ -35,11 +35,11 @@ export function LanguageSwitcher() {
         <Select value={i18n.language} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-full gap-2">
                 <Globe className="h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="Language" />
+                <SelectValue placeholder={t('common.language_placeholder')} />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="id">Bahasa (ID)</SelectItem>
-                <SelectItem value="en">English (EN)</SelectItem>
+                <SelectItem value="id">{t('common.language_id')}</SelectItem>
+                <SelectItem value="en">{t('common.language_en')}</SelectItem>
             </SelectContent>
         </Select>
     );

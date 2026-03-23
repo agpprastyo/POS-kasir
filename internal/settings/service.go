@@ -50,10 +50,8 @@ func (s *SettingsService) GetBranding(ctx context.Context) (*BrandingSettingsRes
 	}
 
 	response := &BrandingSettingsResponse{
-		AppName:        "POS Kasir",
-		FooterText:     "© 2024 POS Kasir. All rights reserved.",
-		ThemeColor:     "#000000",
-		ThemeColorDark: "#ffffff",
+		AppName:    "POS Kasir",
+		FooterText: "© 2024 POS Kasir. All rights reserved.",
 	}
 
 	for _, setting := range settings {
@@ -64,10 +62,6 @@ func (s *SettingsService) GetBranding(ctx context.Context) (*BrandingSettingsRes
 			response.AppLogo = setting.Value
 		case "footer_text":
 			response.FooterText = setting.Value
-		case "theme_color":
-			response.ThemeColor = setting.Value
-		case "theme_color_dark":
-			response.ThemeColorDark = setting.Value
 		}
 	}
 
@@ -111,28 +105,6 @@ func (s *SettingsService) UpdateBranding(ctx context.Context, req UpdateBranding
 			}
 		}
 
-		// Update Theme Color
-		if req.ThemeColor != "" {
-			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
-				Key:   "theme_color",
-				Value: req.ThemeColor,
-			})
-			if err != nil {
-				return err
-			}
-		}
-
-		// Update Theme Color Dark
-		if req.ThemeColorDark != "" {
-			_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
-				Key:   "theme_color_dark",
-				Value: req.ThemeColorDark,
-			})
-			if err != nil {
-				return err
-			}
-		}
-
 		return nil
 	})
 
@@ -144,11 +116,9 @@ func (s *SettingsService) UpdateBranding(ctx context.Context, req UpdateBranding
 	// Activity Log
 	actorID := ctx.Value("user_id").(uuid.UUID)
 	logDetails := map[string]interface{}{
-		"app_name":         req.AppName,
-		"app_logo":         req.AppLogo,
-		"footer_text":      req.FooterText,
-		"theme_color":      req.ThemeColor,
-		"theme_color_dark": req.ThemeColorDark,
+		"app_name":    req.AppName,
+		"app_logo":    req.AppLogo,
+		"footer_text": req.FooterText,
 	}
 
 	s.activitylog.Log(

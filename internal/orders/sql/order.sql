@@ -1,6 +1,6 @@
 -- name: CreateOrder :one
-INSERT INTO orders (user_id, type )
-VALUES ($1, $2 )
+INSERT INTO orders (user_id, type, customer_id )
+VALUES ($1, $2, $3 )
 RETURNING *;
 
 -- name: DeleteOrderItemsByOrderID :exec
@@ -45,9 +45,12 @@ UPDATE orders
 SET
     gross_total = $2,
     discount_amount = $3,
-    net_total = $4
+    net_total = $4,
+    tax_amount = $5,
+    service_charge_amount = $6,
+    version = version + 1
 WHERE
-    id = $1
+    id = $1 AND version = $7
 RETURNING *;
 
 -- name: UpdateOrderAppliedPromotion :exec
@@ -193,9 +196,11 @@ UPDATE orders
 SET
     payment_method_id = $2,
     cash_received = $3,
-    change_due = $4
+    change_due = $4,
+    status = 'paid',
+    version = version + 1
 WHERE
-    id = $1
+    id = $1 AND version = $5
 RETURNING *;
 
 -- name: UpdateOrderStatus :one

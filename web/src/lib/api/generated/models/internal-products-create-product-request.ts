@@ -18,7 +18,7 @@
 import type { InternalProductsCreateProductOptionRequest } from './internal-products-create-product-option-request';
 
 export interface InternalProductsCreateProductRequest {
-    'category_id': number;
+    'category_ids'?: Array<number>;
     'cost_price': number;
     'name': string;
     'options'?: Array<InternalProductsCreateProductOptionRequest>;

@@ -8,8 +8,6 @@ Name | Type | Description | Notes
 **app_logo** | **string** |  | [optional] [default to undefined]
 **app_name** | **string** |  | [optional] [default to undefined]
 **footer_text** | **string** |  | [optional] [default to undefined]
-**theme_color** | **string** |  | [optional] [default to undefined]
-**theme_color_dark** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -20,8 +18,6 @@ const instance: InternalSettingsBrandingSettingsResponse = {
     app_logo,
     app_name,
     footer_text,
-    theme_color,
-    theme_color_dark,
 };
 ```
 

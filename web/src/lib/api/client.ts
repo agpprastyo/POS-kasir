@@ -12,7 +12,8 @@ import {
     ReportsApi,
     SettingsApi,
     UsersApi,
-    PrinterApi
+    PrinterApi,
+    CustomersApi
 } from "@/lib/api/generated";
 
 const BASE_PATH = import.meta.env.VITE_API_BASE || '/api/v1'
@@ -77,3 +78,4 @@ export const reportsApi = new ReportsApi(config, undefined, axiosInstance)
 export const activityLogsApi = new ActivityLogsApi(config, undefined, axiosInstance)
 export const settingsApi = new SettingsApi(config, undefined, axiosInstance)
 export const printerApi = new PrinterApi(config, undefined, axiosInstance)
+export const customersApi = new CustomersApi(config, undefined, axiosInstance)

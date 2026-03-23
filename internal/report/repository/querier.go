@@ -9,15 +9,20 @@ import (
 )
 
 type Querier interface {
+	CountProductProfitReports(ctx context.Context, arg CountProductProfitReportsParams) (int64, error)
+	CountProductSalesPerformance(ctx context.Context, arg CountProductSalesPerformanceParams) (int64, error)
 	GetCancellationReasons(ctx context.Context, arg GetCancellationReasonsParams) ([]GetCancellationReasonsRow, error)
 	GetCashierPerformance(ctx context.Context, arg GetCashierPerformanceParams) ([]GetCashierPerformanceRow, error)
 	GetCategorySales(ctx context.Context, arg GetCategorySalesParams) ([]GetCategorySalesRow, error)
-	GetDashboardSummary(ctx context.Context) (GetDashboardSummaryRow, error)
+	GetDashboardSummary(ctx context.Context, arg GetDashboardSummaryParams) (GetDashboardSummaryRow, error)
+	GetLowStockProducts(ctx context.Context, stock int32) ([]GetLowStockProductsRow, error)
 	GetPaymentMethodSales(ctx context.Context, arg GetPaymentMethodSalesParams) ([]GetPaymentMethodSalesRow, error)
 	GetProductProfitReports(ctx context.Context, arg GetProductProfitReportsParams) ([]GetProductProfitReportsRow, error)
 	GetProductSalesPerformance(ctx context.Context, arg GetProductSalesPerformanceParams) ([]GetProductSalesPerformanceRow, error)
 	GetProfitSummary(ctx context.Context, arg GetProfitSummaryParams) ([]GetProfitSummaryRow, error)
+	GetPromotionPerformance(ctx context.Context, arg GetPromotionPerformanceParams) ([]GetPromotionPerformanceRow, error)
 	GetSalesSummary(ctx context.Context, arg GetSalesSummaryParams) ([]GetSalesSummaryRow, error)
+	GetShiftSummary(ctx context.Context, arg GetShiftSummaryParams) ([]GetShiftSummaryRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

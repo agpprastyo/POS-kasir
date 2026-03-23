@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **cash_received** | **number** |  | [optional] [default to undefined]
 **payment_method_id** | **number** |  | [default to undefined]
+**version** | **number** |  | [default to undefined]
 
 ## Example
 
@@ -16,6 +17,7 @@ import { InternalOrdersConfirmManualPaymentRequest } from 'restClient';
 const instance: InternalOrdersConfirmManualPaymentRequest = {
     cash_received,
     payment_method_id,
+    version,
 };
 ```
 

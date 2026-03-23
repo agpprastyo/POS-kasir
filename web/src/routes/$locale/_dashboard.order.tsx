@@ -23,6 +23,9 @@ import { useCreateOrderMutation } from '@/lib/api/query/orders'
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from 'sonner'
 import { InternalProductsProductOptionResponse, POSKasirInternalOrdersRepositoryOrderType } from '@/lib/api/generated'
+import { useCustomersListQuery } from '@/lib/api/query/customers'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { User } from 'lucide-react'
 
 const orderSearchSchema = z.object({
     category: z.string().optional().catch('all'),
@@ -51,15 +54,22 @@ function OrderPage() {
     const { data: productsData } = useProductsListQuery({ limit: 100, search: searchTerm })
     const products = productsData?.products || []
 
+    const { data: customersData } = useCustomersListQuery({ limit: 100 })
+    const customers = customersData?.customers || []
+
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
+
     const selectedCategory = searchParams.category || "all"
     const [selectedOrderType, setSelectedOrderType] = useState<POSKasirInternalOrdersRepositoryOrderType>(POSKasirInternalOrdersRepositoryOrderType.OrderTypeDineIn)
 
     const categories = useMemo(() => {
         const unique = new Map<string, string>()
         products.forEach(p => {
-            if (p.category_id && p.category_name) {
-                unique.set(String(p.category_id), p.category_name)
-            }
+            p.categories?.forEach(cat => {
+                if (cat.id && cat.name) {
+                    unique.set(String(cat.id), cat.name)
+                }
+            })
         })
         return Array.from(unique.entries())
             .map(([id, name]) => ({ id, name }))
@@ -68,7 +78,7 @@ function OrderPage() {
 
     const filteredProducts = useMemo(() => {
         if (selectedCategory === "all") return products
-        return products.filter(p => String(p.category_id) === selectedCategory)
+        return products.filter(p => p.categories?.some(cat => String(cat.id) === selectedCategory))
     }, [selectedCategory, products])
 
     const inStockProducts = filteredProducts.filter(p => (p.stock || 0) > 0)
@@ -167,7 +177,8 @@ function OrderPage() {
                 quantity: item.quantity,
                 options: item.variant && item.variant.id ? [{ product_option_id: item.variant.id }] : []
             })),
-            type: selectedOrderType
+            type: selectedOrderType,
+            customer_id: selectedCustomerId || undefined
         }
 
         toast.promise(createOrderMutation.mutateAsync(orderData), {
@@ -271,7 +282,22 @@ function OrderPage() {
                     </span>
                 </div>
 
-                <div className="mx-4 mt-4">
+                <div className="mx-4 mt-4 space-y-3">
+                    <Select value={selectedCustomerId || 'walk_in'} onValueChange={(v) => setSelectedCustomerId(v === 'walk_in' ? null : v)}>
+                        <SelectTrigger className="w-full">
+                            <div className="flex items-center gap-2 truncate">
+                                <User className="h-4 w-4 shrink-0" />
+                                <SelectValue placeholder={t('order.select_customer', 'Walk-in Customer')} />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="walk_in">{t('order.walk_in', 'Walk-in Customer')}</SelectItem>
+                            {customers.map(c => (
+                                <SelectItem key={c.id} value={c.id!}>{c.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
                     <Tabs value={selectedOrderType} onValueChange={(v) => setSelectedOrderType(v as POSKasirInternalOrdersRepositoryOrderType)} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value={POSKasirInternalOrdersRepositoryOrderType.OrderTypeDineIn}>{t('order.order_type.dine_in')}</TabsTrigger>
@@ -340,14 +366,18 @@ function OrderPage() {
                             <span className="text-muted-foreground">{t('order.subtotal')}</span>
                             <span>{formatRupiah(calculateTotal())}</span>
                         </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">{t('order.tax', 'Tax (11%)')}</span>
+                            <span>{formatRupiah(Math.floor(calculateTotal() * 0.11))}</span>
+                        </div>
 
                         <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
                             <span>{t('order.total')}</span>
-                            <span className="text-primary">{formatRupiah(calculateTotal())}</span>
+                            <span className="text-primary">{formatRupiah(calculateTotal() + Math.floor(calculateTotal() * 0.11))}</span>
                         </div>
                     </div>
                     <Button className="w-full h-12 text-lg " size="lg" disabled={cart.length === 0} onClick={handleCheckout}>
-                        {t('order.charge')} {formatRupiah(calculateTotal())}
+                        {t('order.charge')} {formatRupiah(calculateTotal() + Math.floor(calculateTotal() * 0.11))}
                     </Button>
                 </div>
             </div>
@@ -360,6 +390,7 @@ function OrderPage() {
                 onPaymentSuccess={() => {
                     setCart([])
                     setCreatedOrderId(null)
+                    setSelectedCustomerId(null)
                     // setIsPaymentOpen(false) // Handled by component usually, but parent state needs to sync? PaymentDialog calls onOpenChange(false) automatically.
                 }}
             />

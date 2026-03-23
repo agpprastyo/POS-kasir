@@ -11,7 +11,7 @@ import (
 type Querier interface {
 	// Menghitung total jumlah kategori, berguna untuk pagination.
 	CountCategories(ctx context.Context) (int64, error)
-	CountProductsInCategory(ctx context.Context, categoryID *int32) (int64, error)
+	CountProductsInCategory(ctx context.Context, categoryID int32) (int64, error)
 	// Membuat kategori baru dan mengembalikan data lengkapnya.
 	CreateCategory(ctx context.Context, name string) (Category, error)
 	// Menghapus satu kategori berdasarkan ID.

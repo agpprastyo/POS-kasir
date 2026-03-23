@@ -8,6 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { useQueryClient } from '@tanstack/react-query'
 import { meQueryOptions } from '@/lib/api/query/auth'
+import { useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 // Lazy load Recharts — tidak masuk initial bundle
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'))
@@ -19,13 +22,15 @@ export const Route = createFileRoute('/$locale/_dashboard/')(({
 
 function DashboardIndex() {
     const { t } = useTranslation()
-    const { data: summary, isLoading: isLoadingSummary } = useDashboardSummaryQuery()
     const queryClient = useQueryClient()
     const user = queryClient.getQueryData(meQueryOptions().queryKey)
 
-    const endDate = new Date().toISOString().split('T')[0]
-    const startDate = new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]
+    const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0])
+    const [startDate, setStartDate] = useState<string>(
+        new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]
+    )
 
+    const { data: summary, isLoading: isLoadingSummary } = useDashboardSummaryQuery(startDate, endDate)
     const { data: salesData, isLoading: isLoadingSales } = useSalesReportQuery(startDate, endDate)
     const { data: productsData, isLoading: isLoadingProducts } = useProductPerformanceQuery(startDate, endDate)
     const { data: paymentsData, isLoading: isLoadingPayments } = usePaymentMethodPerformanceQuery(startDate, endDate)
@@ -46,7 +51,7 @@ function DashboardIndex() {
     }
 
     // Get top 5 products
-    const topProducts = productsData?.slice(0, 5) || []
+    const topProducts = productsData?.products?.slice(0, 5) || []
 
     return (
         <div className="flex flex-col gap-8">
@@ -61,6 +66,28 @@ function DashboardIndex() {
                     </p>
                 </div>
 
+                <div className="flex items-center gap-2">
+                    <div className="grid gap-1">
+                        <Label htmlFor="start" className="text-xs">{t('reports.start_date') || 'Start Date'}</Label>
+                        <Input
+                            id="start"
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="w-40 h-9"
+                        />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label htmlFor="end" className="text-xs">{t('reports.end_date') || 'End Date'}</Label>
+                        <Input
+                            id="end"
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="w-40 h-9"
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* Stat Cards */}

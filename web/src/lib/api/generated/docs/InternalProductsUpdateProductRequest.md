@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**category_id** | **number** |  | [optional] [default to undefined]
+**category_ids** | **Array&lt;number&gt;** |  | [optional] [default to undefined]
 **change_type** | **string** |  | [optional] [default to undefined]
 **cost_price** | **number** |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
@@ -19,7 +19,7 @@ Name | Type | Description | Notes
 import { InternalProductsUpdateProductRequest } from 'restClient';
 
 const instance: InternalProductsUpdateProductRequest = {
-    category_id,
+    category_ids,
     change_type,
     cost_price,
     name,

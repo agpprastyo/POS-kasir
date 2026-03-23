@@ -59,6 +59,29 @@ export const RBAC_RULES: Record<string, string[]> = {
         "admin",
         "manager"
     ],
+    "GET /customers": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "POST /customers": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "GET /customers/{id}": [
+        "admin",
+        "manager",
+        "cashier"
+    ],
+    "PUT /customers/{id}": [
+        "admin",
+        "manager"
+    ],
+    "DELETE /customers/{id}": [
+        "admin",
+        "manager"
+    ],
     "GET /orders": [
         "admin",
         "manager",
@@ -84,7 +107,7 @@ export const RBAC_RULES: Record<string, string[]> = {
         "manager",
         "cashier"
     ],
-    "PUT /orders/{id}/items": [
+    "PATCH /orders/{id}/items": [
         "admin",
         "manager",
         "cashier"
@@ -213,6 +236,10 @@ export const RBAC_RULES: Record<string, string[]> = {
         "manager",
         "cashier"
     ],
+    "GET /reports/low-stock": [
+        "admin",
+        "manager"
+    ],
     "GET /reports/payment-methods": [
         "admin",
         "manager",
@@ -233,10 +260,18 @@ export const RBAC_RULES: Record<string, string[]> = {
         "manager",
         "cashier"
     ],
+    "GET /reports/promotions": [
+        "admin",
+        "manager"
+    ],
     "GET /reports/sales": [
         "admin",
         "manager",
         "cashier"
+    ],
+    "GET /reports/shift-summary": [
+        "admin",
+        "manager"
     ],
     "GET /settings/branding": [
         "admin",

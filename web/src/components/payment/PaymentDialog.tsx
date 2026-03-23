@@ -110,15 +110,15 @@ export function PaymentDialog({ open, onOpenChange, orderId, onPaymentSuccess, m
             <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>{t('order.cancel_confirm_title')}</AlertDialogTitle>
+                        <AlertDialogTitle>{t('order.cancel_confirm.title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {t('order.cancel_confirm_desc')}
+                            {t('order.cancel_confirm.desc')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setCancelDialogOpen(false)}>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleConfirmCancel} className="bg-destructive hover:bg-destructive/90">
-                            {t('order.cancel_confirm_btn')}
+                            {t('order.cancel_confirm.yes')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -158,10 +158,10 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
         if (!orderId) return
         try {
             await printerService.printInvoice(orderId)
-            toast.success(t('payment.print_success', { defaultValue: 'Print command sent' }))
+            toast.success(t('settings.printer.print_success', { defaultValue: 'Print command sent' }))
         } catch (error) {
             console.error(error)
-            toast.error(t('payment.print_failed', { defaultValue: 'Failed to print receipt' }))
+            toast.error(t('settings.printer.print_failed', { defaultValue: 'Failed to print receipt' }))
         }
     }
 
@@ -176,7 +176,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
             toast.success(t('order.success.payment_success'), {
                 description: t('order.payment_dialog.midtrans_auto_confirm'),
                 style: { background: '#10B981', color: 'white', border: 'none' },
-                action: { label: 'Print', onClick: () => handlePrint() }
+                action: { label: t('common.print'), onClick: () => handlePrint() }
             })
         }
     }, [order?.status, open])
@@ -195,13 +195,13 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
         if (selectedPaymentMethod === 3) {
             try {
                 await confirmManualPaymentMutation.mutateAsync({
-                    id: orderId, body: { payment_method_id: selectedPaymentMethod, cash_received: totalAmount }
+                    id: orderId, body: { payment_method_id: selectedPaymentMethod, cash_received: totalAmount, version: order?.version || 1 }
                 })
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
                 if (printerSettings?.auto_print) handlePrint()
                 if (onPaymentSuccess) onPaymentSuccess()
                 onOpenChange(false)
-                toast.success(t('order.success.payment_complete'), { action: { label: 'Print', onClick: () => handlePrint() } })
+                toast.success(t('order.success.payment_complete'), { action: { label: t('common.print'), onClick: () => handlePrint() } })
             } catch (error) { console.error(error) }
             return
         }
@@ -215,7 +215,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
 
             try {
                 await confirmManualPaymentMutation.mutateAsync({
-                    id: orderId, body: { payment_method_id: selectedPaymentMethod, cash_received: inputCash }
+                    id: orderId, body: { payment_method_id: selectedPaymentMethod, cash_received: inputCash, version: order?.version || 1 }
                 })
                 await queryClient.invalidateQueries({ queryKey: ['orders'] })
                 if (printerSettings?.auto_print) handlePrint()
@@ -227,7 +227,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                     description: `${t('order.success.received')}: ${formatRupiah(inputCash)} | ${t('order.total')}: ${formatRupiah(totalAmount)}`,
                     closeButton: true, position: 'top-center',
                     style: { background: '#10B981', color: 'white', border: 'none' },
-                    action: { label: 'Print', onClick: () => handlePrint() }
+                    action: { label: t('common.print'), onClick: () => handlePrint() }
                 })
             } catch (error) { console.error(error) }
             return
@@ -322,7 +322,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
 
                                     {method.id === 3 && (
                                         <div className="bg-white p-2 rounded-lg mt-2 mx-auto flex flex-col items-center justify-center">
-                                            <div className="h-48 w-48 mb-2"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${orderId}`} alt="Static QRIS" className="w-full h-full object-contain" /></div>
+                                            <div className="h-48 w-48 mb-2"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${orderId}`} alt={t('order.static_qris')} className="w-full h-full object-contain" /></div>
                                             <span className="text-xs text-muted-foreground font-medium text-center">{t('order.payment_dialog.scan_qr_static')}</span>
                                             <Button size="sm" className="mt-2 w-full" onClick={handlePayment}>
                                                 {confirmManualPaymentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

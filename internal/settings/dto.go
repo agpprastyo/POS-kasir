@@ -14,19 +14,15 @@ type UpdateSettingRequest struct {
 }
 
 type BrandingSettingsResponse struct {
-	AppName        string `json:"app_name"`
-	AppLogo        string `json:"app_logo"`
-	FooterText     string `json:"footer_text"`
-	ThemeColor     string `json:"theme_color"`
-	ThemeColorDark string `json:"theme_color_dark"`
+	AppName    string `json:"app_name"`
+	AppLogo    string `json:"app_logo"`
+	FooterText string `json:"footer_text"`
 }
 
 type UpdateBrandingRequest struct {
-	AppName        string `json:"app_name" validate:"required,min=3,max=100"`
-	AppLogo        string `json:"app_logo" validate:"omitempty"`
-	FooterText     string `json:"footer_text" validate:"omitempty,max=200"`
-	ThemeColor     string `json:"theme_color" validate:"required,hexcolor"`
-	ThemeColorDark string `json:"theme_color_dark" validate:"required,hexcolor"`
+	AppName    string `json:"app_name" validate:"required,min=3,max=100"`
+	AppLogo    string `json:"app_logo" validate:"omitempty"`
+	FooterText string `json:"footer_text" validate:"omitempty,max=200"`
 }
 
 type PrinterSettingsResponse struct {

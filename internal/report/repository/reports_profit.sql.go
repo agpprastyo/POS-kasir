@@ -12,6 +12,27 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countProductProfitReports = `-- name: CountProductProfitReports :one
+SELECT COUNT(DISTINCT p.id)
+FROM order_items oi
+JOIN products p ON oi.product_id = p.id
+JOIN orders o ON oi.order_id = o.id
+WHERE o.created_at::date BETWEEN $1 AND $2
+  AND o.status IN ('paid', 'served')
+`
+
+type CountProductProfitReportsParams struct {
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+}
+
+func (q *Queries) CountProductProfitReports(ctx context.Context, arg CountProductProfitReportsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countProductProfitReports, arg.CreatedAt, arg.CreatedAt_2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getProductProfitReports = `-- name: GetProductProfitReports :many
 SELECT
     p.id AS product_id,
@@ -27,11 +48,14 @@ WHERE o.created_at::date BETWEEN $1 AND $2
   AND o.status IN ('paid', 'served')
 GROUP BY p.id, p.name
 ORDER BY gross_profit DESC
+LIMIT $3 OFFSET $4
 `
 
 type GetProductProfitReportsParams struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+	Limit       int32              `json:"limit"`
+	Offset      int32              `json:"offset"`
 }
 
 type GetProductProfitReportsRow struct {
@@ -44,7 +68,12 @@ type GetProductProfitReportsRow struct {
 }
 
 func (q *Queries) GetProductProfitReports(ctx context.Context, arg GetProductProfitReportsParams) ([]GetProductProfitReportsRow, error) {
-	rows, err := q.db.Query(ctx, getProductProfitReports, arg.CreatedAt, arg.CreatedAt_2)
+	rows, err := q.db.Query(ctx, getProductProfitReports,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

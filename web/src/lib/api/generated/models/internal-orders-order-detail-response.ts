@@ -28,6 +28,7 @@ export interface InternalOrdersOrderDetailResponse {
     'cash_received'?: number;
     'change_due'?: number;
     'created_at'?: string;
+    'customer_id'?: string;
     'discount_amount'?: number;
     'gross_total'?: number;
     'id'?: string;
@@ -35,10 +36,13 @@ export interface InternalOrdersOrderDetailResponse {
     'net_total'?: number;
     'payment_gateway_reference'?: string;
     'payment_method_id'?: number;
+    'service_charge_amount'?: number;
     'status'?: POSKasirInternalOrdersRepositoryOrderStatus;
+    'tax_amount'?: number;
     'type'?: POSKasirInternalOrdersRepositoryOrderType;
     'updated_at'?: string;
     'user_id'?: string;
+    'version'?: number;
 }
 
 

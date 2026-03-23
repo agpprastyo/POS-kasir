@@ -66,7 +66,7 @@ export function CancellationReasonsCard() {
             </CardContent>
 
             {/*<CardFooter className="justify-end border-t bg-muted/20 px-6 py-4">*/}
-            {/*     <Button><Plus className="mr-2 h-4 w-4"/> Add Reason</Button>*/}
+            {/*     <Button><Plus className="mr-2 h-4 w-4"/> {t('settings.cancellation.add_button')}</Button>*/}
             {/*</CardFooter>*/}
         </Card>
     )

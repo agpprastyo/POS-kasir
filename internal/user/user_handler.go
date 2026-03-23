@@ -6,7 +6,6 @@ import (
 	"POS-kasir/pkg/logger"
 	"POS-kasir/pkg/validator"
 	"errors"
-	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -114,14 +113,6 @@ func (h *UsrHandler) GetAllUsersHandler(c fiber.Ctx) error {
 			Message: "Invalid query parameters",
 			Error:   err.Error(),
 		})
-	}
-
-	isActiveStr := c.Query("is_active")
-	if isActiveStr != "" {
-		parsedBool, err := strconv.ParseBool(isActiveStr)
-		if err == nil {
-			req.IsActive = &parsedBool
-		}
 	}
 
 	if err := h.validator.Validate(req); err != nil {

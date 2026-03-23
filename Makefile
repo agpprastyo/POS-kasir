@@ -64,3 +64,9 @@ docker-be:
 
 docker-be-down:
 	@docker compose -f docker-compose.backend.yml down
+
+dev-infra:
+	@docker compose -f docker-compose.infra.yml up -d
+
+dev-infra-down:
+	@docker compose -f docker-compose.infra.yml down

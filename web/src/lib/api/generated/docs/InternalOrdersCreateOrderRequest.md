@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**customer_id** | **string** |  | [optional] [default to undefined]
 **items** | [**Array&lt;InternalOrdersCreateOrderItemRequest&gt;**](InternalOrdersCreateOrderItemRequest.md) |  | [default to undefined]
 **type** | [**POSKasirInternalOrdersRepositoryOrderType**](POSKasirInternalOrdersRepositoryOrderType.md) |  | [default to undefined]
 
@@ -14,6 +15,7 @@ Name | Type | Description | Notes
 import { InternalOrdersCreateOrderRequest } from 'restClient';
 
 const instance: InternalOrdersCreateOrderRequest = {
+    customer_id,
     items,
     type,
 };

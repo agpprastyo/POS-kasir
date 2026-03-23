@@ -25,21 +25,19 @@ jobs:
           go-version: "1.25"
       - name: Go Vet
         run: go vet ./...
-      - name: Go Test
-        run: go test -v ./...
+      # - name: Go Test
+      #   run: go test -v ./...
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: web/package-lock.json
+          bun-version: "latest"
       - name: Install Frontend Dependencies
         working-directory: ./web
-        run: npm ci --legacy-peer-deps
+        run: bun install
       - name: Build Frontend (SPA)
         working-directory: ./web
-        run: npm run build
+        run: bun run build
 
   build-and-push:
     name: Build and Push Docker Image

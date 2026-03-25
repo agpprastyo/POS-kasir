@@ -1,14 +1,14 @@
 # --- Stage 1: Build Frontend (SPA) ---
-FROM node:22-alpine AS frontend-builder
+FROM oven/bun:alpine AS frontend-builder
 WORKDIR /app/web
 
 # Install dependencies
-COPY web/package.json web/package-lock.json ./
-RUN npm ci --legacy-peer-deps
+COPY web/package.json web/bun.lock ./
+RUN bun install
 
 # Build the frontend as static SPA
 COPY web/ ./
-RUN npm run build
+RUN bun run build
 
 # --- Stage 2: Build Backend ---
 FROM golang:1.25-alpine AS backend-builder

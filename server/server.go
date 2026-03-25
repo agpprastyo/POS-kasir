@@ -8,10 +8,10 @@ import (
 	cancellation_reasons_repo "POS-kasir/internal/cancellation_reasons/repository"
 	"POS-kasir/internal/categories"
 	categories_repo "POS-kasir/internal/categories/repository"
-	"POS-kasir/internal/customers"
-	customers_repo "POS-kasir/internal/customers/repository"
 	"POS-kasir/internal/common"
 	"POS-kasir/internal/common/store"
+	"POS-kasir/internal/customers"
+	customers_repo "POS-kasir/internal/customers/repository"
 	"POS-kasir/internal/orders"
 	orders_repo "POS-kasir/internal/orders/repository"
 	"POS-kasir/internal/payment_methods"
@@ -75,7 +75,7 @@ type App struct {
 	MidtransService payment.IMidtrans
 	R2              cloudflarer2.IR2
 	Cache           *shift.Cache
-	MemCache        *cache.MemoryCache
+	RedisCache      cache.Cache
 	Redis           *redis.Client
 }
 
@@ -99,9 +99,9 @@ type AppContainer struct {
 }
 
 func InitApp() *App {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Overload(); err != nil {
 		if os.Getenv("APP_ENV") != "production" {
-			log.Println("Warning: .env file not found, using system environment variables")
+			log.Println("Warning: .env file not found or could not be overloaded")
 		}
 	}
 
@@ -125,19 +125,22 @@ func InitApp() *App {
 	})
 	midtransService := payment.NewMidtransService(cfg, log)
 
+	log.Infof("Initializing R2 Storage with Bucket: %s", cfg.CloudflareR2.Bucket)
 	newR2, err := cloudflarer2.NewCloudflareR2(cfg, log)
 	if err != nil {
 		log.Errorf("Failed to initialize Cloudflare R2: %v", err)
+	} else {
+		log.Info("Successfully initialized Cloudflare R2 storage")
 	}
-
-	memCache := cache.NewMemoryCache()
-	shiftCache := shift.NewCache(memCache)
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.Redis.Host + ":" + cfg.Redis.Port,
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.DB,
 	})
+
+	redisCache := cache.NewRedisCache(rdb)
+	shiftCache := shift.NewCache(redisCache)
 
 	return &App{
 		Config:          cfg,
@@ -150,7 +153,7 @@ func InitApp() *App {
 		MidtransService: midtransService,
 		R2:              newR2,
 		Cache:           shiftCache,
-		MemCache:        memCache,
+		RedisCache:      redisCache,
 		Redis:           rdb,
 	}
 }

@@ -117,7 +117,7 @@ export const CloseShiftModal: React.FC = () => {
                                     placeholder="0"
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}
@@ -137,7 +137,7 @@ export const CloseShiftModal: React.FC = () => {
                                     placeholder=""
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}

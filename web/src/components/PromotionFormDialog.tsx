@@ -202,7 +202,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         placeholder={t('promotions.form.name_placeholder')}
                                     />
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -222,7 +222,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </SelectContent>
                                     </Select>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -242,7 +242,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                     onChange={(e) => field.handleChange(e.target.value)}
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                    <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}
@@ -264,7 +264,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </SelectContent>
                                     </Select>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -283,7 +283,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         onChange={(e) => field.handleChange(Number(e.target.value))}
                                     />
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -323,7 +323,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </PopoverContent>
                                     </Popover>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -360,7 +360,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </PopoverContent>
                                     </Popover>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}

@@ -364,9 +364,9 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	}
 
 	updateParams := products_repo.UpdateProductParams{
-		ID:         productID,
-		Name:       req.Name,
-		Stock:      req.Stock,
+		ID:    productID,
+		Name:  req.Name,
+		Stock: req.Stock,
 	}
 
 	if req.Price != nil {
@@ -393,11 +393,11 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 		changeAmount := currentStock - previousStock
 
 		if changeAmount != 0 {
-			changeType := products_repo.StockChangeTypeCorrection 
+			changeType := products_repo.StockChangeTypeCorrection
 			if req.ChangeType != nil {
 				changeType = products_repo.StockChangeType(*req.ChangeType)
 			} else {
-				
+
 				if changeAmount > 0 {
 					changeType = products_repo.StockChangeTypeRestock
 				}
@@ -408,7 +408,6 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 				note = req.Note
 			}
 
-			
 			var createdBy pgtype.UUID
 			if actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID); ok {
 				createdBy = pgtype.UUID{Bytes: actorID, Valid: true}
@@ -467,15 +466,34 @@ func parseCategoriesJSON(catInterface interface{}) []ProductCategoryResponse {
 	if catInterface == nil {
 		return categories
 	}
-	catBytes, ok := catInterface.([]byte)
-	if !ok {
-		if str, isStr := catInterface.(string); isStr {
-			catBytes = []byte(str)
-		}
+
+	// Handle raw bytes or string
+	var catBytes []byte
+	if b, ok := catInterface.([]byte); ok {
+		catBytes = b
+	} else if s, ok := catInterface.(string); ok {
+		catBytes = []byte(s)
 	}
+
 	if len(catBytes) > 0 {
 		_ = json.Unmarshal(catBytes, &categories)
+		return categories
 	}
+
+	// Handle slice of maps (from SQLC/PGX json_agg)
+	// We re-marshal to JSON and then unmarshal into our target struct for type safety
+	if slice, ok := catInterface.([]interface{}); ok {
+		data, err := json.Marshal(slice)
+		if err == nil {
+			_ = json.Unmarshal(data, &categories)
+		}
+	} else if slice, ok := catInterface.([]map[string]interface{}); ok {
+		data, err := json.Marshal(slice)
+		if err == nil {
+			_ = json.Unmarshal(data, &categories)
+		}
+	}
+
 	return categories
 }
 
@@ -631,20 +649,20 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 			imageUrl, err := s.prdRepo.PrdImageLink(ctx, p.ID.String(), *p.ImageUrl)
 			if err != nil {
 				s.log.Warnf("Failed to get public URL for product image", "error", err)
-				imageUrl = *p.ImageUrl 
+				imageUrl = *p.ImageUrl
 			}
 			p.ImageUrl = &imageUrl
 		} else {
-			p.ImageUrl = nil 
+			p.ImageUrl = nil
 		}
 		categories := parseCategoriesJSON(p.Categories)
 		productsResponse = append(productsResponse, ProductListResponse{
-			ID:           p.ID,
-			Name:         p.Name,
-			Categories:   categories,
-			ImageURL:     p.ImageUrl,
-			Price:        price,
-			Stock:        p.Stock,
+			ID:         p.ID,
+			Name:       p.Name,
+			Categories: categories,
+			ImageURL:   p.ImageUrl,
+			Price:      price,
+			Stock:      p.Stock,
 		})
 	}
 
@@ -674,10 +692,10 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		numericCost.Scan(fmt.Sprintf("%f", req.CostPrice))
 
 		productParams := products_repo.CreateProductParams{
-			Name:       req.Name,
-			Price:      price,
-			Stock:      req.Stock,
-			CostPrice:  numericCost,
+			Name:      req.Name,
+			Price:     price,
+			Stock:     req.Stock,
+			CostPrice: numericCost,
 		}
 
 		newProduct, err = qtx.CreateProduct(ctx, productParams)
@@ -751,9 +769,9 @@ func (s *PrdService) UploadProductImage(ctx context.Context, productID uuid.UUID
 		return nil, err
 	}
 
-	const maxFileSize = 5 * 1024 * 1024 
+	const maxFileSize = 5 * 1024 * 1024
 	if len(data) > maxFileSize {
-		return nil, fmt.Errorf("file size exceeds the limit of 2MB")
+		return nil, fmt.Errorf("file size exceeds the limit of 5MB")
 	}
 
 	filename := fmt.Sprintf("products/%s.jpg", productID.String())
@@ -865,13 +883,13 @@ func (s *PrdService) ListDeletedProducts(ctx context.Context, req ListProductsRe
 		categories := parseCategoriesJSON(p.Categories)
 
 		productsResponse = append(productsResponse, ProductListResponse{
-			ID:           p.ID,
-			Name:         p.Name,
-			Categories:   categories,
-			ImageURL:     p.ImageUrl,
-			Price:        price,
-			Stock:        p.Stock,
-			DeletedAt:    deletedAt,
+			ID:         p.ID,
+			Name:       p.Name,
+			Categories: categories,
+			ImageURL:   p.ImageUrl,
+			Price:      price,
+			Stock:      p.Stock,
+			DeletedAt:  deletedAt,
 		})
 	}
 

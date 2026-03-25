@@ -92,7 +92,7 @@ export function UpdatePasswordCard() {
                                 />
                                 {field.state.meta.errors.length > 0 && (
                                     <em role="alert" className="text-[0.8rem] font-medium text-destructive">
-                                        {field.state.meta.errors.join(', ')}
+                                        {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                     </em>
                                 )}
                             </div>
@@ -114,7 +114,7 @@ export function UpdatePasswordCard() {
                                 />
                                 {field.state.meta.errors.length > 0 && (
                                     <em role="alert" className="text-[0.8rem] font-medium text-destructive">
-                                        {field.state.meta.errors.join(', ')}
+                                        {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                     </em>
                                 )}
                             </div>
@@ -136,7 +136,7 @@ export function UpdatePasswordCard() {
                                 />
                                 {field.state.meta.errors.length > 0 && (
                                     <em role="alert" className="text-[0.8rem] font-medium text-destructive">
-                                        {field.state.meta.errors.join(', ')}
+                                        {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                     </em>
                                 )}
                             </div>

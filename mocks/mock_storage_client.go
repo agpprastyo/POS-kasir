@@ -88,3 +88,17 @@ func (mr *MockStorageClientMockRecorder) PutObject(ctx, bucketName, objectName, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockStorageClient)(nil).PutObject), ctx, bucketName, objectName, reader, objectSize, opts)
 }
+
+// SetBucketPolicy mocks base method.
+func (m *MockStorageClient) SetBucketPolicy(ctx context.Context, bucketName, policy string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetBucketPolicy", ctx, bucketName, policy)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetBucketPolicy indicates an expected call of SetBucketPolicy.
+func (mr *MockStorageClientMockRecorder) SetBucketPolicy(ctx, bucketName, policy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBucketPolicy", reflect.TypeOf((*MockStorageClient)(nil).SetBucketPolicy), ctx, bucketName, policy)
+}

@@ -33,6 +33,8 @@ type CloudflareR2Config struct {
 	Bucket       string
 	PublicDomain string
 	ExpirySec    int64
+	Endpoint     string
+	UseSSL       bool
 }
 
 type MidtransConfig struct {
@@ -129,6 +131,8 @@ func Load() *AppConfig {
 			Bucket:       getEnv("R2_BUCKET", "pos-kasir"),
 			PublicDomain: getEnv("R2_PUBLIC_DOMAIN", ""),
 			ExpirySec:    getInt64("R2_EXPIRY_SECONDS", 3600),
+			Endpoint:     getEnv("R2_ENDPOINT", ""),
+			UseSSL:       getBool("R2_USE_SSL", true),
 		},
 		AutoMigrate:    getBool("AUTO_MIGRATE", false),
 		MigrationsPath: getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),

@@ -71,7 +71,7 @@ export default function DashboardCharts({
                         tickFormatter={(value) => `Rp${(value / 1000).toLocaleString()}k`}
                     />
                     <RechartsTooltip
-                        formatter={(value: number) => formatCurrency(value)}
+                        formatter={(value: any) => formatCurrency(Number(value || 0))}
                         labelFormatter={(label) => formatDate(label)}
                     />
                     <Bar dataKey="total_sales" fill="#adfa1d" radius={[4, 4, 0, 0]} name={t('reports.sales.revenue')} />
@@ -94,7 +94,7 @@ export default function DashboardCharts({
                     paddingAngle={5}
                     dataKey="order_count"
                     nameKey="payment_method_name"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }: any) => `${((percent || 0) * 100).toFixed(0)}%`}
                 >
                     {(paymentsData || []).map((_entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

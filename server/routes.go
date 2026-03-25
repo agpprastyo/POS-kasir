@@ -11,10 +11,10 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api := app.FiberApp.Group("/api/v1")
 
 	// Rate Limiter for API
-	api.Use(middleware.RateLimiter())
+	api.Use(middleware.RateLimiter(app.RedisCache))
 
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
-	idempotencyMiddleware := middleware.Idempotency(app.Redis)
+	idempotencyMiddleware := middleware.Idempotency(app.RedisCache)
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
 	api.Post("/auth/refresh", container.AuthHandler.RefreshHandler)

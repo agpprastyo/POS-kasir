@@ -52,32 +52,32 @@ function ReportsPage() {
     const { data: cancellationData, isLoading: isLoadingCancellation } = useCancellationReportsQuery(dateRange.start, dateRange.end)
     const { data: profitSummaryData, isLoading: isLoadingProfitSummary } = useProfitSummaryQuery(dateRange.start, dateRange.end)
     const { data: productProfitsData, isLoading: isLoadingProductProfits } = useProductProfitReportsQuery(dateRange.start, dateRange.end)
-    
+
     const { data: lowStockData, isLoading: isLoadingLowStock } = useLowStockReportQuery(5)
     const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotionsReportQuery(dateRange.start, dateRange.end)
     const { data: shiftData, isLoading: isLoadingShift } = useShiftSummaryReportQuery(dateRange.start, dateRange.end)
 
     const exportToCSV = (data: any[], filename: string, headers: string[]) => {
-         if (!data || data.length === 0) return;
-         const csvRows = [];
-         csvRows.push(headers.join(','));
-         for (const row of data) {
-             const values = headers.map(header => {
-                 const value = row[header];
-                 return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
-             });
-             csvRows.push(values.join(','));
-         }
-         const csvString = csvRows.join('\n');
-         const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-         const url = URL.createObjectURL(blob);
-         const link = document.createElement('a');
-         link.setAttribute('href', url);
-         link.setAttribute('download', `${filename}.csv`);
-         link.style.visibility = 'hidden';
-         document.body.appendChild(link);
-         link.click();
-         document.body.removeChild(link);
+        if (!data || data.length === 0) return;
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+        for (const row of data) {
+            const values = headers.map(header => {
+                const value = row[header];
+                return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
+            });
+            csvRows.push(values.join(','));
+        }
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${filename}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     const formatCurrency = (value: number) => {
@@ -185,7 +185,7 @@ function ReportsPage() {
                                             tickFormatter={(value) => `Rp${(value / 1000).toLocaleString()}k`}
                                         />
                                         <Tooltip
-                                            formatter={(value: number) => formatCurrency(value)}
+                                            formatter={(value: any) => formatCurrency(Number(value || 0))}
                                             labelFormatter={(label) => formatDate(label)}
                                         />
                                         <Legend />
@@ -259,7 +259,7 @@ function ReportsPage() {
                                                     cx="50%"
                                                     cy="50%"
                                                     labelLine={false}
-                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                                                     outerRadius={100}
                                                     fill="#8884d8"
                                                     dataKey="order_count"
@@ -355,7 +355,7 @@ function ReportsPage() {
                                                 tickFormatter={(value) => `Rp${(value / 1000).toLocaleString()}k`}
                                             />
                                             <Tooltip
-                                                formatter={(value: number) => formatCurrency(value)}
+                                                formatter={(value: any) => formatCurrency(Number(value || 0))}
                                                 labelFormatter={(label) => formatDate(label)}
                                             />
                                             <Legend />
@@ -506,7 +506,6 @@ function ReportsPage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
-
                 {/* Promotions Reports Tab */}
                 <TabsContent value="promotions" className="space-y-4">
                     <Card>

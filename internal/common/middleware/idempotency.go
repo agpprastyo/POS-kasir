@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"POS-kasir/internal/common"
-	"context"
 	"time"
 
+	"POS-kasir/pkg/cache"
+
 	"github.com/gofiber/fiber/v3"
-	"github.com/redis/go-redis/v9"
 )
 
 func RequireIdempotencyKey() fiber.Handler {
@@ -21,7 +21,7 @@ func RequireIdempotencyKey() fiber.Handler {
 	}
 }
 
-func Idempotency(rdb *redis.Client) fiber.Handler {
+func Idempotency(cCache cache.Cache) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		// Only check for POST, PUT, PATCH, DELETE
 		method := c.Method()
@@ -34,23 +34,22 @@ func Idempotency(rdb *redis.Client) fiber.Handler {
 			return c.Next()
 		}
 
-		ctx := context.Background()
 		cacheKey := "idempotency:" + key
 
 		// Check if key already exists
-		exists, err := rdb.Exists(ctx, cacheKey).Result()
+		exists, err := cCache.Exists(cacheKey)
 		if err != nil {
 			return c.Next() // Continue if Redis fails
 		}
 
-		if exists > 0 {
+		if exists {
 			return c.Status(fiber.StatusConflict).JSON(common.ErrorResponse{
 				Message: "Request is already being processed or has been processed",
 			})
 		}
 
 		// Set key with 24h expiration
-		err = rdb.Set(ctx, cacheKey, time.Now().Format(time.RFC3339), 24*time.Hour).Err()
+		err = cCache.Set(cacheKey, []byte(time.Now().Format(time.RFC3339)), 24*time.Hour)
 		if err != nil {
 			return c.Next()
 		}
@@ -59,7 +58,7 @@ func Idempotency(rdb *redis.Client) fiber.Handler {
 
 		// If the request failed with a server error, allow retrying by deleting the key
 		if c.Response().StatusCode() >= 500 {
-			rdb.Del(ctx, cacheKey)
+			cCache.Delete(cacheKey)
 		}
 
 		return err

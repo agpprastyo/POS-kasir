@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -18,6 +19,7 @@ type StorageClient interface {
 	BucketExists(ctx context.Context, bucketName string) (bool, error)
 	PresignedGetObject(ctx context.Context, bucketName string, objectName string, expiry time.Duration, reqParams url.Values) (*url.URL, error)
 	PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error)
+	SetBucketPolicy(ctx context.Context, bucketName, policy string) error
 }
 
 type CloudflareR2 struct {
@@ -37,12 +39,20 @@ var NewMinioClient = func(endpoint string, opts *minio.Options) (StorageClient, 
 }
 
 func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
+	endpoint := cfg.CloudflareR2.Endpoint
+	if endpoint == "" {
+		endpoint = fmt.Sprintf("%s.r2.cloudflarestorage.com", cfg.CloudflareR2.AccountID)
+	}
 
-	endpoint := fmt.Sprintf("%s.r2.cloudflarestorage.com", cfg.CloudflareR2.AccountID)
+	// Clean endpoint: strip http:// or https:// if present
+	endpoint = strings.TrimPrefix(endpoint, "http://")
+	endpoint = strings.TrimPrefix(endpoint, "https://")
+
+	log.Infof("NewCloudflareR2 | Using endpoint: %s, Bucket: %s, UseSSL: %v", endpoint, cfg.CloudflareR2.Bucket, cfg.CloudflareR2.UseSSL)
 
 	client, err := NewMinioClient(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.CloudflareR2.AccessKey, cfg.CloudflareR2.SecretKey, ""),
-		Secure: true,
+		Secure: cfg.CloudflareR2.UseSSL,
 	})
 
 	if err != nil {
@@ -52,11 +62,20 @@ func NewCloudflareR2(cfg *config.AppConfig, log logger.ILogger) (IR2, error) {
 
 	exists, err := client.BucketExists(context.Background(), cfg.CloudflareR2.Bucket)
 	if err != nil {
-		log.Errorf("Failed to check if R2 bucket exists: %v", err)
-		return nil, err
-	}
-	if !exists {
+		log.Warnf("Failed to check if R2 bucket exists during initialization: %v. Client will be initialized anyway.", err)
+	} else if !exists {
 		log.Warnf("R2 Bucket %s does not exist. (Note: Automatic creation might not be supported or permitted)", cfg.CloudflareR2.Bucket)
+	}
+
+	// In development mode with custom endpoint (MinIO), automatically set bucket policy to public read if BucketExists succeeded
+	if cfg.Server.Env == "development" && cfg.CloudflareR2.Endpoint != "" && exists {
+		policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":["arn:aws:s3:::%s"]},{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/*"]}]}`, cfg.CloudflareR2.Bucket, cfg.CloudflareR2.Bucket)
+		err = client.SetBucketPolicy(context.Background(), cfg.CloudflareR2.Bucket, policy)
+		if err != nil {
+			log.Warnf("Failed to set R2 bucket policy to public read: %v", err)
+		} else {
+			log.Infof("Successfully set R2 bucket %s policy to public read", cfg.CloudflareR2.Bucket)
+		}
 	}
 
 	log.Println("Created Cloudflare R2 client")

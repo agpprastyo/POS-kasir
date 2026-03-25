@@ -61,11 +61,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
 
     const formatError = (errors: any[]) => {
         if (!errors || errors.length === 0) return null;
-        return errors.map(err => {
-            if (typeof err === 'string') return err;
-            if (err && typeof err.message === 'string') return err.message;
-            return 'Invalid input';
-        }).join(', ');
+        return errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ');
     }
 
     const { data: detailProduct, isLoading: isLoadingDetail } = useProductDetailQuery(productToEdit?.id || '')
@@ -177,7 +173,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                 if (productToEdit) {
                     form.setFieldValue('name', detailProduct?.name ?? productToEdit.name ?? '')
 
-                    const initialCategoryIds = detailProduct?.categories?.map(c => c.id) ?? (productToEdit as any).categories?.map((c: any) => c.id) ?? []
+                    const initialCategoryIds = (detailProduct?.categories?.map(c => Number(c.id)) ?? (productToEdit as any).categories?.map((c: any) => Number(c.id)) ?? []) as number[]
                     form.setFieldValue('category_ids', initialCategoryIds)
 
                     form.setFieldValue('price', detailProduct?.price ?? productToEdit.price ?? 0)
@@ -359,11 +355,11 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                                             id={`cat-${cat.id}`}
                                                                             checked={field.state.value?.includes(cat.id)}
                                                                             onCheckedChange={(checked) => {
-                                                                                const current = field.state.value || []
+                                                                                const current = (field.state.value || []) as number[]
                                                                                 if (checked) {
-                                                                                    field.handleChange([...current, cat.id])
+                                                                                    field.handleChange([...current, Number(cat.id)])
                                                                                 } else {
-                                                                                    field.handleChange(current.filter((id: number) => id !== cat.id))
+                                                                                    field.handleChange(current.filter((id: number) => id !== Number(cat.id)))
                                                                                 }
                                                                             }}
                                                                         />

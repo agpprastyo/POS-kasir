@@ -23,14 +23,7 @@ func TestCloudflareR2_BucketExists(t *testing.T) {
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 
 	cfg := &config.AppConfig{
-		CloudflareR2: struct {
-			AccountID    string
-			AccessKey    string
-			SecretKey    string
-			Bucket       string
-			PublicDomain string
-			ExpirySec    int64
-		}{
+		CloudflareR2: config.CloudflareR2Config{
 			Bucket: "test-bucket",
 		},
 	}
@@ -89,14 +82,7 @@ func TestCloudflareR2_GetFileShareLink(t *testing.T) {
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 
 	cfg := &config.AppConfig{
-		CloudflareR2: struct {
-			AccountID    string
-			AccessKey    string
-			SecretKey    string
-			Bucket       string
-			PublicDomain string
-			ExpirySec    int64
-		}{
+		CloudflareR2: config.CloudflareR2Config{
 			Bucket:    "test-bucket",
 			ExpirySec: 3600,
 		},
@@ -167,14 +153,7 @@ func TestCloudflareR2_UploadFile(t *testing.T) {
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 
 	cfg := &config.AppConfig{
-		CloudflareR2: struct {
-			AccountID    string
-			AccessKey    string
-			SecretKey    string
-			Bucket       string
-			PublicDomain string
-			ExpirySec    int64
-		}{
+		CloudflareR2: config.CloudflareR2Config{
 			Bucket: "test-bucket",
 		},
 	}
@@ -262,14 +241,7 @@ func TestNewCloudflareR2(t *testing.T) {
 	mockLogger := mocks.NewMockFieldLogger(ctrl)
 
 	cfg := &config.AppConfig{
-		CloudflareR2: struct {
-			AccountID    string
-			AccessKey    string
-			SecretKey    string
-			Bucket       string
-			PublicDomain string
-			ExpirySec    int64
-		}{
+		CloudflareR2: config.CloudflareR2Config{
 			AccountID: "test-account",
 			AccessKey: "test-key",
 			SecretKey: "test-secret",
@@ -287,6 +259,7 @@ func TestNewCloudflareR2(t *testing.T) {
 		}
 
 		mockClient.EXPECT().BucketExists(gomock.Any(), "test-bucket").Return(true, nil)
+		mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockLogger.EXPECT().Println("Created Cloudflare R2 client").Times(1)
 
 		instance, err := r2.NewCloudflareR2(cfg, mockLogger)
@@ -300,6 +273,7 @@ func TestNewCloudflareR2(t *testing.T) {
 		}
 
 		mockClient.EXPECT().BucketExists(gomock.Any(), "test-bucket").Return(false, nil)
+		mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
 		mockLogger.EXPECT().Println("Created Cloudflare R2 client").Times(1)
 
@@ -322,18 +296,19 @@ func TestNewCloudflareR2(t *testing.T) {
 		assert.Equal(t, expectedErr, err)
 	})
 
-	t.Run("Error_BucketCheckFailure", func(t *testing.T) {
+	t.Run("Success_BucketCheckFailureButInitializeAnyway", func(t *testing.T) {
 		expectedErr := errors.New("bucket check failed")
 		r2.NewMinioClient = func(endpoint string, opts *minio.Options) (r2.StorageClient, error) {
 			return mockClient, nil
 		}
 
 		mockClient.EXPECT().BucketExists(gomock.Any(), "test-bucket").Return(false, expectedErr)
-		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any()).Times(1)
+		mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).Times(1)
+		mockLogger.EXPECT().Println("Created Cloudflare R2 client").Times(1)
 
 		instance, err := r2.NewCloudflareR2(cfg, mockLogger)
-		assert.Error(t, err)
-		assert.Nil(t, instance)
-		assert.Equal(t, expectedErr, err)
+		assert.NoError(t, err)
+		assert.NotNil(t, instance)
 	})
 }

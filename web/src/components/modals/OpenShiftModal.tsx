@@ -28,6 +28,8 @@ export const OpenShiftModal: React.FC = () => {
         validators: {
             onChange: startShiftSchema
         },
+
+
         onSubmit: async ({ value }) => {
             startShift({ start_cash: value.startCash, password: value.password }, {
                 onSuccess: () => {
@@ -67,7 +69,7 @@ export const OpenShiftModal: React.FC = () => {
                                     placeholder="0"
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}
@@ -87,7 +89,7 @@ export const OpenShiftModal: React.FC = () => {
                                     placeholder=""
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-sm text-destructive">{field.state.meta.errors.join(', ')}</p>
+                                    <p className="text-sm text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}

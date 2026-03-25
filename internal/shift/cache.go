@@ -9,13 +9,13 @@ import (
 
 // Cache handles caching for shift status.
 type Cache struct {
-	memCache *cache.MemoryCache
+	cache cache.Cache
 }
 
 // NewCache results a new instance of Shift Cache.
-func NewCache(memCache *cache.MemoryCache) *Cache {
+func NewCache(c cache.Cache) *Cache {
 	return &Cache{
-		memCache: memCache,
+		cache: c,
 	}
 }
 
@@ -25,28 +25,25 @@ func (c *Cache) key(userID uuid.UUID) string {
 
 // SetOpen marks the user as having an open shift or not.
 func (c *Cache) SetOpen(userID uuid.UUID, open bool) {
-	// We only store "true" for open shifts.
-	// If closed, we delete the key to save memory, or strictly store false.
-	// The validation logic usually checks "is present and true".
-	// Let's store the boolean value for explicit clarity.
-	c.memCache.Set(c.key(userID), open)
+	val := "0"
+	if open {
+		val = "1"
+	}
+	c.cache.Set(c.key(userID), []byte(val), 0)
 }
 
 // GetOpen checks if the user has an open shift.
 // Returns (isOpen, found).
 func (c *Cache) GetOpen(userID uuid.UUID) (bool, bool) {
-	val, found := c.memCache.Get(c.key(userID))
-	if !found {
+	valBytes, err := c.cache.Get(c.key(userID))
+	if err != nil || valBytes == nil {
 		return false, false
 	}
-	isOpen, ok := val.(bool)
-	if !ok {
-		return false, false
-	}
+	isOpen := string(valBytes) == "1"
 	return isOpen, true
 }
 
 // Clear removes the user's shift status from cache.
 func (c *Cache) Clear(userID uuid.UUID) {
-	c.memCache.Delete(c.key(userID))
+	c.cache.Delete(c.key(userID))
 }

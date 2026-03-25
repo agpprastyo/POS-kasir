@@ -195,14 +195,14 @@ func TestOrderService_CreateOrder(t *testing.T) {
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makeOrderRow(0, 0)...))
 
-		// 2. GetProductsForUpdate (SELECT ... FOR UPDATE)
+		// 2. GetProductsForUpdate (SELECT ... FOR UPDATE) — 9 columns: id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
 		mockPgx.ExpectQuery("SELECT .* FROM products WHERE id = ANY").
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
-				"id", "name", "category_id", "image_url", "price", "stock",
+				"id", "name", "image_url", "price", "stock",
 				"created_at", "updated_at", "deleted_at", "cost_price",
 			}).AddRow(
-				productID, "Test Product", nil, nil, int64(10000), int32(10),
+				productID, "Test Product", nil, int64(10000), int32(10),
 				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
@@ -238,9 +238,9 @@ func TestOrderService_CreateOrder(t *testing.T) {
 				now,
 			))
 
-		// 6. UpdateOrderTotals (UPDATE orders) - returns full 18-column Order
+		// 6. UpdateOrderTotals (UPDATE orders) - takes 7 args: id, gross_total, discount_amount, net_total, tax_amount, service_charge_amount, version
 		mockPgx.ExpectQuery("UPDATE orders").
-			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makeOrderRow(10000, 10000)...))
 
 		// 7. GetOrderWithDetails (SELECT ... FROM orders o WHERE o.id) - Items is nil to bypass JSON unmarshal
@@ -792,26 +792,26 @@ func TestOrderService_CancelOrder(t *testing.T) {
 				nil, nil, nil, nil, nil, nil, nil, nil, int32(1), int64(0), int64(0), pgtype.UUID{},
 			))
 
-		// 3. For each item: GetProductByID (from products_repo.New(tx) - has join with options, 11 cols)
+		// 3. For each item: GetProductByID (from products_repo.New(tx) — 11 cols: id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, options, categories)
 		mockPgx.ExpectQuery("SELECT .* FROM products p WHERE").
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
-				"id", "name", "category_id", "image_url", "price", "stock",
-				"created_at", "updated_at", "deleted_at", "cost_price", "options",
+				"id", "name", "image_url", "price", "stock",
+				"created_at", "updated_at", "deleted_at", "cost_price", "options", "categories",
 			}).AddRow(
-				productID, "Test Product", nil, nil, int64(10000), int32(8),
+				productID, "Test Product", nil, int64(10000), int32(8),
 				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
-				nil,
+				nil, nil,
 			))
 
-		// 4. AddProductStock (from products_repo.New(tx) - returns full Product, 10 cols)
+		// 4. AddProductStock (from products_repo.New(tx) — 9 cols: id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price)
 		mockPgx.ExpectQuery("UPDATE products").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
-				"id", "name", "category_id", "image_url", "price", "stock",
+				"id", "name", "image_url", "price", "stock",
 				"created_at", "updated_at", "deleted_at", "cost_price",
 			}).AddRow(
-				productID, "Test Product", nil, nil, int64(10000), int32(10),
+				productID, "Test Product", nil, int64(10000), int32(10),
 				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
@@ -961,25 +961,25 @@ func TestOrderService_UpdateOrderItems(t *testing.T) {
 				pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
-		// 3. GetProductByID (for the item update)
+		// 3. GetProductByID (from products_repo.New(tx) via orders_repo — 9 cols from orders_repo.GetProductByID)
 		mockPgx.ExpectQuery("SELECT .* FROM products WHERE id").
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
-				"id", "name", "category_id", "image_url", "price", "stock",
+				"id", "name", "image_url", "price", "stock",
 				"created_at", "updated_at", "deleted_at", "cost_price",
 			}).AddRow(
-				productID, "Test Product", nil, nil, int64(10000), int32(10),
+				productID, "Test Product", nil, int64(10000), int32(10),
 				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
-		// 4. qtyDiff=2 (3-1) > 0 → DecreaseProductStock (products_repo uses QueryRow, returns 10-col Product)
+		// 4. qtyDiff=2 (3-1) > 0 → DecreaseProductStock (products_repo — 9 cols)
 		mockPgx.ExpectQuery("UPDATE products").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
-				"id", "name", "category_id", "image_url", "price", "stock",
+				"id", "name", "image_url", "price", "stock",
 				"created_at", "updated_at", "deleted_at", "cost_price",
 			}).AddRow(
-				productID, "Test Product", nil, nil, int64(10000), int32(8),
+				productID, "Test Product", nil, int64(10000), int32(8),
 				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
@@ -1010,9 +1010,9 @@ func TestOrderService_UpdateOrderItems(t *testing.T) {
 				pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
 			))
 
-		// 7. UpdateOrderTotals
+		// 7. UpdateOrderTotals — 7 args: id, gross_total, discount_amount, net_total, tax_amount, service_charge_amount, version
 		mockPgx.ExpectQuery("UPDATE orders").
-			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makeOrderRow(30000, 30000)...))
 
 		// 8. GetOrderWithDetails (final, with items for buildOrderDetailResponseFromQueryResult)
@@ -1031,7 +1031,7 @@ func TestOrderService_UpdateOrderItems(t *testing.T) {
 		}, nil)
 
 		resp, err := service.UpdateOrderItems(ctx, orderID, orders.UpdateOrderItemsRequest{
-			Version: 0,
+			Version: 1,
 			Items:   reqs,
 		})
 
@@ -1114,7 +1114,7 @@ func TestOrderService_ConfirmManualPayment(t *testing.T) {
 			"id", "user_id", "type", "status", "created_at", "updated_at",
 			"gross_total", "discount_amount", "net_total", "applied_promotion_id",
 			"payment_method_id", "payment_gateway_reference", "cash_received", "change_due",
-			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token",
+			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token", "version", "tax_amount", "service_charge_amount", "customer_id",
 		}
 		orderWithDetailsColumns := append(append([]string{}, orderColumns...), "items")
 
@@ -1137,7 +1137,7 @@ func TestOrderService_ConfirmManualPayment(t *testing.T) {
 				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusOpen,
 				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
 				int64(40000), int64(0), int64(40000), pgtype.UUID{},
-				nil, nil, nil, nil, nil, nil, nil, nil,
+				nil, nil, nil, nil, nil, nil, nil, nil, int32(1), int64(0), int64(0), pgtype.UUID{},
 			}
 		}
 
@@ -1147,7 +1147,7 @@ func TestOrderService_ConfirmManualPayment(t *testing.T) {
 				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusPaid,
 				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
 				int64(40000), int64(0), int64(40000), pgtype.UUID{},
-				&paymentMethodID, nil, &cashReceived, &changeDue, nil, nil, nil, nil,
+				&paymentMethodID, nil, &cashReceived, &changeDue, nil, nil, nil, nil, int32(2), int64(0), int64(0), pgtype.UUID{},
 			}
 		}
 
@@ -1163,9 +1163,9 @@ func TestOrderService_ConfirmManualPayment(t *testing.T) {
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makeOrderRow()...))
 
-		// 2. UpdateOrderManualPayment
+		// 2. UpdateOrderManualPayment — 5 args: id, payment_method_id, cash_received, change_due, version
 		mockPgx.ExpectQuery("UPDATE orders").
-			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makePaidOrderRow()...))
 
 		// 3. GetOrderWithDetails (final, with items)
@@ -1376,7 +1376,7 @@ func TestOrderService_ApplyPromotion(t *testing.T) {
 			"id", "user_id", "type", "status", "created_at", "updated_at",
 			"gross_total", "discount_amount", "net_total", "applied_promotion_id",
 			"payment_method_id", "payment_gateway_reference", "cash_received", "change_due",
-			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token",
+			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token", "version", "tax_amount", "service_charge_amount", "customer_id",
 		}
 		orderWithDetailsColumns := append(append([]string{}, orderColumns...), "items")
 
@@ -1389,7 +1389,7 @@ func TestOrderService_ApplyPromotion(t *testing.T) {
 				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusOpen,
 				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
 				grossTotal, discountAmount, netTotal, pgtype.UUID{},
-				nil, nil, nil, nil, nil, nil, nil, nil,
+				nil, nil, nil, nil, nil, nil, nil, nil, int32(1), int64(0), int64(0), pgtype.UUID{},
 			}
 		}
 
@@ -1442,9 +1442,9 @@ func TestOrderService_ApplyPromotion(t *testing.T) {
 				"id", "promotion_id", "rule_type", "rule_value", "description", "created_at", "updated_at",
 			}))
 
-		// 5. UpdateOrderTotals (10% of 50000 = 5000 discount, net=45000)
+		// 5. UpdateOrderTotals — 7 args: id, gross_total, discount_amount, net_total, tax_amount, service_charge_amount, version
 		mockPgx.ExpectQuery("UPDATE orders").
-			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(makeOrderRow(50000, 5000, 45000)...))
 
 		// 6. UpdateOrderAppliedPromotion (exec, not query)

@@ -1,6 +1,10 @@
 # **POS Kasir (Point of Sales System)**
 
 [![CI/CD](https://github.com/agpprastyo/POS-kasir/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/agpprastyo/POS-kasir/actions/workflows/ci-cd.yml)
+![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Overview
 
@@ -17,54 +21,78 @@ Built as a **single-port deployment** — the Go backend serves both the REST AP
 
 ## ✨ Key Features
 
-- **User Management & RBAC** — JWT authentication with role-based access control (Admin, Manager, Cashier)
-- **Inventory Management** — Products, categories, variants/options, stock history
-- **Order Processing** — Cart system, order workflow, operational status tracking
-- **Digital Payments** — Integrated with Midtrans Payment Gateway (sandbox mode)
-- **Shift Management** — Cashier shift tracking with cash transactions
-- **Cloud Storage** — Cloudflare R2 / MinIO (S3-compatible) for product images
-- **Dashboard & Analytics** — Sales reports, cashier performance, profit summaries
-- **Activity Logging** — Complete audit trails
-- **Multi-language** — i18n support (English / Indonesian)
-- **Promotions** — Discount and promotion management
-- **Thermal Printing** — ESC/POS receipt printing support
+| Category | Feature |
+|----------|---------|
+| **Auth & Access** | JWT authentication, RBAC (Admin / Manager / Cashier), session management |
+| **Inventory** | Products, categories, variants/options, stock history, image uploads, soft-delete & restore |
+| **Orders** | Cart system, order workflow, operational status tracking, item updates |
+| **Payments** | Manual cash/payment methods, Midtrans Payment Gateway (QRIS dynamic/static) |
+| **Shift Management** | Cashier shift open/close, cash transactions, cash reconciliation |
+| **Customers** | Customer registration and selection per order |
+| **Promotions** | Percentage & fixed-amount discounts, scope (order/item), rules & targets |
+| **Reports & Analytics** | Sales trends, product performance, cashier ranking, profit summary, payment distribution, low stock, shift summary |
+| **Thermal Printing** | ESC/POS receipt printing, **auto network printer discovery** (TCP scan port 9100), Bluetooth support via Web Bluetooth |
+| **Cloud Storage** | Cloudflare R2 / MinIO (S3-compatible) for product & variant images |
+| **Activity Logging** | Complete audit trails with entity-level tracking |
+| **Multi-language** | i18n support (English / Indonesian) with `react-i18next` |
+| **Theming** | Light / Dark / System mode |
 
 ## Tech Stack
 
 ### Backend
-- **Go 1.25** + [Fiber v3](https://gofiber.io/) (HTTP framework)
-- **PostgreSQL** + [sqlc](https://sqlc.dev/) (type-safe SQL)
-- **JWT** authentication + RBAC middleware
-- **Swagger** auto-generated API docs
+
+| Technology | Purpose |
+|-----------|---------|
+| **Go 1.25** + [Fiber v3](https://gofiber.io/) | HTTP framework |
+| **PostgreSQL 15** + [sqlc](https://sqlc.dev/) | Type-safe SQL code generation |
+| **Redis** | Rate limiting, shift caching, idempotency |
+| **JWT** + RBAC middleware | Authentication & authorization |
+| **Swagger** (swaggo) | Auto-generated API documentation |
+| **ESC/POS** (`pkg/escpos`) | Raw TCP thermal receipt printing |
 
 ### Frontend
-- **React 19** + [TanStack Router](https://tanstack.com/router) (SPA)
-- **Vite 7** (build tool)
-- **Tailwind CSS 4** + [shadcn/ui](https://ui.shadcn.com/) (UI components)
-- **TanStack Query** (data fetching)
-- **OpenAPI Generator** (typed API client)
+
+| Technology | Purpose |
+|-----------|---------|
+| **React 19** + [TanStack Router](https://tanstack.com/router) | SPA with file-based routing |
+| **Vite 7** + **Bun** | Build tool & package manager |
+| **Tailwind CSS 4** + [shadcn/ui](https://ui.shadcn.com/) | UI component library |
+| **TanStack Query** | Data fetching & caching |
+| **OpenAPI Generator** | Typed API client from Swagger spec |
+| **react-i18next** | Internationalization (ID/EN) |
+| **Recharts** | Dashboard charts & analytics |
+| **Web Bluetooth API** | Direct Bluetooth printer connectivity |
 
 ### Infrastructure
-- **Docker** multi-stage build (final image ~30MB Alpine)
-- **GitHub Actions** CI/CD → Docker image to GHCR
-- **PostgreSQL 15** + **MinIO** (S3-compatible storage)
+
+| Technology | Purpose |
+|-----------|---------|
+| **Docker** multi-stage build | Final image ~30MB Alpine |
+| **GitHub Actions** CI/CD | Build → Push to GHCR → Deploy via Tailscale SSH |
+| **MinIO** | S3-compatible object storage |
+| **Redis** | Caching & rate limiting |
 
 ## Architecture
 
 ```
-┌──────────────────────────────┐
-│         Go Backend :8080     │
-│                              │
-│  /api/v1/*    → REST API     │
-│  /swagger/*   → API Docs     │
-│  /healthz     → Health Check │
-│  /*           → React SPA    │
-│               (web/dist/)    │
-└──────────┬───────────────────┘
-           │
-     ┌─────┴─────┐
-     │ PostgreSQL │   MinIO (S3)
-     └───────────┘
+┌─────────────────────────────────────────────────┐
+│              Go Backend :8080                    │
+│                                                 │
+│  /api/v1/*       → REST API                     │
+│  /swagger/*      → API Docs                     │
+│  /healthz        → Health Check                 │
+│  /*              → React SPA (web/dist/)        │
+└────────┬────────────────┬───────────────────────┘
+         │                │
+    ┌────┴────┐     ┌─────┴─────┐    ┌───────────┐
+    │ Postgres │     │   Redis   │    │ MinIO/R2  │
+    └─────────┘     └───────────┘    └───────────┘
+```
+
+```
+Frontend (React SPA)
+├── Network Printer  →  Backend TCP Socket  →  Printer :9100
+└── Bluetooth Printer  →  Web Bluetooth API  →  BLE Printer
 ```
 
 ## 🚀 Quick Start (Docker)
@@ -102,8 +130,9 @@ Env lainnya sudah memiliki default yang aman. Lihat [`.env.example`](.env.exampl
 ### Prerequisites
 
 - **Go** 1.25+
-- **Node.js** 22+ (npm)
+- **Bun** (or Node.js 22+)
 - **PostgreSQL** 15+
+- **Redis**
 - **Docker** & Docker Compose (untuk infra)
 
 ### 1. Setup Infrastructure
@@ -145,8 +174,8 @@ Backend berjalan di `http://localhost:8080`
 
 ```bash
 cd web
-npm install --legacy-peer-deps
-npm run dev
+bun install
+bun run dev
 ```
 
 Frontend dev server di `http://localhost:5173` (dengan proxy ke backend 8080)
@@ -155,7 +184,7 @@ Frontend dev server di `http://localhost:5173` (dengan proxy ke backend 8080)
 
 ```bash
 cd web
-npm run build
+bun run build
 # Output: web/dist/
 ```
 
@@ -184,18 +213,16 @@ docker compose -f docker-compose-infra.yaml up -d   # Infra saja
 Pipeline berjalan via **GitHub Actions** dan dipicu dari setiap push/PR ke `master` atau tag semver `v*.*.*`.
 
 | Trigger | Job | Keterangan |
-|---------|-----|-------------|
-| Push/PR ke `master` | **test** | `go vet`, `go test`, dan build frontend (`npm run build` di `./web`) |
+|---------|-----|------------|
+| Push/PR ke `master` | **test** | `go vet` dan build frontend (`bun run build` di `./web`) |
 | Tag `v*.*.*` | **test** + **build-and-push** | Build dan push image ke `ghcr.io/agpprastyo/pos-kasir` dengan tag `X.Y.Z`, `X.Y`, dan `latest` |
-| Tag `v*.*.*` | **deploy** | Koneksi ke VM lewat **Tailscale**, lalu `docker compose pull` + `docker compose up -d` di `/home/ubuntu` untuk memperbarui stack produksi di https://pos-kasir.agprastyo.me |
+| Tag `v*.*.*` | **deploy** | Koneksi ke VM lewat **Tailscale**, lalu `docker compose pull` + `docker compose up -d` di `/home/ubuntu` |
 
 CI mengandalkan variabel berikut:
 
 - `REGISTRY` (default `ghcr.io`) dan `IMAGE_NAME` (nama repository) untuk metadata Docker
 - `TAILSCALE_AUTHKEY` untuk autentikasi Tailscale
-- `VM_TAILSCALE_IP` dan `VM_SSH_PRIVATE_KEY` agar `appleboy/ssh-action` bisa mengakses host `ubuntu`
-
-Setiap tag `vX.Y.Z` memicu release flow otomatis yang menjalankan job `test` → `build-and-push` → `deploy`, meng-update image di `ghcr.io/agpprastyo/pos-kasir`, lalu menerapkan versi baru pada server `pos-kasir.agprastyo.me` berserta Swagger docs live di https://pos-kasir.agprastyo.me/swagger/index.html.
+- `VM_TAILSCALE_IP` dan `VM_SSH_PRIVATE_KEY` agar `appleboy/ssh-action` bisa mengakses host
 
 ## Project Structure
 
@@ -205,18 +232,60 @@ Setiap tag `vX.Y.Z` memicu release flow otomatis yang menjalankan job `test` →
 │   ├── app/              # Main server entry point
 │   └── seeder/           # Database seeder
 ├── config/               # Configuration loading
-├── internal/             # Business logic (auth, orders, products, etc.)
-├── pkg/                  # Shared libraries (logger, JWT, R2, Midtrans)
+├── internal/             # Business logic modules
+│   ├── activitylog/      # Audit trail logging
+│   ├── categories/       # Product category CRUD
+│   ├── cancellation_reasons/ # Order cancellation reasons
+│   ├── common/           # Shared middleware (auth, RBAC, rate limit, idempotency)
+│   ├── customers/        # Customer management
+│   ├── orders/           # Order processing & workflow
+│   ├── payment_methods/  # Payment method CRUD
+│   ├── printer/          # Thermal printing + network discovery
+│   ├── products/         # Product CRUD, variants, stock, images
+│   ├── promotions/       # Promotion engine (rules, targets, discounts)
+│   ├── report/           # Sales, profit, performance analytics
+│   ├── settings/         # App settings (branding, printer config)
+│   ├── shift/            # Cashier shift management + cash reconcile
+│   └── user/             # User CRUD, auth, JWT, avatar
+├── pkg/                  # Shared packages
+│   ├── cache/            # Redis cache abstraction
+│   ├── cloudflare-r2/    # S3-compatible object storage
+│   ├── database/         # PostgreSQL connection + migration runner
+│   ├── escpos/           # ESC/POS printer protocol
+│   ├── logger/           # Structured logging
+│   ├── payment/          # Midtrans payment gateway
+│   ├── utils/            # JWT manager, helpers
+│   └── validator/        # Request validation
 ├── server/
-│   ├── server.go         # App init, middleware, lifecycle
+│   ├── server.go         # App init, DI container, lifecycle
 │   ├── routes.go         # API route registration
 │   └── frontend.go       # SPA static file serving
 ├── sqlc/                 # SQL queries, schema, migrations
 ├── web/                  # Frontend (React SPA)
-│   ├── src/routes/       # TanStack Router file-based routes
-│   ├── src/lib/api/      # Generated API client
-│   └── dist/             # Built SPA output (gitignored)
-├── Dockerfile            # Multi-stage build (Node + Go → Alpine)
+│   └── src/
+│       ├── components/   # Feature-based component architecture
+│       │   ├── account/        # Profile & security
+│       │   ├── activity-logs/  # Activity log viewer
+│       │   ├── auth/           # Login form
+│       │   ├── common/         # Shared/reusable components
+│       │   ├── customers/      # Customer management
+│       │   ├── dashboard/      # Dashboard widgets & charts
+│       │   ├── orders/         # POS cart, product search, variants
+│       │   ├── payment/        # Payment dialogs
+│       │   ├── products/       # Product table, grid, form, filters
+│       │   ├── promotions/     # Promotion management
+│       │   ├── reports/        # Analytics charts & tables
+│       │   ├── settings/       # Branding, printer, categories
+│       │   ├── transactions/   # Transaction history & actions
+│       │   ├── users/          # User management
+│       │   └── ui/             # shadcn/ui primitives
+│       ├── lib/
+│       │   ├── api/            # Generated API client + query hooks
+│       │   ├── auth/           # RBAC utilities
+│       │   ├── locales/        # i18n translations (id.json, en.json)
+│       │   └── printer/        # Frontend PrinterService (Bluetooth)
+│       └── routes/             # TanStack Router file-based routes
+├── Dockerfile            # Multi-stage build (Bun + Go → Alpine)
 ├── docker-compose.yml    # Full stack deployment
 └── Makefile              # Command shortcuts
 ```
@@ -245,6 +314,30 @@ Auto-generated Swagger documentation available at:
 
 - **Local:** http://localhost:8080/swagger/index.html
 - **Production:** https://pos-kasir.agprastyo.me/swagger/index.html
+
+## Changelog
+
+### v1.3.0
+
+- **Frontend Modularization**: Refactored all pages into a feature-based component architecture (`components/{feature}/`)
+- **Printer Discovery**: Backend TCP scanner to auto-detect network printers on port 9100
+- **Printer UX Redesign**: Tab-based Network/Bluetooth selector with one-click printer discovery
+- **Date/Time Standardization**: Unified all UI dates to `dd MMM yyyy` and 24-hour time format
+- **Bug Fix**: Fixed shift summary 500 error caused by `NULL` cash difference for open shifts
+
+### v1.2.3
+
+- Midtrans QRIS integration improvements
+- Shift cash reconciliation reports
+
+### v1.2.0
+
+- Promotion engine with rules and targets
+- Activity logging system
+
+### v1.0.0
+
+- Initial release with full POS functionality
 
 ## License
 

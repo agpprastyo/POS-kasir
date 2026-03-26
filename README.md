@@ -315,30 +315,6 @@ Auto-generated Swagger documentation available at:
 - **Local:** http://localhost:8080/swagger/index.html
 - **Production:** https://pos-kasir.agprastyo.me/swagger/index.html
 
-## Changelog
-
-### v1.3.0
-
-- **Frontend Modularization**: Refactored all pages into a feature-based component architecture (`components/{feature}/`)
-- **Printer Discovery**: Backend TCP scanner to auto-detect network printers on port 9100
-- **Printer UX Redesign**: Tab-based Network/Bluetooth selector with one-click printer discovery
-- **Date/Time Standardization**: Unified all UI dates to `dd MMM yyyy` and 24-hour time format
-- **Bug Fix**: Fixed shift summary 500 error caused by `NULL` cash difference for open shifts
-
-### v1.2.3
-
-- Midtrans QRIS integration improvements
-- Shift cash reconciliation reports
-
-### v1.2.0
-
-- Promotion engine with rules and targets
-- Activity logging system
-
-### v1.0.0
-
-- Initial release with full POS functionality
-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

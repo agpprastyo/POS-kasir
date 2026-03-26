@@ -19,6 +19,7 @@ type IPrinterService interface {
 	PrintInvoice(ctx context.Context, orderID uuid.UUID) error
 	TestPrint(ctx context.Context) error
 	GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error)
+	DiscoverPrinters(ctx context.Context) ([]DiscoveredPrinter, error)
 }
 
 type PrinterFactory func(connectionString string) (escpos.Printer, error)
@@ -217,6 +218,10 @@ func (s *PrinterService) TestPrint(ctx context.Context) error {
 	p.WriteString("\n\n")
 
 	return p.Cut()
+}
+
+func (s *PrinterService) DiscoverPrinters(ctx context.Context) ([]DiscoveredPrinter, error) {
+	return DiscoverPrinters(ctx)
 }
 
 func writeTotalLine(p escpos.Printer, label, value string) {

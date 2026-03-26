@@ -5,8 +5,10 @@ import { MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react"
 import { useState } from "react"
 
 import { useTranslation } from "react-i18next"
-import { AlertDialogHeader, AlertDialogFooter } from "./ui/alert-dialog"
-import { Button } from "./ui/button"
+import { Button } from "../ui/button"
+import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
+
+
 
 export function CategoryActions({ category, onEdit }: { category: Category, onEdit: () => void }) {
     const { t } = useTranslation()

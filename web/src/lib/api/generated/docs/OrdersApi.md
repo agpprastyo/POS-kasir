@@ -4,7 +4,6 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1OrdersIdRefundPost**](#apiv1ordersidrefundpost) | **POST** /api/v1/orders/{id}/refund | Refund a paid order|
 |[**ordersGet**](#ordersget) | **GET** /orders | List orders|
 |[**ordersIdApplyPromotionPost**](#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order|
 |[**ordersIdCancelPost**](#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order|
@@ -12,67 +11,10 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**ordersIdItemsPatch**](#ordersiditemspatch) | **PATCH** /orders/{id}/items | Update items in an order|
 |[**ordersIdPayManualPost**](#ordersidpaymanualpost) | **POST** /orders/{id}/pay/manual | Confirm manual payment for an order|
 |[**ordersIdPayMidtransPost**](#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order|
+|[**ordersIdRefundPost**](#ordersidrefundpost) | **POST** /orders/{id}/refund | Refund a paid order|
 |[**ordersIdUpdateStatusPost**](#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status|
 |[**ordersPost**](#orderspost) | **POST** /orders | Create an order|
 |[**ordersWebhookMidtransPost**](#orderswebhookmidtranspost) | **POST** /orders/webhook/midtrans | Midtrans Payment Notification Callback|
-
-# **apiV1OrdersIdRefundPost**
-> ApiV1OrdersIdRefundPost200Response apiV1OrdersIdRefundPost(body)
-
-Refund a paid order by ID
-
-### Example
-
-```typescript
-import {
-    OrdersApi,
-    Configuration,
-    InternalOrdersRefundOrderRequest
-} from 'restClient';
-
-const configuration = new Configuration();
-const apiInstance = new OrdersApi(configuration);
-
-let id: string; //Order ID (UUID) (default to undefined)
-let body: InternalOrdersRefundOrderRequest; //Refund Request Body
-
-const { status, data } = await apiInstance.apiV1OrdersIdRefundPost(
-    id,
-    body
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **body** | **InternalOrdersRefundOrderRequest**| Refund Request Body | |
-| **id** | [**string**] | Order ID (UUID) | defaults to undefined|
-
-
-### Return type
-
-**ApiV1OrdersIdRefundPost200Response**
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**400** | Bad Request |  -  |
-|**404** | Not Found |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersGet**
 > OrdersGet200Response ordersGet()
@@ -137,7 +79,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdApplyPromotionPost**
-> ApiV1OrdersIdRefundPost200Response ordersIdApplyPromotionPost(request)
+> OrdersPost201Response ordersIdApplyPromotionPost(request)
 
 Apply a specific promotion to an existing order by its ID (Roles: admin, manager, cashier)
 
@@ -172,7 +114,7 @@ const { status, data } = await apiInstance.ordersIdApplyPromotionPost(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -254,7 +196,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdGet**
-> ApiV1OrdersIdRefundPost200Response ordersIdGet()
+> OrdersPost201Response ordersIdGet()
 
 Retrieve detailed information of a specific order by its ID (Roles: admin, manager, cashier)
 
@@ -285,7 +227,7 @@ const { status, data } = await apiInstance.ordersIdGet(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -308,7 +250,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdItemsPatch**
-> ApiV1OrdersIdRefundPost200Response ordersIdItemsPatch(request)
+> OrdersPost201Response ordersIdItemsPatch(request)
 
 Update, add, or remove items in an existing open order (Roles: admin, manager, cashier)
 
@@ -343,7 +285,7 @@ const { status, data } = await apiInstance.ordersIdItemsPatch(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -367,7 +309,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersIdPayManualPost**
-> ApiV1OrdersIdRefundPost200Response ordersIdPayManualPost(request)
+> OrdersPost201Response ordersIdPayManualPost(request)
 
 Process a manual payment (Cash) and finalize an order (Roles: admin, manager, cashier)
 
@@ -402,7 +344,7 @@ const { status, data } = await apiInstance.ordersIdPayManualPost(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -479,8 +421,66 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **ordersIdRefundPost**
+> OrdersPost201Response ordersIdRefundPost(body)
+
+Refund a paid order by ID
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration,
+    InternalOrdersRefundOrderRequest
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let id: string; //Order ID (UUID) (default to undefined)
+let body: InternalOrdersRefundOrderRequest; //Refund Request Body
+
+const { status, data } = await apiInstance.ordersIdRefundPost(
+    id,
+    body
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **body** | **InternalOrdersRefundOrderRequest**| Refund Request Body | |
+| **id** | [**string**] | Order ID (UUID) | defaults to undefined|
+
+
+### Return type
+
+**OrdersPost201Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**404** | Not Found |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **ordersIdUpdateStatusPost**
-> ApiV1OrdersIdRefundPost200Response ordersIdUpdateStatusPost(request)
+> OrdersPost201Response ordersIdUpdateStatusPost(request)
 
 Update the status of an existing order (e.g., to in_progress, served) (Roles: admin, manager, cashier)
 
@@ -515,7 +515,7 @@ const { status, data } = await apiInstance.ordersIdUpdateStatusPost(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 
@@ -539,7 +539,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersPost**
-> ApiV1OrdersIdRefundPost200Response ordersPost(request)
+> OrdersPost201Response ordersPost(request)
 
 Create a new order with multiple items (Roles: admin, manager, cashier)
 
@@ -571,7 +571,7 @@ const { status, data } = await apiInstance.ordersPost(
 
 ### Return type
 
-**ApiV1OrdersIdRefundPost200Response**
+**OrdersPost201Response**
 
 ### Authorization
 

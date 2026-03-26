@@ -91,7 +91,10 @@ WHERE
 -- name: UpdateOrderStatusByGatewayRef :one
 -- Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
 UPDATE orders
-SET status = $2
+SET 
+    status = $2,
+    payment_method_id = COALESCE($3, payment_method_id),
+    version = version + 1
 WHERE payment_gateway_reference = $1 AND status <> 'paid' -- Mencegah update ganda
 RETURNING *;
 
@@ -197,7 +200,7 @@ SET
     payment_method_id = $2,
     cash_received = $3,
     change_due = $4,
-    status = 'paid',
+    status = CASE WHEN status = 'open' THEN 'in_progress'::order_status ELSE status END,
     version = version + 1
 WHERE
     id = $1 AND version = $5
@@ -209,6 +212,17 @@ RETURNING *;
 UPDATE orders
 SET status = $2
 WHERE id = $1
+RETURNING *;
+-- name: RefundOrder :one
+UPDATE orders
+SET
+    status = 'cancelled',
+    payment_method_id = NULL,
+    cash_received = NULL,
+    change_due = NULL,
+    version = version + 1
+WHERE
+    id = $1
 RETURNING *;
 
 -- name: DeleteOrderItemOptionsByOrderItemID :exec

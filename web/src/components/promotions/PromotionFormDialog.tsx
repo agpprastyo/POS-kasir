@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { format } from 'date-fns'
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -31,7 +30,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import {
     Promotion,
     useCreatePromotionMutation,
@@ -306,7 +305,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 )}
                                             >
                                                 {field.state.value ? (
-                                                    format(field.state.value, "PPP")
+                                                    formatDate(field.state.value)
                                                 ) : (
                                                     <span>{t('promotions.form.pick_date')}</span>
                                                 )}
@@ -343,7 +342,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 )}
                                             >
                                                 {field.state.value ? (
-                                                    format(field.state.value, "PPP")
+                                                    formatDate(field.state.value)
                                                 ) : (
                                                     <span>{t('promotions.form.pick_date')}</span>
                                                 )}

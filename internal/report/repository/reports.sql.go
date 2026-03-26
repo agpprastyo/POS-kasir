@@ -469,7 +469,7 @@ SELECT
     s.start_cash,
     s.actual_cash_end,
     s.expected_cash_end,
-    (s.actual_cash_end - s.expected_cash_end) AS cash_difference
+    COALESCE(s.actual_cash_end - s.expected_cash_end, 0)::bigint AS cash_difference
 FROM shifts s
 JOIN users u ON s.user_id = u.id
 WHERE s.start_time::date BETWEEN $1 AND $2
@@ -490,7 +490,7 @@ type GetShiftSummaryRow struct {
 	StartCash       int64              `json:"start_cash"`
 	ActualCashEnd   *int64             `json:"actual_cash_end"`
 	ExpectedCashEnd *int64             `json:"expected_cash_end"`
-	CashDifference  int32              `json:"cash_difference"`
+	CashDifference  int64              `json:"cash_difference"`
 }
 
 func (q *Queries) GetShiftSummary(ctx context.Context, arg GetShiftSummaryParams) ([]GetShiftSummaryRow, error) {

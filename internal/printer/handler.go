@@ -118,3 +118,29 @@ func (h *PrinterHandler) GetInvoiceDataHandler(c fiber.Ctx) error {
 		},
 	})
 }
+
+// DiscoverPrintersHandler godoc
+// @Summary      Discover network printers
+// @Description  Scan local network for thermal printers on port 9100 (Roles: admin)
+// @Tags         Printer
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse "List of discovered printers"
+// @Failure      500 {object} common.ErrorResponse "Failed to discover printers"
+// @x-roles      ["admin"]
+// @Router       /settings/printer/discover [get]
+func (h *PrinterHandler) DiscoverPrintersHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	printers, err := h.service.DiscoverPrinters(ctx)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to discover printers",
+			Error:   err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
+		Message: "Printers discovered",
+		Data:    printers,
+	})
+}

@@ -10,7 +10,6 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api := app.FiberApp.Group("/api/v1")
 
-	// Rate Limiter for API
 	api.Use(middleware.RateLimiter(app.RedisCache))
 
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
@@ -112,6 +111,7 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 		settingsGroup.Get("/printer", container.SettingsHandler.GetPrinterSettingsHandler)
 		settingsGroup.Put("/printer", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.SettingsHandler.UpdatePrinterSettingsHandler)
+		settingsGroup.Get("/printer/discover", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.PrinterHandler.DiscoverPrintersHandler)
 		settingsGroup.Post("/printer/test", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.PrinterHandler.TestPrintHandler)
 	}
 
@@ -132,6 +132,5 @@ func SetupRoutes(app *App, container *AppContainer) {
 		customerGroup.Delete("/:id", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.CustomerHandler.DeleteCustomerHandler)
 	}
 
-	// Serve frontend SPA static files (must be last, catch-all)
 	SetupFrontend(app)
 }

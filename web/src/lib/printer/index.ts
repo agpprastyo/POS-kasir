@@ -71,17 +71,14 @@ class PrinterService {
     }
 
     async printInvoice(orderId: string): Promise<void> {
-        const { method, connection } = await this.getSettings();
+        const { method } = await this.getSettings();
 
         if (method === "BE") {
+            // Backend Printing (LAN/Network/Local)
             await this.printBackend(orderId);
         } else {
-            // Frontend Printing
-            if (connection.startsWith("lan://")) {
-                await this.printFrontendNetwork(orderId, connection.replace("lan://", ""));
-            } else {
-                await this.printFrontendBluetooth(orderId);
-            }
+            // Frontend Printing (Bluetooth)
+            await this.printFrontendBluetooth(orderId);
         }
     }
 
@@ -106,41 +103,6 @@ class PrinterService {
         return bytes;
     }
 
-    private async printFrontendNetwork(orderId: string, address: string): Promise<void> {
-        try {
-            const bytes = await this.getPrintData(orderId);
-
-            // Normalize URL
-            let url = address;
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                url = `http://${url}`;
-            }
-
-            // Try to append /print if it's just an IP, as a common guess, or use raw if specified
-            // Many thermal printers with web interface might accept POST to root or a specific path.
-            // Since we can't do raw TCP, we assume the user provided a valid HTTP endpoint or we try root.
-
-            console.log(`Sending print data to ${url}`);
-
-            // We use a blob to send raw bytes
-            const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/octet-stream' });
-
-            await fetch(url, {
-                method: 'POST',
-                body: blob,
-                mode: 'no-cors', // Important: Most printers won't have CORS headers. Opaque response.
-                cache: 'no-cache',
-            });
-
-            // Since mode is no-cors, we can't actually know if it succeeded, but it won't throw on CORS.
-            // We assume success if no network error.
-
-        } catch (error) {
-            console.error("Frontend LAN printing failed:", error);
-            alert(`Printing to ${address} failed. Check console for details. Ensure browser can access the printer IP.`);
-            throw error;
-        }
-    }
 
     private async printFrontendBluetooth(orderId: string): Promise<void> {
         try {

@@ -542,7 +542,7 @@ func (h *OrderHandler) MidtransNotificationHandler(c fiber.Ctx) error {
 // @Failure      400   {object}  common.ErrorResponse
 // @Failure      404   {object}  common.ErrorResponse
 // @Failure      500   {object}  common.ErrorResponse
-// @Router       /api/v1/orders/{id}/refund [post]
+// @Router       /orders/{id}/refund [post]
 func (h *OrderHandler) RefundOrderHandler(c fiber.Ctx) error {
 	orderID, err := fiber.Convert(c.Params("id"), uuid.Parse)
 	if err != nil {

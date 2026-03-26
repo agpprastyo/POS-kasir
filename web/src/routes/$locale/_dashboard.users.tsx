@@ -4,17 +4,13 @@ import { z } from 'zod'
 import { useState } from 'react'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum } from '@/lib/api/generated'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, Search } from 'lucide-react'
 import { NewPagination } from "@/components/pagination.tsx";
 import { useTranslation } from 'react-i18next'
-import { UserActions } from "@/components/userActions.tsx";
-import { UserFormDialog } from "@/components/userFormDialog.tsx";
+import { UsersHeader } from "@/components/users/UsersHeader"
+import { UsersFilters } from "@/components/users/UsersFilters"
+import { UsersTable } from "@/components/users/UsersTable"
+import { UserActions } from "@/components/users/UserActions"
+import { UserFormDialog } from "@/components/users/UserFormDialog"
 
 
 const usersSearchSchema = z.object({
@@ -95,93 +91,26 @@ function UsersPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('users.title')}</h1>
-                    <p className="text-muted-foreground">{t('users.description')}</p>
-                </div>
-                <Button onClick={openCreateModal}>
-                    <Plus className="mr-2 h-4 w-4" /> {t('users.add_button')}
-                </Button>
-            </div>
+            <UsersHeader 
+                t={t}
+                onCreateClick={openCreateModal}
+            />
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-1 items-center gap-2">
-                    <div className="relative w-full md:w-[300px]">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder={t('users.search_placeholder')}
-                            className="pl-8"
-                            defaultValue={searchParams.search}
-                            onChange={(e) => handleSearch(e.target.value)}
-                        />
-                    </div>
-                    <Select value={searchParams.role || 'all'} onValueChange={handleFilterRole}>
-                        <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder={t('users.role_filter')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('users.role_all')}</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Admin}>{t('users.roles.admin')}</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Manager}>{t('users.roles.manager')}</SelectItem>
-                            <SelectItem value={UsersGetRoleEnum.Cashier}>{t('users.roles.cashier')}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
+            <UsersFilters 
+                t={t}
+                search={searchParams.search}
+                onSearch={handleSearch}
+                role={searchParams.role}
+                onRoleChange={handleFilterRole}
+            />
 
-            <div className="rounded-md border bg-card">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-20">{t('users.table.avatar')}</TableHead>
-                            <TableHead>{t('users.table.user')}</TableHead>
-                            <TableHead>{t('users.table.role')}</TableHead>
-                            <TableHead>{t('users.table.status')}</TableHead>
-                            <TableHead className="text-right">{t('users.table.actions')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {users.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">{t('users.table.empty')}</TableCell>
-                            </TableRow>
-                        ) : (
-                            users.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell>
-                                        <Avatar className="h-9 w-9">
-                                            <AvatarImage src={user.avatar || undefined} alt={user.username} />
-                                            <AvatarFallback>{user.username?.slice(0, 2).toUpperCase()}</AvatarFallback>
-                                        </Avatar>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{user.username}</span>
-                                            <span className="text-xs text-muted-foreground">{user.email}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="capitalize">{t(`users.roles.${user.role}`)}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={user.is_active ? 'default' : 'destructive'}
-                                        >
-                                            {user.is_active ? t('users.status.active') : t('users.status.inactive')}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <UserActions user={user} onEdit={() => openEditModal(user)} />
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
+            <UsersTable 
+                users={users}
+                t={t}
+                renderActions={(user) => (
+                    <UserActions user={user} onEdit={() => openEditModal(user)} />
+                )}
+            />
 
             {pagination && (
                 <NewPagination

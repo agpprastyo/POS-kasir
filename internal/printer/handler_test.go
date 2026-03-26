@@ -36,6 +36,14 @@ func (m *MockPrinterService) GetInvoiceData(ctx context.Context, orderID uuid.UU
 	return args.Get(0).([]byte), args.String(1), args.Error(2)
 }
 
+func (m *MockPrinterService) DiscoverPrinters(ctx context.Context) ([]printer.DiscoveredPrinter, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]printer.DiscoveredPrinter), args.Error(1)
+}
+
 func TestPrinterHandler_PrintInvoiceHandler(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		app := fiber.New()

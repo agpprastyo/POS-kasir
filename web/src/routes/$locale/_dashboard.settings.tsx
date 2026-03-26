@@ -1,11 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Ban, ShieldCheck, CreditCard, Palette, Printer } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CancellationReasonsCard } from "@/components/CancellationReasonsCard.tsx";
-import { CategoriesCard } from "@/components/CategoriesCard.tsx";
-import { PaymentMethodsCard } from "@/components/PaymentMethodsCard.tsx";
-import { BrandingSettingsCard } from "@/components/BrandingSettingsCard.tsx";
-import { PrinterSettingsCard } from "@/components/PrinterSettingsCard.tsx";
+import { CancellationReasonsCard } from "@/components/settings/CancellationReasonsCard.tsx";
+import { CategoriesCard } from "@/components/settings/CategoriesCard.tsx";
+import { PaymentMethodsCard } from "@/components/settings/PaymentMethodsCard.tsx";
+import { BrandingSettingsCard } from "@/components/settings/BrandingSettingsCard.tsx";
+import { PrinterSettingsCard } from "@/components/settings/PrinterSettingsCard.tsx";
+import { SettingsHeader } from "@/components/settings/SettingsHeader"
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
@@ -25,12 +26,7 @@ function SettingsPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
-                <p className="text-muted-foreground">
-                    {t('settings.description')}
-                </p>
-            </div>
+            <SettingsHeader t={t} />
 
             <Tabs
                 value={tab}

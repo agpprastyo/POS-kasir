@@ -98,3 +98,15 @@ export function useTestPrintMutation() {
 
     return { ...mutation, isAllowed }
 }
+
+export function useDiscoverPrintersQuery(enabled: boolean = false) {
+    return useQuery({
+        queryKey: ['discovered-printers'],
+        queryFn: async () => {
+            const res = await printerApi.settingsPrinterDiscoverGet()
+            return (res.data as any).data as { ip: string, port: number, name: string }[]
+        },
+        enabled,
+        staleTime: 0,
+    })
+}

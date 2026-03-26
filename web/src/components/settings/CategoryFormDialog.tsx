@@ -6,11 +6,12 @@ import { useForm } from '@tanstack/react-form'
 import * as z from 'zod'
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
+import { DialogFooter, DialogHeader } from "../ui/dialog"
+import { Label } from "../ui/label"
+import { Input } from "../ui/input"
+import { Button } from "../ui/button"
 
-import { DialogHeader, DialogFooter } from "./ui/dialog"
-import { Input } from "./ui/input"
-import { Button } from "./ui/button"
-import { Label } from "./ui/label"
+
 
 
 export function CategoryFormDialog({ open, onOpenChange, categoryToEdit }: {

@@ -59,6 +59,7 @@ type Querier interface {
 	GetPromotionRules(ctx context.Context, promotionID uuid.UUID) ([]PromotionRule, error)
 	GetPromotionTargets(ctx context.Context, promotionID uuid.UUID) ([]PromotionTarget, error)
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListOrdersRow, error)
+	RefundOrder(ctx context.Context, id uuid.UUID) (Order, error)
 	UpdateOrderAppliedPromotion(ctx context.Context, arg UpdateOrderAppliedPromotionParams) error
 	// Update qty dan subtotal. Penting: Tambahkan validasi stok/constraint di level aplikasi
 	// atau pastikan trigger handle pengurangan stok jika qty bertambah.

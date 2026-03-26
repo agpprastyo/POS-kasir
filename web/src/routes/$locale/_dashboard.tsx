@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react'
-import { createFileRoute, Link, Outlet, redirect, useRouter, useParams } from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect, useRouter, useParams } from '@tanstack/react-router'
 import { OpenShiftModal } from "@/components/modals/OpenShiftModal"
 import { CloseShiftModal } from "@/components/modals/CloseShiftModal"
-import { LogOut, Menu, User as UserIcon, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
 import { meQueryOptions } from '@/lib/api/query/auth'
-
 import { useTranslation } from 'react-i18next'
-import { SettingsPanel } from "@/components/SettingsPanel.tsx";
 import { useBrandingSettingsQuery } from '@/lib/api/query/settings'
-import { ShiftControl } from '@/components/dashboard/ShiftControl'
 import { useNavigationMenu } from '@/hooks/useNavigationMenu'
-
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
+import { DashboardMobileNav } from "@/components/dashboard/DashboardMobileNav"
 
 export const Route = createFileRoute('/$locale/_dashboard')({
     loader: async ({ context: { queryClient }, params }) => {
@@ -42,6 +36,7 @@ function DashboardLayout() {
     const auth = useAuth()
     const router = useRouter()
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const { data: branding } = useBrandingSettingsQuery()
 
     useEffect(() => {
@@ -49,11 +44,6 @@ function DashboardLayout() {
             document.title = branding.app_name
         }
     }, [branding?.app_name])
-
-    const user = auth.user
-    const userRole = user?.role
-    const userAvatar = user?.avatar
-    const userName = user?.username ?? 'User'
 
     const handleLogout = async () => {
         if (isLoggingOut) return
@@ -73,152 +63,35 @@ function DashboardLayout() {
         }
     }
 
-    const { filteredMenu } = useNavigationMenu(userRole)
+    const { filteredMenu } = useNavigationMenu(auth.user?.role)
 
     return (
-        <div className="grid h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] overflow-hidden">
-            {/* --- DESKTOP SIDEBAR --- */}
-            <div className="hidden md:block ">
-                <div className="flex h-full max-h-screen flex-col gap-2">
-                    <div className="flex h-14 items-center  px-4 lg:h-[60px] lg:px-6">
-                        <Link
-                            to="/$locale"
-                            params={{ locale }}
-                            className="flex items-center gap-2 font-semibold"
-                        >
-                            {branding?.app_logo ? (
-                                <img src={branding.app_logo} alt={t('settings.branding.logo')} className="h-8 w-8 object-contain" />
-                            ) : (
-                                <Zap className="h-8 w-8" />
-                            )}
-                            <span className="text-2xl">{branding?.app_name || t('dashboard.brand_name')}</span>
-                        </Link>
-                    </div>
-                    <div className="flex-1">
-                        <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                            {filteredMenu.map((item) => (
-                                <Link
-                                    key={item.to}
-                                    to={item.to}
-                                    params={{ locale }}
-                                    activeOptions={{ exact: item.to === '/$locale' }}
-                                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
-                                >
-                                    <item.icon className="h-4 w-4" />
-                                    {item.label}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-                    <div className="mt-auto p-4">
-                        <div className="hidden md:block mb-4">
-                            <SettingsPanel />
-                        </div>
+        <div className={cn(
+            "grid h-screen w-full overflow-hidden transition-all duration-300",
+            isSidebarCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
+        )}>
+            <DashboardSidebar 
+                t={t}
+                locale={locale}
+                branding={branding}
+                isSidebarCollapsed={isSidebarCollapsed}
+                setIsSidebarCollapsed={setIsSidebarCollapsed}
+                filteredMenu={filteredMenu}
+                user={auth.user}
+                handleLogout={handleLogout}
+            />
 
-                        <div className="hidden md:block mb-4">
-                            <ShiftControl />
-                        </div>
-
-                        <div className="rounded-2xl w-full flex items-center justify-between px-2 gap-2 pl-4 aspect-auto h-12 border">
-
-
-                            <div className="flex items-center gap-4 cursor-default">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={userAvatar || undefined} alt={userName} />
-                                    <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
-                                </Avatar>
-                                <div className="flex flex-col items-start truncate text-sm">
-                                    <span className="font-semibold">{userName}</span>
-                                    <span className="text-xs text-muted-foreground">{userRole}</span>
-                                </div>
-                            </div>
-
-
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleLogout();
-                                }}
-                                className="h-8 w-8 hover:bg-destructive/10"
-                            >
-                                <LogOut className="h-4 w-4 text-muted-foreground hover:text-background transition-colors" />
-                                <span className="sr-only">{t('common.logout')}</span>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* --- MAIN CONTENT AREA --- */}
             <div className=''>
                 <div className="flex flex-col border rounded-xl m-2 bg-background overflow-hidden h-[calc(100vh-1rem)]">
-                    {/* HEADER / TOPBAR */}
                     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-4 relative overflow-y-auto">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="shrink-0 md:hidden absolute left-4 top-4 z-10"
-                                >
-                                    <Menu className="h-5 w-5" />
-                                    <span className="sr-only">{t('dashboard.toggle_nav')}</span>
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="flex flex-col">
-                                <nav className="grid gap-2 text-lg font-medium">
-                                    <Link
-                                        to="/$locale"
-                                        params={{ locale }}
-                                        className="flex items-center gap-2 text-lg font-semibold mb-4"
-                                    >
-                                        {branding?.app_logo ? (
-                                            <img src={branding.app_logo} alt={t('settings.branding.logo')} className="h-6 w-6 object-contain" />
-                                        ) : (
-                                            <Zap className="h-6 w-6" />
-                                        )}
-                                        <span className="sr-only">{branding?.app_name || t('dashboard.brand_name')}</span>
-                                    </Link>
-                                    <div className="mb-4">
-                                        <SettingsPanel />
-                                    </div>
-                                    <div className="mb-4">
-                                        <ShiftControl />
-                                    </div>
-                                    {/* Mobile Menu Filtered */}
-                                    {filteredMenu.map((item) => (
-                                        <Link
-                                            key={item.to}
-                                            to={item.to}
-                                            params={{ locale }}
-                                            activeOptions={{ exact: item.to === '/$locale' }}
-                                            className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
-                                        >
-                                            <item.icon className="h-5 w-5" />
-                                            {item.label}
-                                        </Link>
-                                    ))}
-
-                                    <div className="mt-auto">
-                                        <div className="flex items-center gap-4 px-2 py-4">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={userAvatar || undefined} alt={userName} />
-                                                <AvatarFallback><UserIcon className="h-4 w-4" /></AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex flex-col">
-                                                <span className="font-semibold text-sm">{userName}</span>
-                                                <span className="text-xs text-muted-foreground">{userRole}</span>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={handleLogout} className="ml-auto text-destructive">
-                                                <LogOut className="h-5 w-5" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </nav>
-                            </SheetContent>
-                        </Sheet>
+                        <DashboardMobileNav 
+                            t={t}
+                            locale={locale}
+                            branding={branding}
+                            filteredMenu={filteredMenu}
+                            user={auth.user}
+                            handleLogout={handleLogout}
+                        />
 
                         <div className="mt-12 md:mt-0 flex-1">
                             <Outlet />
@@ -228,7 +101,6 @@ function DashboardLayout() {
                 <OpenShiftModal />
                 <CloseShiftModal />
             </div>
-
         </div>
     )
 }

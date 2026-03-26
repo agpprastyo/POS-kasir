@@ -25,9 +25,7 @@ export function ErrorPage({ error, reset }: { error?: Error; reset?: () => void 
                     variant="outline"
                     size="lg"
                     onClick={() => {
-                        // Attempt to recover by invalidating router context or just reloading
                         router.invalidate()
-                        // If provided a reset function (like from ErrorBoundary), call it
                         if (reset) reset()
                     }}
                     className="gap-2"

@@ -2,8 +2,22 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Area } from "react-easy-crop"
 
+import { format } from "date-fns"
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export const formatDate = (date: Date | string | number) => {
+  return format(new Date(date), 'd MMM yyyy')
+}
+
+export const formatDateTime = (date: Date | string | number) => {
+  return format(new Date(date), 'd MMM yyyy HH:mm')
+}
+
+export const formatTime = (date: Date | string | number) => {
+  return format(new Date(date), 'HH:mm')
 }
 
 export function readFile(file: File) {

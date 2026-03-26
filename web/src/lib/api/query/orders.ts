@@ -137,7 +137,11 @@ export const useConfirmManualPaymentMutation = () => {
     >({
         mutationKey: ['orders', 'complete-manual-payment'],
         mutationFn: async ({ id, body }) => {
-            const res = await ordersApi.ordersIdPayManualPost(id, body)
+            const res = await ordersApi.ordersIdPayManualPost(id, body, {
+                headers: {
+                    'X-Idempotency-Key': crypto.randomUUID()
+                }
+            })
             return (res.data as any).data;
         },
         onSuccess: (_, variables) => {
@@ -224,7 +228,11 @@ export const useCreateOrderMutation = () => {
     >({
         mutationKey: ['orders', 'create'],
         mutationFn: async (body) => {
-            const res = await ordersApi.ordersPost(body)
+            const res = await ordersApi.ordersPost(body, {
+                headers: {
+                    'X-Idempotency-Key': crypto.randomUUID()
+                }
+            })
             return (res.data as any).data
         },
         onSuccess: () => {
@@ -308,7 +316,7 @@ export const useRefundOrderMutation = () => {
     >({
         mutationKey: ['orders', 'refund'],
         mutationFn: async ({ id, body }) => {
-            const res = await ordersApi.apiV1OrdersIdRefundPost(id, body)
+            const res = await ordersApi.ordersIdRefundPost(id, body)
             return (res.data as any).data
         },
         onSuccess: (_, variables) => {

@@ -32,7 +32,7 @@ import { ImageCropperDialog } from "@/components/common/ImageCropperDialog.tsx";
 
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { StockHistoryTable } from "@/components/products/StockHistoryTable"
+import { StockHistoryTable } from "./StockHistoryTable"
 
 
 interface VariantItem {

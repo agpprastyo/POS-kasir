@@ -985,6 +985,49 @@ func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListO
 	return items, nil
 }
 
+const refundOrder = `-- name: RefundOrder :one
+UPDATE orders
+SET
+    status = 'cancelled',
+    payment_method_id = NULL,
+    cash_received = NULL,
+    change_due = NULL,
+    version = version + 1
+WHERE
+    id = $1
+RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes, payment_url, payment_token, version, tax_amount, service_charge_amount, customer_id
+`
+
+func (q *Queries) RefundOrder(ctx context.Context, id uuid.UUID) (Order, error) {
+	row := q.db.QueryRow(ctx, refundOrder, id)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Type,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.GrossTotal,
+		&i.DiscountAmount,
+		&i.NetTotal,
+		&i.AppliedPromotionID,
+		&i.PaymentMethodID,
+		&i.PaymentGatewayReference,
+		&i.CashReceived,
+		&i.ChangeDue,
+		&i.CancellationReasonID,
+		&i.CancellationNotes,
+		&i.PaymentUrl,
+		&i.PaymentToken,
+		&i.Version,
+		&i.TaxAmount,
+		&i.ServiceChargeAmount,
+		&i.CustomerID,
+	)
+	return i, err
+}
+
 const updateOrderAppliedPromotion = `-- name: UpdateOrderAppliedPromotion :exec
 UPDATE orders
 SET applied_promotion_id = $2
@@ -1051,7 +1094,7 @@ SET
     payment_method_id = $2,
     cash_received = $3,
     change_due = $4,
-    status = 'paid',
+    status = CASE WHEN status = 'open' THEN 'in_progress'::order_status ELSE status END,
     version = version + 1
 WHERE
     id = $1 AND version = $5
@@ -1192,7 +1235,10 @@ func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusPa
 
 const updateOrderStatusByGatewayRef = `-- name: UpdateOrderStatusByGatewayRef :one
 UPDATE orders
-SET status = $2
+SET 
+    status = $2,
+    payment_method_id = COALESCE($3, payment_method_id),
+    version = version + 1
 WHERE payment_gateway_reference = $1 AND status <> 'paid' -- Mencegah update ganda
 RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discount_amount, net_total, applied_promotion_id, payment_method_id, payment_gateway_reference, cash_received, change_due, cancellation_reason_id, cancellation_notes, payment_url, payment_token, version, tax_amount, service_charge_amount, customer_id
 `
@@ -1200,11 +1246,12 @@ RETURNING id, user_id, type, status, created_at, updated_at, gross_total, discou
 type UpdateOrderStatusByGatewayRefParams struct {
 	PaymentGatewayReference *string     `json:"payment_gateway_reference"`
 	Status                  OrderStatus `json:"status"`
+	PaymentMethodID         *int32      `json:"payment_method_id"`
 }
 
 // Memperbarui status pesanan berdasarkan referensi dari payment gateway (digunakan oleh webhook).
 func (q *Queries) UpdateOrderStatusByGatewayRef(ctx context.Context, arg UpdateOrderStatusByGatewayRefParams) (Order, error) {
-	row := q.db.QueryRow(ctx, updateOrderStatusByGatewayRef, arg.PaymentGatewayReference, arg.Status)
+	row := q.db.QueryRow(ctx, updateOrderStatusByGatewayRef, arg.PaymentGatewayReference, arg.Status, arg.PaymentMethodID)
 	var i Order
 	err := row.Scan(
 		&i.ID,

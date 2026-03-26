@@ -18,8 +18,19 @@ const config = defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/victory')) {
-            return 'vendor-charts'
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('axios') || id.includes('i18next')) {
+              return 'vendor-framework'
+            }
+            if (id.includes('@tanstack')) {
+              return 'vendor-tanstack'
+            }
+            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
+              return 'vendor-ui'
+            }
+            if (id.includes('recharts') || id.includes('victory')) {
+              return 'vendor-charts'
+            }
           }
         },
       },

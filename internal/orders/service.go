@@ -28,13 +28,11 @@ import (
 type IOrderService interface {
 	CreateOrder(ctx context.Context, req CreateOrderRequest) (*OrderDetailResponse, error)
 	GetOrder(ctx context.Context, orderID uuid.UUID) (*OrderDetailResponse, error)
-	// InitiateMidtransPayment initiates a QRIS/Gopay payment via Midtrans
 	InitiateMidtransPayment(ctx context.Context, orderID uuid.UUID) (*MidtransPaymentResponse, error)
 	HandleMidtransNotification(ctx context.Context, payload payment.MidtransNotificationPayload) error
 	ListOrders(ctx context.Context, req ListOrdersRequest) (*PagedOrderResponse, error)
 	CancelOrder(ctx context.Context, orderID uuid.UUID, req CancelOrderRequest) error
 	UpdateOrderItems(ctx context.Context, orderID uuid.UUID, req UpdateOrderItemsRequest) (*OrderDetailResponse, error)
-	// ConfirmManualPayment completes a manual payment (Cash/Static QR)
 	ConfirmManualPayment(ctx context.Context, orderID uuid.UUID, req ConfirmManualPaymentRequest) (*OrderDetailResponse, error)
 	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req UpdateOrderStatusRequest) (*OrderDetailResponse, error)
 	ApplyPromotion(ctx context.Context, orderID uuid.UUID, req ApplyPromotionRequest) (*OrderDetailResponse, error)
@@ -67,23 +65,33 @@ var allowedStatusTransitions = map[orders_repo.OrderStatus]map[orders_repo.Order
 		orders_repo.OrderStatusServed:     true,
 		orders_repo.OrderStatusPaid:       true,
 		orders_repo.OrderStatusCancelled:  true,
+		orders_repo.OrderStatusOpen:       true,
 	},
 	orders_repo.OrderStatusInProgress: {
-		orders_repo.OrderStatusServed:    true,
-		orders_repo.OrderStatusPaid:      true,
-		orders_repo.OrderStatusCancelled: true,
-		orders_repo.OrderStatusOpen:      true,
+		orders_repo.OrderStatusInProgress: true,
+		orders_repo.OrderStatusServed:     true,
+		orders_repo.OrderStatusPaid:       true,
+		orders_repo.OrderStatusCancelled:  true,
+		orders_repo.OrderStatusOpen:       true,
 	},
 	orders_repo.OrderStatusServed: {
+		orders_repo.OrderStatusServed:     true,
 		orders_repo.OrderStatusPaid:       true,
 		orders_repo.OrderStatusInProgress: true,
 		orders_repo.OrderStatusCancelled:  true,
 		orders_repo.OrderStatusOpen:       true,
 	},
 	orders_repo.OrderStatusPaid: {
+		orders_repo.OrderStatusPaid:       true,
 		orders_repo.OrderStatusServed:     true,
 		orders_repo.OrderStatusInProgress: true,
 		orders_repo.OrderStatusOpen:       true,
+		orders_repo.OrderStatusCancelled:  true,
+	},
+	orders_repo.OrderStatusCancelled: {
+		orders_repo.OrderStatusCancelled: true,
+		orders_repo.OrderStatusOpen:      true,
+		orders_repo.OrderStatusInProgress: true,
 	},
 }
 
@@ -334,10 +342,14 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 	currentStatus := order.Status
 	newStatus := req.Status
 
+	if currentStatus == newStatus {
+		return s.GetOrder(ctx, orderID)
+	}
+
 	allowed, ok := allowedStatusTransitions[currentStatus][newStatus]
 	if !ok || !allowed {
 		errMsg := fmt.Sprintf("invalid status transition from '%s' to '%s'", currentStatus, newStatus)
-		s.log.Warn(errMsg, "orderID", orderID)
+		s.log.Warn(errMsg, "orderID", orderID, "currentStatus", currentStatus, "newStatus", newStatus)
 		return nil, fmt.Errorf("%w: %s", common.ErrInvalidStatusTransition, errMsg)
 	}
 
@@ -747,6 +759,7 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(ctx context.Conte
 		AppliedPromotionID:      utils.NullableUUIDToPointer(orderWithDetails.AppliedPromotionID),
 		CreatedAt:               orderWithDetails.CreatedAt.Time,
 		UpdatedAt:               orderWithDetails.UpdatedAt.Time,
+		Version:                 orderWithDetails.Version,
 		Items:                   itemResponses,
 	}, nil
 }
@@ -924,14 +937,11 @@ func (s *OrderService) RefundOrder(ctx context.Context, orderID uuid.UUID, req R
 			return err
 		}
 
-		if order.Status != orders_repo.OrderStatusPaid {
+		if order.PaymentMethodID == nil {
 			return errors.New("only paid orders can be refunded")
 		}
 
-		_, err = qtx.UpdateOrderStatus(ctx, orders_repo.UpdateOrderStatusParams{
-			ID:     orderID,
-			Status: orders_repo.OrderStatusCancelled,
-		})
+		_, err = qtx.RefundOrder(ctx, orderID)
 		if err != nil {
 			return err
 		}
@@ -1425,7 +1435,7 @@ func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid
 
 	err = s.ordersRepo.UpdateOrderPaymentInfo(ctx, orders_repo.UpdateOrderPaymentInfoParams{
 		ID:                      order.ID,
-		PaymentMethodID:         utils.Int32Ptr(2),
+		PaymentMethodID:         nil, // Updated on settlement
 		PaymentGatewayReference: utils.StringPtr(chargeResp.TransactionID),
 	})
 	if err != nil {
@@ -1498,15 +1508,21 @@ func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload p
 	}
 
 	var newStatus orders_repo.OrderStatus
+	var paymentMethodID *int32
+
 	switch payload.TransactionStatus {
 	case "settlement", "capture":
-
-		newStatus = orders_repo.OrderStatusPaid
+		// If order is still 'open', move to 'in_progress' instead of 'paid'
+		// This follows the new flow where 'paid' is the final status after 'served'
+		if order.Status == orders_repo.OrderStatusOpen {
+			newStatus = orders_repo.OrderStatusInProgress
+		} else {
+			newStatus = order.Status
+		}
+		paymentMethodID = utils.Int32Ptr(2) // QRIS/Midtrans
 	case "cancel", "deny", "expire":
-
 		newStatus = orders_repo.OrderStatusCancelled
 	default:
-
 		s.log.Infof("Ignoring Midtrans notification with status: %s", payload.TransactionStatus)
 		return nil
 	}
@@ -1514,6 +1530,7 @@ func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload p
 	updatedOrder, err := s.ordersRepo.UpdateOrderStatusByGatewayRef(ctx, orders_repo.UpdateOrderStatusByGatewayRefParams{
 		PaymentGatewayReference: &payload.TransactionID,
 		Status:                  newStatus,
+		PaymentMethodID:         paymentMethodID,
 	})
 	if err != nil {
 		s.log.Error("Failed to update order status from notification", "error", err, "orderID", order.ID)

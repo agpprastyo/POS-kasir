@@ -127,7 +127,7 @@ SELECT
     s.start_cash,
     s.actual_cash_end,
     s.expected_cash_end,
-    (s.actual_cash_end - s.expected_cash_end) AS cash_difference
+    COALESCE(s.actual_cash_end - s.expected_cash_end, 0)::bigint AS cash_difference
 FROM shifts s
 JOIN users u ON s.user_id = u.id
 WHERE s.start_time::date BETWEEN $1 AND $2

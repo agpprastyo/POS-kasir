@@ -1,0 +1,5 @@
+# POS-kasir/internal/orders
+internal/orders/service_test.go:1536:1: expected operand, found ':'
+FAIL	POS-kasir/internal/orders [setup failed]
+?   	POS-kasir/internal/orders/repository	[no test files]
+FAIL

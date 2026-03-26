@@ -138,77 +138,6 @@ const docTemplate = `{
                 ]
             }
         },
-        "/api/v1/orders/{id}/refund": {
-            "post": {
-                "description": "Refund a paid order by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "orders"
-                ],
-                "summary": "Refund a paid order",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Order ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Refund Request Body",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_orders.RefundOrderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_orders.OrderDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/add": {
             "post": {
                 "description": "Register a new user with a specific role (Roles: admin)",
@@ -2115,6 +2044,77 @@ const docTemplate = `{
                     "manager",
                     "cashier"
                 ]
+            }
+        },
+        "/orders/{id}/refund": {
+            "post": {
+                "description": "Refund a paid order by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "summary": "Refund a paid order",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Order ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Refund Request Body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_orders.RefundOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_orders.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/orders/{id}/update-status": {
@@ -4648,6 +4648,38 @@ const docTemplate = `{
                 ]
             }
         },
+        "/settings/printer/discover": {
+            "get": {
+                "description": "Scan local network for thermal printers on port 9100 (Roles: admin)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Printer"
+                ],
+                "summary": "Discover network printers",
+                "responses": {
+                    "200": {
+                        "description": "List of discovered printers",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to discover printers",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin"
+                ]
+            }
+        },
         "/settings/printer/test": {
             "post": {
                 "description": "Send a test print command to the configured printer (Roles: admin)",
@@ -6208,9 +6240,11 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "enum": [
+                        "open",
                         "in_progress",
                         "served",
-                        "paid"
+                        "paid",
+                        "cancelled"
                     ],
                     "allOf": [
                         {

@@ -71,7 +71,6 @@ Class | Method | HTTP request | Description
 *CustomersApi* | [**customersIdGet**](docs/CustomersApi.md#customersidget) | **GET** /customers/{id} | Get a customer
 *CustomersApi* | [**customersIdPut**](docs/CustomersApi.md#customersidput) | **PUT** /customers/{id} | Update a customer
 *CustomersApi* | [**customersPost**](docs/CustomersApi.md#customerspost) | **POST** /customers | Create a customer
-*OrdersApi* | [**apiV1OrdersIdRefundPost**](docs/OrdersApi.md#apiv1ordersidrefundpost) | **POST** /api/v1/orders/{id}/refund | Refund a paid order
 *OrdersApi* | [**ordersGet**](docs/OrdersApi.md#ordersget) | **GET** /orders | List orders
 *OrdersApi* | [**ordersIdApplyPromotionPost**](docs/OrdersApi.md#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order
 *OrdersApi* | [**ordersIdCancelPost**](docs/OrdersApi.md#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order
@@ -79,12 +78,14 @@ Class | Method | HTTP request | Description
 *OrdersApi* | [**ordersIdItemsPatch**](docs/OrdersApi.md#ordersiditemspatch) | **PATCH** /orders/{id}/items | Update items in an order
 *OrdersApi* | [**ordersIdPayManualPost**](docs/OrdersApi.md#ordersidpaymanualpost) | **POST** /orders/{id}/pay/manual | Confirm manual payment for an order
 *OrdersApi* | [**ordersIdPayMidtransPost**](docs/OrdersApi.md#ordersidpaymidtranspost) | **POST** /orders/{id}/pay/midtrans | Initiate Midtrans payment for an order
+*OrdersApi* | [**ordersIdRefundPost**](docs/OrdersApi.md#ordersidrefundpost) | **POST** /orders/{id}/refund | Refund a paid order
 *OrdersApi* | [**ordersIdUpdateStatusPost**](docs/OrdersApi.md#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status
 *OrdersApi* | [**ordersPost**](docs/OrdersApi.md#orderspost) | **POST** /orders | Create an order
 *OrdersApi* | [**ordersWebhookMidtransPost**](docs/OrdersApi.md#orderswebhookmidtranspost) | **POST** /orders/webhook/midtrans | Midtrans Payment Notification Callback
 *PaymentMethodsApi* | [**paymentMethodsGet**](docs/PaymentMethodsApi.md#paymentmethodsget) | **GET** /payment-methods | List payment methods
 *PrinterApi* | [**ordersIdPrintDataGet**](docs/PrinterApi.md#ordersidprintdataget) | **GET** /orders/{id}/print-data | Get invoice print data
 *PrinterApi* | [**ordersIdPrintPost**](docs/PrinterApi.md#ordersidprintpost) | **POST** /orders/{id}/print | Print invoice for an order
+*PrinterApi* | [**settingsPrinterDiscoverGet**](docs/PrinterApi.md#settingsprinterdiscoverget) | **GET** /settings/printer/discover | Discover network printers
 *PrinterApi* | [**settingsPrinterTestPost**](docs/PrinterApi.md#settingsprintertestpost) | **POST** /settings/printer/test | Test printer connection
 *ProductsApi* | [**productsGet**](docs/ProductsApi.md#productsget) | **GET** /products | List products
 *ProductsApi* | [**productsIdDelete**](docs/ProductsApi.md#productsiddelete) | **DELETE** /products/{id} | Delete a product
@@ -137,7 +138,6 @@ Class | Method | HTTP request | Description
 ### Documentation For Models
 
  - [ActivityLogsGet200Response](docs/ActivityLogsGet200Response.md)
- - [ApiV1OrdersIdRefundPost200Response](docs/ApiV1OrdersIdRefundPost200Response.md)
  - [AuthAddPost200Response](docs/AuthAddPost200Response.md)
  - [AuthLoginPost200Response](docs/AuthLoginPost200Response.md)
  - [AuthRefreshPost200Response](docs/AuthRefreshPost200Response.md)
@@ -227,6 +227,7 @@ Class | Method | HTTP request | Description
  - [InternalUserUsersResponse](docs/InternalUserUsersResponse.md)
  - [OrdersGet200Response](docs/OrdersGet200Response.md)
  - [OrdersIdPayMidtransPost200Response](docs/OrdersIdPayMidtransPost200Response.md)
+ - [OrdersPost201Response](docs/OrdersPost201Response.md)
  - [POSKasirInternalActivitylogRepositoryLogActionType](docs/POSKasirInternalActivitylogRepositoryLogActionType.md)
  - [POSKasirInternalActivitylogRepositoryLogEntityType](docs/POSKasirInternalActivitylogRepositoryLogEntityType.md)
  - [POSKasirInternalCommonErrorResponse](docs/POSKasirInternalCommonErrorResponse.md)

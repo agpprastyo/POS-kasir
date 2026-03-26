@@ -3,8 +3,9 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { meQueryOptions } from '@/lib/api/query/auth'
 import { ShieldCheck, User } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { UpdateAvatarCard } from "@/components/UpdateAvatarCard.tsx";
-import { UpdatePasswordCard } from "@/components/UpdatePasswordCard.tsx";
+import { UpdateAvatarCard } from "@/components/account/UpdateAvatarCard.tsx";
+import { UpdatePasswordCard } from "@/components/account/UpdatePasswordCard.tsx";
+import { AccountHeader } from "@/components/account/AccountHeader"
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 
@@ -27,12 +28,7 @@ function AccountPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('account.title')}</h1>
-        <p className="text-muted-foreground">
-          {t('account.subtitle')}
-        </p>
-      </div>
+      <AccountHeader t={t} />
 
       <Tabs
         value={tab}

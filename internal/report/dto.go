@@ -112,5 +112,5 @@ type ShiftSummaryResponse struct {
 	StartCash       int64     `json:"start_cash"`
 	ActualCashEnd   *int64    `json:"actual_cash_end"`
 	ExpectedCashEnd *int64    `json:"expected_cash_end"`
-	CashDifference  int32     `json:"cash_difference"`
+	CashDifference  int64     `json:"cash_difference"`
 }

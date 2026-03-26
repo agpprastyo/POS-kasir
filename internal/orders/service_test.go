@@ -460,9 +460,11 @@ func TestOrderService_HandleMidtransNotification(t *testing.T) {
 
 		mockMidtrans.EXPECT().VerifyNotificationSignature(basePayload).Return(nil)
 		mockOrderRepo.EXPECT().GetOrderWithDetails(ctx, orderID).Return(baseOrder, nil)
+		payMethodID := int32(2)
 		mockOrderRepo.EXPECT().UpdateOrderStatusByGatewayRef(ctx, orders_repo.UpdateOrderStatusByGatewayRefParams{
 			PaymentGatewayReference: &txnID,
-			Status:                  orders_repo.OrderStatusPaid,
+			Status:                  orders_repo.OrderStatusInProgress,
+			PaymentMethodID:         &payMethodID,
 		}).Return(updatedOrder, nil)
 		mockActivity.EXPECT().Log(gomock.Any(), userID, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
 
@@ -1314,9 +1316,9 @@ func TestOrderService_UpdateOperationalStatus(t *testing.T) {
 		allowAllLoggerCalls(mockLogger)
 		ctx := context.Background()
 
-		// Cancelled → InProgress is NOT in the allowed transitions
+		// Cancelled → Paid is NOT in the allowed transitions
 		req := orders.UpdateOrderStatusRequest{
-			Status: orders_repo.OrderStatusInProgress,
+			Status: orders_repo.OrderStatusPaid,
 		}
 
 		mockOrderRepo.EXPECT().GetOrderWithDetails(ctx, orderID).Return(orders_repo.GetOrderWithDetailsRow{
@@ -1435,7 +1437,6 @@ func TestOrderService_ApplyPromotion(t *testing.T) {
 				pgtype.Timestamptz{},
 			))
 
-		// 4. GetPromotionRules (empty — no rules to check)
 		mockPgx.ExpectQuery("SELECT .* FROM promotion_rules WHERE promotion_id").
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
@@ -1522,5 +1523,142 @@ func TestOrderService_ApplyPromotion(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, resp)
 		assert.ErrorIs(t, err, common.ErrPromotionNotApplicable)
+	})
+}
+
+func TestOrderService_RefundOrder(t *testing.T) {
+	orderID := uuid.New()
+	userID := uuid.New()
+	now := time.Now()
+
+	req := orders.RefundOrderRequest{
+		Reason: "Customer request",
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		mockPgx, mockStore, _, _, _, mockActivity, mockLogger, service := setupTestWithPgxMock(t)
+		defer mockPgx.Close()
+		allowAllLoggerCalls(mockLogger)
+
+		ctx := context.WithValue(context.Background(), common.UserIDKey, userID)
+
+		orderColumns := []string{
+			"id", "user_id", "type", "status", "created_at", "updated_at",
+			"gross_total", "discount_amount", "net_total", "applied_promotion_id",
+			"payment_method_id", "payment_gateway_reference", "cash_received", "change_due",
+			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token", "version", "tax_amount", "service_charge_amount", "customer_id",
+		}
+		orderWithDetailsColumns := append(append([]string{}, orderColumns...), "items")
+
+		payMethodID := int32(1)
+
+		// ExecTx: execute callback with pgxmock
+		mockStore.EXPECT().ExecTx(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(ctx context.Context, fn func(pgx.Tx) error) error {
+				return fn(mockPgx)
+			},
+		)
+
+		// 1. GetOrderForUpdate
+		mockPgx.ExpectQuery("SELECT .* FROM orders").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(
+				orderID, pgtype.UUID{Bytes: userID, Valid: true},
+				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusInProgress,
+				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
+				int64(20000), int64(0), int64(20000), pgtype.UUID{},
+				&payMethodID, nil, nil, nil, nil, nil, nil, nil, int32(1), int64(0), int64(0), pgtype.UUID{},
+			))
+
+		// 2. RefundOrder (SQL query)
+		mockPgx.ExpectQuery("UPDATE orders").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(
+				orderID, pgtype.UUID{Bytes: userID, Valid: true},
+				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusCancelled,
+				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
+				int64(20000), int64(0), int64(20000), pgtype.UUID{},
+				nil, nil, nil, nil, nil, nil, nil, nil, int32(2), int64(0), int64(0), pgtype.UUID{},
+			))
+
+		// 3. GetOrderItemsByOrderID
+		productID := uuid.New()
+		mockPgx.ExpectQuery("SELECT .* FROM order_items").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows([]string{"id", "order_id", "product_id", "quantity", "price_at_sale", "subtotal", "discount_amount", "net_subtotal", "cost_price_at_sale"}).
+				AddRow(uuid.New(), orderID, productID, int32(1), int64(20000), int64(20000), int64(0), int64(20000), pgtype.Numeric{}))
+
+		// 4. GetProductByID (from products repo)
+		mockPgx.ExpectQuery("SELECT .* FROM products").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price"}).
+				AddRow(productID, "Test Product", nil, int64(20000), int32(9), now, now, nil, pgtype.Numeric{}))
+
+		// 5. AddProductStock
+		mockPgx.ExpectQuery("UPDATE products SET stock").
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows([]string{"id", "stock"}).AddRow(productID, int32(10)))
+
+		// 6. CreateStockHistory
+		mockPgx.ExpectQuery("INSERT INTO stock_history").
+			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(uuid.New()))
+
+		// 7. GetOrderWithDetails (final response)
+		mockPgx.ExpectQuery("SELECT .* FROM orders o").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows(orderWithDetailsColumns).AddRow(
+				orderID, pgtype.UUID{Bytes: userID, Valid: true},
+				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusCancelled,
+				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
+				int64(20000), int64(0), int64(20000), pgtype.UUID{},
+				nil, nil, nil, nil, nil, nil, nil, nil, int32(2), int64(0), int64(0), pgtype.UUID{},
+				nil,
+			))
+
+		// Activity Log
+		mockActivity.EXPECT().Log(gomock.Any(), userID, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any())
+		allowAllLoggerCalls(mockLogger)
+
+		_, err := service.RefundOrder(ctx, orderID, req)
+
+		assert.NoError(t, err)
+		assert.NoError(t, mockPgx.ExpectationsWereMet())
+	})
+
+	t.Run("NotPaid", func(t *testing.T) {
+		mockPgx, mockStore, _, _, _, _, mockLogger, service := setupTestWithPgxMock(t)
+		defer mockPgx.Close()
+		allowAllLoggerCalls(mockLogger)
+		ctx := context.Background()
+
+		orderColumns := []string{
+			"id", "user_id", "type", "status", "created_at", "updated_at",
+			"gross_total", "discount_amount", "net_total", "applied_promotion_id",
+			"payment_method_id", "payment_gateway_reference", "cash_received", "change_due",
+			"cancellation_reason_id", "cancellation_notes", "payment_url", "payment_token", "version", "tax_amount", "service_charge_amount", "customer_id",
+		}
+
+		mockStore.EXPECT().ExecTx(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(ctx context.Context, fn func(pgx.Tx) error) error {
+				return fn(mockPgx)
+			},
+		)
+
+		// 1. GetOrderForUpdate (PaymentMethodID is nil)
+		mockPgx.ExpectQuery("SELECT .* FROM orders").
+			WithArgs(pgxmock.AnyArg()).
+			WillReturnRows(pgxmock.NewRows(orderColumns).AddRow(
+				orderID, pgtype.UUID{Bytes: userID, Valid: true},
+				orders_repo.OrderTypeDineIn, orders_repo.OrderStatusOpen,
+				pgtype.Timestamptz{Time: now, Valid: true}, pgtype.Timestamptz{Time: now, Valid: true},
+				int64(20000), int64(0), int64(20000), pgtype.UUID{},
+				nil, nil, nil, nil, nil, nil, nil, nil, int32(1), int64(0), int64(0), pgtype.UUID{},
+			))
+
+		_, err := service.RefundOrder(ctx, orderID, req)
+
+		assert.Error(t, err)
+		assert.Equal(t, "only paid orders can be refunded", err.Error())
 	})
 }

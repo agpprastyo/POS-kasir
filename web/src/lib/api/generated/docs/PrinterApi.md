@@ -6,6 +6,7 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |------------- | ------------- | -------------|
 |[**ordersIdPrintDataGet**](#ordersidprintdataget) | **GET** /orders/{id}/print-data | Get invoice print data|
 |[**ordersIdPrintPost**](#ordersidprintpost) | **POST** /orders/{id}/print | Print invoice for an order|
+|[**settingsPrinterDiscoverGet**](#settingsprinterdiscoverget) | **GET** /settings/printer/discover | Discover network printers|
 |[**settingsPrinterTestPost**](#settingsprintertestpost) | **POST** /settings/printer/test | Test printer connection|
 
 # **ordersIdPrintDataGet**
@@ -111,6 +112,51 @@ No authorization required
 |**200** | Invoice sent to printer |  -  |
 |**400** | Invalid order ID |  -  |
 |**500** | Failed to print invoice |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **settingsPrinterDiscoverGet**
+> POSKasirInternalCommonSuccessResponse settingsPrinterDiscoverGet()
+
+Scan local network for thermal printers on port 9100 (Roles: admin)
+
+### Example
+
+```typescript
+import {
+    PrinterApi,
+    Configuration
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new PrinterApi(configuration);
+
+const { status, data } = await apiInstance.settingsPrinterDiscoverGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**POSKasirInternalCommonSuccessResponse**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | List of discovered printers |  -  |
+|**500** | Failed to discover printers |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

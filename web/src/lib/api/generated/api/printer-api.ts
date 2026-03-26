@@ -99,6 +99,36 @@ export const PrinterApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Scan local network for thermal printers on port 9100 (Roles: admin)
+         * @summary Discover network printers
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        settingsPrinterDiscoverGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/settings/printer/discover`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
@@ -164,6 +194,18 @@ export const PrinterApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Scan local network for thermal printers on port 9100 (Roles: admin)
+         * @summary Discover network printers
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async settingsPrinterDiscoverGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<POSKasirInternalCommonSuccessResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.settingsPrinterDiscoverGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PrinterApi.settingsPrinterDiscoverGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
@@ -205,6 +247,15 @@ export const PrinterApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.ordersIdPrintPost(id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Scan local network for thermal printers on port 9100 (Roles: admin)
+         * @summary Discover network printers
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        settingsPrinterDiscoverGet(options?: RawAxiosRequestConfig): AxiosPromise<POSKasirInternalCommonSuccessResponse> {
+            return localVarFp.settingsPrinterDiscoverGet(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Send a test print command to the configured printer (Roles: admin)
          * @summary Test printer connection
          * @param {*} [options] Override http request option.
@@ -240,6 +291,16 @@ export class PrinterApi extends BaseAPI {
      */
     public ordersIdPrintPost(id: string, options?: RawAxiosRequestConfig) {
         return PrinterApiFp(this.configuration).ordersIdPrintPost(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Scan local network for thermal printers on port 9100 (Roles: admin)
+     * @summary Discover network printers
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public settingsPrinterDiscoverGet(options?: RawAxiosRequestConfig) {
+        return PrinterApiFp(this.configuration).settingsPrinterDiscoverGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

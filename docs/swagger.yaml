@@ -568,9 +568,11 @@ definitions:
         allOf:
         - $ref: '#/definitions/POS-kasir_internal_orders_repository.OrderStatus'
         enum:
+        - open
         - in_progress
         - served
         - paid
+        - cancelled
     required:
     - status
     type: object
@@ -1493,50 +1495,6 @@ paths:
       - ActivityLogs
       x-roles:
       - admin
-  /api/v1/orders/{id}/refund:
-    post:
-      consumes:
-      - application/json
-      description: Refund a paid order by ID
-      parameters:
-      - description: Order ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Refund Request Body
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/internal_orders.RefundOrderRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_orders.OrderDetailResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
-      summary: Refund a paid order
-      tags:
-      - orders
   /auth/add:
     post:
       consumes:
@@ -2738,6 +2696,50 @@ paths:
       - admin
       - manager
       - cashier
+  /orders/{id}/refund:
+    post:
+      consumes:
+      - application/json
+      description: Refund a paid order by ID
+      parameters:
+      - description: Order ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Refund Request Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_orders.RefundOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_orders.OrderDetailResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Refund a paid order
+      tags:
+      - orders
   /orders/{id}/update-status:
     post:
       consumes:
@@ -4389,6 +4391,27 @@ paths:
       summary: Update printer settings
       tags:
       - Settings
+      x-roles:
+      - admin
+  /settings/printer/discover:
+    get:
+      consumes:
+      - application/json
+      description: 'Scan local network for thermal printers on port 9100 (Roles: admin)'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of discovered printers
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+        "500":
+          description: Failed to discover printers
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Discover network printers
+      tags:
+      - Printer
       x-roles:
       - admin
   /settings/printer/test:

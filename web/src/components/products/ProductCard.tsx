@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { formatRupiah } from "@/lib/utils"
 import { Package, RotateCcw } from "lucide-react"
-import { ProductActions } from "@/components/ProductActions"
+import { ProductActions } from "./ProductActions"
 import { Button } from "@/components/ui/button"
 import { Product } from "@/lib/api/query/products"
 import { cn } from "@/lib/utils"

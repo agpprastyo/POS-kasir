@@ -5,24 +5,14 @@ import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation, useCreateProductMutation } from '@/lib/api/query/products'
 import { categoriesListQueryOptions } from '@/lib/api/query/categories'
-
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Filter, Package, Plus, Search, LayoutGrid, LayoutList } from 'lucide-react'
-import { formatRupiah } from "@/lib/utils.ts";
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { NewPagination } from "@/components/pagination.tsx";
-import { ProductFormDialog } from "@/components/ProductFormDialog.tsx";
-import { ProductActions } from "@/components/ProductActions.tsx";
-import { ProductCard } from '@/components/ProductCard'
-
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useTranslation } from 'react-i18next';
-
-
+import { ProductHeader } from '@/components/products/ProductHeader'
+import { ProductFilters } from '@/components/products/ProductFilters'
+import { ProductTable } from '@/components/products/ProductTable'
+import { ProductGridView } from '@/components/products/ProductGridView'
+import { ProductFormDialog } from '@/components/products/ProductFormDialog'
 
 const productsSearchSchema = z.object({
     page: z.number().catch(1),
@@ -31,7 +21,6 @@ const productsSearchSchema = z.object({
     category: z.number().optional(),
     tab: z.enum(['active', 'trash']).catch('active'),
 })
-
 
 export const Route = createFileRoute('/$locale/_dashboard/product')({
     validateSearch: (search) => productsSearchSchema.parse(search),
@@ -139,244 +128,68 @@ function ProductsPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('products.title')}</h1>
-                    <p className="text-muted-foreground">{t('products.description')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    {canCreate && (
-                        <Button onClick={openCreateModal}>
-                            <Plus className="mr-2 h-4 w-4" /> {t('products.add_button')}
-                        </Button>
-                    )}
-                </div>
-            </div>
+            <ProductHeader 
+                canCreate={canCreate}
+                openCreateModal={openCreateModal}
+                t={t}
+            />
 
             <Tabs value={currentTab} onValueChange={(v) => {
                 navigate({ search: (prev) => ({ ...prev, tab: v as 'active' | 'trash', page: 1 }) })
             }} className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                    <TabsList>
-                        <TabsTrigger value="active">{t('products.tabs.active')}</TabsTrigger>
-                        <TabsTrigger value="trash">{t('products.tabs.trash', { count: trashPagination.total_data || 0 })}</TabsTrigger>
-                    </TabsList>
+                <ProductFilters 
+                trashCount={trashPagination.total_data || 0}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                category={searchParams.category}
+                categories={categories}
+                onCategoryChange={handleFilterCategory}
+                t={t}
+            />
 
-                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'grid')} className="w-[80px]">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="list" className='px-2' title={t('products.tabs.list')}><LayoutList className="h-4 w-4" /></TabsTrigger>
-                            <TabsTrigger value="grid" className='px-2' title={t('products.tabs.grid')}><LayoutGrid className="h-4 w-4" /></TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
+            <TabsContent value="active" className="space-y-4">
+                {viewMode === 'list' ? (
+                    <ProductTable 
+                        products={products}
+                        emptyMessage={t('products.table.empty')}
+                        onEdit={openEditModal}
+                        t={t}
+                    />
+                ) : (
+                    <ProductGridView 
+                        products={products}
+                        emptyMessage={t('products.table.empty')}
+                        onEdit={openEditModal}
+                        t={t}
+                    />
+                )}
 
-                {/* Filters */}
-                <div className="flex flex-col gap-4 md:flex-row md:items-center mb-6">
-                    <div className="relative flex-1 md:max-w-sm">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder={t('products.filters.search_placeholder')}
-                            className="pl-8"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                {products.length > 0 && (
+                    <NewPagination pagination={pagination} onClickPrev={() => handlePageChange((pagination.current_page || 1) - 1)}
+                        onClickNext={() => handlePageChange((pagination.current_page || 1) + 1)} />
+                )}
+            </TabsContent>
 
-                    <Select
-                        value={searchParams.category ? String(searchParams.category) : 'all'}
-                        onValueChange={handleFilterCategory}
-                    >
-                        <SelectTrigger className="w-[180px]">
-                            <Filter className="mr-2 h-4 w-4" />
-                            <SelectValue placeholder={t('products.filters.category')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('products.filters.category_all')}</SelectItem>
-                            {categories.map((cat: any) => (
-                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                    {cat.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <TabsContent value="active" className="space-y-4">
-                    {/* Content */}
-                    {viewMode === 'list' ? (
-                        <div className="rounded-md border bg-card">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[80px] hidden sm:table-cell">{t('products.table.image')}</TableHead>
-                                        <TableHead>{t('products.table.name')}</TableHead>
-                                        <TableHead className="hidden md:table-cell">{t('products.table.category')}</TableHead>
-                                        <TableHead>{t('products.table.price')}</TableHead>
-                                        <TableHead>{t('products.table.stock')}</TableHead>
-                                        <TableHead className="text-right">{t('products.table.actions')}</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {products.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                                                {t('products.table.empty')}
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        products.map((product: Product) => (
-                                            <TableRow key={product.id}>
-                                                <TableCell className="hidden sm:table-cell">
-                                                    <Avatar className="h-10 w-10 rounded-md border">
-                                                        <AvatarImage src={product.image_url} alt={product.name}
-                                                            className="object-cover" />
-                                                        <AvatarFallback className="rounded-md">
-                                                            <Package className="h-5 w-5 text-muted-foreground" />
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                </TableCell>
-                                                <TableCell className="font-medium">
-                                                    {product.name}
-                                                </TableCell>
-                                                <TableCell className="hidden md:table-cell">
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {(product as any).categories?.map((cat: any) => (
-                                                            <Badge key={cat.id} variant="outline" className="text-xs">{cat.name}</Badge>
-                                                        )) || '-'}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatRupiah(product.price || 0)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={product.stock && product.stock > 0 ? 'secondary' : 'destructive'}>
-                                                        {product.stock}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <ProductActions product={product} onEdit={() => openEditModal(product)} />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                            {products.length === 0 ? (
-                                <div className="col-span-full h-24 flex items-center justify-center text-muted-foreground border rounded-md border-dashed">
-                                    {t('products.table.empty')}
-                                </div>
-                            ) : (
-                                products.map((product: Product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onEdit={openEditModal}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    )}
-
-                    {products.length > 0 && (
-                        <NewPagination pagination={pagination} onClickPrev={() => handlePageChange((pagination.current_page || 1) - 1)}
-                            onClickNext={() => handlePageChange((pagination.current_page || 1) + 1)} />
-                    )}
-                </TabsContent>
-
-                <TabsContent value="trash" className="space-y-4">
-                    {/* Content Trash */}
-                    {viewMode === 'list' ? (
-                        <div className="rounded-md border bg-card">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[80px] hidden sm:table-cell">{t('products.table.image')}</TableHead>
-                                        <TableHead>{t('products.table.name')}</TableHead>
-                                        <TableHead className="hidden md:table-cell">{t('products.table.category')}</TableHead>
-                                        <TableHead>{t('products.table.price')}</TableHead>
-                                        <TableHead>{t('products.table.stock')}</TableHead>
-                                        <TableHead className="text-right">{t('products.table.actions')}</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {trashProducts.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                                                {t('products.table.empty_trash')}
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        trashProducts.map((product: Product) => (
-                                            <TableRow key={product.id} className="opacity-70 bg-muted/30">
-                                                <TableCell className="hidden sm:table-cell">
-                                                    <Avatar className="h-10 w-10 rounded-md border grayscale">
-                                                        <AvatarImage src={product.image_url} alt={product.name}
-                                                            className="object-cover" />
-                                                        <AvatarFallback className="rounded-md">
-                                                            <Package className="h-5 w-5 text-muted-foreground" />
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                </TableCell>
-                                                <TableCell className="font-medium text-muted-foreground">
-                                                    {product.name}
-                                                </TableCell>
-                                                <TableCell className="hidden md:table-cell">
-                                                    <div className="flex flex-wrap gap-1 opacity-50">
-                                                        {(product as any).categories?.map((cat: any) => (
-                                                            <Badge key={cat.id} variant="outline" className="text-xs">{cat.name}</Badge>
-                                                        )) || '-'}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-muted-foreground">
-                                                    {formatRupiah(product.price || 0)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="text-muted-foreground">{product.stock}</span>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    {canRestore && (
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                if (onRestoreHandler && product.id) {
-                                                                    onRestoreHandler(product)
-                                                                }
-                                                            }}
-                                                        >
-                                                            {t('products.actions.restore')}
-                                                        </Button>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                            {trashProducts.length === 0 ? (
-                                <div className="col-span-full h-24 flex items-center justify-center text-muted-foreground border rounded-md border-dashed">
-                                    {t('products.table.empty_trash')}
-                                </div>
-                            ) : (
-                                trashProducts.map((product: Product) => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onRestore={onRestoreHandler}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    )}
+            <TabsContent value="trash" className="space-y-4">
+                {viewMode === 'list' ? (
+                    <ProductTable 
+                        products={trashProducts}
+                        emptyMessage={t('products.table.empty_trash')}
+                        isTrash={true}
+                        canRestore={canRestore}
+                        onRestore={onRestoreHandler}
+                        t={t}
+                    />
+                ) : (
+                    <ProductGridView 
+                        products={trashProducts}
+                        emptyMessage={t('products.table.empty_trash')}
+                        onRestore={onRestoreHandler}
+                        t={t}
+                    />
+                )}
 
                     {trashProducts.length > 0 && (
                         <NewPagination pagination={trashPagination} onClickPrev={() => handlePageChange((trashPagination.current_page || 1) - 1)}

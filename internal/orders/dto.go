@@ -58,7 +58,7 @@ type ConfirmManualPaymentRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	Status repository.OrderStatus `json:"status" validate:"required,oneof=in_progress served paid"`
+	Status repository.OrderStatus `json:"status" validate:"required,oneof=open in_progress served paid cancelled"`
 }
 
 type OrderItemOptionResponse struct {

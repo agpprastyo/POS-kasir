@@ -35,7 +35,7 @@ Engineered a production-ready POS system with a focus on real-time state synchro
 *   Architected a **Single-Port Deployment** strategy where a high-performance Go binary serves both the REST API and the React SPA, simplifying infrastructure.
 *   Developed an **Automated Maintenance Pipeline** featuring a daily cron-based database reset (Wipe & Re-seed) to ensure demo environment consistency.
 *   Established a robust **CI/CD workflow** via GitHub Actions, including automated builds, Docker image versioning (v1.4.0+), and Tailscale-secured deployments.
-*   Achieved **100% test pass rate** for core business logic using `mockgen` and `pgxmock` before major releases.
+*   Maintained **unit tests for core business logic** (Orders & Auth) using `mockgen` and `pgxmock` to ensure system stability during architectural migrations.
 
 **KirimKarya \- Photo Delivery & Client Proofing Platform** | [Source Code](https://github.com/agpprastyo/KirimKarya)  
 *Mar 2026 \- Present*   

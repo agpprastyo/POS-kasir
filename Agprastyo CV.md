@@ -13,11 +13,12 @@ Backend Engineer with a strong foundation in **Go (Golang)** and **PostgreSQL**,
 
 ## ---
 
-* **Backend Development:** **Go (Golang)**, Fiber v3, Clean Architecture, **Real-time WebSockets**, Structured Logging (slog), Sentry Observability, JWT & Refresh Tokens, RBAC (Role-Based Access Control)
-* **Databases & Caching:** PostgreSQL, **sqlc (Type-safe SQL)**, Redis (Caching & Rate Limiting), Database Schema Design, Managed Migrations
-* **Architecture & DevOps:** Single-port Deployments, **GitHub Actions CI/CD**, Docker & Docker Compose, **Tailscale SSH**, Swagger/OpenAPI, Git Workflow (v1.4.0+ semantic tagging)
+* **Backend Development:** **Go (Golang)**, Fiber v3, REST API Development, Clean Architecture, **Real-time WebSockets**, Structured Logging (slog), Sentry Observability, JWT & Refresh Tokens, RBAC (Role-Based Access Control)
+* **Databases & Caching:** PostgreSQL, **sqlc (Type-safe SQL)**, Redis (**Cache-aside**, Rate Limiting), Database Schema Design, Migrations
+* **Backend Architecture:** **Background Workers**, Asynchronous Processing, **Job Queues (BullMQ)**, **Monorepo Architecture**, API Security
+* **DevOps & Infrastructure:** **GitHub Actions CI/CD**, Docker & Docker Compose, **Tailscale SSH Integration**, Swagger/OpenAPI, Semantic Versioning (v1.4.0+)
 * **Cloud & Storage:** **Cloudflare R2** / MinIO (S3-Compatible), Object Storage Lifecycle Management
-* **Frontend (Strong Supporting):** **React 19**, TypeScript, **TanStack Router & Query**, Tailwind CSS 4, shadcn/ui, i18next
+* **Frontend Development:** **React 19**, **TanStack Router & Query**, TypeScript, Tailwind CSS 4, **SvelteKit**, Flutter, i18next
 
 ## **Projects**
 

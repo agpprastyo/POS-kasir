@@ -7,7 +7,7 @@
 
 ## ---
 
-Result-oriented Backend Engineer specializing in **Go (Golang)**, **PostgreSQL**, and distributed systems architecture. Expert in designing high-performance REST APIs with **Fiber v3**, implementing **real-time synchronization via WebSockets**, and optimizing data retrieval using **Redis cache-aside strategies**. Proficient in full-stack development using **React 19** and **TanStack** ecosystem. Dedicated to modern engineering practices including **Structured Logging (slog)**, **Sentry observability**, and automated **CI/CD pipelines**. Passionate about building secure, scalable, and audit-ready systems that deliver premium user experiences.
+Backend Engineer with a strong foundation in **Go (Golang)** and **PostgreSQL**, specialized in building scalable and reliable web applications. Experienced in developing high-performance REST APIs, real-time data synchronization, and efficient caching strategies. Proficient in modern full-stack development with a focus on delivering secure, well-documented, and production-ready systems. Dedicated to applying best practices in software architecture, observability, and automated deployment to create impactful digital solutions.
 
 ## **Skills**
 

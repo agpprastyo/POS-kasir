@@ -16,10 +16,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockIActivityService, *mocks.MockFieldLogger, *activitylog.ActivityLogHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockIActivityService, *mocks.MockILogger, *activitylog.ActivityLogHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockIActivityService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	handler := activitylog.NewActivityLogHandler(mockService, mockLogger)
 	app := fiber.New(fiber.Config{
 		StructValidator: validator.NewValidator(),
@@ -28,10 +28,10 @@ func setupHandlerTest(t *testing.T) (*mocks.MockIActivityService, *mocks.MockFie
 }
 
 func TestActivityLogHandler_GetActivityLogs(t *testing.T) {
-	setup := func(t *testing.T) (*mocks.MockIActivityService, *mocks.MockFieldLogger, *activitylog.ActivityLogHandler, *fiber.App) {
+	setup := func(t *testing.T) (*mocks.MockIActivityService, *mocks.MockILogger, *activitylog.ActivityLogHandler, *fiber.App) {
 		ctrl := gomock.NewController(t)
 		mockService := mocks.NewMockIActivityService(ctrl)
-		mockLogger := mocks.NewMockFieldLogger(ctrl)
+		mockLogger := mocks.NewMockILogger(ctrl)
 		handler := activitylog.NewActivityLogHandler(mockService, mockLogger)
 		app := fiber.New(fiber.Config{
 			StructValidator: validator.NewValidator(),

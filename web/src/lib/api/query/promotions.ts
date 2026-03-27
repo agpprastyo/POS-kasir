@@ -78,8 +78,15 @@ export const promotionsListQueryOptions = (params?: PromotionsListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const usePromotionsListQuery = (params?: PromotionsListParams) =>
-    useQuery(promotionsListQueryOptions(params))
+export const usePromotionsListQuery = (params?: PromotionsListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/promotions');
+    const query = useQuery({
+        ...promotionsListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 // ... (existing helper hooks for detail/create/update/delete)
 
@@ -124,8 +131,16 @@ export const promotionDetailQueryOptions = (id: string) =>
         enabled: !!id,
     })
 
-export const usePromotionDetailQuery = (id: string) =>
-    useQuery(promotionDetailQueryOptions(id))
+export const usePromotionDetailQuery = (id: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/promotions/{id}');
+    const defaultOptions = promotionDetailQueryOptions(id);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: defaultOptions.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 
 export const useCreatePromotionMutation = () => {
     const qc = useQueryClient()

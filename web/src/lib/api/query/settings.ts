@@ -7,17 +7,19 @@ export const brandingSettingsQueryKey = ['branding-settings']
 export const printerSettingsQueryKey = ['printer-settings']
 
 export function useBrandingSettingsQuery() {
-    return useQuery({
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/settings/branding');
+    const query = useQuery({
         queryKey: brandingSettingsQueryKey,
         queryFn: async () => {
             const res = await settingsApi.settingsBrandingGet()
-            // The generated client expects the DTO directly, but the API returns a wrapper { message, data }
-            // So we cast to any to access the data property
             return (res.data as any).data
         },
         staleTime: Infinity,
         gcTime: Infinity,
+        enabled: isAllowed,
     })
+    return { ...query, isAllowed }
 }
 
 export function useUpdateBrandingSettingsMutation() {
@@ -58,13 +60,17 @@ export function useUpdateLogoMutation() {
 }
 
 export function usePrinterSettingsQuery() {
-    return useQuery({
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/settings/printer');
+    const query = useQuery({
         queryKey: printerSettingsQueryKey,
         queryFn: async () => {
             const res = await settingsApi.settingsPrinterGet()
             return (res.data as any).data
         },
+        enabled: isAllowed,
     })
+    return { ...query, isAllowed }
 }
 
 export function useUpdatePrinterSettingsMutation() {
@@ -100,13 +106,16 @@ export function useTestPrintMutation() {
 }
 
 export function useDiscoverPrintersQuery(enabled: boolean = false) {
-    return useQuery({
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/settings/printer/discover');
+    const query = useQuery({
         queryKey: ['discovered-printers'],
         queryFn: async () => {
             const res = await printerApi.settingsPrinterDiscoverGet()
             return (res.data as any).data as { ip: string, port: number, name: string }[]
         },
-        enabled,
+        enabled: enabled && isAllowed,
         staleTime: 0,
     })
+    return { ...query, isAllowed }
 }

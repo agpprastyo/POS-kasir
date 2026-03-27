@@ -23,7 +23,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 
-export function UserActions({ user, onEdit }: { user: InternalUserProfileResponse, onEdit: () => void }) {
+export function UserActions({ user, onEdit, canEdit = true, canDelete = true, canToggle = true }: { user: InternalUserProfileResponse, onEdit: () => void, canEdit?: boolean, canDelete?: boolean, canToggle?: boolean }) {
     const { t } = useTranslation()
     const deleteMutation = useDeleteUserMutation()
     const toggleMutation = useToggleUserStatusMutation()
@@ -48,24 +48,33 @@ export function UserActions({ user, onEdit }: { user: InternalUserProfileRespons
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('users.table.actions')}</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> {t('users.actions.edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => toggleMutation.mutate(user.id!)}>
-                        <Power className="mr-2 h-4 w-4" />
-                        {user.is_active ? t('users.actions.deactivate') : t('users.actions.activate')}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
 
-                    <DropdownMenuItem
-                        onSelect={(e) => {
-                            e.preventDefault()
-                            setShowDeleteDialog(true)
-                        }}
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('users.actions.delete')}
-                    </DropdownMenuItem>
+                    {canEdit && (
+                        <DropdownMenuItem onClick={onEdit}>
+                            <Pencil className="mr-2 h-4 w-4" /> {t('users.actions.edit')}
+                        </DropdownMenuItem>
+                    )}
+
+                    {canToggle && (
+                        <DropdownMenuItem onClick={() => toggleMutation.mutate(user.id!)}>
+                            <Power className="mr-2 h-4 w-4" />
+                            {user.is_active ? t('users.actions.deactivate') : t('users.actions.activate')}
+                        </DropdownMenuItem>
+                    )}
+                    
+                    {(canEdit || canToggle) && canDelete && <DropdownMenuSeparator />}
+
+                    {canDelete && (
+                        <DropdownMenuItem
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowDeleteDialog(true)
+                            }}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" /> {t('users.actions.delete')}
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

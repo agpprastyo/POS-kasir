@@ -16,10 +16,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockICancellationReasonService, *mocks.MockFieldLogger, *cancellation_reasons.CancellationReasonHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockICancellationReasonService, *mocks.MockILogger, *cancellation_reasons.CancellationReasonHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockICancellationReasonService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	handler := cancellation_reasons.NewCancellationReasonHandler(mockService, mockLogger).(*cancellation_reasons.CancellationReasonHandler)
 	app := fiber.New()
 	return mockService, mockLogger, handler, app

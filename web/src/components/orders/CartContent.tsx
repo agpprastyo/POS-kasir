@@ -25,19 +25,20 @@ interface CartContentProps {
     removeFromCart: (id: string, variantId?: string) => void
     calculateTotal: () => number
     handleCheckout: () => void
+    canCheckout: boolean
 }
 
 export function CartContent({
     cart, t, customers, selectedCustomerId, setSelectedCustomerId,
     selectedOrderType, setSelectedOrderType, updateQuantity, removeFromCart,
-    calculateTotal, handleCheckout
+    calculateTotal, handleCheckout, canCheckout
 }: CartContentProps) {
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="p-4 border-b bg-muted/40 flex items-center gap-2 shrink-0">
                 <ShoppingCart className="h-5 w-5" />
                 <h2 className="font-semibold">{t('order.current_order')}</h2>
-                <span className="ml-auto text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-sm font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                     {cart.length} {t('order.items')}
                 </span>
             </div>
@@ -87,13 +88,13 @@ export function CartContent({
                                                 <div className="min-w-0">
                                                     <span className="font-medium text-sm truncate leading-tight block">{item.product.name}</span>
                                                     {item.variant && (
-                                                        <span className="text-xs text-muted-foreground block truncate">{item.variant.name} (+{formatRupiah(item.variant.additional_price || 0)})</span>
+                                                        <span className="text-sm text-muted-foreground block truncate">{item.variant.name} (+{formatRupiah(item.variant.additional_price || 0)})</span>
                                                     )}
                                                 </div>
                                                 <span className="text-sm font-bold ml-1">{formatRupiah(((item.product.price || 0) + (item.variant?.additional_price || 0)) * item.quantity)}</span>
                                             </div>
                                             <div className="flex items-center justify-between mt-1">
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="text-sm text-muted-foreground">
                                                     {formatRupiah((item.product.price || 0) + (item.variant?.additional_price || 0))} x {item.quantity}
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -130,12 +131,12 @@ export function CartContent({
                         <span>{formatRupiah(Math.floor(calculateTotal() * 0.11))}</span>
                     </div>
 
-                    <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
+                    <div className="flex justify-between text-sm font-bold border-t pt-2 mt-2">
                         <span>{t('order.total')}</span>
                         <span className="text-primary">{formatRupiah(calculateTotal() + Math.floor(calculateTotal() * 0.11))}</span>
                     </div>
                 </div>
-                <Button className="w-full h-12 text-lg " size="lg" disabled={cart.length === 0} onClick={handleCheckout}>
+                <Button className="w-full h-12 text-sm " size="lg" disabled={cart.length === 0 || !canCheckout} onClick={handleCheckout}>
                     {t('order.charge')} {formatRupiah(calculateTotal() + Math.floor(calculateTotal() * 0.11))}
                 </Button>
             </div>

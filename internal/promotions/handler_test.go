@@ -25,7 +25,7 @@ func TestPromotionHandler_CreatePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()
@@ -98,7 +98,7 @@ func TestPromotionHandler_UpdatePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()
@@ -133,7 +133,7 @@ func TestPromotionHandler_GetPromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()
@@ -176,7 +176,7 @@ func TestPromotionHandler_ListPromotions(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()
@@ -212,7 +212,7 @@ func TestPromotionHandler_DeletePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()
@@ -238,7 +238,7 @@ func TestPromotionHandler_RestorePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPromotionService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	handler := promotions.NewPromotionHandler(mockService, mockLogger)
 	app := fiber.New()

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import {
     categoriesListQueryOptions,
+    useCreateCategoryMutation,
     type Category
 } from '@/lib/api/query/categories'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,9 @@ export function CategoriesCard() {
     const { t } = useTranslation()
     const { data: categories } = useSuspenseQuery(categoriesListQueryOptions())
     const categoriesList = Array.isArray(categories) ? categories : (categories as any)?.data || []
+
+    const createMutation = useCreateCategoryMutation()
+    const canCreate = createMutation.isAllowed
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
@@ -45,9 +49,11 @@ export function CategoriesCard() {
                                 {t('settings.category.description')}
                             </CardDescription>
                         </div>
-                        <Button onClick={openCreateModal} size="sm">
-                            <Plus className="mr-2 h-4 w-4" /> {t('settings.category.add_button')}
-                        </Button>
+                        {canCreate && (
+                            <Button onClick={openCreateModal} size="sm">
+                                <Plus className="mr-2 h-4 w-4" /> {t('settings.category.add_button')}
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent>

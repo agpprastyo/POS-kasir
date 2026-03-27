@@ -65,7 +65,7 @@ export function PromotionsTable({
                                 <TableCell className="font-medium">
                                     <div className="flex flex-col">
                                         <span>{promo.name}</span>
-                                        {promo.description && <span className="text-xs text-muted-foreground">{promo.description}</span>}
+                                        {promo.description && <span className="text-sm text-muted-foreground">{promo.description}</span>}
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -79,7 +79,7 @@ export function PromotionsTable({
                                                 : formatRupiah(promo.discount_value)}
                                         </span>
                                         {promo.max_discount_amount && promo.max_discount_amount > 0 && (
-                                            <span className="text-xs text-muted-foreground">{t('promotions.table.max')} {formatRupiah(promo.max_discount_amount)}</span>
+                                            <span className="text-sm text-muted-foreground">{t('promotions.table.max')} {formatRupiah(promo.max_discount_amount)}</span>
                                         )}
                                     </div>
                                 </TableCell>
@@ -108,7 +108,7 @@ export function PromotionsTable({
                                                     <>
                                                         {canEdit && (
                                                             <DropdownMenuItem onClick={() => onEdit(promo)}>
-                                                                  <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
+                                                                <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                                                             </DropdownMenuItem>
                                                         )}
                                                         {canEdit && canDelete && <DropdownMenuSeparator />}

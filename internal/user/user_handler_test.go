@@ -18,10 +18,10 @@ import (
 	user_repo "POS-kasir/internal/user/repository"
 )
 
-func setupUserHandlerTest(t *testing.T) (*mocks.MockIUsrService, *mocks.MockFieldLogger, *mocks.MockValidator, user.IUsrHandler, *fiber.App) {
+func setupUserHandlerTest(t *testing.T) (*mocks.MockIUsrService, *mocks.MockILogger, *mocks.MockValidator, user.IUsrHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockIUsrService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockValidator := mocks.NewMockValidator(ctrl)
 
 	handler := user.NewUsrHandler(mockService, mockLogger, mockValidator)

@@ -269,7 +269,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                             applyPromotionMutation.mutate({ id: orderId, body: { promotion_id: val } })
                         }}
                     >
-                        <SelectTrigger className="h-8 text-xs w-full"><SelectValue placeholder={t('order.payment_dialog.select_promo')} /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-sm w-full"><SelectValue placeholder={t('order.payment_dialog.select_promo')} /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="none">{t('order.payment_dialog.no_promo')}</SelectItem>
                             {activePromotions.map(p => (
@@ -280,7 +280,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="flex justify-between items-center font-bold text-lg border-t pt-2">
+                <div className="flex justify-between items-center font-bold text-sm border-t pt-2">
                     <span>{t('order.total')}</span>
                     <span className="text-primary">{formatRupiah(order?.net_total || 0)}</span>
                 </div>
@@ -292,7 +292,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                     setQrisUrl(null)
                 }} className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                        {paymentMethods?.map((method) => (<TabsTrigger key={method.id} value={method.name || ''} className="text-xs">{method.name}</TabsTrigger>))}
+                        {paymentMethods?.map((method) => (<TabsTrigger key={method.id} value={method.name || ''} className="text-sm">{method.name}</TabsTrigger>))}
                     </TabsList>
                     <div className="mt-4">
                         {paymentMethods?.map((method) => (
@@ -313,7 +313,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                                             </div>
                                             <div className="flex justify-between items-center text-sm py-3 rounded-lg">
                                                 <span className="text-muted-foreground">{t('order.payment_dialog.change')}</span>
-                                                <span className="font-bold text-lg text-primary">
+                                                <span className="font-bold text-sm text-primary">
                                                     {formatRupiah(Math.max(0, Number(cashReceived) - (order?.net_total || 0)))}
                                                 </span>
                                             </div>
@@ -323,7 +323,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                                     {method.id === 3 && (
                                         <div className="bg-white p-2 rounded-lg mt-2 mx-auto flex flex-col items-center justify-center">
                                             <div className="h-48 w-48 mb-2"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PAY_ORDER_${orderId}`} alt={t('order.static_qris')} className="w-full h-full object-contain" /></div>
-                                            <span className="text-xs text-muted-foreground font-medium text-center">{t('order.payment_dialog.scan_qr_static')}</span>
+                                            <span className="text-sm text-muted-foreground font-medium text-center">{t('order.payment_dialog.scan_qr_static')}</span>
                                             <Button size="sm" className="mt-2 w-full" onClick={handlePayment}>
                                                 {confirmManualPaymentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                                                 {t('order.payment_dialog.confirm_payment')}
@@ -336,8 +336,8 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                                             {qrisUrl ? (
                                                 <div className="flex flex-col items-center gap-2">
                                                     <div className="h-48 w-48"><img src={qrisUrl} alt={t('order.qr_code_alt')} className="w-full h-full object-contain" /></div>
-                                                    <span className="text-xs text-muted-foreground font-medium">{t('order.payment_dialog.scan_qr_dynamic')}</span>
-                                                    <p className="text-[10px] text-muted-foreground break-all max-w-[200px] text-center mt-1 select-all">{qrisUrl}</p>
+                                                    <span className="text-sm text-muted-foreground font-medium">{t('order.payment_dialog.scan_qr_dynamic')}</span>
+                                                    <p className="text-xs text-muted-foreground break-all max-w-[200px] text-center mt-1 select-all">{qrisUrl}</p>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col items-center gap-2 py-4">
@@ -345,7 +345,7 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
                                                         {initiateMidtransPaymentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                                                         {t('order.payment_dialog.generate_qris')}
                                                     </Button>
-                                                    <span className="text-xs text-muted-foreground text-center">{t('order.payment_dialog.click_to_generate')}</span>
+                                                    <span className="text-sm text-muted-foreground text-center">{t('order.payment_dialog.click_to_generate')}</span>
                                                 </div>
                                             )}
                                         </div>

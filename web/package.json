@@ -13,7 +13,8 @@
     "debug:java": "echo PATH=$PATH && which java && java -version"
   },
   "dependencies": {
-    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

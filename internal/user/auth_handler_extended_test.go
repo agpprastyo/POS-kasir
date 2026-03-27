@@ -20,10 +20,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupExtendedAuthHandlerTest(t *testing.T) (*mocks.MockIAuthService, *mocks.MockFieldLogger, *mocks.MockValidator, user.IAuthHandler, *fiber.App) {
+func setupExtendedAuthHandlerTest(t *testing.T) (*mocks.MockIAuthService, *mocks.MockILogger, *mocks.MockValidator, user.IAuthHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockIAuthService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockValidator := mocks.NewMockValidator(ctrl)
 	cfg := &config.AppConfig{}
 
@@ -93,7 +93,7 @@ func TestAuthHandler_Login_Extended(t *testing.T) {
 func TestAuthHandler_UpdateAvatar_Extended(t *testing.T) {
 	userID := uuid.New()
 
-	setupApp := func(t *testing.T) (*mocks.MockIAuthService, *mocks.MockFieldLogger, *fiber.App) {
+	setupApp := func(t *testing.T) (*mocks.MockIAuthService, *mocks.MockILogger, *fiber.App) {
 		mockService, mockLogger, _, handler, app := setupExtendedAuthHandlerTest(t)
 		app.Post("/auth/avatar", func(c fiber.Ctx) error {
 			c.Locals("user_id", userID)

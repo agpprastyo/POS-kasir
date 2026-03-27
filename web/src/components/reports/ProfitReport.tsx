@@ -18,18 +18,18 @@ export function ProfitReport({
 }: ProfitReportProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
+            <Card className="col-span-4 border-0 shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('reports.profit.title')}</CardTitle>
                     <CardDescription>{t('reports.profit.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
                     {isLoadingSummary ? (
-                        <Skeleton className="h-[400px] w-full" />
+                        <Skeleton className="h-[400px] w-full rounded-xl" />
                     ) : (
                         <ResponsiveContainer width="100%" height={400}>
                             <BarChart data={profitSummaryData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                 <XAxis
                                     dataKey="date"
                                     stroke="#888888"
@@ -50,15 +50,15 @@ export function ProfitReport({
                                     labelFormatter={(label) => formatDate(label)}
                                 />
                                 <Legend />
-                                <Bar dataKey="total_revenue" fill="#adfa1d" radius={[4, 4, 0, 0]} name={t('reports.profit.revenue')} />
-                                <Bar dataKey="total_cogs" fill="#ef4444" radius={[4, 4, 0, 0]} name={t('reports.profit.cogs')} />
-                                <Bar dataKey="gross_profit" fill="#3b82f6" radius={[4, 4, 0, 0]} name={t('reports.profit.gross_profit')} />
+                                <Bar dataKey="total_revenue" fill="#4F46E5" radius={[8, 8, 0, 0]} name={t('reports.profit.revenue')} />
+                                <Bar dataKey="total_cogs" fill="#EC4899" radius={[8, 8, 0, 0]} name={t('reports.profit.cogs')} />
+                                <Bar dataKey="gross_profit" fill="#10B981" radius={[8, 8, 0, 0]} name={t('reports.profit.gross_profit')} />
                             </BarChart>
                         </ResponsiveContainer>
                     )}
                 </CardContent>
             </Card>
-            <Card className="col-span-3">
+            <Card className="col-span-3 border-0 shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('reports.profit.products')}</CardTitle>
                     <CardDescription>{t('reports.profit.products_desc')}</CardDescription>
@@ -66,8 +66,8 @@ export function ProfitReport({
                 <CardContent>
                     {isLoadingProducts ? (
                         <div className="space-y-2">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
                         </div>
                     ) : (
                         <Table>
@@ -80,17 +80,17 @@ export function ProfitReport({
                             </TableHeader>
                             <TableBody>
                                 {(productProfitsData?.products || []).map((product: any) => (
-                                    <TableRow key={product.product_id}>
+                                    <TableRow key={product.product_id} className="hover:bg-muted/50">
                                         <TableCell className="font-medium">
                                             <div className="flex flex-col">
                                                 <span>{product.product_name}</span>
-                                                <span className="text-xs text-muted-foreground">{product.total_sold ?? 0} {t('common.sold')}</span>
+                                                <span className="text-sm text-muted-foreground">{product.total_sold ?? 0} {t('common.sold')}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex flex-col items-end">
                                                 <span className="font-medium">{formatCurrency(product.gross_profit ?? 0)}</span>
-                                                <span className="text-xs text-muted-foreground">{formatCurrency(product.total_revenue ?? 0)} {t('common.rev')}</span>
+                                                <span className="text-sm text-muted-foreground">{formatCurrency(product.total_revenue ?? 0)} {t('common.rev')}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">

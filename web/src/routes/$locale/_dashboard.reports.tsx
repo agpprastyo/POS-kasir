@@ -46,17 +46,19 @@ function ReportsPage() {
         end: new Date().toISOString().split('T')[0]
     })
 
-    const { data: salesData, isLoading: isLoadingSales } = useSalesReportQuery(dateRange.start, dateRange.end)
-    const { data: productsData, isLoading: isLoadingProducts } = useProductPerformanceQuery(dateRange.start, dateRange.end)
-    const { data: paymentsData, isLoading: isLoadingPayments } = usePaymentMethodPerformanceQuery(dateRange.start, dateRange.end)
-    const { data: cashierData, isLoading: isLoadingCashier } = useCashierPerformanceQuery(dateRange.start, dateRange.end)
-    const { data: cancellationData, isLoading: isLoadingCancellation } = useCancellationReportsQuery(dateRange.start, dateRange.end)
-    const { data: profitSummaryData, isLoading: isLoadingProfitSummary } = useProfitSummaryQuery(dateRange.start, dateRange.end)
+    const { data: salesData, isLoading: isLoadingSales, isAllowed: canViewSales } = useSalesReportQuery(dateRange.start, dateRange.end)
+    const { data: productsData, isLoading: isLoadingProducts, isAllowed: canViewProducts } = useProductPerformanceQuery(dateRange.start, dateRange.end)
+    const { data: paymentsData, isLoading: isLoadingPayments, isAllowed: canViewPayments } = usePaymentMethodPerformanceQuery(dateRange.start, dateRange.end)
+    const { data: cashierData, isLoading: isLoadingCashier, isAllowed: canViewCashier } = useCashierPerformanceQuery(dateRange.start, dateRange.end)
+    const { data: cancellationData, isLoading: isLoadingCancellation, isAllowed: canViewCancellation } = useCancellationReportsQuery(dateRange.start, dateRange.end)
+    const { data: profitSummaryData, isLoading: isLoadingProfitSummary, isAllowed: canViewProfit } = useProfitSummaryQuery(dateRange.start, dateRange.end)
     const { data: productProfitsData, isLoading: isLoadingProductProfits } = useProductProfitReportsQuery(dateRange.start, dateRange.end)
 
-    const { data: lowStockData, isLoading: isLoadingLowStock } = useLowStockReportQuery(5)
-    const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotionsReportQuery(dateRange.start, dateRange.end)
-    const { data: shiftData, isLoading: isLoadingShift } = useShiftSummaryReportQuery(dateRange.start, dateRange.end)
+    const { data: lowStockData, isLoading: isLoadingLowStock, isAllowed: canViewLowStock } = useLowStockReportQuery(5)
+    const { data: promotionsData, isLoading: isLoadingPromotions, isAllowed: canViewPromotions } = usePromotionsReportQuery(dateRange.start, dateRange.end)
+    const { data: shiftData, isLoading: isLoadingShift, isAllowed: canViewShift } = useShiftSummaryReportQuery(dateRange.start, dateRange.end)
+
+    const canViewPerformance = canViewPayments || canViewCashier
 
     const exportToCSV = (data: any[], filename: string, headers: string[]) => {
         if (!data || data.length === 0) return;
@@ -98,94 +100,110 @@ function ReportsPage() {
 
             <Tabs defaultValue="sales" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="sales">{t('reports.tabs.sales')}</TabsTrigger>
-                    <TabsTrigger value="profit">{t('reports.tabs.profit')}</TabsTrigger>
-                    <TabsTrigger value="products">{t('reports.tabs.products')}</TabsTrigger>
-                    <TabsTrigger value="performance">{t('reports.tabs.performance')}</TabsTrigger>
-                    <TabsTrigger value="cancellations">{t('reports.tabs.cancellations')}</TabsTrigger>
-                    <TabsTrigger value="low-stock">{t('reports.tabs.low_stock') || 'Low Stock'}</TabsTrigger>
-                    <TabsTrigger value="promotions">{t('reports.tabs.promotions') || 'Promotions'}</TabsTrigger>
-                    <TabsTrigger value="shifts">{t('reports.tabs.shifts') || 'Shifts'}</TabsTrigger>
+                    {canViewSales && <TabsTrigger value="sales">{t('reports.tabs.sales')}</TabsTrigger>}
+                    {canViewProfit && <TabsTrigger value="profit">{t('reports.tabs.profit')}</TabsTrigger>}
+                    {canViewProducts && <TabsTrigger value="products">{t('reports.tabs.products')}</TabsTrigger>}
+                    {canViewPerformance && <TabsTrigger value="performance">{t('reports.tabs.performance')}</TabsTrigger>}
+                    {canViewCancellation && <TabsTrigger value="cancellations">{t('reports.tabs.cancellations')}</TabsTrigger>}
+                    {canViewLowStock && <TabsTrigger value="low-stock">{t('reports.tabs.low_stock') || 'Low Stock'}</TabsTrigger>}
+                    {canViewPromotions && <TabsTrigger value="promotions">{t('reports.tabs.promotions') || 'Promotions'}</TabsTrigger>}
+                    {canViewShift && <TabsTrigger value="shifts">{t('reports.tabs.shifts') || 'Shifts'}</TabsTrigger>}
                 </TabsList>
 
-                <TabsContent value="sales" className="space-y-4">
-                    <SalesReport 
-                        data={salesData || []}
-                        isLoading={isLoadingSales}
-                        onExport={() => exportToCSV(salesData || [], 'sales_report', ['date', 'total_sales', 'order_count'])}
-                        formatCurrency={formatRupiah}
-                        formatDate={formatDate}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewSales && (
+                    <TabsContent value="sales" className="space-y-4">
+                        <SalesReport 
+                            data={salesData || []}
+                            isLoading={isLoadingSales}
+                            onExport={() => exportToCSV(salesData || [], 'sales_report', ['date', 'total_sales', 'order_count'])}
+                            formatCurrency={formatRupiah}
+                            formatDate={formatDate}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="profit" className="space-y-4">
-                    <ProfitReport 
-                        profitSummaryData={profitSummaryData || []}
-                        productProfitsData={productProfitsData}
-                        isLoadingSummary={isLoadingProfitSummary}
-                        isLoadingProducts={isLoadingProductProfits}
-                        formatCurrency={formatRupiah}
-                        formatDate={formatDate}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewProfit && (
+                    <TabsContent value="profit" className="space-y-4">
+                        <ProfitReport 
+                            profitSummaryData={profitSummaryData || []}
+                            productProfitsData={productProfitsData}
+                            isLoadingSummary={isLoadingProfitSummary}
+                            isLoadingProducts={isLoadingProductProfits}
+                            formatCurrency={formatRupiah}
+                            formatDate={formatDate}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="products" className="space-y-4">
-                    <ProductsReport 
-                        data={productsData}
-                        isLoading={isLoadingProducts}
-                        formatCurrency={formatRupiah}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewProducts && (
+                    <TabsContent value="products" className="space-y-4">
+                        <ProductsReport 
+                            data={productsData}
+                            isLoading={isLoadingProducts}
+                            formatCurrency={formatRupiah}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="performance" className="space-y-4">
-                    <PerformanceReport 
-                        paymentsData={paymentsData || []}
-                        cashierData={cashierData || []}
-                        isLoadingPayments={isLoadingPayments}
-                        isLoadingCashier={isLoadingCashier}
-                        formatCurrency={formatRupiah}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewPerformance && (
+                    <TabsContent value="performance" className="space-y-4">
+                        <PerformanceReport 
+                            paymentsData={paymentsData || []}
+                            cashierData={cashierData || []}
+                            isLoadingPayments={isLoadingPayments}
+                            isLoadingCashier={isLoadingCashier}
+                            formatCurrency={formatRupiah}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="cancellations" className="space-y-4">
-                    <CancellationReport 
-                        data={cancellationData || []}
-                        isLoading={isLoadingCancellation}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewCancellation && (
+                    <TabsContent value="cancellations" className="space-y-4">
+                        <CancellationReport 
+                            data={cancellationData || []}
+                            isLoading={isLoadingCancellation}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="low-stock" className="space-y-4">
-                    <StockReport 
-                        data={lowStockData || []}
-                        isLoading={isLoadingLowStock}
-                        onExport={() => exportToCSV(lowStockData || [], 'low_stock_report', ['product_name', 'stock'])}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewLowStock && (
+                    <TabsContent value="low-stock" className="space-y-4">
+                        <StockReport 
+                            data={lowStockData || []}
+                            isLoading={isLoadingLowStock}
+                            onExport={() => exportToCSV(lowStockData || [], 'low_stock_report', ['product_name', 'stock'])}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="promotions" className="space-y-4">
-                    <PromotionsReport 
-                        data={promotionsData || []}
-                        isLoading={isLoadingPromotions}
-                        onExport={() => exportToCSV(promotionsData || [], 'promotions_report', ['name', 'discount_type'])}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewPromotions && (
+                    <TabsContent value="promotions" className="space-y-4">
+                        <PromotionsReport 
+                            data={promotionsData || []}
+                            isLoading={isLoadingPromotions}
+                            onExport={() => exportToCSV(promotionsData || [], 'promotions_report', ['name', 'discount_type'])}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
 
-                <TabsContent value="shifts" className="space-y-4">
-                    <ShiftReport 
-                        data={shiftData || []}
-                        isLoading={isLoadingShift}
-                        onExport={() => exportToCSV(shiftData || [], 'shift_report', ['cashier_name', 'status'])}
-                        formatCurrency={formatRupiah}
-                        t={t}
-                    />
-                </TabsContent>
+                {canViewShift && (
+                    <TabsContent value="shifts" className="space-y-4">
+                        <ShiftReport 
+                            data={shiftData || []}
+                            isLoading={isLoadingShift}
+                            onExport={() => exportToCSV(shiftData || [], 'shift_report', ['cashier_name', 'status'])}
+                            formatCurrency={formatRupiah}
+                            t={t}
+                        />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     )

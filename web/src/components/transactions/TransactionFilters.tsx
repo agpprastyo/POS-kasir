@@ -1,4 +1,4 @@
-import { User as UserIcon } from 'lucide-react'
+import { User as UserIcon, Receipt } from 'lucide-react'
 import {
     Select,
     SelectContent,
@@ -19,16 +19,21 @@ export function TransactionFilters({
 }: TransactionFiltersProps) {
     return (
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('transactions.title')}</h1>
-                <p className="text-muted-foreground">{t('transactions.subtitle')}</p>
+            <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Receipt className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight font-heading">{t('transactions.title')}</h1>
+                    <p className="text-sm text-muted-foreground">{t('transactions.subtitle')}</p>
+                </div>
             </div>
 
             {/* User Filter */}
             <div className="flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
                 <Select value={selectedUserId} onValueChange={onUserChange}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[180px] rounded-xl">
                         <SelectValue placeholder={t('transactions.filter_user')} />
                     </SelectTrigger>
                     <SelectContent>

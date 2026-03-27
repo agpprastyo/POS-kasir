@@ -10,6 +10,8 @@ import { useBrandingSettingsQuery } from '@/lib/api/query/settings'
 import { useNavigationMenu } from '@/hooks/useNavigationMenu'
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar"
 import { DashboardMobileNav } from "@/components/dashboard/DashboardMobileNav"
+import { useAppWebSocket } from '@/hooks/useAppWebSocket'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const Route = createFileRoute('/$locale/_dashboard')({
     loader: async ({ context: { queryClient }, params }) => {
@@ -38,6 +40,13 @@ function DashboardLayout() {
     const [isLoggingOut, setIsLoggingOut] = useState(false)
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
     const { data: branding } = useBrandingSettingsQuery()
+    const queryClient = useQueryClient()
+
+    useAppWebSocket((event) => {
+        if (event.type === 'ORDER_CREATED' || event.type === 'ORDER_UPDATED') {
+            queryClient.invalidateQueries({ queryKey: ['orders'] })
+        }
+    })
 
     useEffect(() => {
         if (branding?.app_name) {
@@ -70,7 +79,7 @@ function DashboardLayout() {
             "grid h-screen w-full overflow-hidden transition-all duration-300",
             isSidebarCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
         )}>
-            <DashboardSidebar 
+            <DashboardSidebar
                 t={t}
                 locale={locale}
                 branding={branding}
@@ -81,10 +90,10 @@ function DashboardLayout() {
                 handleLogout={handleLogout}
             />
 
-            <div className=''>
-                <div className="flex flex-col border rounded-xl m-2 bg-background overflow-hidden h-[calc(100vh-1rem)]">
-                    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-4 relative overflow-y-auto">
-                        <DashboardMobileNav 
+            <div className='min-w-0 overflow-hidden'>
+                <div className="flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden h-[calc(100vh)] shadow-sm">
+                    <main className="flex flex-1 flex-col gap-4 p-4 sm:p-5 lg:gap-6 lg:p-6 relative overflow-y-auto overflow-x-hidden min-w-0">
+                        <DashboardMobileNav
                             t={t}
                             locale={locale}
                             branding={branding}
@@ -93,7 +102,7 @@ function DashboardLayout() {
                             handleLogout={handleLogout}
                         />
 
-                        <div className="mt-12 md:mt-0 flex-1">
+                        <div className="mt-12 md:mt-0 flex-1 min-w-0">
                             <Outlet />
                         </div>
                     </main>

@@ -66,7 +66,7 @@ function ActivityLogsPage() {
                 onClearFilters={() => navigate({ search: { page: 1, limit: 10 } })}
             />
 
-            <Card>
+            <Card className="border-0 shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('activity_logs.list_title')}</CardTitle>
                     <ActivityLogsFilters 

@@ -18,10 +18,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupTest(t *testing.T) (*mocks.MockCategoriesRepository, *mocks.MockFieldLogger, *mocks.MockIActivityService, categories.ICtgService) {
+func setupTest(t *testing.T) (*mocks.MockCategoriesRepository, *mocks.MockILogger, *mocks.MockIActivityService, categories.ICtgService) {
 	ctrl := gomock.NewController(t)
 	mockRepo := mocks.NewMockCategoriesRepository(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
 	service := categories.NewCtgService(mockRepo, mockLogger, mockActivity)
 	return mockRepo, mockLogger, mockActivity, service

@@ -6,10 +6,11 @@ interface ProductGridViewProps {
     onEdit?: (product: any) => void
     onRestore?: (product: any) => void
     t: any
+    hasActions?: boolean
 }
 
 export function ProductGridView({
-    products, emptyMessage, onEdit, onRestore
+    products, emptyMessage, onEdit, onRestore, hasActions = true
 }: ProductGridViewProps) {
     if (products.length === 0) {
         return (
@@ -27,6 +28,7 @@ export function ProductGridView({
                     product={product}
                     onEdit={onEdit}
                     onRestore={onRestore}
+                    hasActions={hasActions}
                 />
             ))}
         </div>

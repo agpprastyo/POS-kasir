@@ -19,18 +19,21 @@ interface ProductFiltersProps {
     categories: any[]
     onCategoryChange: (value: string) => void
     t: any
+    canReadTrash?: boolean
 }
 
 export function ProductFilters({
     trashCount, viewMode, onViewModeChange,
-    searchTerm, onSearchChange, category, categories, onCategoryChange, t
+    searchTerm, onSearchChange, category, categories, onCategoryChange, t, canReadTrash = true
 }: ProductFiltersProps) {
     return (
         <div className="w-full">
             <div className="flex items-center justify-between mb-4">
                 <TabsList>
                     <TabsTrigger value="active">{t('products.tabs.active')}</TabsTrigger>
-                    <TabsTrigger value="trash">{t('products.tabs.trash', { count: trashCount })}</TabsTrigger>
+                    {canReadTrash && (
+                        <TabsTrigger value="trash">{t('products.tabs.trash', { count: trashCount })}</TabsTrigger>
+                    )}
                 </TabsList>
 
                 <Tabs value={viewMode} onValueChange={(v) => onViewModeChange(v as 'list' | 'grid')} className="w-[80px]">

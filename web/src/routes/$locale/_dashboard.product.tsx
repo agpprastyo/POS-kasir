@@ -3,7 +3,7 @@ import { useSuspenseQuery, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/use-debounce'
-import { type Product, productsListQueryOptions, trashProductsListQueryOptions, useRestoreProductMutation, useCreateProductMutation } from '@/lib/api/query/products'
+import { type Product, productsListQueryOptions, useTrashProductsListQuery, useRestoreProductMutation, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } from '@/lib/api/query/products'
 import { categoriesListQueryOptions } from '@/lib/api/query/categories'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { NewPagination } from "@/components/pagination.tsx";
@@ -65,12 +65,13 @@ function ProductsPage() {
     const products = productsQuery.data?.products || []
     const pagination = productsQuery.data?.pagination || {}
 
-    const trashProductsQuery = useQuery(trashProductsListQueryOptions({
+    const trashProductsQuery = useTrashProductsListQuery({
         limit: searchParams.limit,
         page: searchParams.page,
         search: searchParams.search,
         category: searchParams.category,
-    }))
+    })
+    const canReadTrash = trashProductsQuery.isAllowed
     const trashProducts = trashProductsQuery.data?.products || []
     const trashPagination = trashProductsQuery.data?.pagination || {}
 
@@ -124,6 +125,10 @@ function ProductsPage() {
     const canCreate = createMutation.isAllowed
     const canRestore = restoreMutation.isAllowed
 
+    const { isAllowed: canEdit } = useUpdateProductMutation()
+    const { isAllowed: canDelete } = useDeleteProductMutation()
+    const hasActions = canEdit || canDelete
+
     const onRestoreHandler = canRestore ? (p: Product) => p.id && restoreMutation.mutate(p.id) : undefined
 
     return (
@@ -147,6 +152,7 @@ function ProductsPage() {
                 categories={categories}
                 onCategoryChange={handleFilterCategory}
                 t={t}
+                canReadTrash={canReadTrash}
             />
 
             <TabsContent value="active" className="space-y-4">
@@ -156,6 +162,7 @@ function ProductsPage() {
                         emptyMessage={t('products.table.empty')}
                         onEdit={openEditModal}
                         t={t}
+                        hasActions={hasActions}
                     />
                 ) : (
                     <ProductGridView 
@@ -163,6 +170,7 @@ function ProductsPage() {
                         emptyMessage={t('products.table.empty')}
                         onEdit={openEditModal}
                         t={t}
+                        hasActions={hasActions}
                     />
                 )}
 
@@ -172,8 +180,9 @@ function ProductsPage() {
                 )}
             </TabsContent>
 
-            <TabsContent value="trash" className="space-y-4">
-                {viewMode === 'list' ? (
+            {canReadTrash && (
+                <TabsContent value="trash" className="space-y-4">
+                    {viewMode === 'list' ? (
                     <ProductTable 
                         products={trashProducts}
                         emptyMessage={t('products.table.empty_trash')}
@@ -196,6 +205,7 @@ function ProductsPage() {
                             onClickNext={() => handlePageChange((trashPagination.current_page || 1) + 1)} />
                     )}
                 </TabsContent>
+            )}
             </Tabs>
 
             <ProductFormDialog

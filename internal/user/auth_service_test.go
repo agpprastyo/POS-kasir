@@ -26,7 +26,7 @@ func TestAuthService_Login(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
@@ -107,7 +107,7 @@ func TestAuthService_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
@@ -175,7 +175,7 @@ func TestAuthService_Profile(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
@@ -241,7 +241,7 @@ func TestAuthService_UploadAvatar(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
@@ -324,7 +324,7 @@ func TestAuthService_UpdatePassword(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
@@ -424,7 +424,7 @@ func TestAuthService_RefreshToken(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockToken := mocks.NewMockManager(ctrl)
 	mockAvatar := mocks.NewMockIAthRepo(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)

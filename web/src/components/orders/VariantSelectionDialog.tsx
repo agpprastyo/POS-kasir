@@ -44,12 +44,12 @@ export function VariantSelectionDialog({
                             {product.image_url ? (
                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
-                                <span className="text-xs text-muted-foreground">{t('order.variant_dialog.original')}</span>
+                                <span className="text-sm text-muted-foreground">{t('order.variant_dialog.original')}</span>
                             )}
                         </div>
                         <div className="flex flex-col">
                             <span className="font-medium text-sm">{t('order.variant_dialog.original')}</span>
-                            <span className="text-xs text-muted-foreground">{formatRupiah(product.price || 0)}</span>
+                            <span className="text-sm text-muted-foreground">{formatRupiah(product.price || 0)}</span>
                         </div>
                     </div>
 
@@ -64,13 +64,13 @@ export function VariantSelectionDialog({
                                     <img src={option.image_url} alt={option.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted/50">
-                                        <span className="text-xs">{t('order.variant_dialog.no_image')}</span>
+                                        <span className="text-sm">{t('order.variant_dialog.no_image')}</span>
                                     </div>
                                 )}
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-medium text-sm">{option.name}</span>
-                                <span className="text-xs text-muted-foreground">+{formatRupiah(option.additional_price || 0)}</span>
+                                <span className="text-sm text-muted-foreground">+{formatRupiah(option.additional_price || 0)}</span>
                             </div>
                         </div>
                     ))}

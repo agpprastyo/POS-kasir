@@ -508,7 +508,7 @@ export function ProductFormDialog({ open, onOpenChange, productToEdit, categorie
                                                                 />
                                                             </div>
                                                             <div className="space-y-1 relative">
-                                                                <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">Rp</span>
+                                                                <span className="absolute left-3 top-2.5 text-sm text-muted-foreground">Rp</span>
                                                                 <Input
                                                                     type="text"
                                                                     inputMode="numeric"

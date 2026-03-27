@@ -6,6 +6,7 @@ import {
 } from "../generated"
 import { AxiosError } from "axios"
 import { cancellationReasonsApi } from "@/lib/api/client.ts";
+import { useRBAC } from '@/lib/auth/rbac';
 
 // --- QUERY: List Cancellation Reasons (/api/v1/cancellation-reasons) ---
 export const cancellationReasonsListQueryOptions = () =>
@@ -23,4 +24,12 @@ export const cancellationReasonsListQueryOptions = () =>
         staleTime: 1000 * 60 * 30,
     })
 
-export const useCancellationReasonsListQuery = () => useQuery(cancellationReasonsListQueryOptions())
+export const useCancellationReasonsListQuery = () => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/cancellation-reasons');
+    const query = useQuery({
+        ...cancellationReasonsListQueryOptions(),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}

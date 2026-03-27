@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button.tsx";
 import { useTranslation } from 'react-i18next';
-import {POSKasirInternalCommonPaginationPagination} from "@/lib/api/generated";
+import { POSKasirInternalCommonPaginationPagination } from "@/lib/api/generated";
 
 interface NewPaginationProps {
     pagination: POSKasirInternalCommonPaginationPagination | undefined;

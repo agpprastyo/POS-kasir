@@ -15,8 +15,10 @@ type AppConfig struct {
 	CloudflareR2   CloudflareR2Config
 	Midtrans       MidtransConfig
 	Redis          RedisConfig
-	AutoMigrate    bool
-	MigrationsPath string
+	AutoMigrate      bool
+	MigrationsPath   string
+	EnableDbWipe     bool
+	WipeCronSchedule string
 }
 
 type RedisConfig struct {
@@ -61,6 +63,7 @@ type ServerConfig struct {
 type LoggerConfig struct {
 	Level      string
 	JSONFormat bool
+	SentryDSN  string
 	Output     io.Writer
 }
 
@@ -108,6 +111,7 @@ func Load() *AppConfig {
 		Logger: LoggerConfig{
 			Level:      getEnv("LOG_LEVEL", "info"),
 			JSONFormat: getBool("LOG_JSON_FORMAT", true),
+			SentryDSN:  getEnv("SENTRY_DSN", ""),
 			Output:     os.Stdout,
 		},
 		Server: ServerConfig{
@@ -134,7 +138,9 @@ func Load() *AppConfig {
 			Endpoint:     getEnv("R2_ENDPOINT", ""),
 			UseSSL:       getBool("R2_USE_SSL", true),
 		},
-		AutoMigrate:    getBool("AUTO_MIGRATE", false),
-		MigrationsPath: getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),
+		AutoMigrate:      getBool("AUTO_MIGRATE", false),
+		MigrationsPath:   getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),
+		EnableDbWipe:     getBool("ENABLE_DB_WIPE", false),
+		WipeCronSchedule: getEnv("WIPE_CRON_SCHEDULE", "0 1 * * *"),
 	}
 }

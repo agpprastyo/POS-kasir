@@ -18,10 +18,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockICtgService, *mocks.MockFieldLogger, *categories.CtgHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockICtgService, *mocks.MockILogger, *categories.CtgHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockICtgService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	handler := categories.NewCtgHandler(mockService, mockLogger).(*categories.CtgHandler)
 	app := fiber.New(fiber.Config{
 		StructValidator: validator.NewValidator(),

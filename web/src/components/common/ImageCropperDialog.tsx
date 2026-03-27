@@ -57,7 +57,7 @@ export function ImageCropperDialog({
                 </div>
 
                 <div className="flex items-center space-x-2 pt-2">
-                    <span className="text-xs text-muted-foreground">{t('common.crop.zoom')}</span>
+                    <span className="text-sm text-muted-foreground">{t('common.crop.zoom')}</span>
                     <Slider
                         value={[zoom]}
                         min={1}

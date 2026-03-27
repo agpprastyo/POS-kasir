@@ -6,6 +6,7 @@ import {
 } from "@/lib/api/generated";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { useRBAC } from '@/lib/auth/rbac';
 
 export const activityLogsSearchSchema = z.object({
     page: z.number().min(1).catch(1),
@@ -19,12 +20,11 @@ export const activityLogsSearchSchema = z.object({
         if (typeof val !== 'string') return val;
         const upper = val.toUpperCase();
         if (upper === 'LOGIN') return ActivityLogsGetActionTypeEnum.LoginSuccess;
-        if (upper === 'LOGOUT') return undefined; // Ignore invalid logout
+        if (upper === 'LOGOUT') return undefined;
         return upper;
     }, z.enum(Object.values(ActivityLogsGetActionTypeEnum)).optional().catch(undefined)).optional(),
 });
 
-// Explicitly define the type to avoid inference issues with TanStack Router
 export type ActivityLogsSearch = {
     page: number;
     limit: number;
@@ -54,5 +54,11 @@ export const activityLogsListQueryOptions = (search: ActivityLogsSearch) => quer
 });
 
 export const useActivityLogsList = (search: ActivityLogsSearch) => {
-    return useQuery(activityLogsListQueryOptions(search));
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/activity-logs');
+    const query = useQuery({
+        ...activityLogsListQueryOptions(search),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
 };

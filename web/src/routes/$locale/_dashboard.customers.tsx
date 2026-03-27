@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState } from 'react'
-import { customersListQueryOptions, CustomersListParams } from '@/lib/api/query/customers'
+import { customersListQueryOptions, CustomersListParams, useCreateCustomerMutation, useUpdateCustomerMutation, useDeleteCustomerMutation } from '@/lib/api/query/customers'
 import { InternalCustomersCustomerResponse } from '@/lib/api/generated'
 import { NewPagination } from "@/components/pagination.tsx";
 import { useTranslation } from 'react-i18next'
@@ -49,6 +49,10 @@ function CustomersPage() {
     const customers = customersQuery.data.customers || []
     const pagination = customersQuery.data.pagination
 
+    const { isAllowed: canCreate } = useCreateCustomerMutation()
+    const { isAllowed: canEdit } = useUpdateCustomerMutation()
+    const { isAllowed: canDelete } = useDeleteCustomerMutation()
+
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedCustomer, setSelectedCustomer] = useState<InternalCustomersCustomerResponse | null>(null)
 
@@ -78,6 +82,7 @@ function CustomersPage() {
             <CustomersHeader 
                 t={t}
                 onCreateClick={openCreateModal}
+                canCreate={canCreate}
             />
 
             <CustomersFilters 
@@ -89,9 +94,9 @@ function CustomersPage() {
             <CustomersTable 
                 customers={customers}
                 t={t}
-                renderActions={(customer) => (
-                    <CustomerActions customer={customer} onEdit={() => openEditModal(customer)} />
-                )}
+                renderActions={(customer) => (canEdit || canDelete) ? (
+                    <CustomerActions customer={customer} onEdit={() => openEditModal(customer)} canEdit={canEdit} canDelete={canDelete} />
+                ) : null}
             />
 
             {pagination && (

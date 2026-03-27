@@ -17,23 +17,23 @@ export function SalesReport({
     data, isLoading, onExport, formatCurrency, formatDate, t
 }: SalesReportProps) {
     return (
-        <Card>
+        <Card className="border-0 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>{t('reports.sales.title')}</CardTitle>
                     <CardDescription>{t('reports.sales.description')}</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={onExport}>
+                <Button variant="outline" size="sm" onClick={onExport} className="rounded-xl">
                     <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
                 </Button>
             </CardHeader>
             <CardContent className="pl-2">
                 {isLoading ? (
-                    <Skeleton className="h-[400px] w-full" />
+                    <Skeleton className="h-[400px] w-full rounded-xl" />
                 ) : (
                     <ResponsiveContainer width="100%" height={400}>
                         <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                             <XAxis
                                 dataKey="date"
                                 stroke="#888888"
@@ -54,8 +54,8 @@ export function SalesReport({
                                 labelFormatter={(label) => formatDate(label)}
                             />
                             <Legend />
-                            <Bar dataKey="total_sales" fill="#adfa1d" radius={[4, 4, 0, 0]} name={t('reports.sales.revenue')} />
-                            <Bar dataKey="order_count" fill="#8884d8" radius={[4, 4, 0, 0]} name={t('reports.sales.orders')} />
+                            <Bar dataKey="total_sales" fill="#4F46E5" radius={[8, 8, 0, 0]} name={t('reports.sales.revenue')} />
+                            <Bar dataKey="order_count" fill="#F59E0B" radius={[8, 8, 0, 0]} name={t('reports.sales.orders')} />
                         </BarChart>
                     </ResponsiveContainer>
                 )}

@@ -39,16 +39,16 @@ export function ActivityLogsTable({
                                 <TableCell>{formatDateTime(log.created_at!)}</TableCell>
                                 <TableCell>
                                     <div className="font-medium">{log.user_name}</div>
-                                    <div className="text-xs text-muted-foreground">{t('activity_logs.table.id_prefix')} {log.user_id?.substring(0, 8)}...</div>
+                                    <div className="text-sm text-muted-foreground">{t('activity_logs.table.id_prefix')} {log.user_id?.substring(0, 8)}...</div>
                                 </TableCell>
                                 <TableCell>
-                                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
+                                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">
                                         {log.action_type}
                                     </span>
                                 </TableCell>
                                 <TableCell>
                                     <div className="font-medium">{log.entity_type}</div>
-                                    <div className="text-xs text-muted-foreground">{log.entity_id}</div>
+                                    <div className="text-sm text-muted-foreground">{log.entity_id}</div>
                                 </TableCell>
                                 <TableCell>
                                     <Collapsible>
@@ -59,12 +59,12 @@ export function ActivityLogsTable({
                                                     <span className="sr-only">{t('activity_logs.table.toggle')}</span>
                                                 </Button>
                                             </CollapsibleTrigger>
-                                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                            <span className="text-sm text-muted-foreground truncate max-w-[200px]">
                                                 {JSON.stringify(log.details)}
                                             </span>
                                         </div>
                                         <CollapsibleContent>
-                                            <pre className="mt-2 w-[300px] overflow-auto rounded-md bg-muted p-2 text-xs">
+                                            <pre className="mt-2 w-[300px] overflow-auto rounded-md bg-muted p-2 text-sm">
                                                 {JSON.stringify(log.details, null, 2)}
                                             </pre>
                                         </CollapsibleContent>

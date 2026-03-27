@@ -46,6 +46,9 @@ import (
 	"syscall"
 	"time"
 
+	"POS-kasir/internal/common/middleware"
+	ws "POS-kasir/internal/websocket"
+
 	swagger "github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -96,6 +99,11 @@ type AppContainer struct {
 	ShiftHandler              shift.Handler
 	ShiftRepo                 shift_repo.Querier
 	ShiftService              shift.Service
+	WSHub                     *ws.Hub
+	UserRepo                  user_repo.Querier
+	CategoryRepo              categories_repo.Querier
+	PaymentMethodRepo         payment_methods_repo.Querier
+	CancellationReasonRepo    cancellation_reasons_repo.Querier
 }
 
 func InitApp() *App {
@@ -123,6 +131,10 @@ func InitApp() *App {
 		ErrorHandler:    CustomErrorHandler(log),
 		StructValidator: val,
 	})
+
+	// Global Middlewares
+	fiberApp.Use(recover.New())
+	fiberApp.Use(middleware.NewSentryMiddleware())
 	midtransService := payment.NewMidtransService(cfg, log)
 
 	log.Infof("Initializing R2 Storage with Bucket: %s", cfg.CloudflareR2.Bucket)
@@ -159,6 +171,8 @@ func InitApp() *App {
 }
 
 func BuildAppContainer(app *App) *AppContainer {
+	wsHub := ws.InitHub()
+
 	// Activity Log IActivityService
 	activityLogRepo := activitylog_repo.New(app.DB.GetPool())
 	activityService := activitylog.NewActivityService(activityLogRepo, app.Logger)
@@ -195,7 +209,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// Order & Payment Module
 	ordersRepo := orders_repo.New(app.DB.GetPool())
-	orderService := orders.NewOrderService(app.Store, ordersRepo, productsRepo, app.MidtransService, activityService, app.Logger)
+	orderService := orders.NewOrderService(app.Store, ordersRepo, productsRepo, app.MidtransService, activityService, app.Logger, wsHub)
 	orderHandler := orders.NewOrderHandler(orderService, app.Logger)
 
 	// Payment Method Module
@@ -210,7 +224,7 @@ func BuildAppContainer(app *App) *AppContainer {
 
 	// report module
 	reportRepo := report_repo.New(app.DB.GetPool())
-	reportService := report.NewRptService(app.Store, reportRepo, activityService, app.Logger)
+	reportService := report.NewRptService(app.Store, reportRepo, activityService, app.Logger, app.RedisCache)
 	reportHandler := report.NewRptHandler(reportService, app.Logger)
 
 	// Promotion Module
@@ -248,6 +262,11 @@ func BuildAppContainer(app *App) *AppContainer {
 		ShiftHandler:              shiftHandler,
 		ShiftRepo:                 shiftRepo,
 		ShiftService:              shiftService,
+		WSHub:                     wsHub,
+		UserRepo:                  userRepo,
+		CategoryRepo:              categoryRepo,
+		PaymentMethodRepo:         paymentMethodRepo,
+		CancellationReasonRepo:    cancellationRepo,
 	}
 }
 

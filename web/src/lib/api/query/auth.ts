@@ -26,7 +26,9 @@ export const meQueryOptions = () =>
         staleTime: 1000 * 60 * 5,
     })
 
-export const useMeQuery = () => useQuery(meQueryOptions())
+export const useMeQuery = () => {
+    return useQuery(meQueryOptions());
+}
 
 
 // --- MUTATION: login (/auth/login) ---

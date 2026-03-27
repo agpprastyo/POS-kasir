@@ -36,8 +36,15 @@ export const categoriesListQueryOptions = (params?: CategoriesListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const useCategoriesListQuery = (params?: CategoriesListParams) =>
-    useQuery(categoriesListQueryOptions(params))
+export const useCategoriesListQuery = (params?: CategoriesListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/categories');
+    const query = useQuery({
+        ...categoriesListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 
 // --- QUERY: Get Category By ID ---
@@ -54,8 +61,16 @@ export const categoryDetailQueryOptions = (id: number) =>
         enabled: !!id,
     })
 
-
-// --- MUTATION: Create Category ---
+export const useCategoryDetailQuery = (id: number) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/categories/{id}');
+    const defaultOptions = categoryDetailQueryOptions(id);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: defaultOptions.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 export const useCreateCategoryMutation = () => {
     const qc = useQueryClient()
 

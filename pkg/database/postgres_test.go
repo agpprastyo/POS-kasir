@@ -13,7 +13,7 @@ func TestNewDatabase_InvalidConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	cfg := &config.AppConfig{}
 

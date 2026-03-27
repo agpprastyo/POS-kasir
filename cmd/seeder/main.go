@@ -6,6 +6,7 @@ import (
 	categories_repo "POS-kasir/internal/categories/repository"
 	payment_methods_repo "POS-kasir/internal/payment_methods/repository"
 	user_repo "POS-kasir/internal/user/repository"
+	cloudflarer2 "POS-kasir/pkg/cloudflare-r2"
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/database/seeder"
 	"POS-kasir/pkg/logger"
@@ -39,12 +40,19 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	userRepo := user_repo.New(db.GetPool())
-	catRepo := categories_repo.New(db.GetPool())
-	paymentMethodRepo := payment_methods_repo.New(db.GetPool())
-	cancelRepo := cancellation_reasons_repo.New(db.GetPool())
+	pool := db.GetPool()
 
-	if err := seeder.RunSeeders(ctx, userRepo, catRepo, paymentMethodRepo, cancelRepo, logr); err != nil {
+	r2Client, err := cloudflarer2.NewCloudflareR2(cfg, logr)
+	if err != nil {
+		log.Printf("Failed to initialize R2 client (images will not be uploaded): %v", err)
+	}
+
+	userRepo := user_repo.New(pool)
+	catRepo := categories_repo.New(pool)
+	paymentMethodRepo := payment_methods_repo.New(pool)
+	cancelRepo := cancellation_reasons_repo.New(pool)
+
+	if err := seeder.RunSeeders(ctx, pool, userRepo, catRepo, paymentMethodRepo, cancelRepo, r2Client, logr); err != nil {
 		log.Fatalf("Seeding failed: %v", err)
 	}
 

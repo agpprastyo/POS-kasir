@@ -22,7 +22,7 @@ export function DashboardPaymentChart({
     formatDate
 }: DashboardPaymentChartProps) {
     return (
-        <Card className="col-span-1 lg:col-span-3">
+        <Card className="col-span-1 lg:col-span-3 border-0 shadow-sm">
             <CardHeader>
                 <CardTitle>{t('dashboard.widgets.payment_distribution')}</CardTitle>
             </CardHeader>

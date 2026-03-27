@@ -27,7 +27,7 @@ func TestPromotionService_CreatePromotion(t *testing.T) {
 
 	mockStore := mocks.NewMockStore(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	// Mock DB for s.repo AND transaction generation
 	mockDB, err := pgxmock.NewPool()
@@ -147,7 +147,7 @@ func TestPromotionService_UpdatePromotion(t *testing.T) {
 
 	mockStore := mocks.NewMockStore(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	mockDB, err := pgxmock.NewPool()
 	assert.NoError(t, err)
@@ -260,7 +260,7 @@ func TestPromotionService_ListPromotions(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockStore := mocks.NewMockStore(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
 	mockDB, err := pgxmock.NewPool()
 	assert.NoError(t, err)
@@ -300,7 +300,7 @@ func TestPromotionService_DeletePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockStore := mocks.NewMockStore(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
 	mockDB, err := pgxmock.NewPool()
 	assert.NoError(t, err)
@@ -336,7 +336,7 @@ func TestPromotionService_GetPromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockStore := mocks.NewMockStore(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
 	mockDB, err := pgxmock.NewPool()
 	assert.NoError(t, err)
@@ -384,7 +384,7 @@ func TestPromotionService_RestorePromotion(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockStore := mocks.NewMockStore(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockActivityService := mocks.NewMockIActivityService(ctrl)
 	mockDB, err := pgxmock.NewPool()
 	assert.NoError(t, err)

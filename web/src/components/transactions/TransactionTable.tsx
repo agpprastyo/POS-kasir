@@ -28,12 +28,17 @@ interface TransactionTableProps {
     handleOpenCancel: (order: any) => void
     handleOpenRefund: (order: any) => void
     handleFinish: (order: any) => void
+    canUpdateStatus: boolean
+    canCancel: boolean
+    canRefund: boolean
+    canPay: boolean
     t: any
 }
 
 export function TransactionTable({
     orders, isLoading, userMap, mutatingOrderId, handleStatusUpdate,
-    handleOpenPayment, handleOpenCancel, handleOpenRefund, handleFinish, t
+    handleOpenPayment, handleOpenCancel, handleOpenRefund, handleFinish, 
+    canUpdateStatus, canCancel, canRefund, canPay, t
 }: TransactionTableProps) {
     if (isLoading) {
         return (
@@ -80,13 +85,13 @@ export function TransactionTable({
                                     )}
                                     <div className="flex flex-col">
                                         <span className="font-medium capitalize">{order.type?.replace('_', ' ')}</span>
-                                        <span className="text-xs text-muted-foreground">{new Date(order.created_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span className="text-sm text-muted-foreground">{new Date(order.created_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs">
+                                    <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-sm">
                                         {userMap.get(order.user_id || '')?.slice(0, 1).toUpperCase()}
                                     </div>
                                     <span className="text-sm">{userMap.get(order.user_id || '') || '-'}</span>
@@ -100,19 +105,19 @@ export function TransactionTable({
                                         </span>
                                     ))}
                                     {(order.items?.length || 0) > 2 && (
-                                        <span className="text-xs italic">+{(order.items?.length || 0) - 2} more items...</span>
+                                        <span className="text-sm italic">+{(order.items?.length || 0) - 2} more items...</span>
                                     )}
                                 </div>
                             </TableCell>
-                            <TableCell className="font-bold font-mono text-base">
+                            <TableCell className="font-bold font-mono text-sm">
                                 <div className="flex flex-col items-start gap-1">
                                     <span>{formatRupiah(order.net_total || 0)}</span>
                                     {order.is_paid ? (
-                                        <Badge variant="default" className="text-[10px] h-5">
+                                        <Badge variant="default" className="text-xs h-5">
                                             {t('transactions.status_badge.paid')}
                                         </Badge>
                                     ) : (
-                                        <Badge variant="secondary" className="text-[10px] h-5">
+                                        <Badge variant="secondary" className="text-xs h-5">
                                             {t('transactions.status_badge.unpaid')}
                                         </Badge>
                                     )}
@@ -121,7 +126,7 @@ export function TransactionTable({
                             <TableCell>
                                 <Select
                                     value={order.status}
-                                    disabled={mutatingOrderId === order.id || order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid || order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled}
+                                    disabled={!canUpdateStatus || mutatingOrderId === order.id || order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid || order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled}
                                     onValueChange={(val) => {
                                         if (order.id && val !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid && val !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled) {
                                             handleStatusUpdate(order.id, val as POSKasirInternalOrdersRepositoryOrderStatus)
@@ -148,31 +153,31 @@ export function TransactionTable({
                             </TableCell>
                             <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                    {!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
+                                    {canPay && !order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
                                         <Button size="sm" variant="default" className="h-8 gap-1" onClick={() => handleOpenPayment(order)}>
                                             <Banknote className="h-3.5 w-3.5" />
                                             {t('transactions.actions_button.pay')}
                                         </Button>
                                     )}
-                                    {order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusInProgress && (
+                                    {canUpdateStatus && order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusInProgress && (
                                         <Button size="sm" variant="outline" className="h-8 gap-1 border-primary text-primary hover:bg-primary/10" onClick={() => handleStatusUpdate(order.id!, POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed)} disabled={mutatingOrderId === order.id}>
                                             <Utensils className="h-3.5 w-3.5" />
                                             {t('transactions.status.served')}
                                         </Button>
                                     )}
-                                    {order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed && (
+                                    {canUpdateStatus && order.is_paid && order.status === POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusServed && (
                                         <Button size="sm" variant="default" className="h-8 gap-1" onClick={() => handleFinish(order)} disabled={mutatingOrderId === order.id}>
                                             <CheckCircle className="h-3.5 w-3.5" />
                                             {t('transactions.actions_button.complete')}
                                         </Button>
                                     )}
-                                    {(!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid) && (
+                                    {canCancel && (!order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusPaid) && (
                                         <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleOpenCancel(order)}>
                                             <XCircle className="h-3.5 w-3.5" />
                                             {t('transactions.actions_button.cancel')}
                                         </Button>
                                     )}
-                                    {order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
+                                    {canRefund && order.is_paid && order.status !== POSKasirInternalOrdersRepositoryOrderStatus.OrderStatusCancelled && (
                                         <Button size="sm" variant="destructive" className="h-8 gap-1" onClick={() => handleOpenRefund(order)}>
                                             <XCircle className="h-3.5 w-3.5" />
                                             {t('transactions.actions_button.refund', 'Refund')}

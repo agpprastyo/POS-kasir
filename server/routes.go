@@ -2,6 +2,10 @@ package server
 
 import (
 	"POS-kasir/internal/common/middleware"
+	ws "POS-kasir/internal/websocket"
+
+	"github.com/gofiber/contrib/v3/websocket"
+	"github.com/gofiber/fiber/v3"
 )
 
 func SetupRoutes(app *App, container *AppContainer) {
@@ -12,8 +16,23 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Use(middleware.RateLimiter(app.RedisCache))
 
+	api.Use("/ws", func(c fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
 	authMiddleware := middleware.AuthMiddleware(app.JWT, app.Logger)
 	idempotencyMiddleware := middleware.Idempotency(app.RedisCache)
+
+	api.Get("/ws", authMiddleware, websocket.New(func(c *websocket.Conn) {
+		client := ws.NewClient(container.WSHub, c)
+		container.WSHub.Register(client)
+
+		go client.WritePump()
+		client.ReadPump()
+	}))
 
 	api.Post("/auth/login", container.AuthHandler.LoginHandler)
 	api.Post("/auth/refresh", container.AuthHandler.RefreshHandler)

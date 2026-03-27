@@ -19,7 +19,7 @@ func TestPaymentMethodService_ListPaymentMethods(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPaymentMethodsRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	service := payment_methods.NewPaymentMethodService(mockRepo, mockLogger)
 
 	ctx := context.Background()

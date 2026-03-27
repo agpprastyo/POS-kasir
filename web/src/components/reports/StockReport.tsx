@@ -15,21 +15,21 @@ export function StockReport({
     data, isLoading, onExport, t
 }: StockReportProps) {
     return (
-        <Card>
+        <Card className="border-0 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>{t('reports.low_stock.title') || 'Low Stock Products'}</CardTitle>
                     <CardDescription>{t('reports.low_stock.description') || 'Products with stock below minimum threshold.'}</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={onExport}>
+                <Button variant="outline" size="sm" onClick={onExport} className="rounded-xl">
                     <Download className="mr-2 h-4 w-4" /> {t('reports.export_csv')}
                 </Button>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
                     <div className="space-y-2">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
                     </div>
                 ) : (
                     <Table>
@@ -41,9 +41,9 @@ export function StockReport({
                         </TableHeader>
                         <TableBody>
                             {(data || []).map((product: any, idx: number) => (
-                                <TableRow key={idx}>
+                                <TableRow key={idx} className="hover:bg-muted/50">
                                     <TableCell className="font-medium">{product.product_name}</TableCell>
-                                    <TableCell className="text-right text-red-500 font-bold">{product.stock ?? 0}</TableCell>
+                                    <TableCell className="text-right text-destructive font-bold">{product.stock ?? 0}</TableCell>
                                 </TableRow>
                             ))}
                             {(!data || data.length === 0) && (

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,6 +24,7 @@ type IDatabase interface {
 	GetPool() *pgxpool.Pool
 	Ping(ctx context.Context) error
 	Close()
+	ResetDatabase(ctx context.Context) error
 }
 
 type postgresService struct {
@@ -101,6 +103,39 @@ func (s *postgresService) Ping(ctx context.Context) error {
 		return err
 	}
 	s.Log.Println("Successfully pinged database")
+	return nil
+}
+
+func (s *postgresService) ResetDatabase(ctx context.Context) error {
+	tables := []string{
+		"activity_logs",
+		"cancellation_reasons",
+		"cash_transactions",
+		"categories",
+		"customers",
+		"order_item_options",
+		"order_items",
+		"orders",
+		"payment_methods",
+		"product_categories",
+		"product_options",
+		"products",
+		"promotion_rules",
+		"promotion_targets",
+		"promotions",
+		"shifts",
+		"stock_history",
+		"users",
+		"settings",
+	}
+
+	query := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", strings.Join(tables, ", "))
+	_, err := s.DB.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to truncate tables: %w", err)
+	}
+
+	s.Log.Info("Successfully truncated all tables for database reset")
 	return nil
 }
 

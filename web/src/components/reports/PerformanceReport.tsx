@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts'
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['#4F46E5', '#F59E0B', '#7C3AED', '#10B981', '#EC4899', '#06B6D4'];
 
 interface PerformanceReportProps {
     paymentsData: any[]
@@ -20,13 +20,13 @@ export function PerformanceReport({
 }: PerformanceReportProps) {
     return (
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
-            <Card className="col-span-1 lg:col-span-4">
+            <Card className="col-span-1 lg:col-span-4 border-0 shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('reports.performance.payment_methods')}</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
                     {isLoadingPayments ? (
-                        <Skeleton className="h-[300px] w-full" />
+                        <Skeleton className="h-[300px] w-full rounded-xl" />
                     ) : (
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
@@ -38,7 +38,7 @@ export function PerformanceReport({
                                         labelLine={false}
                                         label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                                         outerRadius={100}
-                                        fill="#8884d8"
+                                        fill="#4F46E5"
                                         dataKey="order_count"
                                         nameKey="payment_method_name"
                                     >
@@ -54,15 +54,15 @@ export function PerformanceReport({
                     )}
                 </CardContent>
             </Card>
-            <Card className="col-span-3">
+            <Card className="col-span-3 border-0 shadow-sm">
                 <CardHeader>
                     <CardTitle>{t('reports.performance.cashier')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isLoadingCashier ? (
                         <div className="space-y-2">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
+                            <Skeleton className="h-10 w-full rounded-lg" />
                         </div>
                     ) : (
                         <Table>
@@ -75,11 +75,11 @@ export function PerformanceReport({
                             </TableHeader>
                             <TableBody>
                                 {(cashierData || []).map((cashier: any) => (
-                                    <TableRow key={cashier.user_id}>
+                                    <TableRow key={cashier.user_id} className="hover:bg-muted/50">
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarFallback>{cashier.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                                <Avatar className="h-7 w-7">
+                                                    <AvatarFallback className="text-sm bg-primary/10 text-primary">{cashier.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
                                                 {cashier.username}
                                             </div>

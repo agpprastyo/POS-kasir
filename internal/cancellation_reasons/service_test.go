@@ -14,10 +14,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupServiceTest(t *testing.T) (*mocks.MockCancellationReasonRepository, *mocks.MockFieldLogger, cancellation_reasons.ICancellationReasonService) {
+func setupServiceTest(t *testing.T) (*mocks.MockCancellationReasonRepository, *mocks.MockILogger, cancellation_reasons.ICancellationReasonService) {
 	ctrl := gomock.NewController(t)
 	mockStore := mocks.NewMockCancellationReasonRepository(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	service := cancellation_reasons.NewCancellationReasonService(mockStore, mockLogger)
 	return mockStore, mockLogger, service
 }

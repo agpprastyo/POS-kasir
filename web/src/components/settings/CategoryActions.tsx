@@ -1,5 +1,5 @@
-import { Category, useDeleteCategoryMutation } from "@/lib/api/query/categories"
-import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@radix-ui/react-alert-dialog"
+import { Category, useDeleteCategoryMutation, useUpdateCategoryMutation } from "@/lib/api/query/categories"
+import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from "@radix-ui/react-dropdown-menu"
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react"
 import { useState } from "react"
@@ -13,7 +13,13 @@ import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog"
 export function CategoryActions({ category, onEdit }: { category: Category, onEdit: () => void }) {
     const { t } = useTranslation()
     const deleteMutation = useDeleteCategoryMutation()
+    const updateMutation = useUpdateCategoryMutation()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+    const canEdit = updateMutation.isAllowed
+    const canDelete = deleteMutation.isAllowed
+
+    if (!canEdit && !canDelete) return null
 
     const handleDelete = (e: React.MouseEvent) => {
         e.preventDefault()
@@ -35,18 +41,22 @@ export function CategoryActions({ category, onEdit }: { category: Category, onEd
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('settings.category.table.actions')}</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> {t('settings.category.actions.edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onSelect={(e) => {
-                            e.preventDefault()
-                            setShowDeleteDialog(true)
-                        }}
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('settings.category.actions.delete')}
-                    </DropdownMenuItem>
+                    {canEdit && (
+                        <DropdownMenuItem onClick={onEdit}>
+                            <Pencil className="mr-2 h-4 w-4" /> {t('settings.category.actions.edit')}
+                        </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                        <DropdownMenuItem
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowDeleteDialog(true)
+                            }}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" /> {t('settings.category.actions.delete')}
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

@@ -11,9 +11,10 @@ interface ProductCardProps {
     product: Product
     onEdit?: (product: Product) => void
     onRestore?: (product: Product) => void
+    hasActions?: boolean
 }
 
-export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
+export function ProductCard({ product, onEdit, onRestore, hasActions = true }: ProductCardProps) {
     const { t } = useTranslation();
     return (
         <div className={cn(
@@ -35,10 +36,10 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                 )}
 
 
-                {onEdit && (
+                {hasActions && !onRestore && (
                     <div className="absolute top-2 right-2 z-10">
                         <div className="rounded-full bg-background/90 backdrop-blur-sm p-1 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-                            <ProductActions product={product} onEdit={() => onEdit(product)} />
+                            <ProductActions product={product} onEdit={onEdit ? () => onEdit(product) : undefined} />
                         </div>
                     </div>
                 )}
@@ -65,7 +66,7 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                         <Badge
                             variant={product.stock === 0 ? "destructive" : "secondary"}
                             className={cn(
-                                "px-1.5 py-0 text-[10px] font-medium border-0 shadow-none backdrop-blur-sm h-5",
+                                "px-1.5 py-0 text-xs font-medium border-0 shadow-none backdrop-blur-sm h-5",
                                 product.stock !== 0 && "bg-background/90 text-foreground/70"
                             )}
                         >
@@ -87,7 +88,7 @@ export function ProductCard({ product, onEdit, onRestore }: ProductCardProps) {
                         >
                             {product.name}
                         </h3>
-                        <p className="text-[11px] text-muted-foreground font-normal truncate" title={(product as any).categories?.map((c: any) => c.name).join(', ')}>
+                        <p className="text-xs text-muted-foreground font-normal truncate" title={(product as any).categories?.map((c: any) => c.name).join(', ')}>
                             {(product as any).categories?.map((c: any) => c.name).join(', ') || t('products.card.uncategorized')}
                         </p>
                     </div>

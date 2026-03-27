@@ -47,8 +47,15 @@ export const productsListQueryOptions = (params?: ProductsListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const useProductsListQuery = (params?: ProductsListParams) =>
-    useQuery(productsListQueryOptions(params))
+export const useProductsListQuery = (params?: ProductsListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/products');
+    const query = useQuery({
+        ...productsListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 export const productDetailQueryOptions = (id: string) =>
     queryOptions<
@@ -63,8 +70,16 @@ export const productDetailQueryOptions = (id: string) =>
         enabled: !!id,
     })
 
-export const useProductDetailQuery = (id: string) =>
-    useQuery(productDetailQueryOptions(id))
+export const useProductDetailQuery = (id: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/products/{id}');
+    const defaultOptions = productDetailQueryOptions(id);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: defaultOptions.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 
 export const useCreateProductMutation = () => {
     const qc = useQueryClient()
@@ -270,7 +285,7 @@ export const useUploadProductOptionImageMutation = () => {
     return { ...mutation, isAllowed }
 }
 
-export const trashProductsListQueryOptions = (params?: ProductsListParams) =>
+export const trashProductsListQueryOptions = (params?: ProductsListParams, enabled: boolean = true) =>
     queryOptions<
         ProductListResponse,
         AxiosError<POSKasirInternalCommonErrorResponse>
@@ -287,10 +302,16 @@ export const trashProductsListQueryOptions = (params?: ProductsListParams) =>
             return (res.data as any).data;
         },
         placeholderData: keepPreviousData,
+        enabled,
     })
 
-export const useTrashProductsListQuery = (params?: ProductsListParams) =>
-    useQuery(trashProductsListQueryOptions(params))
+export const useTrashProductsListQuery = (params?: ProductsListParams) => {
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('GET', '/products/trash')
+
+    const query = useQuery(trashProductsListQueryOptions(params, isAllowed))
+    return { ...query, isAllowed }
+}
 
 export const useRestoreProductMutation = () => {
     const qc = useQueryClient()
@@ -374,5 +395,13 @@ export const stockHistoryQueryOptions = (productId: string, params?: StockHistor
         placeholderData: keepPreviousData,
     })
 
-export const useStockHistoryQuery = (productId: string, params?: StockHistoryParams) =>
-    useQuery(stockHistoryQueryOptions(productId, params))
+export const useStockHistoryQuery = (productId: string, params?: StockHistoryParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/products/{id}/stock-history');
+    const defaultOptions = stockHistoryQueryOptions(productId, params);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: defaultOptions.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}

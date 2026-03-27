@@ -121,7 +121,7 @@ export function CustomerFormDialog({ open, onOpenChange, customerToEdit }: {
                                             onChange={e => field.handleChange(e.target.value)}
                                         />
                                         {field.state.meta.errors.length > 0 && (
-                                            <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                            <em role="alert" className="text-sm font-medium text-destructive">
                                                 {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                             </em>
                                         )}
@@ -145,7 +145,7 @@ export function CustomerFormDialog({ open, onOpenChange, customerToEdit }: {
                                             onChange={e => field.handleChange(e.target.value)}
                                         />
                                         {field.state.meta.errors.length > 0 && (
-                                            <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                            <em role="alert" className="text-sm font-medium text-destructive">
                                                 {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                             </em>
                                         )}
@@ -168,7 +168,7 @@ export function CustomerFormDialog({ open, onOpenChange, customerToEdit }: {
                                             onChange={e => field.handleChange(e.target.value)}
                                         />
                                         {field.state.meta.errors.length > 0 && (
-                                            <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                            <em role="alert" className="text-sm font-medium text-destructive">
                                                 {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                             </em>
                                         )}
@@ -191,7 +191,7 @@ export function CustomerFormDialog({ open, onOpenChange, customerToEdit }: {
                                             onChange={e => field.handleChange(e.target.value)}
                                         />
                                         {field.state.meta.errors.length > 0 && (
-                                            <em role="alert" className="text-[0.8rem] font-medium text-destructive">
+                                            <em role="alert" className="text-sm font-medium text-destructive">
                                                 {field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}
                                             </em>
                                         )}

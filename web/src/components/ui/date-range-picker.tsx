@@ -127,7 +127,7 @@ export function DateRangePicker({
         <PopoverContent className="w-auto p-0" align="end">
           <div className="flex flex-col md:flex-row">
             <div className="flex flex-col gap-1 border-r p-3 pr-4">
-              <span className="mb-2 text-xs font-medium text-muted-foreground uppercase px-2">
+              <span className="mb-2 text-sm font-medium text-muted-foreground uppercase px-2">
                 {t("reports.date_ranges.quick_select", "Quick Select")}
               </span>
               {presets.map((preset) => (

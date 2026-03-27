@@ -22,7 +22,7 @@ export function DashboardSalesChart({
     formatDate
 }: DashboardSalesChartProps) {
     return (
-        <Card className="col-span-1 lg:col-span-4">
+        <Card className="col-span-1 lg:col-span-4 border-0 shadow-sm">
             <CardHeader>
                 <CardTitle>{t('dashboard.widgets.sales_trend')}</CardTitle>
                 <CardDescription>{t('reports.sales.description')}</CardDescription>

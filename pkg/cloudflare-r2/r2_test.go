@@ -20,7 +20,7 @@ func TestCloudflareR2_BucketExists(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockStorageClient(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	cfg := &config.AppConfig{
 		CloudflareR2: config.CloudflareR2Config{
@@ -79,7 +79,7 @@ func TestCloudflareR2_GetFileShareLink(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockStorageClient(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	cfg := &config.AppConfig{
 		CloudflareR2: config.CloudflareR2Config{
@@ -150,7 +150,7 @@ func TestCloudflareR2_UploadFile(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockStorageClient(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	cfg := &config.AppConfig{
 		CloudflareR2: config.CloudflareR2Config{
@@ -238,7 +238,7 @@ func TestNewCloudflareR2(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockStorageClient(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	cfg := &config.AppConfig{
 		CloudflareR2: config.CloudflareR2Config{

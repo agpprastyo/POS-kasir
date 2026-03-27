@@ -15,6 +15,7 @@ import {
     InternalPromotionsPromotionResponse
 } from "../generated"
 import { AxiosError } from "axios"
+import { useRBAC } from '@/lib/auth/rbac'
 
 export const dashboardSummaryQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
@@ -29,8 +30,13 @@ export const dashboardSummaryQueryOptions = (startDate: string, endDate: string)
         enabled: !!startDate && !!endDate,
     })
 
-export const useDashboardSummaryQuery = (startDate: string, endDate: string) =>
-    useQuery(dashboardSummaryQueryOptions(startDate, endDate))
+export const useDashboardSummaryQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/dashboard-summary');
+    const defaultOptions = dashboardSummaryQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const salesReportQueryOptions = (startDate: string, endDate: string) =>
@@ -46,8 +52,13 @@ export const salesReportQueryOptions = (startDate: string, endDate: string) =>
         enabled: !!startDate && !!endDate,
     })
 
-export const useSalesReportQuery = (startDate: string, endDate: string) =>
-    useQuery(salesReportQueryOptions(startDate, endDate))
+export const useSalesReportQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/sales');
+    const defaultOptions = salesReportQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const productPerformanceQueryOptions = (startDate: string, endDate: string) =>
@@ -63,8 +74,13 @@ export const productPerformanceQueryOptions = (startDate: string, endDate: strin
         enabled: !!startDate && !!endDate,
     })
 
-export const useProductPerformanceQuery = (startDate: string, endDate: string) =>
-    useQuery(productPerformanceQueryOptions(startDate, endDate))
+export const useProductPerformanceQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/products');
+    const defaultOptions = productPerformanceQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const paymentMethodPerformanceQueryOptions = (startDate: string, endDate: string) =>
@@ -80,8 +96,13 @@ export const paymentMethodPerformanceQueryOptions = (startDate: string, endDate:
         enabled: !!startDate && !!endDate,
     })
 
-export const usePaymentMethodPerformanceQuery = (startDate: string, endDate: string) =>
-    useQuery(paymentMethodPerformanceQueryOptions(startDate, endDate))
+export const usePaymentMethodPerformanceQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/payment-methods');
+    const defaultOptions = paymentMethodPerformanceQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const cashierPerformanceQueryOptions = (startDate: string, endDate: string) =>
@@ -97,8 +118,13 @@ export const cashierPerformanceQueryOptions = (startDate: string, endDate: strin
         enabled: !!startDate && !!endDate,
     })
 
-export const useCashierPerformanceQuery = (startDate: string, endDate: string) =>
-    useQuery(cashierPerformanceQueryOptions(startDate, endDate))
+export const useCashierPerformanceQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/cashier-performance');
+    const defaultOptions = cashierPerformanceQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const cancellationReportsQueryOptions = (startDate: string, endDate: string) =>
@@ -114,8 +140,13 @@ export const cancellationReportsQueryOptions = (startDate: string, endDate: stri
         enabled: !!startDate && !!endDate,
     })
 
-export const useCancellationReportsQuery = (startDate: string, endDate: string) =>
-    useQuery(cancellationReportsQueryOptions(startDate, endDate))
+export const useCancellationReportsQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/cancellations');
+    const defaultOptions = cancellationReportsQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 export const profitSummaryQueryOptions = (startDate: string, endDate: string) =>
     queryOptions<
@@ -130,8 +161,13 @@ export const profitSummaryQueryOptions = (startDate: string, endDate: string) =>
         enabled: !!startDate && !!endDate,
     })
 
-export const useProfitSummaryQuery = (startDate: string, endDate: string) =>
-    useQuery(profitSummaryQueryOptions(startDate, endDate))
+export const useProfitSummaryQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/profit-summary');
+    const defaultOptions = profitSummaryQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const productProfitReportsQueryOptions = (startDate: string, endDate: string) =>
@@ -147,8 +183,13 @@ export const productProfitReportsQueryOptions = (startDate: string, endDate: str
         enabled: !!startDate && !!endDate,
     })
 
-export const useProductProfitReportsQuery = (startDate: string, endDate: string) =>
-    useQuery(productProfitReportsQueryOptions(startDate, endDate))
+export const useProductProfitReportsQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/profit-products');
+    const defaultOptions = productProfitReportsQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const lowStockReportQueryOptions = (threshold?: number) =>
@@ -163,8 +204,16 @@ export const lowStockReportQueryOptions = (threshold?: number) =>
         },
     })
 
-export const useLowStockReportQuery = (threshold?: number) =>
-    useQuery(lowStockReportQueryOptions(threshold))
+export const useLowStockReportQuery = (threshold?: number) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/low-stock');
+    const defaultOptions = lowStockReportQueryOptions(threshold);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 
 export const promotionsReportQueryOptions = (startDate: string, endDate: string) =>
@@ -180,8 +229,13 @@ export const promotionsReportQueryOptions = (startDate: string, endDate: string)
         enabled: !!startDate && !!endDate,
     })
 
-export const usePromotionsReportQuery = (startDate: string, endDate: string) =>
-    useQuery(promotionsReportQueryOptions(startDate, endDate))
+export const usePromotionsReportQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/promotions');
+    const defaultOptions = promotionsReportQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}
 
 
 export const shiftSummaryReportQueryOptions = (startDate: string, endDate: string) =>
@@ -197,5 +251,10 @@ export const shiftSummaryReportQueryOptions = (startDate: string, endDate: strin
         enabled: !!startDate && !!endDate,
     })
 
-export const useShiftSummaryReportQuery = (startDate: string, endDate: string) =>
-    useQuery(shiftSummaryReportQueryOptions(startDate, endDate))
+export const useShiftSummaryReportQuery = (startDate: string, endDate: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/reports/shift-summary');
+    const defaultOptions = shiftSummaryReportQueryOptions(startDate, endDate);
+    const query = useQuery({ ...defaultOptions, enabled: defaultOptions.enabled !== false ? isAllowed : false });
+    return { ...query, isAllowed };
+}

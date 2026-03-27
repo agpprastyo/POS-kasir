@@ -10,7 +10,7 @@ interface DashboardTopProductsProps {
 
 export function DashboardTopProducts({ t, isLoading, topProducts, formatCurrency }: DashboardTopProductsProps) {
     return (
-        <Card className="col-span-1 lg:col-span-3 flex flex-col">
+        <Card className="col-span-1 lg:col-span-3 flex flex-col border-0 shadow-sm">
             <CardHeader>
                 <CardTitle>{t('dashboard.widgets.top_products')}</CardTitle>
                 <CardDescription>{t('reports.products.description')}</CardDescription>
@@ -31,7 +31,7 @@ export function DashboardTopProducts({ t, isLoading, topProducts, formatCurrency
                                 </div>
                                 <div className="ml-4 space-y-1">
                                     <p className="text-sm font-medium leading-none">{product.product_name}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground">
                                         {product.total_quantity} sold
                                     </p>
                                 </div>

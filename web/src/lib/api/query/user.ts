@@ -52,7 +52,15 @@ export const usersListQueryOptions = (params?: UsersListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const useUsersListQuery = (params?: UsersListParams) => useQuery(usersListQueryOptions(params))
+export const useUsersListQuery = (params?: UsersListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/users');
+    const query = useQuery({
+        ...usersListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 
 // --- QUERY: Get User By ID (/api/v1/users/{id}) ---
@@ -69,7 +77,16 @@ export const userDetailQueryOptions = (id: string) =>
         enabled: !!id,
     })
 
-export const useUserDetailQuery = (id: string) => useQuery(userDetailQueryOptions(id))
+export const useUserDetailQuery = (id: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/users/{id}');
+    const defaultOptions = userDetailQueryOptions(id);
+    const query = useQuery({
+        ...defaultOptions,
+        enabled: defaultOptions.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 
 
 

@@ -76,6 +76,7 @@ function OrderPage() {
     const [productForVariantSelection, setProductForVariantSelection] = useState<Product | null>(null)
 
     const createOrderMutation = useCreateOrderMutation()
+    const canCreateOrder = createOrderMutation.isAllowed
 
     const addToCart = async (product: Product) => {
         if ((product.stock || 0) <= 0) {
@@ -206,7 +207,7 @@ function OrderPage() {
                         <Button size="lg" className="rounded-full h-14 w-14 shadow-lg p-0 relative">
                             <ShoppingCart className="h-6 w-6" />
                             {cart.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-background">
+                                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-background">
                                     {cart.length}
                                 </span>
                             )}
@@ -225,6 +226,7 @@ function OrderPage() {
                             removeFromCart={removeFromCart}
                             calculateTotal={calculateTotal}
                             handleCheckout={handleCheckout}
+                            canCheckout={canCreateOrder}
                         />
                     </SheetContent>
                 </Sheet>
@@ -244,6 +246,7 @@ function OrderPage() {
                     removeFromCart={removeFromCart}
                     calculateTotal={calculateTotal}
                     handleCheckout={handleCheckout}
+                    canCheckout={canCreateOrder}
                 />
             </div>
 

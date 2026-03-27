@@ -26,8 +26,8 @@ export function DashboardUserMenu({
         <div className={cn(
             "rounded-2xl w-full flex items-center border",
             isMobile ? "flex items-center gap-4 px-2 py-4 border-t" : (
-                isSidebarCollapsed 
-                    ? "justify-center p-2 h-auto flex-col gap-4" 
+                isSidebarCollapsed
+                    ? "justify-center p-2 h-auto flex-col gap-4"
                     : "justify-between px-2 gap-2 pl-4 h-12"
             )
         )}>
@@ -39,7 +39,7 @@ export function DashboardUserMenu({
                 {(!isSidebarCollapsed || isMobile) && (
                     <div className="flex flex-col items-start truncate text-sm">
                         <span className="font-semibold">{userName}</span>
-                        <span className="text-xs text-muted-foreground">{userRole}</span>
+                        <span className="text-sm text-muted-foreground">{userRole}</span>
                     </div>
                 )}
             </div>

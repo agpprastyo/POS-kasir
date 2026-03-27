@@ -12,7 +12,7 @@ export function CancellationReport({
     data, isLoading, t
 }: CancellationReportProps) {
     return (
-        <Card>
+        <Card className="border-0 shadow-sm">
             <CardHeader>
                 <CardTitle>{t('reports.cancellations.title')}</CardTitle>
                 <CardDescription>{t('reports.cancellations.description')}</CardDescription>
@@ -20,8 +20,8 @@ export function CancellationReport({
             <CardContent>
                 {isLoading ? (
                     <div className="space-y-2">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
                     </div>
                 ) : (
                     <Table>
@@ -33,7 +33,7 @@ export function CancellationReport({
                         </TableHeader>
                         <TableBody>
                             {(data || []).map((report: any, idx: number) => (
-                                <TableRow key={idx}>
+                                <TableRow key={idx} className="hover:bg-muted/50">
                                     <TableCell className="font-medium">{report.reason}</TableCell>
                                     <TableCell className="text-right">{report.cancelled_orders ?? 0}</TableCell>
                                 </TableRow>

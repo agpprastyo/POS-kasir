@@ -14,6 +14,8 @@ export function BrandingSettingsCard() {
     const updateMutation = useUpdateBrandingSettingsMutation()
     const uploadLogoMutation = useUpdateLogoMutation()
 
+    const canEdit = updateMutation.isAllowed
+
     const [appName, setAppName] = useState("")
     const [footerText, setFooterText] = useState("")
     const [logoUrl, setLogoUrl] = useState("")
@@ -77,6 +79,7 @@ export function BrandingSettingsCard() {
                         value={appName}
                         onChange={(e) => setAppName(e.target.value)}
                         placeholder={t('settings.branding.app_name_placeholder')}
+                        disabled={!canEdit}
                     />
                 </div>
 
@@ -87,30 +90,34 @@ export function BrandingSettingsCard() {
                             {logoUrl ? (
                                 <img src={logoUrl} alt={t('settings.branding.logo_alt')} className="max-w-full max-h-full object-contain" />
                             ) : (
-                                <span className="text-xs text-muted-foreground">{t('settings.branding.no_logo')}</span>
+                                <span className="text-sm text-muted-foreground">{t('settings.branding.no_logo')}</span>
                             )}
                         </div>
                         <div className="flex-1 space-y-2">
                             <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="relative" disabled={uploadLogoMutation.isPending}>
-                                    {uploadLogoMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                                    {t('settings.branding.upload_button')}
-                                    <input
-                                        type="file"
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        accept="image/*"
-                                        onChange={handleLogoUpload}
-                                        disabled={uploadLogoMutation.isPending}
-                                    />
-                                </Button>
-                                {logoUrl && (
-                                    <Button variant="outline" size="sm" onClick={() => setLogoUrl("")}>
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        {t('settings.branding.remove_button')}
-                                    </Button>
+                                {canEdit && (
+                                    <>
+                                        <Button variant="outline" size="sm" className="relative" disabled={uploadLogoMutation.isPending}>
+                                            {uploadLogoMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                                            {t('settings.branding.upload_button')}
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                accept="image/*"
+                                                onChange={handleLogoUpload}
+                                                disabled={uploadLogoMutation.isPending}
+                                            />
+                                        </Button>
+                                        {logoUrl && (
+                                            <Button variant="outline" size="sm" onClick={() => setLogoUrl("")}>
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                {t('settings.branding.remove_button')}
+                                            </Button>
+                                        )}
+                                    </>
                                 )}
                             </div>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                                 {t('settings.branding.logo_help')}
                             </p>
                         </div>
@@ -124,17 +131,18 @@ export function BrandingSettingsCard() {
                         value={footerText}
                         onChange={(e) => setFooterText(e.target.value)}
                         placeholder={t('settings.branding.footer_placeholder')}
+                        disabled={!canEdit}
                     />
                 </div>
 
-
-
-                <div className="flex justify-end">
-                    <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                        {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        {t('common.save_changes')}
-                    </Button>
-                </div>
+                {canEdit && (
+                    <div className="flex justify-end">
+                        <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                            {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            {t('common.save_changes')}
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )

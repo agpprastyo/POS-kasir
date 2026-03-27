@@ -61,6 +61,8 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
     const [isDiscovering, setIsDiscovering] = useState(false)
     const { data: discoveredPrinters, refetch: discoverPrinters } = useDiscoverPrintersQuery(isDiscovering)
 
+    const canEdit = updateMutation.isAllowed
+
     const conn = settings?.connection || ""
     const initialPrintMethod = settings?.print_method || "BE"
 
@@ -151,11 +153,11 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
             <CardContent className="space-y-6">
                 {/* Method Selection at the top */}
                 <div className="space-y-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    <Label className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
                         {t('settings.printer.print_method', { defaultValue: 'Printer Connection Mode' })}
                     </Label>
-                    <Tabs 
-                        value={state.printMethod} 
+                    <Tabs
+                        value={state.printMethod}
                         onValueChange={(v) => dispatch({ type: 'SET_FIELD', field: 'printMethod', value: v as "BE" | "FE" })}
                         className="w-full"
                     >
@@ -169,19 +171,19 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                 <span>{t('settings.printer.method_fe', { defaultValue: 'Bluetooth' })}</span>
                             </TabsTrigger>
                         </TabsList>
-                        
+
                         <div className="mt-4">
                             <TabsContent value="BE" className="space-y-4 animate-in fade-in duration-300">
                                 <div className="p-4 rounded-lg bg-muted/30 border border-dashed text-center space-y-3">
                                     <div className="flex flex-col items-center gap-2">
                                         <p className="text-sm font-medium">{t('settings.printer.discovery_title', { defaultValue: 'Discover Network Printers' })}</p>
-                                        <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                                             {t('settings.printer.discovery_desc', { defaultValue: 'Search for available printers in your local network (Port 9100).' })}
                                         </p>
                                     </div>
-                                    <Button 
-                                        variant="secondary" 
-                                        size="sm" 
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
                                         onClick={handleDiscover}
                                         disabled={isDiscovering}
                                         className="h-10 px-6"
@@ -197,7 +199,7 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
 
                                 {discoveredPrinters && discoveredPrinters.length > 0 && (
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">{t('settings.printer.discovered_count', { defaultValue: 'Printers Found' })} ({discoveredPrinters.length})</Label>
+                                        <Label className="text-xs font-bold uppercase text-muted-foreground">{t('settings.printer.discovered_count', { defaultValue: 'Printers Found' })} ({discoveredPrinters.length})</Label>
                                         <div className="grid grid-cols-1 gap-2">
                                             {discoveredPrinters.map((p) => (
                                                 <button
@@ -220,15 +222,16 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                 )}
 
                                 <div className="space-y-2 pt-2">
-                                    <Label htmlFor="connection" className="text-xs font-semibold">{t('settings.printer.connection', { defaultValue: 'Manual IP / URI' })}</Label>
+                                    <Label htmlFor="connection" className="text-sm font-semibold">{t('settings.printer.connection', { defaultValue: 'Manual IP / URI' })}</Label>
                                     <Input
                                         id="connection"
                                         value={state.connection}
                                         onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'connection', value: e.target.value })}
                                         placeholder={t('settings.printer.connection_placeholder')}
                                         className="h-10"
+                                        disabled={!canEdit}
                                     />
-                                    <p className="text-[11px] text-muted-foreground">{t('settings.printer.help_text')}</p>
+                                    <p className="text-xs text-muted-foreground">{t('settings.printer.help_text')}</p>
                                 </div>
                             </TabsContent>
 
@@ -237,11 +240,11 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <Bluetooth className="h-5 w-5 text-primary" />
-                                            <Label className="font-semibold text-base">{t('settings.printer.bluetooth', { defaultValue: 'Bluetooth Printer' })}</Label>
+                                            <Label className="font-semibold text-sm">{t('settings.printer.bluetooth', { defaultValue: 'Bluetooth Printer' })}</Label>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <div className={`h-2.5 w-2.5 rounded-full ${state.feConnected ? 'bg-primary animate-pulse' : 'bg-destructive'}`} />
-                                            <span className="text-[10px] uppercase tracking-wider font-bold">
+                                            <span className="text-xs uppercase tracking-wider font-bold">
                                                 {state.feConnected ? t('common.connected', { defaultValue: 'Connected' }) : t('common.disconnected', { defaultValue: 'Disconnected' })}
                                             </span>
                                         </div>
@@ -255,7 +258,7 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                                             {state.feConnected ? t('settings.printer.reconnect', { defaultValue: 'Change / Reconnect' }) : t('settings.printer.connect', { defaultValue: 'Connect Printer' })}
                                         </Button>
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground italic">
+                                    <p className="text-xs text-muted-foreground italic">
                                         {t('settings.printer.fe_help', { defaultValue: 'Make sure your Bluetooth printer is on and discoverable by this browser.' })}
                                     </p>
                                 </div>
@@ -266,8 +269,8 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">
-                        <Label className="text-xs font-semibold">{t('settings.printer.paper_width')}</Label>
-                        <Select value={state.paperWidth} onValueChange={(v) => dispatch({ type: 'SET_FIELD', field: 'paperWidth', value: v })}>
+                        <Label className="text-sm font-semibold">{t('settings.printer.paper_width')}</Label>
+                        <Select disabled={!canEdit} value={state.paperWidth} onValueChange={(v) => dispatch({ type: 'SET_FIELD', field: 'paperWidth', value: v })}>
                             <SelectTrigger className="h-12">
                                 <SelectValue />
                             </SelectTrigger>
@@ -280,10 +283,11 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
 
                     <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/5">
                         <div className="space-y-0.5">
-                            <Label className="text-base font-medium">{t('settings.printer.auto_print')}</Label>
-                            <p className="text-[10px] text-muted-foreground leading-tight">Print receipt automatically after payment</p>
+                            <Label className="text-sm font-medium">{t('settings.printer.auto_print')}</Label>
+                            <p className="text-xs text-muted-foreground leading-tight">Print receipt automatically after payment</p>
                         </div>
                         <Switch
+                            disabled={!canEdit}
                             checked={state.autoPrint}
                             onCheckedChange={(v) => dispatch({ type: 'SET_FIELD', field: 'autoPrint', value: v })}
                         />
@@ -295,10 +299,12 @@ function PrinterSettingsForm({ settings, t }: { settings: any, t: any }) {
                         <Printer className="h-4 w-4 mr-2" />
                         {t('settings.printer.test_print')}
                     </Button>
-                    <Button onClick={handleSave} disabled={updateMutation.isPending} className="px-8 h-10 shadow-lg shadow-primary/20">
-                        {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                        {t('common.save_changes')}
-                    </Button>
+                    {canEdit && (
+                        <Button onClick={handleSave} disabled={updateMutation.isPending} className="px-8 h-10 shadow-lg shadow-primary/20">
+                            {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            {t('common.save_changes')}
+                        </Button>
+                    )}
                 </div>
             </CardContent>
         </Card >

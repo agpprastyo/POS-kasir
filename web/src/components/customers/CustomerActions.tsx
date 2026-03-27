@@ -23,7 +23,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 
-export function CustomerActions({ customer, onEdit }: { customer: InternalCustomersCustomerResponse, onEdit: () => void }) {
+export function CustomerActions({ customer, onEdit, canEdit = true, canDelete = true }: { customer: InternalCustomersCustomerResponse, onEdit: () => void, canEdit?: boolean, canDelete?: boolean }) {
     const { t } = useTranslation()
     const deleteMutation = useDeleteCustomerMutation()
 
@@ -47,20 +47,25 @@ export function CustomerActions({ customer, onEdit }: { customer: InternalCustom
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>{t('customers.table.actions', 'Actions')}</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onEdit}>
-                        <Pencil className="mr-2 h-4 w-4" /> {t('customers.actions.edit', 'Edit')}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    {canEdit && (
+                        <DropdownMenuItem onClick={onEdit}>
+                            <Pencil className="mr-2 h-4 w-4" /> {t('customers.actions.edit', 'Edit')}
+                        </DropdownMenuItem>
+                    )}
+                    
+                    {canEdit && canDelete && <DropdownMenuSeparator />}
 
-                    <DropdownMenuItem
-                        onSelect={(e) => {
-                            e.preventDefault()
-                            setShowDeleteDialog(true)
-                        }}
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                    >
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('customers.actions.delete', 'Delete')}
-                    </DropdownMenuItem>
+                    {canDelete && (
+                        <DropdownMenuItem
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowDeleteDialog(true)
+                            }}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" /> {t('customers.actions.delete', 'Delete')}
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

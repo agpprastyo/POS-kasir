@@ -114,7 +114,7 @@ func (m *MockSettingsService) UpdateLogo(ctx context.Context, data []byte, filen
 }
 
 // Helper for logger mocks
-func allowAllLoggerCalls(mockLogger *mocks.MockFieldLogger) {
+func allowAllLoggerCalls(mockLogger *mocks.MockILogger) {
 	mockLogger.EXPECT().Warn(gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
@@ -134,7 +134,7 @@ func TestPrinterService_PrintInvoice(t *testing.T) {
 	mockSettingsService := new(MockSettingsService)
 	mockPayment := mocks.NewMockIPaymentMethodService(ctrl)
 	mockUserRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockPrinter := new(MockPrinter)
 
 	// Factory that returns the mock printer
@@ -229,7 +229,7 @@ func TestPrinterService_TestPrint(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockSettingsService := new(MockSettingsService)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockPrinter := new(MockPrinter)
 
 	printerFactory := func(conn string) (escpos.Printer, error) {
@@ -264,7 +264,7 @@ func TestPrinterService_GetInvoiceData(t *testing.T) {
 	mockSettingsService := new(MockSettingsService)
 	mockPayment := mocks.NewMockIPaymentMethodService(ctrl)
 	mockUserRepo := mocks.NewMockUserRepo(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	// No printer factory needed for GetInvoiceData directly, service needs it but won't use it
 	printerFactory := func(conn string) (escpos.Printer, error) {

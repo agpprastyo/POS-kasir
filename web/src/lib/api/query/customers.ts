@@ -36,7 +36,15 @@ export const customersListQueryOptions = (params?: CustomersListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const useCustomersListQuery = (params?: CustomersListParams) => useQuery(customersListQueryOptions(params))
+export const useCustomersListQuery = (params?: CustomersListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/customers');
+    const query = useQuery({
+        ...customersListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 // --- QUERY: Get Customer By ID (/api/v1/customers/{id}) ---
 export const customerDetailQueryOptions = (id: string) =>
@@ -52,7 +60,16 @@ export const customerDetailQueryOptions = (id: string) =>
         enabled: !!id,
     })
 
-export const useCustomerDetailQuery = (id: string) => useQuery(customerDetailQueryOptions(id))
+export const useCustomerDetailQuery = (id: string) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/customers/{id}');
+    const options = customerDetailQueryOptions(id);
+    const query = useQuery({
+        ...options,
+        enabled: options.enabled !== false ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 
 export const useCreateCustomerMutation = () => {
     const { t } = useTranslation()

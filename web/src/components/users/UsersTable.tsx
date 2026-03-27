@@ -39,7 +39,7 @@ export function UsersTable({ users, t, renderActions }: UsersTableProps) {
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="font-medium">{user.username}</span>
-                                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                                        <span className="text-sm text-muted-foreground">{user.email}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>

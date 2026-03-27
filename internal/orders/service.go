@@ -23,6 +23,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+
+	ws "POS-kasir/internal/websocket"
 )
 
 type IOrderService interface {
@@ -46,9 +48,10 @@ type OrderService struct {
 	midtransService payment.IMidtrans
 	activityService activitylog.IActivityService
 	log             logger.ILogger
+	wsHub           *ws.Hub
 }
 
-func NewOrderService(store store.Store, ordersRepo orders_repo.Querier, productsRepo products_repo.Querier, midtransService payment.IMidtrans, activityService activitylog.IActivityService, log logger.ILogger) IOrderService {
+func NewOrderService(store store.Store, ordersRepo orders_repo.Querier, productsRepo products_repo.Querier, midtransService payment.IMidtrans, activityService activitylog.IActivityService, log logger.ILogger, wsHub *ws.Hub) IOrderService {
 	return &OrderService{
 		store:           store,
 		ordersRepo:      ordersRepo,
@@ -56,6 +59,7 @@ func NewOrderService(store store.Store, ordersRepo orders_repo.Querier, products
 		midtransService: midtransService,
 		activityService: activityService,
 		log:             log,
+		wsHub:           wsHub,
 	}
 }
 
@@ -89,8 +93,8 @@ var allowedStatusTransitions = map[orders_repo.OrderStatus]map[orders_repo.Order
 		orders_repo.OrderStatusCancelled:  true,
 	},
 	orders_repo.OrderStatusCancelled: {
-		orders_repo.OrderStatusCancelled: true,
-		orders_repo.OrderStatusOpen:      true,
+		orders_repo.OrderStatusCancelled:  true,
+		orders_repo.OrderStatusOpen:       true,
 		orders_repo.OrderStatusInProgress: true,
 	},
 }
@@ -324,6 +328,10 @@ func (s *OrderService) ApplyPromotion(ctx context.Context, orderID uuid.UUID, re
 		logDetails,
 	)
 
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
+
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
@@ -376,6 +384,10 @@ func (s *OrderService) UpdateOperationalStatus(ctx context.Context, orderID uuid
 		orderID.String(),
 		logDetails,
 	)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
 
 	return s.GetOrder(ctx, orderID)
 }
@@ -452,6 +464,10 @@ func (s *OrderService) ConfirmManualPayment(ctx context.Context, orderID uuid.UU
 		orderID.String(),
 		logDetails,
 	)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
 
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
@@ -658,6 +674,10 @@ func (s *OrderService) UpdateOrderItems(ctx context.Context, orderID uuid.UUID, 
 		orderID.String(),
 		logDetails,
 	)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
 
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
@@ -917,6 +937,11 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req C
 	)
 
 	s.log.Info("Order cancelled successfully", "orderID", orderID)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
+
 	return nil
 }
 
@@ -997,6 +1022,10 @@ func (s *OrderService) RefundOrder(ctx context.Context, orderID uuid.UUID, req R
 			"reason": req.Reason,
 		},
 	)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": orderID})
+	}
 
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
@@ -1373,6 +1402,10 @@ func (s *OrderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 		logDetails,
 	)
 
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderCreated, map[string]interface{}{"order_id": newOrderID})
+	}
+
 	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }
 
@@ -1435,7 +1468,7 @@ func (s *OrderService) InitiateMidtransPayment(ctx context.Context, orderID uuid
 
 	err = s.ordersRepo.UpdateOrderPaymentInfo(ctx, orders_repo.UpdateOrderPaymentInfoParams{
 		ID:                      order.ID,
-		PaymentMethodID:         nil, // Updated on settlement
+		PaymentMethodID:         nil,
 		PaymentGatewayReference: utils.StringPtr(chargeResp.TransactionID),
 	})
 	if err != nil {
@@ -1553,5 +1586,10 @@ func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload p
 	)
 
 	s.log.Info("Successfully updated order status from notification", "orderID", updatedOrder.ID, "newStatus", newStatus)
+
+	if s.wsHub != nil {
+		s.wsHub.BroadcastEvent(ws.EventOrderUpdated, map[string]interface{}{"order_id": updatedOrder.ID})
+	}
+
 	return nil
 }

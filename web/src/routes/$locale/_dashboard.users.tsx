@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState } from 'react'
-import { usersListQueryOptions } from '@/lib/api/query/user'
+import { usersListQueryOptions, useCreateUserMutation, useUpdateUserMutation, useDeleteUserMutation, useToggleUserStatusMutation } from '@/lib/api/query/user'
 import { InternalUserProfileResponse, UsersGetRoleEnum, UsersGetStatusEnum } from '@/lib/api/generated'
 import { NewPagination } from "@/components/pagination.tsx";
 import { useTranslation } from 'react-i18next'
@@ -58,6 +58,11 @@ function UsersPage() {
     const users = usersQuery.data.users || []
     const pagination = usersQuery.data.pagination
 
+    const { isAllowed: canCreate } = useCreateUserMutation()
+    const { isAllowed: canEdit } = useUpdateUserMutation()
+    const { isAllowed: canDelete } = useDeleteUserMutation()
+    const { isAllowed: canToggle } = useToggleUserStatusMutation()
+
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<InternalUserProfileResponse | null>(null)
 
@@ -94,6 +99,7 @@ function UsersPage() {
             <UsersHeader 
                 t={t}
                 onCreateClick={openCreateModal}
+                canCreate={canCreate}
             />
 
             <UsersFilters 
@@ -107,9 +113,9 @@ function UsersPage() {
             <UsersTable 
                 users={users}
                 t={t}
-                renderActions={(user) => (
-                    <UserActions user={user} onEdit={() => openEditModal(user)} />
-                )}
+                renderActions={(user) => (canEdit || canDelete || canToggle) ? (
+                    <UserActions user={user} onEdit={() => openEditModal(user)} canEdit={canEdit} canDelete={canDelete} canToggle={canToggle} />
+                ) : null}
             />
 
             {pagination && (

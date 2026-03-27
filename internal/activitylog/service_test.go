@@ -21,7 +21,7 @@ func TestActivityService_Log(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockActivityLogRepository(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	service := activitylog.NewActivityService(mockRepo, mockLogger)
 	ctx := context.Background()
@@ -85,7 +85,7 @@ func TestActivityService_GetActivityLogs(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockActivityLogRepository(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	service := activitylog.NewActivityService(mockRepo, mockLogger)
 	ctx := context.Background()
 

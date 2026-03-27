@@ -17,7 +17,7 @@ func TestAthRepo_UploadAvatar(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockR2 := mocks.NewMockIR2(ctrl)
 
 	repo := user.NewAuthRepo(mockLogger, mockR2)
@@ -61,7 +61,7 @@ func TestAthRepo_AvatarLink(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	mockR2 := mocks.NewMockIR2(ctrl)
 
 	repo := user.NewAuthRepo(mockLogger, mockR2)

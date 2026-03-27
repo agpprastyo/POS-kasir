@@ -201,7 +201,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         placeholder={t('promotions.form.name_placeholder')}
                                     />
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -221,7 +221,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </SelectContent>
                                     </Select>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -241,7 +241,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                     onChange={(e) => field.handleChange(e.target.value)}
                                 />
                                 {field.state.meta.errors.length > 0 && (
-                                    <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                    <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                 )}
                             </div>
                         )}
@@ -263,7 +263,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </SelectContent>
                                     </Select>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -282,7 +282,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         onChange={(e) => field.handleChange(Number(e.target.value))}
                                     />
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -322,7 +322,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </PopoverContent>
                                     </Popover>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -359,7 +359,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                         </PopoverContent>
                                     </Popover>
                                     {field.state.meta.errors.length > 0 && (
-                                        <p className="text-[0.8rem] font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
+                                        <p className="text-sm font-medium text-destructive">{field.state.meta.errors.map(err => typeof err === 'object' ? ((err as any).message ?? JSON.stringify(err)) : String(err)).join(', ')}</p>
                                     )}
                                 </div>
                             )}
@@ -371,7 +371,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                         children={(field) => (
                             <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">{t('promotions.form.is_active')}</Label>
+                                    <Label className="text-sm">{t('promotions.form.is_active')}</Label>
                                 </div>
                                 <Switch
                                     checked={field.state.value}
@@ -402,7 +402,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                             name={`rules[${index}].rule_type`}
                                             children={(typeField) => (
                                                 <div className="flex-1 space-y-2">
-                                                    <Label className="text-xs">{t('promotions.form.rule_type')}</Label>
+                                                    <Label className="text-sm">{t('promotions.form.rule_type')}</Label>
                                                     <Select onValueChange={(val) => typeField.handleChange(val as POSKasirInternalPromotionsRepositoryPromotionRuleType)} value={typeField.state.value}>
                                                         <SelectTrigger>
                                                             <SelectValue />
@@ -424,7 +424,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 if (ruleType === POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDPRODUCT) {
                                                     return (
                                                         <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs">{t('promotions.form.rule_value')}</Label>
+                                                            <Label className="text-sm">{t('promotions.form.rule_value')}</Label>
                                                             <Select onValueChange={valField.handleChange} value={valField.state.value}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder={t('promotions.form.select_product')} />
@@ -442,7 +442,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 if (ruleType === POSKasirInternalPromotionsRepositoryPromotionRuleType.PromotionRuleTypeREQUIREDCATEGORY) {
                                                     return (
                                                         <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs">{t('promotions.form.rule_value')}</Label>
+                                                            <Label className="text-sm">{t('promotions.form.rule_value')}</Label>
                                                             <Select onValueChange={valField.handleChange} value={valField.state.value}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder={t('promotions.form.select_category')} />
@@ -459,7 +459,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
 
                                                 return (
                                                     <div className="flex-1 space-y-2">
-                                                        <Label className="text-xs">{t('promotions.form.rule_value')}</Label>
+                                                        <Label className="text-sm">{t('promotions.form.rule_value')}</Label>
                                                         <Input
                                                             value={valField.state.value}
                                                             onBlur={valField.handleBlur}
@@ -499,7 +499,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                             name={`targets[${index}].target_type`}
                                             children={(typeField) => (
                                                 <div className="flex-1 space-y-2">
-                                                    <Label className="text-xs">{t('promotions.form.target_type')}</Label>
+                                                    <Label className="text-sm">{t('promotions.form.target_type')}</Label>
                                                     <Select onValueChange={(val) => typeField.handleChange(val as POSKasirInternalPromotionsRepositoryPromotionTargetType)} value={typeField.state.value}>
                                                         <SelectTrigger>
                                                             <SelectValue />
@@ -520,7 +520,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 if (targetType === POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypePRODUCT) {
                                                     return (
                                                         <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs">{t('promotions.form.target_id')}</Label>
+                                                            <Label className="text-sm">{t('promotions.form.target_id')}</Label>
                                                             <Select onValueChange={idField.handleChange} value={idField.state.value}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder={t('promotions.form.select_product')} />
@@ -538,7 +538,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
                                                 if (targetType === POSKasirInternalPromotionsRepositoryPromotionTargetType.PromotionTargetTypeCATEGORY) {
                                                     return (
                                                         <div className="flex-1 space-y-2">
-                                                            <Label className="text-xs">{t('promotions.form.target_id')}</Label>
+                                                            <Label className="text-sm">{t('promotions.form.target_id')}</Label>
                                                             <Select onValueChange={idField.handleChange} value={idField.state.value}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder={t('promotions.form.select_category')} />
@@ -555,7 +555,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotionToEdit }: Pro
 
                                                 return (
                                                     <div className="flex-1 space-y-2">
-                                                        <Label className="text-xs">{t('promotions.form.target_id')}</Label>
+                                                        <Label className="text-sm">{t('promotions.form.target_id')}</Label>
                                                         <Input
                                                             value={idField.state.value}
                                                             onBlur={idField.handleBlur}

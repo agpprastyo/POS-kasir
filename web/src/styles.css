@@ -6,112 +6,109 @@
 
 @import "shadcn/tailwind.css";
 
-@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/plus-jakarta-sans";
 
 @custom-variant dark (&:is(.dark *));
 
-code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
-
 :root {
+  /* ── Indigo + Amber palette ── */
   --background:
-    oklch(1 0 0);
+    oklch(0.975 0.006 286);
   --foreground:
-    oklch(0.148 0.004 228.8);
+    oklch(0.165 0.03 275);
   --card:
     oklch(1 0 0);
   --card-foreground:
-    oklch(0.148 0.004 228.8);
+    oklch(0.165 0.03 275);
   --popover:
     oklch(1 0 0);
   --popover-foreground:
-    oklch(0.148 0.004 228.8);
+    oklch(0.165 0.03 275);
   --primary:
-    oklch(0.52 0.105 223.128);
+    oklch(0.467 0.2 275);
   --primary-foreground:
-    oklch(0.984 0.019 200.873);
+    oklch(0.985 0.01 275);
   --secondary:
-    oklch(0.967 0.001 286.375);
+    oklch(0.955 0.012 286);
   --secondary-foreground:
-    oklch(0.21 0.006 285.885);
+    oklch(0.25 0.04 275);
   --muted:
-    oklch(0.963 0.002 197.1);
+    oklch(0.955 0.012 286);
   --muted-foreground:
-    oklch(0.56 0.021 213.5);
+    oklch(0.52 0.035 275);
   --accent:
-    oklch(0.963 0.002 197.1);
+    oklch(0.787 0.167 75);
   --accent-foreground:
-    oklch(0.218 0.008 223.9);
+    oklch(0.25 0.04 275);
   --destructive:
     oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border:
-    oklch(0.925 0.005 214.3);
+    oklch(0.92 0.01 286);
   --input:
-    oklch(0.925 0.005 214.3);
+    oklch(0.92 0.01 286);
   --ring:
-    oklch(0.723 0.014 214.4);
+    oklch(0.55 0.17 275);
   --chart-1:
-    oklch(0.865 0.127 207.078);
+    oklch(0.55 0.2 275);
   --chart-2:
-    oklch(0.715 0.143 215.221);
+    oklch(0.787 0.167 75);
   --chart-3:
-    oklch(0.609 0.126 221.723);
+    oklch(0.65 0.18 280);
   --chart-4:
-    oklch(0.52 0.105 223.128);
+    oklch(0.72 0.11 160);
   --chart-5:
-    oklch(0.45 0.085 224.283);
+    oklch(0.6 0.15 330);
   --radius:
-    0.45rem;
+    1rem;
   --sidebar:
-    oklch(0.987 0.002 197.1);
+    oklch(1 0 0);
   --sidebar-foreground:
-    oklch(0.148 0.004 228.8);
+    oklch(0.165 0.03 275);
   --sidebar-primary:
-    oklch(0.609 0.126 221.723);
+    oklch(0.467 0.2 275);
   --sidebar-primary-foreground:
-    oklch(0.984 0.019 200.873);
+    oklch(0.985 0.01 275);
   --sidebar-accent:
-    oklch(0.963 0.002 197.1);
+    oklch(0.955 0.012 286);
   --sidebar-accent-foreground:
-    oklch(0.218 0.008 223.9);
+    oklch(0.25 0.04 275);
   --sidebar-border:
-    oklch(0.925 0.005 214.3);
+    oklch(0.92 0.01 286);
   --sidebar-ring:
-    oklch(0.723 0.014 214.4);
+    oklch(0.55 0.17 275);
 }
 
 .dark {
   --background:
-    oklch(0.148 0.004 228.8);
+    oklch(0.18 0.04 280);
   --foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --card:
-    oklch(0.218 0.008 223.9);
+    oklch(0.22 0.035 278);
   --card-foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --popover:
-    oklch(0.218 0.008 223.9);
+    oklch(0.22 0.035 278);
   --popover-foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --primary:
-    oklch(0.45 0.085 224.283);
+    oklch(0.55 0.19 275);
   --primary-foreground:
-    oklch(0.984 0.019 200.873);
+    oklch(0.985 0.01 275);
   --secondary:
-    oklch(0.274 0.006 286.033);
+    oklch(0.28 0.035 278);
   --secondary-foreground:
-    oklch(0.985 0 0);
+    oklch(0.96 0.01 280);
   --muted:
-    oklch(0.275 0.011 216.9);
+    oklch(0.28 0.035 278);
   --muted-foreground:
-    oklch(0.723 0.014 214.4);
+    oklch(0.65 0.03 275);
   --accent:
-    oklch(0.275 0.011 216.9);
+    oklch(0.787 0.167 75);
   --accent-foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --destructive:
     oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.637 0.237 25.331);
@@ -120,33 +117,33 @@ code {
   --input:
     oklch(1 0 0 / 15%);
   --ring:
-    oklch(0.56 0.021 213.5);
+    oklch(0.55 0.19 275);
   --chart-1:
-    oklch(0.865 0.127 207.078);
+    oklch(0.6 0.19 275);
   --chart-2:
-    oklch(0.715 0.143 215.221);
+    oklch(0.787 0.167 75);
   --chart-3:
-    oklch(0.609 0.126 221.723);
+    oklch(0.7 0.18 280);
   --chart-4:
-    oklch(0.52 0.105 223.128);
+    oklch(0.72 0.11 160);
   --chart-5:
-    oklch(0.45 0.085 224.283);
+    oklch(0.65 0.15 330);
   --sidebar:
-    oklch(0.218 0.008 223.9);
+    oklch(0.22 0.035 278);
   --sidebar-foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --sidebar-primary:
-    oklch(0.715 0.143 215.221);
+    oklch(0.6 0.19 275);
   --sidebar-primary-foreground:
-    oklch(0.302 0.056 229.695);
+    oklch(0.985 0.01 275);
   --sidebar-accent:
-    oklch(0.275 0.011 216.9);
+    oklch(0.28 0.035 278);
   --sidebar-accent-foreground:
-    oklch(0.987 0.002 197.1);
+    oklch(0.96 0.01 280);
   --sidebar-border:
     oklch(1 0 0 / 10%);
   --sidebar-ring:
-    oklch(0.56 0.021 213.5);
+    oklch(0.55 0.19 275);
 }
 
 @theme inline {
@@ -187,15 +184,17 @@ code {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --font-heading:
-    var(--font-mono);
-  --font-mono:
-    'JetBrains Mono Variable', monospace;
+    'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans:
+    'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
   --radius-2xl:
-    calc(var(--radius) * 1.8);
+    calc(var(--radius) * 1.5);
   --radius-3xl:
-    calc(var(--radius) * 2.2);
+    calc(var(--radius) * 2);
   --radius-4xl:
-    calc(var(--radius) * 2.6);
+    calc(var(--radius) * 2.5);
+  --color-amber:
+    oklch(0.787 0.167 75);
 }
 
 @layer base {
@@ -203,9 +202,32 @@ code {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
-  html {
-    @apply font-mono;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+
+  /* Responsive tables: horizontal scroll on small screens */
+  [data-slot="card-content"]:has(table),
+  .overflow-x-auto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Responsive tabs: horizontal scroll on mobile */
+  [data-slot="tabs-list"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  [data-slot="tabs-list"]::-webkit-scrollbar {
+    display: none;
+  }
+  [data-slot="tabs-list"] > button {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 }

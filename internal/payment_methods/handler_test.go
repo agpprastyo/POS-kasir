@@ -20,7 +20,7 @@ func TestPaymentMethodHandler_ListPaymentMethodsHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockService := mocks.NewMockIPaymentMethodService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	handler := payment_methods.NewPaymentMethodHandler(mockService, mockLogger)
 
 	app := fiber.New()

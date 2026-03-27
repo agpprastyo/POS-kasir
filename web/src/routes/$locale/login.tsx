@@ -34,8 +34,15 @@ function LoginPage() {
     const router = useRouter()
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 relative">
-            <div className="absolute top-4 right-4">
+        <div className="min-h-screen flex items-center justify-center p-6 relative bg-linear-to-br from-primary/5 via-background to-amber/5">
+            {/* Decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
+                <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-amber/5 blur-3xl" />
+                <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full bg-primary/3 blur-2xl" />
+            </div>
+
+            <div className="absolute top-4 right-4 z-10">
                 <SettingsPanel />
             </div>
             <LoginForm 

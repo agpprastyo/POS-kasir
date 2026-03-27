@@ -29,22 +29,22 @@ import (
 )
 
 // setupTest creates basic mocks for tests that don't need pgxmock.
-func setupTest(t *testing.T) (*mocks.MockStore, *mocks.MockOrderQuerier, *mocks.MockProductQuerier, *mocks.MockIMidtrans, *mocks.MockIActivityService, *mocks.MockFieldLogger, orders.IOrderService) {
+func setupTest(t *testing.T) (*mocks.MockStore, *mocks.MockOrderQuerier, *mocks.MockProductQuerier, *mocks.MockIMidtrans, *mocks.MockIActivityService, *mocks.MockILogger, orders.IOrderService) {
 	ctrl := gomock.NewController(t)
 	mockStore := mocks.NewMockStore(ctrl)
 	mockOrderRepo := mocks.NewMockOrderQuerier(ctrl)
 	mockProductRepo := mocks.NewMockProductQuerier(ctrl)
 	mockMidtrans := mocks.NewMockIMidtrans(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
-	service := orders.NewOrderService(mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger)
+	service := orders.NewOrderService(mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger, nil)
 	return mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger, service
 }
 
 // allowAllLoggerCalls sets up AnyTimes expectations for all logger methods
 // to prevent strict mock failures from variadic argument count mismatches.
-func allowAllLoggerCalls(mockLogger *mocks.MockFieldLogger) {
+func allowAllLoggerCalls(mockLogger *mocks.MockILogger) {
 	mockLogger.EXPECT().Warn(gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warn(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
@@ -70,21 +70,21 @@ func allowAllLoggerCalls(mockLogger *mocks.MockFieldLogger) {
 }
 
 // setupTestWithPgxMock creates mocks including a pgxmock pool for transaction testing.
-func setupTestWithPgxMock(t *testing.T) (pgxmock.PgxPoolIface, *mocks.MockStore, *mocks.MockOrderQuerier, *mocks.MockProductQuerier, *mocks.MockIMidtrans, *mocks.MockIActivityService, *mocks.MockFieldLogger, orders.IOrderService) {
+func setupTestWithPgxMock(t *testing.T) (pgxmock.PgxPoolIface, *mocks.MockStore, *mocks.MockOrderQuerier, *mocks.MockProductQuerier, *mocks.MockIMidtrans, *mocks.MockIActivityService, *mocks.MockILogger, orders.IOrderService) {
 	ctrl := gomock.NewController(t)
 	mockStore := mocks.NewMockStore(ctrl)
 	mockOrderRepo := mocks.NewMockOrderQuerier(ctrl)
 	mockProductRepo := mocks.NewMockProductQuerier(ctrl)
 	mockMidtrans := mocks.NewMockIMidtrans(ctrl)
 	mockActivity := mocks.NewMockIActivityService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 
 	mockPgx, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("failed to create pgxmock pool: %v", err)
 	}
 
-	service := orders.NewOrderService(mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger)
+	service := orders.NewOrderService(mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger, nil)
 	return mockPgx, mockStore, mockOrderRepo, mockProductRepo, mockMidtrans, mockActivity, mockLogger, service
 }
 
@@ -1588,16 +1588,17 @@ func TestOrderService_RefundOrder(t *testing.T) {
 			WillReturnRows(pgxmock.NewRows([]string{"id", "order_id", "product_id", "quantity", "price_at_sale", "subtotal", "discount_amount", "net_subtotal", "cost_price_at_sale"}).
 				AddRow(uuid.New(), orderID, productID, int32(1), int64(20000), int64(20000), int64(0), int64(20000), pgtype.Numeric{}))
 
-		// 4. GetProductByID (from products repo)
+		// 4. GetProductByID (from products repo - returns 11 columns: 9 product fields + options + categories)
 		mockPgx.ExpectQuery("SELECT .* FROM products").
 			WithArgs(pgxmock.AnyArg()).
-			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price"}).
-				AddRow(productID, "Test Product", nil, int64(20000), int32(9), now, now, nil, pgtype.Numeric{}))
+			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price", "options", "categories"}).
+				AddRow(productID, "Test Product", nil, int64(20000), int32(9), now, now, nil, pgtype.Numeric{}, "[]", "[]"))
 
-		// 5. AddProductStock
+		// 5. AddProductStock (from products repo - returns 9 columns)
 		mockPgx.ExpectQuery("UPDATE products SET stock").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
-			WillReturnRows(pgxmock.NewRows([]string{"id", "stock"}).AddRow(productID, int32(10)))
+			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price"}).
+				AddRow(productID, "Test Product", nil, int64(20000), int32(10), now, now, nil, pgtype.Numeric{}))
 
 		// 6. CreateStockHistory
 		mockPgx.ExpectQuery("INSERT INTO stock_history").

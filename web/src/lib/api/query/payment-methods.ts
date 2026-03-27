@@ -5,6 +5,7 @@ import {
     InternalPaymentMethodsPaymentMethodResponse,
 } from "../generated"
 import { AxiosError } from "axios"
+import { useRBAC } from "@/lib/auth/rbac"
 
 export const paymentMethodsListQueryOptions = () =>
     queryOptions<
@@ -18,5 +19,12 @@ export const paymentMethodsListQueryOptions = () =>
         },
     })
 
-export const usePaymentMethodsListQuery = () =>
-    useQuery(paymentMethodsListQueryOptions())
+export const usePaymentMethodsListQuery = () => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/payment-methods');
+    const query = useQuery({
+        ...paymentMethodsListQueryOptions(),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}

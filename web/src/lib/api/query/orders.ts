@@ -43,8 +43,15 @@ export const ordersListQueryOptions = (params?: OrdersListParams) =>
         placeholderData: keepPreviousData,
     })
 
-export const useOrdersListQuery = (params?: OrdersListParams) =>
-    useQuery(ordersListQueryOptions(params))
+export const useOrdersListQuery = (params?: OrdersListParams) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/orders');
+    const query = useQuery({
+        ...ordersListQueryOptions(params),
+        enabled: isAllowed
+    });
+    return { ...query, isAllowed };
+}
 
 export const orderDetailQueryOptions = (id: string) =>
     queryOptions<
@@ -61,11 +68,17 @@ export const orderDetailQueryOptions = (id: string) =>
 
 import { UseQueryOptions } from '@tanstack/react-query'
 
-export const useOrderDetailQuery = (id: string, options?: Omit<UseQueryOptions<any, AxiosError<POSKasirInternalCommonErrorResponse>>, 'queryKey' | 'queryFn'>) =>
-    useQuery({
-        ...orderDetailQueryOptions(id),
-        ...options
-    })
+export const useOrderDetailQuery = (id: string, options?: Omit<UseQueryOptions<any, AxiosError<POSKasirInternalCommonErrorResponse>>, 'queryKey' | 'queryFn'>) => {
+    const { canAccessApi } = useRBAC();
+    const isAllowed = canAccessApi('GET', '/orders/{id}');
+    const defaultOptions = orderDetailQueryOptions(id);
+    const query = useQuery({
+        ...defaultOptions,
+        ...options,
+        enabled: (defaultOptions.enabled !== false && (options?.enabled ?? true)) ? isAllowed : false
+    });
+    return { ...query, isAllowed };
+}
 
 export const useApplyPromotionMutation = () => {
     const qc = useQueryClient()
@@ -260,7 +273,7 @@ export const useUpdateOrderItemsMutation = () => {
     >({
         mutationKey: ['orders', 'update-items'],
         mutationFn: async ({ id, body }) => {
-            const res = await ordersApi.ordersIdItemsPatch(id, body as any) // cast body to any if needed or adjust type
+            const res = await ordersApi.ordersIdItemsPatch(id, body as any)
             return (res.data as any).data
         },
         onSuccess: (_, variables) => {

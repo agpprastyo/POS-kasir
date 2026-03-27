@@ -7,9 +7,13 @@ import (
 	"POS-kasir/internal/report/repository"
 	"POS-kasir/pkg/logger"
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+
+	"POS-kasir/pkg/cache"
 )
 
 type IRptService interface {
@@ -27,12 +31,13 @@ type IRptService interface {
 	GetShiftSummaryReport(ctx context.Context, req *SalesReportServiceRequest) (*[]ShiftSummaryResponse, error)
 }
 
-func NewRptService(store store.Store, repo repository.Querier, activityLogService activitylog.IActivityService, log logger.ILogger) IRptService {
+func NewRptService(store store.Store, repo repository.Querier, activityLogService activitylog.IActivityService, log logger.ILogger, redisCache cache.Cache) IRptService {
 	return &RptService{
 		repo:               repo,
 		Store:              store,
 		ActivityLogService: activityLogService,
 		Log:                log,
+		Cache:              redisCache,
 	}
 }
 
@@ -41,9 +46,18 @@ type RptService struct {
 	Store              store.Store
 	ActivityLogService activitylog.IActivityService
 	Log                logger.ILogger
+	Cache              cache.Cache
 }
 
 func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServiceRequest) (*[]SalesReport, error) {
+	cacheKey := fmt.Sprintf("report:sales:sd:%d:ed:%d", req.StartDate.Unix(), req.EndDate.Unix())
+	if cachedData, err := r.Cache.GetWithContext(ctx, cacheKey); err == nil && cachedData != nil {
+		var response []SalesReport
+		if err := json.Unmarshal(cachedData, &response); err == nil {
+			r.Log.Info("Sales report cache hit!")
+			return &response, nil
+		}
+	}
 
 	params := repository.GetSalesSummaryParams{
 		CreatedAt: pgtype.Timestamptz{
@@ -74,10 +88,27 @@ func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServic
 			salesReports[i].TotalSales = f8.Float64
 		}
 	}
+	if b, err := json.Marshal(salesReports); err == nil {
+		ttl := 5 * time.Minute
+		if req.EndDate.Before(time.Now().Truncate(24 * time.Hour)) {
+			ttl = 12 * time.Hour
+		}
+		_ = r.Cache.SetWithContext(ctx, cacheKey, b, ttl)
+	}
+
 	return &salesReports, nil
 }
 
 func (r *RptService) GetDashboardSummary(ctx context.Context, req *SalesReportServiceRequest) (*DashboardSummaryResponse, error) {
+	cacheKey := fmt.Sprintf("report:dashboard:sd:%d:ed:%d", req.StartDate.Unix(), req.EndDate.Unix())
+	if cachedData, err := r.Cache.GetWithContext(ctx, cacheKey); err == nil && cachedData != nil {
+		var response DashboardSummaryResponse
+		if err := json.Unmarshal(cachedData, &response); err == nil {
+			r.Log.Info("Dashboard cache hit!")
+			return &response, nil
+		}
+	}
+
 	params := repository.GetDashboardSummaryParams{
 		CreatedAt: pgtype.Timestamptz{
 			Time:  req.StartDate,
@@ -108,11 +139,28 @@ func (r *RptService) GetDashboardSummary(ctx context.Context, req *SalesReportSe
 		TotalProducts: summary.TotalProducts,
 	}
 
+	if b, err := json.Marshal(response); err == nil {
+		ttl := 5 * time.Minute
+		if req.EndDate.Before(time.Now().Truncate(24 * time.Hour)) {
+			ttl = 12 * time.Hour
+		}
+		_ = r.Cache.SetWithContext(ctx, cacheKey, b, ttl)
+	}
+
 	return response, nil
 }
 
 func (r *RptService) GetProductPerformance(ctx context.Context, req *SalesReportServiceRequest) (*ProductPerformanceResponse, error) {
 	req.SetDefaults()
+
+	cacheKey := fmt.Sprintf("report:products:sd:%d:ed:%d:p:%d:l:%d", req.StartDate.Unix(), req.EndDate.Unix(), req.Page, req.Limit)
+	if cachedData, err := r.Cache.GetWithContext(ctx, cacheKey); err == nil && cachedData != nil {
+		var response ProductPerformanceResponse
+		if err := json.Unmarshal(cachedData, &response); err == nil {
+			r.Log.Info("Product performance cache hit!")
+			return &response, nil
+		}
+	}
 
 	params := repository.GetProductSalesPerformanceParams{
 		CreatedAt: pgtype.Timestamptz{
@@ -160,6 +208,14 @@ func (r *RptService) GetProductPerformance(ctx context.Context, req *SalesReport
 			int(totalData),
 			req.Limit,
 		),
+	}
+
+	if b, err := json.Marshal(response); err == nil {
+		ttl := 5 * time.Minute
+		if req.EndDate.Before(time.Now().Truncate(24 * time.Hour)) {
+			ttl = 12 * time.Hour
+		}
+		_ = r.Cache.SetWithContext(ctx, cacheKey, b, ttl)
 	}
 
 	return response, nil

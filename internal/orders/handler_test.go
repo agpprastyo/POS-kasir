@@ -23,10 +23,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func setupHandlerTest(t *testing.T) (*mocks.MockIOrderService, *mocks.MockFieldLogger, *orders.OrderHandler, *fiber.App) {
+func setupHandlerTest(t *testing.T) (*mocks.MockIOrderService, *mocks.MockILogger, *orders.OrderHandler, *fiber.App) {
 	ctrl := gomock.NewController(t)
 	mockService := mocks.NewMockIOrderService(ctrl)
-	mockLogger := mocks.NewMockFieldLogger(ctrl)
+	mockLogger := mocks.NewMockILogger(ctrl)
 	handler := orders.NewOrderHandler(mockService, mockLogger).(*orders.OrderHandler)
 	app := fiber.New(fiber.Config{
 		StructValidator: validator.NewValidator(),
@@ -34,7 +34,7 @@ func setupHandlerTest(t *testing.T) (*mocks.MockIOrderService, *mocks.MockFieldL
 	return mockService, mockLogger, handler, app
 }
 
-func allowAllHandlerLoggerCalls(mockLogger *mocks.MockFieldLogger) {
+func allowAllHandlerLoggerCalls(mockLogger *mocks.MockILogger) {
 	mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any()).AnyTimes()
 	mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
@@ -542,7 +542,7 @@ func TestOrderHandler_UpdateOrderItemsHandler(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		mockService := mocks.NewMockIOrderService(ctrl)
-		mockLogger := mocks.NewMockFieldLogger(ctrl)
+		mockLogger := mocks.NewMockILogger(ctrl)
 		handler := orders.NewOrderHandler(mockService, mockLogger).(*orders.OrderHandler)
 		// Use Fiber app WITHOUT struct validator since Validate.Struct can't handle slices
 		app := fiber.New()
@@ -586,7 +586,7 @@ func TestOrderHandler_UpdateOrderItemsHandler(t *testing.T) {
 	t.Run("ServiceError", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		mockService := mocks.NewMockIOrderService(ctrl)
-		mockLogger := mocks.NewMockFieldLogger(ctrl)
+		mockLogger := mocks.NewMockILogger(ctrl)
 		handler := orders.NewOrderHandler(mockService, mockLogger).(*orders.OrderHandler)
 		app := fiber.New()
 		app.Put("/orders/:id/items", handler.UpdateOrderItemsHandler)

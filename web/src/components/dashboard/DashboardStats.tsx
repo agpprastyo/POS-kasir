@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, Users, CreditCard, Activity } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -9,67 +9,41 @@ interface DashboardStatsProps {
     formatCurrency: (value: number) => string
 }
 
+const statConfig = [
+    { key: 'revenue', icon: DollarSign, colorClass: 'bg-primary/10 text-primary' },
+    { key: 'orders', icon: CreditCard, colorClass: 'bg-amber/10 text-amber' },
+    { key: 'cashiers', icon: Users, colorClass: 'bg-emerald-500/10 text-emerald-500' },
+    { key: 'products', icon: Activity, colorClass: 'bg-violet-500/10 text-violet-500' },
+]
+
 export function DashboardStats({ t, summary, isLoading, formatCurrency }: DashboardStatsProps) {
+    const stats = [
+        { ...statConfig[0], title: t('dashboard.total_revenue'), value: formatCurrency(summary?.total_sales ?? 0), sub: t('dashboard.stats.today_sales') },
+        { ...statConfig[1], title: t('dashboard.total_orders'), value: String(summary?.total_orders ?? 0), sub: t('dashboard.stats.today_orders') },
+        { ...statConfig[2], title: t('dashboard.active_cashiers'), value: String(summary?.unique_cashier ?? 0), sub: t('dashboard.stats.active_today') },
+        { ...statConfig[3], title: t('dashboard.total_products'), value: String(summary?.total_products ?? 0), sub: t('dashboard.stats.all_time') },
+    ]
+
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('dashboard.total_revenue')}</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <Skeleton className="h-8 w-[100px]" />
-                    ) : (
-                        <div className="text-2xl font-bold">
-                            {formatCurrency(summary?.total_sales ?? 0)}
+            {stats.map(({ key, icon: Icon, colorClass, title, value, sub }) => (
+                <Card key={key} className="border-0 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-muted-foreground">{title}</span>
+                            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${colorClass}`}>
+                                <Icon className="h-4 w-4" />
+                            </div>
                         </div>
-                    )}
-                    <p className="text-xs text-muted-foreground">{t('dashboard.stats.today_sales')}</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('dashboard.total_orders')}</CardTitle>
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <Skeleton className="h-8 w-[50px]" />
-                    ) : (
-                        <div className="text-2xl font-bold">{summary?.total_orders ?? 0}</div>
-                    )}
-                    <p className="text-xs text-muted-foreground">{t('dashboard.stats.today_orders')}</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('dashboard.active_cashiers')}</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <Skeleton className="h-8 w-[50px]" />
-                    ) : (
-                        <div className="text-2xl font-bold">{summary?.unique_cashier ?? 0}</div>
-                    )}
-                    <p className="text-xs text-muted-foreground">{t('dashboard.stats.active_today')}</p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{t('dashboard.total_products')}</CardTitle>
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <Skeleton className="h-8 w-[50px]" />
-                    ) : (
-                        <div className="text-2xl font-bold">{summary?.total_products ?? 0}</div>
-                    )}
-                    <p className="text-xs text-muted-foreground">{t('dashboard.stats.all_time')}</p>
-                </CardContent>
-            </Card>
+                        {isLoading ? (
+                            <Skeleton className="h-8 w-24 rounded-lg" />
+                        ) : (
+                            <div className="text-2xl font-bold font-heading tracking-tight">{value}</div>
+                        )}
+                        <p className="text-sm text-muted-foreground mt-1">{sub}</p>
+                    </CardContent>
+                </Card>
+            ))}
         </div>
     )
 }

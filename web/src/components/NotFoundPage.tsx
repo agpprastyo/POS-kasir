@@ -14,7 +14,7 @@ export function NotFoundPage() {
             <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">404</h1>
                 <h2 className="text-2xl font-semibold tracking-tight">{t('common.not_found.title')}</h2>
-                <p className="max-w-[500px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[500px] text-muted-foreground md:text-xl/relaxed lg:text-sm/relaxed xl:text-xl/relaxed">
                     {t('common.not_found.description')}
                 </p>
             </div>

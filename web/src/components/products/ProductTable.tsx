@@ -21,10 +21,11 @@ interface ProductTableProps {
     onRestore?: (product: any) => void
     onEdit?: (product: any) => void
     t: any
+    hasActions?: boolean
 }
 
 export function ProductTable({
-    products, emptyMessage, isTrash, canRestore, onRestore, onEdit, t
+    products, emptyMessage, isTrash, canRestore, onRestore, onEdit, t, hasActions = true
 }: ProductTableProps) {
     return (
         <div className="rounded-md border bg-card">
@@ -64,7 +65,7 @@ export function ProductTable({
                                 <TableCell className="hidden md:table-cell">
                                     <div className="flex flex-wrap gap-1">
                                         {product.categories?.map((cat: any) => (
-                                            <Badge key={cat.id} variant="outline" className={`text-xs ${isTrash ? "opacity-50" : ""}`}>{cat.name}</Badge>
+                                            <Badge key={cat.id} variant="outline" className={`text-sm ${isTrash ? "opacity-50" : ""}`}>{cat.name}</Badge>
                                         )) || '-'}
                                     </div>
                                 </TableCell>
@@ -93,7 +94,7 @@ export function ProductTable({
                                             </Button>
                                         )
                                     ) : (
-                                        <ProductActions product={product} onEdit={() => onEdit?.(product)} />
+                                        hasActions ? <ProductActions product={product} onEdit={() => onEdit?.(product)} /> : null
                                     )}
                                 </TableCell>
                             </TableRow>

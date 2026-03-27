@@ -21,7 +21,7 @@ import {
 } from 'recharts'
 import { useTranslation } from 'react-i18next'
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
+const COLORS = ['#4F46E5', '#F59E0B', '#7C3AED', '#10B981', '#EC4899', '#06B6D4']
 
 interface SalesData {
     date?: string
@@ -54,7 +54,7 @@ export default function DashboardCharts({
         return (
             <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                     <XAxis
                         dataKey="date"
                         stroke="#888888"
@@ -74,7 +74,7 @@ export default function DashboardCharts({
                         formatter={(value: any) => formatCurrency(Number(value || 0))}
                         labelFormatter={(label) => formatDate(label)}
                     />
-                    <Bar dataKey="total_sales" fill="#adfa1d" radius={[4, 4, 0, 0]} name={t('reports.sales.revenue')} />
+                    <Bar dataKey="total_sales" fill="#4F46E5" radius={[8, 8, 0, 0]} name={t('reports.sales.revenue')} />
                 </BarChart>
             </ResponsiveContainer>
         )

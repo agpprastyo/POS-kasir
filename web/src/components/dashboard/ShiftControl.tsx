@@ -27,7 +27,7 @@ export function ShiftControl() {
                     <Wallet className="h-4 w-4" />
                     <span className="truncate">{t('shift.register_open', 'Register Open')}</span>
                 </div>
-                <span className="text-xs opacity-75 font-mono group-hover:text-destructive-foreground/90">
+                <span className="text-sm opacity-75 font-mono group-hover:text-destructive-foreground/90">
                     {shift?.start_time ? new Date(shift.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                 </span>
             </Button>

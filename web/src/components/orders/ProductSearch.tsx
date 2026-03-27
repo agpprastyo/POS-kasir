@@ -28,18 +28,18 @@ export function ProductSearch({
             </div>
 
             <div className="px-0">
-                <Tabs value={selectedCategory} onValueChange={onCategoryChange} className="w-full">
-                    <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 no-scrollbar text-xs bg-transparent border-none">
-                        <TabsTrigger 
-                            value="all" 
+                <Tabs value={selectedCategory} onValueChange={onCategoryChange} className="w-full ">
+                    <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 no-scrollbar text-sm border-none">
+                        <TabsTrigger
+                            value="all"
                             className="rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
                         >
                             {t('order.all_categories')}
                         </TabsTrigger>
                         {categories.map(category => (
-                            <TabsTrigger 
-                                key={category.id} 
-                                value={category.id} 
+                            <TabsTrigger
+                                key={category.id}
+                                value={category.id}
                                 className="rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border"
                             >
                                 {category.name}

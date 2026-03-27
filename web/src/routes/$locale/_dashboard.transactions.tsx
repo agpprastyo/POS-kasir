@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
-import { ordersListQueryOptions, useUpdateOrderStatusMutation, useCancelOrderMutation, useRefundOrderMutation } from '@/lib/api/query/orders'
+import { ordersListQueryOptions, useUpdateOrderStatusMutation, useCancelOrderMutation, useRefundOrderMutation, useConfirmManualPaymentMutation, useInitiateMidtransPaymentMutation } from '@/lib/api/query/orders'
 import { usersListQueryOptions } from '@/lib/api/query/user'
 import { useCancellationReasonsListQuery } from '@/lib/api/query/cancel-reason'
 import { useState, useMemo } from 'react'
@@ -103,6 +103,13 @@ function TransactionsPage() {
     const updateOrderStatusMutation = useUpdateOrderStatusMutation()
     const cancelOrderMutation = useCancelOrderMutation()
     const refundOrderMutation = useRefundOrderMutation()
+    const manualPaymentMutation = useConfirmManualPaymentMutation()
+    const midtransMutation = useInitiateMidtransPaymentMutation()
+
+    const canUpdateStatus = updateOrderStatusMutation.isAllowed
+    const canCancel = cancelOrderMutation.isAllowed
+    const canRefund = refundOrderMutation.isAllowed
+    const canPay = manualPaymentMutation.isAllowed || midtransMutation.isAllowed
 
     // Refund Dialog State
     const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
@@ -230,7 +237,7 @@ function TransactionsPage() {
                     </TabsList>
                 </Tabs>
 
-                <div className="rounded-md border bg-card ">
+                <div className="rounded-2xl border-0 shadow-sm bg-card overflow-hidden">
                     <TransactionTable 
                         orders={orders}
                         isLoading={isLoading}
@@ -241,6 +248,10 @@ function TransactionsPage() {
                         handleOpenCancel={handleOpenCancel}
                         handleOpenRefund={handleOpenRefund}
                         handleFinish={handleFinish}
+                        canUpdateStatus={canUpdateStatus}
+                        canCancel={canCancel}
+                        canRefund={canRefund}
+                        canPay={canPay}
                         t={t}
                     />
                 </div>

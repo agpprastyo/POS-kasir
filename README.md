@@ -34,6 +34,9 @@ Built as a **single-port deployment** — the Go backend serves both the REST AP
 | **Thermal Printing** | ESC/POS receipt printing, **auto network printer discovery** (TCP scan port 9100), Bluetooth support via Web Bluetooth |
 | **Cloud Storage** | Cloudflare R2 / MinIO (S3-compatible) for product & variant images |
 | **Activity Logging** | Complete audit trails with entity-level tracking |
+| **Real-time Sync** | Global WebSocket Hub for instant cashier synchronization |
+| **Redis Caching** | Cache-aside for optimized reporting performance |
+| **Demo Maintenance**| Automated daily database reset (Wipe & Seed) at 01:00 AM |
 | **Multi-language** | i18n support (English / Indonesian) with `react-i18next` |
 | **Theming** | Light / Dark / System mode |
 
@@ -45,8 +48,10 @@ Built as a **single-port deployment** — the Go backend serves both the REST AP
 |-----------|---------|
 | **Go 1.25** + [Fiber v3](https://gofiber.io/) | HTTP framework |
 | **PostgreSQL 15** + [sqlc](https://sqlc.dev/) | Type-safe SQL code generation |
-| **Redis** | Rate limiting, shift caching, idempotency |
+| **Redis** | Rate limiting, shift caching, report performance (cache-aside) |
 | **JWT** + RBAC middleware | Authentication & authorization |
+| **WebSocket** | Real-time state synchronization |
+| **Sentry** + `slog` | Structured logging & error tracking |
 | **Swagger** (swaggo) | Auto-generated API documentation |
 | **ESC/POS** (`pkg/escpos`) | Raw TCP thermal receipt printing |
 
@@ -70,7 +75,8 @@ Built as a **single-port deployment** — the Go backend serves both the REST AP
 | **Docker** multi-stage build | Final image ~30MB Alpine |
 | **GitHub Actions** CI/CD | Build → Push to GHCR → Deploy via Tailscale SSH |
 | **MinIO** | S3-compatible object storage |
-| **Redis** | Caching & rate limiting |
+| **Redis** | Caching, rate limiting, and session state |
+| **Sentry** | Production error & panic monitoring |
 
 ## Architecture
 
@@ -246,7 +252,8 @@ CI mengandalkan variabel berikut:
 │   ├── report/           # Sales, profit, performance analytics
 │   ├── settings/         # App settings (branding, printer config)
 │   ├── shift/            # Cashier shift management + cash reconcile
-│   └── user/             # User CRUD, auth, JWT, avatar
+│   ├── user/             # User CRUD, auth, JWT, avatar
+│   └── websocket/        # Real-time synchronization hub
 ├── pkg/                  # Shared packages
 │   ├── cache/            # Redis cache abstraction
 │   ├── cloudflare-r2/    # S3-compatible object storage

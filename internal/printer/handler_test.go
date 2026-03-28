@@ -176,4 +176,58 @@ func TestPrinterHandler_GetInvoiceDataHandler(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		mockService.AssertExpectations(t)
 	})
+
+	t.Run("InvalidID", func(t *testing.T) {
+		app := fiber.New()
+		mockService := new(MockPrinterService)
+		handler := printer.NewPrinterHandler(mockService)
+		app.Get("/orders/:id/print-data", handler.GetInvoiceDataHandler)
+
+		req := httptest.NewRequest(http.MethodGet, "/orders/not-a-uuid/print-data", nil)
+		resp, err := app.Test(req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
+func TestPrinterHandler_DiscoverPrintersHandler(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		app := fiber.New()
+		mockService := new(MockPrinterService)
+		handler := printer.NewPrinterHandler(mockService)
+		app.Get("/settings/printer/discover", handler.DiscoverPrintersHandler)
+
+		printers := []printer.DiscoveredPrinter{
+			{IP: "192.168.1.100", Port: 9100, Name: "Printer (192.168.1.100)"},
+		}
+		mockService.On("DiscoverPrinters", mock.Anything).Return(printers, nil).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/settings/printer/discover", nil)
+		resp, err := app.Test(req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var successResp common.SuccessResponse
+		json.NewDecoder(resp.Body).Decode(&successResp)
+		assert.Equal(t, "Printers discovered", successResp.Message)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("ServiceError", func(t *testing.T) {
+		app := fiber.New()
+		mockService := new(MockPrinterService)
+		handler := printer.NewPrinterHandler(mockService)
+		app.Get("/settings/printer/discover", handler.DiscoverPrintersHandler)
+
+		mockService.On("DiscoverPrinters", mock.Anything).Return(nil, errors.New("network error")).Once()
+
+		req := httptest.NewRequest(http.MethodGet, "/settings/printer/discover", nil)
+		resp, err := app.Test(req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		mockService.AssertExpectations(t)
+	})
 }

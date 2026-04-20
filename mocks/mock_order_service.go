@@ -58,6 +58,21 @@ func (mr *MockIOrderServiceMockRecorder) ApplyPromotion(ctx, orderID, req any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyPromotion", reflect.TypeOf((*MockIOrderService)(nil).ApplyPromotion), ctx, orderID, req)
 }
 
+// CalculateOrder mocks base method.
+func (m *MockIOrderService) CalculateOrder(ctx context.Context, req orders.CalculateOrderRequest) (*orders.CalculateOrderResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalculateOrder", ctx, req)
+	ret0, _ := ret[0].(*orders.CalculateOrderResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CalculateOrder indicates an expected call of CalculateOrder.
+func (mr *MockIOrderServiceMockRecorder) CalculateOrder(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateOrder", reflect.TypeOf((*MockIOrderService)(nil).CalculateOrder), ctx, req)
+}
+
 // CancelOrder mocks base method.
 func (m *MockIOrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, req orders.CancelOrderRequest) error {
 	m.ctrl.T.Helper()
@@ -70,6 +85,21 @@ func (m *MockIOrderService) CancelOrder(ctx context.Context, orderID uuid.UUID, 
 func (mr *MockIOrderServiceMockRecorder) CancelOrder(ctx, orderID, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelOrder", reflect.TypeOf((*MockIOrderService)(nil).CancelOrder), ctx, orderID, req)
+}
+
+// CheckoutOrder mocks base method.
+func (m *MockIOrderService) CheckoutOrder(ctx context.Context, req orders.CheckoutOrderRequest) (*orders.OrderDetailResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckoutOrder", ctx, req)
+	ret0, _ := ret[0].(*orders.OrderDetailResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckoutOrder indicates an expected call of CheckoutOrder.
+func (mr *MockIOrderServiceMockRecorder) CheckoutOrder(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckoutOrder", reflect.TypeOf((*MockIOrderService)(nil).CheckoutOrder), ctx, req)
 }
 
 // ConfirmManualPayment mocks base method.

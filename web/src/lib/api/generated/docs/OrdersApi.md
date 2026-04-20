@@ -4,6 +4,8 @@ All URIs are relative to *http://localhost:8080/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**ordersCalculatePost**](#orderscalculatepost) | **POST** /orders/calculate | Calculate order summary|
+|[**ordersCheckoutPost**](#orderscheckoutpost) | **POST** /orders/checkout | Checkout an order|
 |[**ordersGet**](#ordersget) | **GET** /orders | List orders|
 |[**ordersIdApplyPromotionPost**](#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order|
 |[**ordersIdCancelPost**](#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order|
@@ -15,6 +17,114 @@ All URIs are relative to *http://localhost:8080/api/v1*
 |[**ordersIdUpdateStatusPost**](#ordersidupdatestatuspost) | **POST** /orders/{id}/update-status | Update order operational status|
 |[**ordersPost**](#orderspost) | **POST** /orders | Create an order|
 |[**ordersWebhookMidtransPost**](#orderswebhookmidtranspost) | **POST** /orders/webhook/midtrans | Midtrans Payment Notification Callback|
+
+# **ordersCalculatePost**
+> OrdersCalculatePost200Response ordersCalculatePost(request)
+
+Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration,
+    InternalOrdersCalculateOrderRequest
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let request: InternalOrdersCalculateOrderRequest; //Calculate order details
+
+const { status, data } = await apiInstance.ordersCalculatePost(
+    request
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **request** | **InternalOrdersCalculateOrderRequest**| Calculate order details | |
+
+
+### Return type
+
+**OrdersCalculatePost200Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Order calculated successfully |  -  |
+|**400** | Invalid request body |  -  |
+|**500** | Failed to calculate order |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ordersCheckoutPost**
+> OrdersPost201Response ordersCheckoutPost(request)
+
+Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+
+### Example
+
+```typescript
+import {
+    OrdersApi,
+    Configuration,
+    InternalOrdersCheckoutOrderRequest
+} from 'restClient';
+
+const configuration = new Configuration();
+const apiInstance = new OrdersApi(configuration);
+
+let request: InternalOrdersCheckoutOrderRequest; //Checkout order details
+
+const { status, data } = await apiInstance.ordersCheckoutPost(
+    request
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **request** | **InternalOrdersCheckoutOrderRequest**| Checkout order details | |
+
+
+### Return type
+
+**OrdersPost201Response**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** | Order checked out successfully |  -  |
+|**400** | Invalid request body |  -  |
+|**500** | Failed to checkout order |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ordersGet**
 > OrdersGet200Response ordersGet()

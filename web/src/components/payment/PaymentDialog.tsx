@@ -154,10 +154,11 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
     const { data: promotionsData } = usePromotionsListQuery({ limit: 100, trash: false })
     const activePromotions = promotionsData?.promotions?.filter(p => p.is_active) || []
 
-    const handlePrint = async () => {
-        if (!orderId) return
+    const handlePrint = async (id?: string) => {
+        const targetId = id || orderId
+        if (!targetId) return
         try {
-            await printerService.printInvoice(orderId)
+            await printerService.printInvoice(targetId)
             toast.success(t('settings.printer.print_success', { defaultValue: 'Print command sent' }))
         } catch (error) {
             console.error(error)
@@ -167,19 +168,25 @@ function PaymentDialogForm({ open, onOpenChange, orderId, onPaymentSuccess, mode
 
     // Auto close
     useEffect(() => {
-        if (open && order?.status === 'paid') {
+        if (open && order?.is_paid) {
             if (printerSettings?.auto_print) {
-                handlePrint()
+                handlePrint(order.id)
             }
             if (onPaymentSuccess) onPaymentSuccess()
             onOpenChange(false)
             toast.success(t('order.success.payment_success'), {
                 description: t('order.payment_dialog.midtrans_auto_confirm'),
                 style: { background: '#10B981', color: 'white', border: 'none' },
-                action: { label: t('common.print'), onClick: () => handlePrint() }
+                action: { label: t('common.print'), onClick: () => handlePrint(order.id) }
             })
         }
-    }, [order?.status, open])
+    }, [order?.is_paid, open])
+
+    useEffect(() => {
+        if (paymentMethods && paymentMethods.length > 0 && !selectedPaymentMethod) {
+            setSelectedPaymentMethod(paymentMethods[0].id)
+        }
+    }, [paymentMethods, selectedPaymentMethod])
 
     const handlePayment = async () => {
         if (!orderId || !selectedPaymentMethod) {

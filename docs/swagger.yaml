@@ -336,6 +336,31 @@ definitions:
     required:
     - promotion_id
     type: object
+  internal_orders.CalculateOrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/internal_orders.CreateOrderItemRequest'
+        minItems: 1
+        type: array
+      promotion_id:
+        type: string
+    required:
+    - items
+    type: object
+  internal_orders.CalculateOrderResponse:
+    properties:
+      discount_amount:
+        type: integer
+      gross_total:
+        type: integer
+      net_total:
+        type: integer
+      service_charge_amount:
+        type: integer
+      tax_amount:
+        type: integer
+    type: object
   internal_orders.CancelOrderRequest:
     properties:
       cancellation_notes:
@@ -345,6 +370,31 @@ definitions:
         type: integer
     required:
     - cancellation_reason_id
+    type: object
+  internal_orders.CheckoutOrderRequest:
+    properties:
+      cash_received:
+        type: integer
+      customer_id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/internal_orders.CreateOrderItemRequest'
+        minItems: 1
+        type: array
+      payment_method_id:
+        type: integer
+      promotion_id:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/POS-kasir_internal_orders_repository.OrderType'
+        enum:
+        - dine_in
+        - takeaway
+    required:
+    - items
+    - type
     type: object
   internal_orders.ConfirmManualPaymentRequest:
     properties:
@@ -434,6 +484,8 @@ definitions:
         type: integer
       id:
         type: string
+      is_paid:
+        type: boolean
       items:
         items:
           $ref: '#/definitions/internal_orders.OrderItemResponse'
@@ -2788,6 +2840,86 @@ paths:
           schema:
             $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
       summary: Update order operational status
+      tags:
+      - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
+  /orders/calculate:
+    post:
+      consumes:
+      - application/json
+      description: 'Calculates the discount, tax, subtotal dynamically for frontend
+        display (Roles: admin, manager, cashier)'
+      parameters:
+      - description: Calculate order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_orders.CalculateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order calculated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_orders.CalculateOrderResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to calculate order
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Calculate order summary
+      tags:
+      - Orders
+      x-roles:
+      - admin
+      - manager
+      - cashier
+  /orders/checkout:
+    post:
+      consumes:
+      - application/json
+      description: 'Create a new order and apply promotion and/or payment seamlessly
+        (Roles: admin, manager, cashier)'
+      parameters:
+      - description: Checkout order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_orders.CheckoutOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Order checked out successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/POS-kasir_internal_common.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_orders.OrderDetailResponse'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+        "500":
+          description: Failed to checkout order
+          schema:
+            $ref: '#/definitions/POS-kasir_internal_common.ErrorResponse'
+      summary: Checkout an order
       tags:
       - Orders
       x-roles:

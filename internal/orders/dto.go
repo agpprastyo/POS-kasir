@@ -93,11 +93,12 @@ type OrderDetailResponse struct {
 	CashReceived            *int64                 `json:"cash_received,omitempty"`
 	ChangeDue               *int64                 `json:"change_due,omitempty"`
 	AppliedPromotionID      *uuid.UUID             `json:"applied_promotion_id,omitempty"`
-	CreatedAt               time.Time           `json:"created_at"`
-	UpdatedAt               time.Time           `json:"updated_at"`
-	Version                 int32               `json:"version"`
-	Items                   []OrderItemResponse `json:"items"`
-	}
+	CreatedAt               time.Time              `json:"created_at"`
+	UpdatedAt               time.Time              `json:"updated_at"`
+	Version                 int32                  `json:"version"`
+	IsPaid                  bool                   `json:"is_paid"`
+	Items                   []OrderItemResponse    `json:"items"`
+}
 
 type OrderListResponse struct {
 	ID          uuid.UUID              `json:"id"`
@@ -133,4 +134,26 @@ type PaymentAction struct {
 	Name   string `json:"name"`
 	Method string `json:"method"`
 	URL    string `json:"url"`
+}
+
+type CheckoutOrderRequest struct {
+	Type            repository.OrderType     `json:"type" validate:"required,oneof=dine_in takeaway"`
+	Items           []CreateOrderItemRequest `json:"items" validate:"required,min=1,dive"`
+	CustomerID      *uuid.UUID               `json:"customer_id,omitempty"`
+	PromotionID     *uuid.UUID               `json:"promotion_id,omitempty"`
+	PaymentMethodID *int32                   `json:"payment_method_id,omitempty"`
+	CashReceived    *int64                   `json:"cash_received,omitempty"`
+}
+
+type CalculateOrderRequest struct {
+	Items       []CreateOrderItemRequest `json:"items" validate:"required,min=1,dive"`
+	PromotionID *uuid.UUID               `json:"promotion_id,omitempty"`
+}
+
+type CalculateOrderResponse struct {
+	GrossTotal          int64 `json:"gross_total"`
+	DiscountAmount      int64 `json:"discount_amount"`
+	NetTotal            int64 `json:"net_total"`
+	TaxAmount           int64 `json:"tax_amount"`
+	ServiceChargeAmount int64 `json:"service_charge_amount"`
 }

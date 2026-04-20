@@ -71,6 +71,8 @@ Class | Method | HTTP request | Description
 *CustomersApi* | [**customersIdGet**](docs/CustomersApi.md#customersidget) | **GET** /customers/{id} | Get a customer
 *CustomersApi* | [**customersIdPut**](docs/CustomersApi.md#customersidput) | **PUT** /customers/{id} | Update a customer
 *CustomersApi* | [**customersPost**](docs/CustomersApi.md#customerspost) | **POST** /customers | Create a customer
+*OrdersApi* | [**ordersCalculatePost**](docs/OrdersApi.md#orderscalculatepost) | **POST** /orders/calculate | Calculate order summary
+*OrdersApi* | [**ordersCheckoutPost**](docs/OrdersApi.md#orderscheckoutpost) | **POST** /orders/checkout | Checkout an order
 *OrdersApi* | [**ordersGet**](docs/OrdersApi.md#ordersget) | **GET** /orders | List orders
 *OrdersApi* | [**ordersIdApplyPromotionPost**](docs/OrdersApi.md#ordersidapplypromotionpost) | **POST** /orders/{id}/apply-promotion | Apply promotion to an order
 *OrdersApi* | [**ordersIdCancelPost**](docs/OrdersApi.md#ordersidcancelpost) | **POST** /orders/{id}/cancel | Cancel an order
@@ -157,7 +159,10 @@ Class | Method | HTTP request | Description
  - [InternalCustomersPagedCustomerResponse](docs/InternalCustomersPagedCustomerResponse.md)
  - [InternalCustomersUpdateCustomerRequest](docs/InternalCustomersUpdateCustomerRequest.md)
  - [InternalOrdersApplyPromotionRequest](docs/InternalOrdersApplyPromotionRequest.md)
+ - [InternalOrdersCalculateOrderRequest](docs/InternalOrdersCalculateOrderRequest.md)
+ - [InternalOrdersCalculateOrderResponse](docs/InternalOrdersCalculateOrderResponse.md)
  - [InternalOrdersCancelOrderRequest](docs/InternalOrdersCancelOrderRequest.md)
+ - [InternalOrdersCheckoutOrderRequest](docs/InternalOrdersCheckoutOrderRequest.md)
  - [InternalOrdersConfirmManualPaymentRequest](docs/InternalOrdersConfirmManualPaymentRequest.md)
  - [InternalOrdersCreateOrderItemOptionRequest](docs/InternalOrdersCreateOrderItemOptionRequest.md)
  - [InternalOrdersCreateOrderItemRequest](docs/InternalOrdersCreateOrderItemRequest.md)
@@ -225,6 +230,7 @@ Class | Method | HTTP request | Description
  - [InternalUserUpdatePasswordRequest](docs/InternalUserUpdatePasswordRequest.md)
  - [InternalUserUpdateUserRequest](docs/InternalUserUpdateUserRequest.md)
  - [InternalUserUsersResponse](docs/InternalUserUsersResponse.md)
+ - [OrdersCalculatePost200Response](docs/OrdersCalculatePost200Response.md)
  - [OrdersGet200Response](docs/OrdersGet200Response.md)
  - [OrdersIdPayMidtransPost200Response](docs/OrdersIdPayMidtransPost200Response.md)
  - [OrdersPost201Response](docs/OrdersPost201Response.md)

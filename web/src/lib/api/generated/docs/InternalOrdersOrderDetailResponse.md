@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **discount_amount** | **number** |  | [optional] [default to undefined]
 **gross_total** | **number** |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
+**is_paid** | **boolean** |  | [optional] [default to undefined]
 **items** | [**Array&lt;InternalOrdersOrderItemResponse&gt;**](InternalOrdersOrderItemResponse.md) |  | [optional] [default to undefined]
 **net_total** | **number** |  | [optional] [default to undefined]
 **payment_gateway_reference** | **string** |  | [optional] [default to undefined]
@@ -39,6 +40,7 @@ const instance: InternalOrdersOrderDetailResponse = {
     discount_amount,
     gross_total,
     id,
+    is_paid,
     items,
     net_total,
     payment_gateway_reference,

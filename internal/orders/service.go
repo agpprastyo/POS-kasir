@@ -39,6 +39,8 @@ type IOrderService interface {
 	UpdateOperationalStatus(ctx context.Context, orderID uuid.UUID, req UpdateOrderStatusRequest) (*OrderDetailResponse, error)
 	ApplyPromotion(ctx context.Context, orderID uuid.UUID, req ApplyPromotionRequest) (*OrderDetailResponse, error)
 	RefundOrder(ctx context.Context, orderID uuid.UUID, req RefundOrderRequest) (*OrderDetailResponse, error)
+	CheckoutOrder(ctx context.Context, req CheckoutOrderRequest) (*OrderDetailResponse, error)
+	CalculateOrder(ctx context.Context, req CalculateOrderRequest) (*CalculateOrderResponse, error)
 }
 
 type OrderService struct {
@@ -780,6 +782,7 @@ func (s *OrderService) buildOrderDetailResponseFromQueryResult(ctx context.Conte
 		CreatedAt:               orderWithDetails.CreatedAt.Time,
 		UpdatedAt:               orderWithDetails.UpdatedAt.Time,
 		Version:                 orderWithDetails.Version,
+		IsPaid:                  orderWithDetails.PaymentMethodID != nil,
 		Items:                   itemResponses,
 	}, nil
 }
@@ -1592,4 +1595,390 @@ func (s *OrderService) HandleMidtransNotification(ctx context.Context, payload p
 	}
 
 	return nil
+}
+
+
+
+// CalculateOrder calculates the order totals and discount without saving it to DB.
+// It is useful for frontend live preview.
+func (s *OrderService) CalculateOrder(ctx context.Context, req CalculateOrderRequest) (*CalculateOrderResponse, error) {
+	var resp CalculateOrderResponse
+	
+	err := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qPrd := products_repo.New(tx)
+		qtx := orders_repo.New(tx)
+
+		var grossTotal int64 = 0
+		var orderItems []orders_repo.OrderItem
+		productCategoryCache := make(map[uuid.UUID][]int)
+
+		for _, reqItem := range req.Items {
+			product, err := qtx.GetProductByID(ctx, reqItem.ProductID)
+			if err != nil {
+				return err
+			}
+			priceAtSale := product.Price
+			for _, optReq := range reqItem.Options {
+				option, err := qPrd.GetProductOptionByID(ctx, optReq.ProductOptionID)
+				if err != nil {
+					return err
+				}
+				priceAtSale += option.AdditionalPrice
+			}
+
+			subtotal := priceAtSale * int64(reqItem.Quantity)
+			grossTotal += subtotal
+
+			orderItems = append(orderItems, orders_repo.OrderItem{
+				ProductID: reqItem.ProductID,
+				Quantity:  reqItem.Quantity,
+				Subtotal:  subtotal,
+			})
+			
+			rows, _ := tx.Query(ctx, "SELECT category_id FROM product_categories WHERE product_id = $1", reqItem.ProductID)
+			var cats []int
+			for rows.Next() {
+				var cid int
+				rows.Scan(&cid)
+				cats = append(cats, cid)
+			}
+			rows.Close()
+			productCategoryCache[reqItem.ProductID] = cats
+		}
+
+		resp.GrossTotal = grossTotal
+
+		var discountAmount int64 = 0
+		if req.PromotionID != nil {
+			promo, err := qtx.GetPromotionByID(ctx, *req.PromotionID)
+			if err == nil && promo.IsActive {
+				now := time.Now()
+				if !now.Before(promo.StartDate.Time) && !now.After(promo.EndDate.Time) {
+					rules, _ := qtx.GetPromotionRules(ctx, promo.ID)
+					rulesMet := true
+					for _, rule := range rules {
+						switch rule.RuleType {
+						case orders_repo.PromotionRuleTypeMINIMUMORDERAMOUNT:
+							minAmount, _ := strconv.ParseInt(rule.RuleValue, 10, 64)
+							if grossTotal < minAmount { rulesMet = false }
+						case orders_repo.PromotionRuleTypeREQUIREDPRODUCT:
+							reqID, _ := uuid.Parse(rule.RuleValue)
+							found := false
+							for _, i := range orderItems { if i.ProductID == reqID { found = true; break } }
+							if !found { rulesMet = false }
+						case orders_repo.PromotionRuleTypeREQUIREDCATEGORY:
+							reqCatID, _ := strconv.Atoi(rule.RuleValue)
+							found := false
+							for _, i := range orderItems {
+								for _, c := range productCategoryCache[i.ProductID] {
+									if c == reqCatID { found = true; break }
+								}
+							}
+							if !found { rulesMet = false }
+						}
+					}
+
+					if rulesMet {
+						if promo.Scope == orders_repo.PromotionScopeITEM {
+							targets, _ := qtx.GetPromotionTargets(ctx, promo.ID)
+							var eligibleTotal int64
+							for _, item := range orderItems {
+								isEligible := false
+								for _, target := range targets {
+									if target.TargetType == orders_repo.PromotionTargetTypePRODUCT && target.TargetID == item.ProductID.String() {
+										isEligible = true; break
+									} else if target.TargetType == orders_repo.PromotionTargetTypeCATEGORY {
+										tid, _ := strconv.Atoi(target.TargetID)
+										for _, c := range productCategoryCache[item.ProductID] { if c == tid { isEligible = true; break } }
+									}
+								}
+								if isEligible { eligibleTotal += item.Subtotal }
+							}
+							if eligibleTotal > 0 {
+								if promo.DiscountType == orders_repo.DiscountTypePercentage {
+									discountAmount = (eligibleTotal * utils.NumericToInt64(promo.DiscountValue)) / 100
+								} else {
+									discountAmount = utils.NumericToInt64(promo.DiscountValue)
+								}
+							}
+						} else {
+							if promo.DiscountType == orders_repo.DiscountTypePercentage {
+								discountAmount = (grossTotal * utils.NumericToInt64(promo.DiscountValue)) / 100
+							} else {
+								discountAmount = utils.NumericToInt64(promo.DiscountValue)
+							}
+						}
+						maxDisc := utils.NumericToInt64(promo.MaxDiscountAmount)
+						if maxDisc > 0 && discountAmount > maxDisc { discountAmount = maxDisc }
+						if discountAmount > grossTotal { discountAmount = grossTotal }
+					}
+				}
+			}
+		}
+
+		resp.DiscountAmount = discountAmount
+		resp.TaxAmount = int64(float64(grossTotal-discountAmount) * 0.11)
+		resp.ServiceChargeAmount = 0
+		resp.NetTotal = grossTotal - discountAmount + resp.TaxAmount + resp.ServiceChargeAmount
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (s *OrderService) CheckoutOrder(ctx context.Context, req CheckoutOrderRequest) (*OrderDetailResponse, error) {
+	var finalOrder orders_repo.GetOrderWithDetailsRow
+	var newOrderID uuid.UUID
+
+	actorID, ok := ctx.Value(common.UserIDKey).(uuid.UUID)
+	if !ok {
+		s.log.Warn("Actor user ID not found in context for checkout creation")
+	}
+
+	txErr := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qtx := orders_repo.New(tx)
+		qPrd := products_repo.New(tx)
+
+		// 1. Create Order
+		var nullCustomerID pgtype.UUID
+		if req.CustomerID != nil {
+			nullCustomerID.Valid = true
+			nullCustomerID.Bytes = *req.CustomerID
+		}
+
+		orderHeader, err := qtx.CreateOrder(ctx, orders_repo.CreateOrderParams{
+			UserID:     pgtype.UUID{Bytes: actorID, Valid: ok},
+			Type:       req.Type,
+			CustomerID: nullCustomerID,
+		})
+		if err != nil { return fmt.Errorf("failed to create order header: %w", err) }
+		newOrderID = orderHeader.ID
+
+		productIDs := make([]uuid.UUID, len(req.Items))
+		for i, item := range req.Items { productIDs[i] = item.ProductID }
+		products, err := qPrd.GetProductsForUpdate(ctx, productIDs)
+		if err != nil { return fmt.Errorf("failed to lock products: %w", err) }
+		
+		productMap := make(map[uuid.UUID]products_repo.Product)
+		for _, p := range products { productMap[p.ID] = p }
+
+		var allOptionIDs []uuid.UUID
+		for _, item := range req.Items {
+			for _, opt := range item.Options { allOptionIDs = append(allOptionIDs, opt.ProductOptionID) }
+		}
+
+		optionMap := make(map[uuid.UUID]products_repo.ProductOption)
+		if len(allOptionIDs) > 0 {
+			options, err := qPrd.GetProductOptionsByIDs(ctx, allOptionIDs)
+			if err != nil { return fmt.Errorf("failed to fetch options: %w", err) }
+			for _, opt := range options { optionMap[opt.ID] = opt }
+		}
+
+		var (
+			itemProductIDs []uuid.UUID
+			itemQuantities []int32
+			itemPrices     []pgtype.Numeric
+			itemSubtotals  []pgtype.Numeric
+			itemNetSubs    []pgtype.Numeric
+			itemCostPrices []pgtype.Numeric
+			stockUpdateIDs []uuid.UUID
+			stockUpdateQty []int32
+		)
+		var grossTotal int64 = 0
+
+		for _, itemReq := range req.Items {
+			product, exists := productMap[itemReq.ProductID]
+			if !exists { return fmt.Errorf("product %s not found", itemReq.ProductID) }
+			if product.Stock < itemReq.Quantity {
+				return fmt.Errorf("insufficient stock for %s: available %d, requested %d", product.Name, product.Stock, itemReq.Quantity)
+			}
+			priceAtSale := product.Price
+			for _, optReq := range itemReq.Options {
+				option, exists := optionMap[optReq.ProductOptionID]
+				if !exists { return fmt.Errorf("option %s not found", optReq.ProductOptionID) }
+				priceAtSale += option.AdditionalPrice
+			}
+
+			subtotal := priceAtSale * int64(itemReq.Quantity)
+			grossTotal += subtotal
+
+			itemProductIDs = append(itemProductIDs, itemReq.ProductID)
+			itemQuantities = append(itemQuantities, itemReq.Quantity)
+			itemPrices = append(itemPrices, utils.Int64ToNumeric(priceAtSale))
+			itemSubtotals = append(itemSubtotals, utils.Int64ToNumeric(subtotal))
+			itemNetSubs = append(itemNetSubs, utils.Int64ToNumeric(subtotal))
+
+			costPrice := 0.0
+			if product.CostPrice.Valid { f, _ := product.CostPrice.Float64Value(); costPrice = f.Float64 }
+			numericCost := pgtype.Numeric{}
+			numericCost.Scan(fmt.Sprintf("%f", costPrice))
+			itemCostPrices = append(itemCostPrices, numericCost)
+			stockUpdateIDs = append(stockUpdateIDs, itemReq.ProductID)
+			stockUpdateQty = append(stockUpdateQty, itemReq.Quantity)
+		}
+
+		createdItems, err := qtx.BatchCreateOrderItems(ctx, orders_repo.BatchCreateOrderItemsParams{
+			OrderID:          newOrderID,
+			ProductIds:       itemProductIDs,
+			Quantities:       itemQuantities,
+			PricesAtSale:     itemPrices,
+			Subtotals:        itemSubtotals,
+			NetSubtotals:     itemNetSubs,
+			CostPricesAtSale: itemCostPrices,
+		})
+		if err != nil { return fmt.Errorf("failed to batch insert items: %w", err) }
+
+		var batchOptionParams []orders_repo.BatchCreateOrderItemOptionsParams
+		for i, reqItem := range req.Items {
+			createdItem := createdItems[i]
+			for _, optReq := range reqItem.Options {
+				option, _ := optionMap[optReq.ProductOptionID]
+				batchOptionParams = append(batchOptionParams, orders_repo.BatchCreateOrderItemOptionsParams{
+					OrderItemID:     createdItem.ID,
+					ProductOptionID: optReq.ProductOptionID,
+					PriceAtSale:     option.AdditionalPrice,
+				})
+			}
+		}
+		if len(batchOptionParams) > 0 {
+			_, err = qtx.BatchCreateOrderItemOptions(ctx, batchOptionParams)
+			if err != nil { return fmt.Errorf("failed to batch insert options: %w", err) }
+		}
+
+		err = qtx.BatchDecreaseProductStock(ctx, orders_repo.BatchDecreaseProductStockParams{
+			ProductIds: stockUpdateIDs,
+			Quantities: stockUpdateQty,
+		})
+		if err != nil { return fmt.Errorf("failed to batch update stock: %w", err) }
+
+		for i, pID := range stockUpdateIDs {
+			qty := stockUpdateQty[i]
+			product := productMap[pID]
+			_, err := qtx.CreateStockHistory(ctx, orders_repo.CreateStockHistoryParams{
+				ProductID:     pID,
+				ChangeAmount:  -qty,
+				PreviousStock: product.Stock,
+				CurrentStock:  product.Stock - qty,
+				ChangeType:    orders_repo.StockChangeTypeSale,
+				ReferenceID:   pgtype.UUID{Bytes: newOrderID, Valid: true},
+				Note:          utils.StringPtr("Order Created"),
+				CreatedBy:     pgtype.UUID{Bytes: actorID, Valid: ok},
+			})
+			if err != nil { return err }
+		}
+
+		// 2. Apply Promotion
+		discountAmount := int64(0)
+		if req.PromotionID != nil {
+			promo, err := qtx.GetPromotionByID(ctx, *req.PromotionID)
+			if err == nil && promo.IsActive {
+				productCategoryCache := make(map[uuid.UUID][]int)
+				for _, reqItem := range req.Items {
+					rows, _ := tx.Query(ctx, "SELECT category_id FROM product_categories WHERE product_id = $1", reqItem.ProductID)
+					var cats []int
+					for rows.Next() { var cid int; rows.Scan(&cid); cats = append(cats, cid) }
+					rows.Close()
+					productCategoryCache[reqItem.ProductID] = cats
+				}
+
+				if promo.Scope == orders_repo.PromotionScopeITEM {
+					targets, _ := qtx.GetPromotionTargets(ctx, promo.ID)
+					var eligibleTotal int64
+					for _, item := range createdItems {
+						isEligible := false
+						for _, target := range targets {
+							if target.TargetType == orders_repo.PromotionTargetTypePRODUCT && target.TargetID == item.ProductID.String() {
+								isEligible = true; break
+							} else if target.TargetType == orders_repo.PromotionTargetTypeCATEGORY {
+								tid, _ := strconv.Atoi(target.TargetID)
+								for _, c := range productCategoryCache[item.ProductID] { if c == tid { isEligible = true; break } }
+							}
+						}
+						if isEligible { eligibleTotal += item.Subtotal }
+					}
+					if eligibleTotal > 0 {
+						if promo.DiscountType == orders_repo.DiscountTypePercentage {
+							discountAmount = (eligibleTotal * utils.NumericToInt64(promo.DiscountValue)) / 100
+						} else {
+							discountAmount = utils.NumericToInt64(promo.DiscountValue)
+						}
+					}
+				} else {
+					if promo.DiscountType == orders_repo.DiscountTypePercentage {
+						discountAmount = (grossTotal * utils.NumericToInt64(promo.DiscountValue)) / 100
+					} else {
+						discountAmount = utils.NumericToInt64(promo.DiscountValue)
+					}
+				}
+				maxDisc := utils.NumericToInt64(promo.MaxDiscountAmount)
+				if maxDisc > 0 && discountAmount > maxDisc { discountAmount = maxDisc }
+				if discountAmount > grossTotal { discountAmount = grossTotal }
+			}
+			err = qtx.UpdateOrderAppliedPromotion(ctx, orders_repo.UpdateOrderAppliedPromotionParams{
+				ID:                 newOrderID,
+				AppliedPromotionID: pgtype.UUID{Bytes: promo.ID, Valid: true},
+			})
+			if err != nil {
+				return fmt.Errorf("failed to update order applied promotion: %w", err)
+			}
+		}
+
+		taxAmount := int64(float64(grossTotal - discountAmount) * 0.11)
+		netTotal := grossTotal - discountAmount + taxAmount
+		
+		_, err = qtx.UpdateOrderTotals(ctx, orders_repo.UpdateOrderTotalsParams{
+			ID:                  newOrderID,
+			GrossTotal:          grossTotal,
+			DiscountAmount:      discountAmount,
+			NetTotal:            netTotal,
+			TaxAmount:           taxAmount,
+			ServiceChargeAmount: 0,
+			Version:             1,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update order totals: %w", err)
+		}
+
+		// 3. Confirm Manual Payment if provided
+		if req.PaymentMethodID != nil {
+			isCashOrStaticQR := true // Simplified: midtrans static QR is 3, cash is others
+			if isCashOrStaticQR {
+				cashReceived := netTotal
+				if req.CashReceived != nil { cashReceived = *req.CashReceived }
+				if req.PaymentMethodID != nil && *req.PaymentMethodID == 3 {
+					cashReceived = netTotal
+				}
+				if cashReceived < netTotal {
+					return fmt.Errorf("uang kurang: tagihan %d, diterima %d", netTotal, cashReceived)
+				}
+				changeDue := cashReceived - netTotal
+
+				_, err = qtx.UpdateOrderManualPayment(ctx, orders_repo.UpdateOrderManualPaymentParams{
+					ID:              newOrderID,
+					PaymentMethodID: utils.Int32Ptr(int(*req.PaymentMethodID)),
+					CashReceived:    &cashReceived,
+					ChangeDue:       &changeDue,
+					Version:         2, // Version is 2 because UpdateOrderTotals bumped it from 1 to 2
+				})
+				if err != nil {
+					return fmt.Errorf("failed to update manual payment: %w", err)
+				}
+			}
+		}
+
+		finalOrder, err = qtx.GetOrderWithDetails(ctx, newOrderID)
+		return err
+	})
+
+	if txErr != nil { return nil, txErr }
+
+	s.activityService.Log(ctx, actorID, activity_repo.LogActionTypeCREATE, activity_repo.LogEntityTypeORDER, newOrderID.String(), map[string]interface{}{ "action": "checkout_order", "order_id": newOrderID })
+	if s.wsHub != nil { s.wsHub.BroadcastEvent(ws.EventOrderCreated, map[string]interface{}{"order_id": newOrderID}) }
+
+	return s.buildOrderDetailResponseFromQueryResult(ctx, finalOrder)
 }

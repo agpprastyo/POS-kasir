@@ -44,7 +44,10 @@ docs/InternalCustomersCustomerResponse.md
 docs/InternalCustomersPagedCustomerResponse.md
 docs/InternalCustomersUpdateCustomerRequest.md
 docs/InternalOrdersApplyPromotionRequest.md
+docs/InternalOrdersCalculateOrderRequest.md
+docs/InternalOrdersCalculateOrderResponse.md
 docs/InternalOrdersCancelOrderRequest.md
+docs/InternalOrdersCheckoutOrderRequest.md
 docs/InternalOrdersConfirmManualPaymentRequest.md
 docs/InternalOrdersCreateOrderItemOptionRequest.md
 docs/InternalOrdersCreateOrderItemRequest.md
@@ -113,6 +116,7 @@ docs/InternalUserUpdatePasswordRequest.md
 docs/InternalUserUpdateUserRequest.md
 docs/InternalUserUsersResponse.md
 docs/OrdersApi.md
+docs/OrdersCalculatePost200Response.md
 docs/OrdersGet200Response.md
 docs/OrdersIdPayMidtransPost200Response.md
 docs/OrdersPost201Response.md
@@ -186,7 +190,10 @@ models/internal-customers-customer-response.ts
 models/internal-customers-paged-customer-response.ts
 models/internal-customers-update-customer-request.ts
 models/internal-orders-apply-promotion-request.ts
+models/internal-orders-calculate-order-request.ts
+models/internal-orders-calculate-order-response.ts
 models/internal-orders-cancel-order-request.ts
+models/internal-orders-checkout-order-request.ts
 models/internal-orders-confirm-manual-payment-request.ts
 models/internal-orders-create-order-item-option-request.ts
 models/internal-orders-create-order-item-request.ts
@@ -254,6 +261,7 @@ models/internal-user-register-request.ts
 models/internal-user-update-password-request.ts
 models/internal-user-update-user-request.ts
 models/internal-user-users-response.ts
+models/orders-calculate-post200-response.ts
 models/orders-get200-response.ts
 models/orders-id-pay-midtrans-post200-response.ts
 models/orders-post201-response.ts

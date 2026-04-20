@@ -1,0 +1,15 @@
+src/components/payment/CheckoutDialog.tsx(143,62): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/payment/CheckoutDialog.tsx(154,88): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/payment/CheckoutDialog.tsx(157,137): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/payment/CheckoutDialog.tsx(161,86): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/payment/CheckoutDialog.tsx(190,18): error TS18048: 'calculationData.tax_amount' is possibly 'undefined'.
+src/components/payment/CheckoutDialog.tsx(193,45): error TS18048: 'calculationData' is possibly 'undefined'.
+src/components/payment/CheckoutDialog.tsx(193,45): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/routes/$locale/_dashboard.order.tsx(9,1): error TS6133: 'PaymentDialog' is declared but its value is never read.
+src/routes/$locale/_dashboard.order.tsx(73,12): error TS6133: 'createdOrderId' is declared but its value is never read.
+src/routes/$locale/_dashboard.order.tsx(73,28): error TS6133: 'setCreatedOrderId' is declared but its value is never read.

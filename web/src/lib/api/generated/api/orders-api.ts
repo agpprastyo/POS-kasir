@@ -24,7 +24,11 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { InternalOrdersApplyPromotionRequest } from '../models';
 // @ts-ignore
+import type { InternalOrdersCalculateOrderRequest } from '../models';
+// @ts-ignore
 import type { InternalOrdersCancelOrderRequest } from '../models';
+// @ts-ignore
+import type { InternalOrdersCheckoutOrderRequest } from '../models';
 // @ts-ignore
 import type { InternalOrdersConfirmManualPaymentRequest } from '../models';
 // @ts-ignore
@@ -35,6 +39,8 @@ import type { InternalOrdersRefundOrderRequest } from '../models';
 import type { InternalOrdersUpdateOrderItemsRequest } from '../models';
 // @ts-ignore
 import type { InternalOrdersUpdateOrderStatusRequest } from '../models';
+// @ts-ignore
+import type { OrdersCalculatePost200Response } from '../models';
 // @ts-ignore
 import type { OrdersGet200Response } from '../models';
 // @ts-ignore
@@ -52,6 +58,78 @@ import type { POSKasirPkgPaymentMidtransNotificationPayload } from '../models';
  */
 export const OrdersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+         * @summary Calculate order summary
+         * @param {InternalOrdersCalculateOrderRequest} request Calculate order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersCalculatePost: async (request: InternalOrdersCalculateOrderRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('ordersCalculatePost', 'request', request)
+            const localVarPath = `/orders/calculate`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+         * @summary Checkout an order
+         * @param {InternalOrdersCheckoutOrderRequest} request Checkout order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersCheckoutPost: async (request: InternalOrdersCheckoutOrderRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'request' is not null or undefined
+            assertParamExists('ordersCheckoutPost', 'request', request)
+            const localVarPath = `/orders/checkout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(request, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
@@ -492,6 +570,32 @@ export const OrdersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = OrdersApiAxiosParamCreator(configuration)
     return {
         /**
+         * Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+         * @summary Calculate order summary
+         * @param {InternalOrdersCalculateOrderRequest} request Calculate order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersCalculatePost(request: InternalOrdersCalculateOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersCalculatePost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersCalculatePost(request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersCalculatePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+         * @summary Checkout an order
+         * @param {InternalOrdersCheckoutOrderRequest} request Checkout order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersCheckoutPost(request: InternalOrdersCheckoutOrderRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrdersPost201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersCheckoutPost(request, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrdersApi.ordersCheckoutPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
          * @param {number} [page] Page number
@@ -653,6 +757,26 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = OrdersApiFp(configuration)
     return {
         /**
+         * Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+         * @summary Calculate order summary
+         * @param {InternalOrdersCalculateOrderRequest} request Calculate order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersCalculatePost(request: InternalOrdersCalculateOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersCalculatePost200Response> {
+            return localVarFp.ordersCalculatePost(request, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+         * @summary Checkout an order
+         * @param {InternalOrdersCheckoutOrderRequest} request Checkout order details
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersCheckoutPost(request: InternalOrdersCheckoutOrderRequest, options?: RawAxiosRequestConfig): AxiosPromise<OrdersPost201Response> {
+            return localVarFp.ordersCheckoutPost(request, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
          * @summary List orders
          * @param {number} [page] Page number
@@ -778,6 +902,28 @@ export const OrdersApiFactory = function (configuration?: Configuration, basePat
  * OrdersApi - object-oriented interface
  */
 export class OrdersApi extends BaseAPI {
+    /**
+     * Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+     * @summary Calculate order summary
+     * @param {InternalOrdersCalculateOrderRequest} request Calculate order details
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersCalculatePost(request: InternalOrdersCalculateOrderRequest, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersCalculatePost(request, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+     * @summary Checkout an order
+     * @param {InternalOrdersCheckoutOrderRequest} request Checkout order details
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersCheckoutPost(request: InternalOrdersCheckoutOrderRequest, options?: RawAxiosRequestConfig) {
+        return OrdersApiFp(this.configuration).ordersCheckoutPost(request, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get a list of orders with filtering by status and user (Roles: admin, manager, cashier)
      * @summary List orders

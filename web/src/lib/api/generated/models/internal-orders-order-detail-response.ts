@@ -32,6 +32,7 @@ export interface InternalOrdersOrderDetailResponse {
     'discount_amount'?: number;
     'gross_total'?: number;
     'id'?: string;
+    'is_paid'?: boolean;
     'items'?: Array<InternalOrdersOrderItemResponse>;
     'net_total'?: number;
     'payment_gateway_reference'?: string;

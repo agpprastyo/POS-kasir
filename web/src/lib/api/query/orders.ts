@@ -345,3 +345,57 @@ export const useRefundOrderMutation = () => {
 
     return { ...mutation, isAllowed }
 }
+
+export const useCheckoutOrderMutation = () => {
+    const qc = useQueryClient()
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/checkout')
+
+    const mutation = useMutation<
+        InternalOrdersOrderDetailResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        import('../generated').InternalOrdersCheckoutOrderRequest
+    >({
+        mutationKey: ['orders', 'checkout'],
+        mutationFn: async (body) => {
+            const res = await ordersApi.ordersCheckoutPost(body, {
+                headers: {
+                    'X-Idempotency-Key': crypto.randomUUID()
+                }
+            })
+            return (res.data as any).data
+        },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['orders', 'list'] })
+            toast.success(i18n.t('order.create_success'))
+        },
+        onError: (error) => {
+            const msg = error.response?.data?.message || "Gagal melakukan checkout order"
+            toast.error(msg)
+        }
+    })
+
+    return { ...mutation, isAllowed }
+}
+
+export const useCalculateOrderMutation = () => {
+    const { canAccessApi } = useRBAC()
+    const isAllowed = canAccessApi('POST', '/orders/calculate')
+
+    const mutation = useMutation<
+        import('../generated').InternalOrdersCalculateOrderResponse,
+        AxiosError<POSKasirInternalCommonErrorResponse>,
+        import('../generated').InternalOrdersCalculateOrderRequest
+    >({
+        mutationKey: ['orders', 'calculate'],
+        mutationFn: async (body) => {
+            const res = await ordersApi.ordersCalculatePost(body)
+            return (res.data as any).data
+        },
+        onError: (error) => {
+            console.error("Gagal kalkulasi diskon", error.response?.data?.message)
+        }
+    })
+
+    return { ...mutation, isAllowed }
+}

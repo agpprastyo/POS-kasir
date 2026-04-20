@@ -80,6 +80,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 	api.Get("/cancellation-reasons", authMiddleware, container.CancellationReasonHandler.ListCancellationReasonsHandler)
 	api.Get("/activity-logs", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleAdmin), container.ActivityLogHandler.GetActivityLogs)
 
+	api.Post("/orders/calculate", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.CalculateOrderHandler)
+	api.Post("/orders/checkout", authMiddleware, middleware.RequireIdempotencyKey(), idempotencyMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache, app.Logger), container.OrderHandler.CheckoutOrderHandler)
 	api.Post("/orders", authMiddleware, middleware.RequireIdempotencyKey(), idempotencyMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), middleware.ShiftMiddleware(container.ShiftRepo, app.Cache, app.Logger), container.OrderHandler.CreateOrderHandler)
 	api.Get("/orders", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.ListOrdersHandler)
 	api.Get("/orders/:id", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.OrderHandler.GetOrderHandler)

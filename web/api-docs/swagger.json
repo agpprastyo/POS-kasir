@@ -1444,6 +1444,132 @@
                 ]
             }
         },
+        "/orders/calculate": {
+            "post": {
+                "description": "Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Calculate order summary",
+                "parameters": [
+                    {
+                        "description": "Calculate order details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_orders.CalculateOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order calculated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_orders.CalculateOrderResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to calculate order",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
+        "/orders/checkout": {
+            "post": {
+                "description": "Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Checkout an order",
+                "parameters": [
+                    {
+                        "description": "Checkout order details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_orders.CheckoutOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Order checked out successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/POS-kasir_internal_common.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_orders.OrderDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to checkout order",
+                        "schema": {
+                            "$ref": "#/definitions/POS-kasir_internal_common.ErrorResponse"
+                        }
+                    }
+                },
+                "x-roles": [
+                    "admin",
+                    "manager",
+                    "cashier"
+                ]
+            }
+        },
         "/orders/webhook/midtrans": {
             "post": {
                 "description": "Webhook for Midtrans to notify order payment status updates",
@@ -5882,6 +6008,44 @@
                 }
             }
         },
+        "internal_orders.CalculateOrderRequest": {
+            "type": "object",
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/internal_orders.CreateOrderItemRequest"
+                    }
+                },
+                "promotion_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_orders.CalculateOrderResponse": {
+            "type": "object",
+            "properties": {
+                "discount_amount": {
+                    "type": "integer"
+                },
+                "gross_total": {
+                    "type": "integer"
+                },
+                "net_total": {
+                    "type": "integer"
+                },
+                "service_charge_amount": {
+                    "type": "integer"
+                },
+                "tax_amount": {
+                    "type": "integer"
+                }
+            }
+        },
         "internal_orders.CancelOrderRequest": {
             "type": "object",
             "required": [
@@ -5894,6 +6058,45 @@
                 },
                 "cancellation_reason_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "internal_orders.CheckoutOrderRequest": {
+            "type": "object",
+            "required": [
+                "items",
+                "type"
+            ],
+            "properties": {
+                "cash_received": {
+                    "type": "integer"
+                },
+                "customer_id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/internal_orders.CreateOrderItemRequest"
+                    }
+                },
+                "payment_method_id": {
+                    "type": "integer"
+                },
+                "promotion_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "dine_in",
+                        "takeaway"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/POS-kasir_internal_orders_repository.OrderType"
+                        }
+                    ]
                 }
             }
         },
@@ -6030,6 +6233,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_paid": {
+                    "type": "boolean"
                 },
                 "items": {
                     "type": "array",

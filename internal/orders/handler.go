@@ -24,6 +24,8 @@ type IOrderHandler interface {
 	UpdateOperationalStatusHandler(c fiber.Ctx) error
 	ApplyPromotionHandler(c fiber.Ctx) error
 	RefundOrderHandler(c fiber.Ctx) error
+	CheckoutOrderHandler(c fiber.Ctx) error
+	CalculateOrderHandler(c fiber.Ctx) error
 }
 
 type OrderHandler struct {
@@ -577,5 +579,86 @@ func (h *OrderHandler) RefundOrderHandler(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
 		Message: "Order refunded successfully",
 		Data:    orderResponse,
+	})
+}
+
+// CheckoutOrderHandler creates and pays an order in a single step
+// @Summary      Checkout an order
+// @Description  Create a new order and apply promotion and/or payment seamlessly (Roles: admin, manager, cashier)
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Param        request body CheckoutOrderRequest true "Checkout order details"
+// @Success      201 {object} common.SuccessResponse{data=OrderDetailResponse} "Order checked out successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body"
+// @Failure      500 {object} common.ErrorResponse "Failed to checkout order"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /orders/checkout [post]
+func (h *OrderHandler) CheckoutOrderHandler(c fiber.Ctx) error {
+	var req CheckoutOrderRequest
+	if err := c.Bind().Body(&req); err != nil {
+		h.log.Warnf("Cannot parse checkout order request body", "error", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
+	}
+
+	orderResponse, err := h.orderService.CheckoutOrder(c.RequestCtx(), req)
+	if err != nil {
+		h.log.Errorf("Failed to checkout order in service", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to checkout order: " + err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(common.SuccessResponse{
+		Message: "Order checked out successfully",
+		Data:    orderResponse,
+	})
+}
+
+// CalculateOrderHandler calculates an order's discount without saving
+// @Summary      Calculate order summary
+// @Description  Calculates the discount, tax, subtotal dynamically for frontend display (Roles: admin, manager, cashier)
+// @Tags         Orders
+// @Accept       json
+// @Produce      json
+// @Param        request body CalculateOrderRequest true "Calculate order details"
+// @Success      200 {object} common.SuccessResponse{data=CalculateOrderResponse} "Order calculated successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body"
+// @Failure      500 {object} common.ErrorResponse "Failed to calculate order"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /orders/calculate [post]
+func (h *OrderHandler) CalculateOrderHandler(c fiber.Ctx) error {
+	var req CalculateOrderRequest
+	if err := c.Bind().Body(&req); err != nil {
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{Message: "Invalid request body"})
+	}
+
+	calcResponse, err := h.orderService.CalculateOrder(c.RequestCtx(), req)
+	if err != nil {
+		h.log.Errorf("Failed to calculate order in service", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{Message: "Failed to calculate order: " + err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(common.SuccessResponse{
+		Message: "Order calculated successfully",
+		Data:    calcResponse,
 	})
 }

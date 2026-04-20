@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useProductsListQuery, Product, productDetailQueryOptions } from '@/lib/api/query/products'
 import { ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PaymentDialog } from "@/components/payment/PaymentDialog"
+import { CheckoutDialog } from "@/components/payment/CheckoutDialog"
 import { useCreateOrderMutation } from '@/lib/api/query/orders'
 import { toast } from 'sonner'
 import { InternalProductsProductOptionResponse, POSKasirInternalOrdersRepositoryOrderType } from '@/lib/api/generated'
@@ -69,7 +69,6 @@ function OrderPage() {
 
     const [cart, setCart] = useState<CartItem[]>([])
     const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-    const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
     const [isLoadingDetailsId, setIsLoadingDetailsId] = useState<string | null>(null)
 
     const [variantSelectionOpen, setVariantSelectionOpen] = useState(false)
@@ -154,33 +153,14 @@ function OrderPage() {
 
     const handleCheckout = () => {
         if (cart.length === 0) return
-
-        const orderData = {
-            items: cart.map(item => ({
-                product_id: item.product.id!,
-                quantity: item.quantity,
-                options: item.variant && item.variant.id ? [{ product_option_id: item.variant.id }] : []
-            })),
-            type: selectedOrderType,
-            customer_id: selectedCustomerId || undefined
-        }
-
-        toast.promise(createOrderMutation.mutateAsync(orderData), {
-            loading: t('order.success.creating'),
-            success: (data) => {
-                setCreatedOrderId(data.id || null)
-                setIsPaymentOpen(true)
-                return t('order.success.created')
-            },
-            error: t('order.errors.create_failed')
-        })
+        setIsPaymentOpen(true)
     }
 
     return (
         <div className="flex h-[calc(100vh-4rem)] gap-2 relative">
             {/* Left: Product Grid */}
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden bg-background min-h-0">
-                <ProductSearch 
+            <div className="flex-1 flex flex-col gap-4 overflow-hidden  min-h-0">
+                <ProductSearch
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
                     selectedCategory={selectedCategory}
@@ -190,7 +170,7 @@ function OrderPage() {
                 />
 
                 <div className="flex-1 min-h-0">
-                    <ProductGrid 
+                    <ProductGrid
                         inStockProducts={inStockProducts}
                         outOfStockProducts={outOfStockProducts}
                         isLoadingDetailsId={isLoadingDetailsId}
@@ -214,11 +194,11 @@ function OrderPage() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent side="right" className="p-0 w-full sm:max-w-md border-l">
-                        <CartContent 
-                            cart={cart} 
-                            t={t} 
-                            customers={customers} 
-                            selectedCustomerId={selectedCustomerId} 
+                        <CartContent
+                            cart={cart}
+                            t={t}
+                            customers={customers}
+                            selectedCustomerId={selectedCustomerId}
                             setSelectedCustomerId={setSelectedCustomerId}
                             selectedOrderType={selectedOrderType}
                             setSelectedOrderType={setSelectedOrderType}
@@ -234,11 +214,11 @@ function OrderPage() {
 
             {/* Right: Cart Sidebar (Desktop) */}
             <div className="hidden md:flex w-[350px] flex-col rounded-xl border bg-card overflow-hidden min-h-0">
-                <CartContent 
-                    cart={cart} 
-                    t={t} 
-                    customers={customers} 
-                    selectedCustomerId={selectedCustomerId} 
+                <CartContent
+                    cart={cart}
+                    t={t}
+                    customers={customers}
+                    selectedCustomerId={selectedCustomerId}
                     setSelectedCustomerId={setSelectedCustomerId}
                     selectedOrderType={selectedOrderType}
                     setSelectedOrderType={setSelectedOrderType}
@@ -250,20 +230,21 @@ function OrderPage() {
                 />
             </div>
 
-            {/* Payment Dialog Component */}
-            <PaymentDialog
+            {/* Checkout Dialog Component */}
+            <CheckoutDialog
                 open={isPaymentOpen}
                 onOpenChange={setIsPaymentOpen}
-                orderId={createdOrderId}
+                cart={cart}
+                selectedOrderType={selectedOrderType}
+                selectedCustomerId={selectedCustomerId}
                 onPaymentSuccess={() => {
                     setCart([])
-                    setCreatedOrderId(null)
                     setSelectedCustomerId(null)
                 }}
             />
 
             {/* Variant Selection Dialog */}
-            <VariantSelectionDialog 
+            <VariantSelectionDialog
                 open={variantSelectionOpen}
                 onOpenChange={setVariantSelectionOpen}
                 product={productForVariantSelection}

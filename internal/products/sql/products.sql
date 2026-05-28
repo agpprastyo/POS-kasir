@@ -8,9 +8,11 @@ INSERT INTO products (
     image_url,
     price,
     stock,
-    cost_price
+    cost_price,
+    print_category,
+    low_stock_threshold
 ) VALUES (
-             $1, $2, $3, $4, $5
+             $1, $2, $3, $4, $5, $6, $7
          ) RETURNING *;
 
 -- name: GetProductWithOptions :one
@@ -42,6 +44,7 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
+    p.print_category,
     COALESCE(
         (SELECT json_agg(c.*) 
          FROM product_categories pc 
@@ -68,7 +71,9 @@ SET
     image_url = COALESCE(sqlc.narg(image_url), image_url),
     price = COALESCE(sqlc.narg(price), price),
     stock = COALESCE(sqlc.narg(stock), stock),
-    cost_price = COALESCE(sqlc.narg(cost_price), cost_price)
+    cost_price = COALESCE(sqlc.narg(cost_price), cost_price),
+    print_category = COALESCE(sqlc.narg(print_category), print_category),
+    low_stock_threshold = COALESCE(sqlc.narg(low_stock_threshold), low_stock_threshold)
 WHERE
     id = sqlc.arg(id)
 RETURNING *;
@@ -189,6 +194,7 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
+    p.print_category,
     COALESCE(
         (SELECT json_agg(c.*) 
          FROM product_categories pc 

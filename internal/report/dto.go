@@ -23,6 +23,7 @@ type SalesReportServiceRequest struct {
 	pagination.PaginationRequest
 	StartDate time.Time
 	EndDate   time.Time
+	Export    string
 }
 
 type SalesReport struct {

@@ -34,6 +34,7 @@ import (
 	"POS-kasir/pkg/database"
 	"POS-kasir/pkg/escpos"
 	"POS-kasir/pkg/logger"
+	appmetrics "POS-kasir/pkg/metrics"
 	"POS-kasir/pkg/payment"
 	"POS-kasir/pkg/utils"
 	"POS-kasir/pkg/validator"
@@ -51,10 +52,12 @@ import (
 
 	swagger "github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/adaptor"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	fiberlog "github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	_ "embed"
 	"html/template"
@@ -80,6 +83,7 @@ type App struct {
 	Cache           *shift.Cache
 	RedisCache      cache.Cache
 	Redis           *redis.Client
+	StartTime       time.Time
 }
 
 type AppContainer struct {
@@ -167,6 +171,7 @@ func InitApp() *App {
 		Cache:           shiftCache,
 		RedisCache:      redisCache,
 		Redis:           rdb,
+		StartTime:       time.Now(),
 	}
 }
 
@@ -207,9 +212,14 @@ func BuildAppContainer(app *App) *AppContainer {
 	// Shift Module Repo
 	shiftRepo := shift_repo.New(app.DB.GetPool())
 
+	// Settings Module
+	settingsRepo := settings_repo.New(app.DB.GetPool())
+	settingsService := settings.NewSettingsService(app.Store, activityService, settingsRepo, app.R2, app.Logger)
+	settingsHandler := settings.NewSettingsHandler(settingsService, app.Logger)
+
 	// Order & Payment Module
 	ordersRepo := orders_repo.New(app.DB.GetPool())
-	orderService := orders.NewOrderService(app.Store, ordersRepo, productsRepo, app.MidtransService, activityService, app.Logger, wsHub)
+	orderService := orders.NewOrderService(app.Store, ordersRepo, productsRepo, settingsService, app.MidtransService, activityService, app.Logger, wsHub)
 	orderHandler := orders.NewOrderHandler(orderService, app.Logger)
 
 	// Payment Method Module
@@ -231,11 +241,6 @@ func BuildAppContainer(app *App) *AppContainer {
 	promotionsRepo := promotions_repo.New(app.DB.GetPool())
 	promotionService := promotions.NewPromotionService(app.Store, promotionsRepo, app.Logger, activityService)
 	promotionHandler := promotions.NewPromotionHandler(promotionService, app.Logger)
-
-	// Settings Module
-	settingsRepo := settings_repo.New(app.DB.GetPool())
-	settingsService := settings.NewSettingsService(app.Store, activityService, settingsRepo, app.R2, app.Logger)
-	settingsHandler := settings.NewSettingsHandler(settingsService, app.Logger)
 
 	// Printer Module
 	printerService := printer.NewPrinterService(orderService, settingsService, paymentMethodService, userRepo, app.Logger, escpos.NewPrinter)
@@ -277,6 +282,11 @@ func StartServer(app *App) {
 	SetupCron(app, container)
 	SetupRoutes(app, container)
 
+	// Start DB pool stats collector
+	if app.Config.Metrics.Enabled {
+		go startDBPoolStatsCollector(app)
+	}
+
 	app.Logger.Infof("Starting app on port %s...", app.Config.Server.Port)
 	if err := app.FiberApp.Listen(":" + app.Config.Server.Port); err != nil {
 		app.Logger.Fatalf("Error starting app: %v", err)
@@ -313,6 +323,13 @@ func Cleanup(app *App) {
 	if app.DB != nil {
 		app.DB.Close()
 	}
+
+	if app.Redis != nil {
+		err := app.Redis.Close()
+		if err != nil {
+			app.Logger.Fatal("Failed to close Redis client: %v", err)
+		}
+	}
 }
 
 func WaitForShutdown(app *App) {
@@ -334,8 +351,7 @@ func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		logger.Errorf("Error 1: %v", err)
 
-		var e *fiber.Error
-		if errors.As(err, &e) {
+		if e, ok := errors.AsType[*fiber.Error](err); ok {
 			logger.Errorf("Fiber error 1: %v", e)
 			return c.Status(e.Code).JSON(common.ErrorResponse{
 				Message: e.Message,
@@ -346,4 +362,34 @@ func CustomErrorHandler(logger logger.ILogger) fiber.ErrorHandler {
 			Message: "Internal Server Error",
 		})
 	}
+}
+
+// startDBPoolStatsCollector periodically collects database pool statistics
+// and publishes them as Prometheus metrics.
+func startDBPoolStatsCollector(app *App) {
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		pool := app.DB.GetPool()
+		if pool == nil {
+			continue
+		}
+		stats := pool.Stat()
+		appmetrics.DBPoolActiveConns.Set(float64(stats.AcquiredConns()))
+		appmetrics.DBPoolIdleConns.Set(float64(stats.IdleConns()))
+		appmetrics.DBPoolTotalConns.Set(float64(stats.TotalConns()))
+		appmetrics.DBPoolMaxConns.Set(float64(stats.MaxConns()))
+	}
+}
+
+// SetupMetricsEndpoint registers the /metrics Prometheus endpoint.
+func SetupMetricsEndpoint(app *App) {
+	if !app.Config.Metrics.Enabled {
+		return
+	}
+
+	// Use fiber/v3 adaptor to wrap the standard net/http Prometheus handler
+	app.FiberApp.Get(app.Config.Metrics.Path, adaptor.HTTPHandler(promhttp.Handler()))
+	app.Logger.Infof("Prometheus metrics endpoint registered at %s", app.Config.Metrics.Path)
 }

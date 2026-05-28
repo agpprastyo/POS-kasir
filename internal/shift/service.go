@@ -4,12 +4,14 @@ import (
 	"POS-kasir/internal/common"
 	repository "POS-kasir/internal/shift/repository"
 	"POS-kasir/pkg/logger"
+	"POS-kasir/pkg/metrics"
 	"POS-kasir/pkg/utils"
 	"context"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Service interface {
@@ -68,6 +70,9 @@ func (s *service) StartShift(ctx context.Context, userID uuid.UUID, req StartShi
 		s.cache.SetOpen(userID, true)
 	}
 
+	// Record shift opened metric
+	metrics.ActiveShifts.Inc()
+
 	return s.mapShiftToResponse(shift), nil
 }
 
@@ -118,9 +123,16 @@ func (s *service) EndShift(ctx context.Context, userID uuid.UUID, req EndShiftRe
 		return nil, err
 	}
 
-	expectedCashEnd := shift.StartCash + cashIn - cashOut
-	// Note: We need to add Order Sales (Cash) here.
-	// Assuming for now simple Shift management without strict order reconciliation in this step as it requires Order Repository dependency.
+	cashSales, err := s.repo.GetCashSalesDuringShift(ctx, repository.GetCashSalesDuringShiftParams{
+		UserID:    pgtype.UUID{Bytes: userID, Valid: true},
+		CreatedAt: shift.StartTime,
+	})
+	if err != nil {
+		s.log.Errorf("EndShift | Failed to get cash sales: %v", err)
+		cashSales = 0 // don't fail the whole operation
+	}
+
+	expectedCashEnd := shift.StartCash + cashIn - cashOut + cashSales
 
 	updatedShift, err := s.repo.EndShift(ctx, repository.EndShiftParams{
 		ID:              shift.ID,
@@ -138,15 +150,38 @@ func (s *service) EndShift(ctx context.Context, userID uuid.UUID, req EndShiftRe
 	res.Difference = &diff
 
 	// Update cache (Clear)
-	s.cache.Clear(userID)
+	if s.cache != nil {
+		s.cache.Clear(userID)
+	}
+
+	// Record shift closed metric
+	metrics.ActiveShifts.Dec()
 
 	return res, nil
 }
 
 func (s *service) GetOpenShift(ctx context.Context, userID uuid.UUID) (*ShiftResponse, error) {
+	// 1. Check cache first
+	if s.cache != nil {
+		isOpen, found := s.cache.GetOpen(userID)
+		if found && !isOpen {
+			return nil, common.ErrNotFound
+		}
+	}
+
+	// 2. Fetch from repository
 	shift, err := s.repo.GetOpenShiftByUserID(ctx, userID)
 	if err != nil {
+		// Update cache if cache is available
+		if s.cache != nil {
+			s.cache.SetOpen(userID, false)
+		}
 		return nil, common.ErrNotFound
+	}
+
+	// 3. Update cache to "open"
+	if s.cache != nil {
+		s.cache.SetOpen(userID, true)
 	}
 
 	return s.mapShiftToResponse(shift), nil
@@ -205,7 +240,12 @@ func (s *service) AutoCloseShifts(ctx context.Context) error {
 			Type:    repository.CashTransactionTypeCashOut,
 		})
 
-		expectedCashEnd := shift.StartCash + cashIn - cashOut
+		cashSales, _ := s.repo.GetCashSalesDuringShift(ctx, repository.GetCashSalesDuringShiftParams{
+			UserID:    pgtype.UUID{Bytes: shift.UserID, Valid: true},
+			CreatedAt: shift.StartTime,
+		})
+
+		expectedCashEnd := shift.StartCash + cashIn - cashOut + cashSales
 
 		// For auto-close, we assume Actual = Expected to avoid difference.
 		// Or we can just leave actual as nil? The schema allows nil.
@@ -221,7 +261,12 @@ func (s *service) AutoCloseShifts(ctx context.Context) error {
 		}
 
 		// Update cache
-		s.cache.Clear(shift.UserID)
+		if s.cache != nil {
+			s.cache.Clear(shift.UserID)
+		}
+
+		// Record shift auto-closed metric
+		metrics.ActiveShifts.Dec()
 	}
 
 	return nil

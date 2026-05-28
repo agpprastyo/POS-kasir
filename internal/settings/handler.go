@@ -248,4 +248,81 @@ func (h *SettingsHandler) UpdatePrinterSettingsHandler(c fiber.Ctx) error {
 	})
 }
 
+// GetTaxSettingsHandler gets tax settings
+// @Summary      Get tax settings
+// @Description  Retrieve tax rate and service charge rate (Roles: authenticated)
+// @Tags         Settings
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} common.SuccessResponse{data=TaxSettingsResponse} "Tax settings fetched successfully"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin", "manager", "cashier"]
+// @Router       /settings/tax [get]
+func (h *SettingsHandler) GetTaxSettingsHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+
+	resp, err := h.service.GetTaxSettings(ctx)
+	if err != nil {
+		h.log.Errorf("Failed to fetch tax settings", "error", err)
+		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to fetch tax settings",
+			Error:   err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
+		Message: "Tax settings fetched successfully",
+		Data:    resp,
+	})
+}
+
+// UpdateTaxSettingsHandler updates tax settings
+// @Summary      Update tax settings
+// @Description  Update tax rate and service charge rate (Roles: admin)
+// @Tags         Settings
+// @Accept       json
+// @Produce      json
+// @Param        request body UpdateTaxSettingsRequest true "Tax settings update request"
+// @Success      200 {object} common.SuccessResponse{data=TaxSettingsResponse} "Tax settings updated successfully"
+// @Failure      400 {object} common.ErrorResponse "Invalid request body or validation failure"
+// @Failure      500 {object} common.ErrorResponse "Internal server error"
+// @x-roles      ["admin"]
+// @Router       /settings/tax [put]
+func (h *SettingsHandler) UpdateTaxSettingsHandler(c fiber.Ctx) error {
+	ctx := c.RequestCtx()
+	var req UpdateTaxSettingsRequest
+
+	if err := c.Bind().Body(&req); err != nil {
+		h.log.Warnf("Update tax settings validation failed", "error", err)
+		var ve *validator.ValidationErrors
+		if errors.As(err, &ve) {
+			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+				Message: "Validation failed",
+				Error:   ve.Error(),
+				Data: map[string]interface{}{
+					"errors": ve.Errors,
+				},
+			})
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid request body",
+			Error:   err.Error(),
+		})
+	}
+
+	resp, err := h.service.UpdateTaxSettings(ctx, req)
+	if err != nil {
+		h.log.Errorf("Failed to update tax settings", "error", err)
+		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to update tax settings",
+			Error:   err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
+		Message: "Tax settings updated successfully",
+		Data:    resp,
+	})
+}
+
 // fiber:context-methods migrated

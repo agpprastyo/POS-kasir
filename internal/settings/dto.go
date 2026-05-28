@@ -38,3 +38,13 @@ type UpdatePrinterSettingsRequest struct {
 	AutoPrint   *bool  `json:"auto_print" validate:"required"`
 	PrintMethod string `json:"print_method" validate:"required,oneof=BE FE"`
 }
+
+type TaxSettingsResponse struct {
+	TaxRate           float64 `json:"tax_rate"`
+	ServiceChargeRate float64 `json:"service_charge_rate"`
+}
+
+type UpdateTaxSettingsRequest struct {
+	TaxRate           float64 `json:"tax_rate" validate:"required,gte=0,lte=1"`
+	ServiceChargeRate float64 `json:"service_charge_rate" validate:"required,gte=0,lte=1"`
+}

@@ -284,6 +284,49 @@ func (ns NullOrderType) Value() (driver.Value, error) {
 	return string(ns.OrderType), nil
 }
 
+type PrintCategory string
+
+const (
+	PrintCategoryCashier PrintCategory = "cashier"
+	PrintCategoryKitchen PrintCategory = "kitchen"
+	PrintCategoryBar     PrintCategory = "bar"
+)
+
+func (e *PrintCategory) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PrintCategory(s)
+	case string:
+		*e = PrintCategory(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PrintCategory: %T", src)
+	}
+	return nil
+}
+
+type NullPrintCategory struct {
+	PrintCategory PrintCategory `json:"print_category"`
+	Valid         bool          `json:"valid"` // Valid is true if PrintCategory is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPrintCategory) Scan(value interface{}) error {
+	if value == nil {
+		ns.PrintCategory, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PrintCategory.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPrintCategory) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PrintCategory), nil
+}
+
 type PromotionRuleType string
 
 const (
@@ -588,9 +631,12 @@ func (ns NullUserOrderColumn) Value() (driver.Value, error) {
 type UserRole string
 
 const (
-	UserRoleAdmin   UserRole = "admin"
-	UserRoleCashier UserRole = "cashier"
-	UserRoleManager UserRole = "manager"
+	UserRoleAdmin    UserRole = "admin"
+	UserRoleCashier  UserRole = "cashier"
+	UserRoleManager  UserRole = "manager"
+	UserRoleCustomer UserRole = "customer"
+	UserRoleKitchen  UserRole = "kitchen"
+	UserRoleBar      UserRole = "bar"
 )
 
 func (e *UserRole) Scan(src interface{}) error {
@@ -729,15 +775,17 @@ type PaymentMethod struct {
 }
 
 type Product struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	ImageUrl  *string            `json:"image_url"`
-	Price     int64              `json:"price"`
-	Stock     int32              `json:"stock"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
-	CostPrice pgtype.Numeric     `json:"cost_price"`
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	ImageUrl          *string            `json:"image_url"`
+	Price             int64              `json:"price"`
+	Stock             int32              `json:"stock"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice         pgtype.Numeric     `json:"cost_price"`
+	PrintCategory     PrintCategory      `json:"print_category"`
+	LowStockThreshold int32              `json:"low_stock_threshold"`
 }
 
 type ProductCategory struct {

@@ -29,6 +29,10 @@ type IRptService interface {
 	GetLowStockProducts(ctx context.Context, req *LowStockRequest) (*[]LowStockProductResponse, error)
 	GetPromotionPerformanceReport(ctx context.Context, req *SalesReportServiceRequest) (*[]PromotionPerformanceResponse, error)
 	GetShiftSummaryReport(ctx context.Context, req *SalesReportServiceRequest) (*[]ShiftSummaryResponse, error)
+
+	ExportSalesReports(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error)
+	ExportProductPerformance(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error)
+	ExportProfitSummary(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error)
 }
 
 func NewRptService(store store.Store, repo repository.Querier, activityLogService activitylog.IActivityService, log logger.ILogger, redisCache cache.Cache) IRptService {
@@ -38,6 +42,7 @@ func NewRptService(store store.Store, repo repository.Querier, activityLogServic
 		ActivityLogService: activityLogService,
 		Log:                log,
 		Cache:              redisCache,
+		Exporter:           NewReportExporter(),
 	}
 }
 
@@ -47,6 +52,7 @@ type RptService struct {
 	ActivityLogService activitylog.IActivityService
 	Log                logger.ILogger
 	Cache              cache.Cache
+	Exporter           *ReportExporter
 }
 
 func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServiceRequest) (*[]SalesReport, error) {
@@ -81,7 +87,7 @@ func (r *RptService) GetSalesReports(ctx context.Context, req *SalesReportServic
 		salesReports[i] = SalesReport{
 			Date:       report.Date.Time,
 			OrderCount: report.OrderCount,
-			TotalSales: 0, 
+			TotalSales: 0,
 		}
 		if n, ok := report.TotalSales.(pgtype.Numeric); ok && n.Valid {
 			f8, _ := n.Float64Value()
@@ -529,4 +535,61 @@ func (r *RptService) GetShiftSummaryReport(ctx context.Context, req *SalesReport
 	}
 
 	return &response, nil
+}
+
+func (r *RptService) ExportSalesReports(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error) {
+	data, err := r.GetSalesReports(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if req.Export == "pdf" {
+		pdfData, err := r.Exporter.ExportSalesToPDF(*data)
+		if err != nil {
+			return nil, "", err
+		}
+		filename := fmt.Sprintf("sales_report_%s_%s.pdf", req.StartDate.Format("20060102"), req.EndDate.Format("20060102"))
+		return pdfData, filename, nil
+	}
+
+	excelData, err := r.Exporter.ExportSalesToExcel(*data)
+	if err != nil {
+		return nil, "", err
+	}
+
+	filename := fmt.Sprintf("sales_report_%s_%s.xlsx", req.StartDate.Format("20060102"), req.EndDate.Format("20060102"))
+	return excelData, filename, nil
+}
+
+func (r *RptService) ExportProductPerformance(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error) {
+	req.Limit = 1000
+	req.Page = 1
+
+	data, err := r.GetProductPerformance(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	excelData, err := r.Exporter.ExportProductPerformanceToExcel(data.Products)
+	if err != nil {
+		return nil, "", err
+	}
+
+	filename := fmt.Sprintf("product_performance_%s_%s.xlsx", req.StartDate.Format("20060102"), req.EndDate.Format("20060102"))
+	return excelData, filename, nil
+}
+
+func (r *RptService) ExportProfitSummary(ctx context.Context, req *SalesReportServiceRequest) ([]byte, string, error) {
+	data, err := r.GetProfitSummary(ctx, req)
+	if err != nil {
+		return nil, "", err
+	}
+
+	excelData, err := r.Exporter.ExportProfitSummaryToExcel(*data)
+	if err != nil {
+		return nil, "", err
+	}
+
+	filename := fmt.Sprintf("profit_summary_%s_%s.xlsx", req.StartDate.Format("20060102"), req.EndDate.Format("20060102"))
+	return excelData, filename, nil
 }

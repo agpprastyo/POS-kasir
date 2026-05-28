@@ -113,7 +113,7 @@ func (q *Queries) BatchCreateOrderItems(ctx context.Context, arg BatchCreateOrde
 	return items, nil
 }
 
-const batchDecreaseProductStock = `-- name: BatchDecreaseProductStock :exec
+const batchDecreaseProductStock = `-- name: BatchDecreaseProductStock :many
 UPDATE products AS p
 SET
     stock = p.stock - v.qty,
@@ -124,6 +124,7 @@ FROM (
              unnest($2::int[]) AS qty
      ) AS v
 WHERE p.id = v.id
+RETURNING p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price, p.print_category, p.low_stock_threshold
 `
 
 type BatchDecreaseProductStockParams struct {
@@ -132,9 +133,36 @@ type BatchDecreaseProductStockParams struct {
 }
 
 // Mengurangi stok banyak produk sekaligus berdasarkan pasangan ID dan Qty.
-func (q *Queries) BatchDecreaseProductStock(ctx context.Context, arg BatchDecreaseProductStockParams) error {
-	_, err := q.db.Exec(ctx, batchDecreaseProductStock, arg.ProductIds, arg.Quantities)
-	return err
+func (q *Queries) BatchDecreaseProductStock(ctx context.Context, arg BatchDecreaseProductStockParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, batchDecreaseProductStock, arg.ProductIds, arg.Quantities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.ImageUrl,
+			&i.Price,
+			&i.Stock,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.CostPrice,
+			&i.PrintCategory,
+			&i.LowStockThreshold,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const cancelOrder = `-- name: CancelOrder :one
@@ -385,7 +413,7 @@ const decreaseProductStock = `-- name: DecreaseProductStock :one
 UPDATE products
 SET stock = stock - $2
 WHERE id = $1
-RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold
 `
 
 type DecreaseProductStockParams struct {
@@ -407,6 +435,8 @@ func (q *Queries) DecreaseProductStock(ctx context.Context, arg DecreaseProductS
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }
@@ -617,6 +647,43 @@ func (q *Queries) GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID)
 	return items, nil
 }
 
+const getOrderItemsByOrderIDs = `-- name: GetOrderItemsByOrderIDs :many
+SELECT id, order_id, product_id, quantity, price_at_sale, subtotal, discount_amount, net_subtotal, cost_price_at_sale FROM order_items
+WHERE order_id = ANY($1::uuid[])
+ORDER BY order_id, id ASC
+`
+
+// Mengambil item untuk banyak pesanan sekaligus (menghindari N+1 query).
+func (q *Queries) GetOrderItemsByOrderIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]OrderItem, error) {
+	rows, err := q.db.Query(ctx, getOrderItemsByOrderIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OrderItem{}
+	for rows.Next() {
+		var i OrderItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.ProductID,
+			&i.Quantity,
+			&i.PriceAtSale,
+			&i.Subtotal,
+			&i.DiscountAmount,
+			&i.NetSubtotal,
+			&i.CostPriceAtSale,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getOrderWithDetails = `-- name: GetOrderWithDetails :one
 SELECT
     o.id, o.user_id, o.type, o.status, o.created_at, o.updated_at, o.gross_total, o.discount_amount, o.net_total, o.applied_promotion_id, o.payment_method_id, o.payment_gateway_reference, o.cash_received, o.change_due, o.cancellation_reason_id, o.cancellation_notes, o.payment_url, o.payment_token, o.version, o.tax_amount, o.service_charge_amount, o.customer_id,
@@ -697,7 +764,7 @@ func (q *Queries) GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrd
 }
 
 const getProductByID = `-- name: GetProductByID :one
-SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products WHERE id = $1
+SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold FROM products WHERE id = $1
 `
 
 func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -713,6 +780,8 @@ func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (Product, er
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }
@@ -752,7 +821,7 @@ func (q *Queries) GetProductOptionsByIDs(ctx context.Context, ids []uuid.UUID) (
 }
 
 const getProductsByIDs = `-- name: GetProductsByIDs :many
-SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold FROM products
 WHERE id = ANY($1::uuid[])
 `
 
@@ -776,6 +845,8 @@ func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.CostPrice,
+			&i.PrintCategory,
+			&i.LowStockThreshold,
 		); err != nil {
 			return nil, err
 		}
@@ -788,7 +859,7 @@ func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([
 }
 
 const getProductsForUpdate = `-- name: GetProductsForUpdate :many
-SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold FROM products
 WHERE id = ANY($1::uuid[])
     FOR UPDATE
 `
@@ -814,6 +885,8 @@ func (q *Queries) GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UUID
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.CostPrice,
+			&i.PrintCategory,
+			&i.LowStockThreshold,
 		); err != nil {
 			return nil, err
 		}

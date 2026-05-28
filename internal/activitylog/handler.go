@@ -47,8 +47,7 @@ func (h *ActivityLogHandler) GetActivityLogs(c fiber.Ctx) error {
 	var req GetActivityLogsRequest
 	if err := c.Bind().Query(&req); err != nil {
 		h.log.Errorf("Handler | GetActivityLogs | %v", err)
-		var ve *validator.ValidationErrors
-		if errors.As(err, &ve) {
+		if ve, ok := errors.AsType[*validator.ValidationErrors](err); ok {
 			return c.Status(fiber.StatusBadRequest).JSON(common.ErrorResponse{
 				Message: "Validation failed",
 				Error:   ve.Error(),

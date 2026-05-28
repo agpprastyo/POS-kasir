@@ -192,6 +192,12 @@ DELETE FROM order_items WHERE id = $1 AND order_id = $2;
 -- Mengambil semua item dari sebuah pesanan untuk menghitung ulang total.
 SELECT * FROM order_items WHERE order_id = $1;
 
+-- name: GetOrderItemsByOrderIDs :many
+-- Mengambil item untuk banyak pesanan sekaligus (menghindari N+1 query).
+SELECT * FROM order_items
+WHERE order_id = ANY($1::uuid[])
+ORDER BY order_id, id ASC;
+
 -- name: UpdateOrderManualPayment :one
 -- Memperbarui pesanan untuk pembayaran manual (tunai, dll.) dan mengubah status menjadi 'paid'.
 -- Hanya bisa memproses pesanan yang statusnya 'open'.
@@ -257,7 +263,7 @@ SELECT
     unnest(sqlc.arg(cost_prices_at_sale)::numeric[]) AS cost_price_at_sale
 RETURNING *;
 
--- name: BatchDecreaseProductStock :exec
+-- name: BatchDecreaseProductStock :many
 -- Mengurangi stok banyak produk sekaligus berdasarkan pasangan ID dan Qty.
 UPDATE products AS p
 SET
@@ -268,7 +274,8 @@ FROM (
              unnest(sqlc.arg(product_ids)::uuid[]) AS id,
              unnest(sqlc.arg(quantities)::int[]) AS qty
      ) AS v
-WHERE p.id = v.id;
+WHERE p.id = v.id
+RETURNING p.*;
 
 -- name: GetProductOptionsByIDs :many
 SELECT * FROM product_options

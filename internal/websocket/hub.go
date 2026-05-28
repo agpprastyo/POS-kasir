@@ -9,8 +9,9 @@ import (
 
 // Event types
 const (
-	EventOrderCreated = "ORDER_CREATED"
-	EventOrderUpdated = "ORDER_UPDATED"
+	EventOrderCreated  = "ORDER_CREATED"
+	EventOrderUpdated  = "ORDER_UPDATED"
+	EventLowStockAlert = "LOW_STOCK_ALERT"
 )
 
 // Event represents a WebSocket message payload.
@@ -99,12 +100,12 @@ func (h *Hub) BroadcastEvent(eventType string, payload interface{}) {
 		Type:    eventType,
 		Payload: payload,
 	}
-	
+
 	bytes, err := json.Marshal(event)
 	if err != nil {
 		logrus.Errorf("Failed to marshal websocket event: %v", err)
 		return
 	}
-	
+
 	h.broadcast <- bytes
 }

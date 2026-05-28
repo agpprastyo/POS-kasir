@@ -31,7 +31,7 @@ func AuthMiddleware(tokenManager utils.Manager, log logger.ILogger) fiber.Handle
 		c.Locals("email", claims.Email)
 		c.Locals("user_id", claims.UserID)
 
-		log.Infof("current user is %v, role is %v, email is %v, user ID is %v", claims.Username, claims.Role, claims.Email, claims.UserID)
+		log.Debugf("authenticated user: %v, role: %v", claims.Username, claims.Role)
 
 		c.RequestCtx().SetUserValue(common.UserIDKey, claims.UserID)
 

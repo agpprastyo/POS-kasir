@@ -70,3 +70,25 @@ dev-infra:
 
 dev-infra-down:
 	@docker compose -f docker-compose.infra.yml down
+
+# ==============================================================================
+# Monitoring Stack
+# ==============================================================================
+
+mon-up:
+	@echo "Starting monitoring stack..."
+	@docker compose -f docker-compose.monitoring.yml up -d
+	@echo ""
+	@echo "✅ Monitoring stack started!"
+	@echo "   📊 Grafana:      http://localhost:3000 (admin/admin)"
+	@echo "   📈 Prometheus:   http://localhost:9090"
+	@echo "   🔔 Alertmanager: http://localhost:9093"
+
+mon-down:
+	@docker compose -f docker-compose.monitoring.yml down
+
+mon-logs:
+	@docker compose -f docker-compose.monitoring.yml logs -f
+
+mon-status:
+	@docker compose -f docker-compose.monitoring.yml ps

@@ -17,7 +17,7 @@ type Querier interface {
 	// Memasukkan banyak item sekaligus menggunakan array (Bulk Insert).
 	BatchCreateOrderItems(ctx context.Context, arg BatchCreateOrderItemsParams) ([]OrderItem, error)
 	// Mengurangi stok banyak produk sekaligus berdasarkan pasangan ID dan Qty.
-	BatchDecreaseProductStock(ctx context.Context, arg BatchDecreaseProductStockParams) error
+	BatchDecreaseProductStock(ctx context.Context, arg BatchDecreaseProductStockParams) ([]Product, error)
 	// Mengubah status pesanan menjadi 'cancelled' dan mencatat alasannya.
 	// Hanya bisa membatalkan pesanan yang statusnya 'open'.
 	CancelOrder(ctx context.Context, arg CancelOrderParams) (Order, error)
@@ -46,6 +46,8 @@ type Querier interface {
 	GetOrderItem(ctx context.Context, arg GetOrderItemParams) (OrderItem, error)
 	// Mengambil semua item dari sebuah pesanan untuk menghitung ulang total.
 	GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) ([]OrderItem, error)
+	// Mengambil item untuk banyak pesanan sekaligus (menghindari N+1 query).
+	GetOrderItemsByOrderIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]OrderItem, error)
 	// Mengambil detail lengkap pesanan, termasuk item dan opsinya dalam format JSON.
 	GetOrderWithDetails(ctx context.Context, id uuid.UUID) (GetOrderWithDetailsRow, error)
 	GetProductByID(ctx context.Context, id uuid.UUID) (Product, error)

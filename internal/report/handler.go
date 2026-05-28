@@ -69,6 +69,7 @@ func (r *RptHandler) GetSalesReportsHandler(c fiber.Ctx) error {
 	serviceReq := &SalesReportServiceRequest{
 		StartDate: startDate,
 		EndDate:   endDate,
+		Export:    req.Export,
 	}
 
 	salesReports, err := r.Service.GetSalesReports(c.RequestCtx(), serviceReq)
@@ -77,6 +78,23 @@ func (r *RptHandler) GetSalesReportsHandler(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to get sales reports",
 		})
+	}
+
+	if req.Export == "pdf" || req.Export == "excel" {
+		fileData, filename, err := r.Service.ExportSalesReports(c.RequestCtx(), serviceReq)
+		if err != nil {
+			r.log.Error("Failed to export sales reports", "format", req.Export, "error", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to generate report file",
+			})
+		}
+		if req.Export == "pdf" {
+			c.Set("Content-Type", "application/pdf")
+		} else {
+			c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		}
+		c.Set("Content-Disposition", "attachment; filename="+filename)
+		return c.Send(fileData)
 	}
 
 	if req.Export == "csv" {
@@ -145,6 +163,19 @@ func (r *RptHandler) GetProductPerformanceHandler(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to get product performance",
 		})
+	}
+
+	if req.Export == "excel" {
+		fileData, filename, err := r.Service.ExportProductPerformance(c.RequestCtx(), serviceReq)
+		if err != nil {
+			r.log.Error("Failed to export product performance to excel", "error", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to generate Excel file",
+			})
+		}
+		c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		c.Set("Content-Disposition", "attachment; filename="+filename)
+		return c.Send(fileData)
 	}
 
 	if req.Export == "csv" {
@@ -472,6 +503,19 @@ func (r *RptHandler) GetProfitSummaryHandler(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
 			Message: "Failed to get profit summary",
 		})
+	}
+
+	if req.Export == "excel" {
+		fileData, filename, err := r.Service.ExportProfitSummary(c.RequestCtx(), serviceReq)
+		if err != nil {
+			r.log.Error("Failed to export profit summary to excel", "error", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(common.ErrorResponse{
+				Message: "Failed to generate Excel file",
+			})
+		}
+		c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+		c.Set("Content-Disposition", "attachment; filename="+filename)
+		return c.Send(fileData)
 	}
 
 	if req.Export == "csv" {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"strings"
 )
 
 type PrinterHandler struct {
@@ -142,5 +143,43 @@ func (h *PrinterHandler) DiscoverPrintersHandler(c fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
 		Message: "Printers discovered",
 		Data:    printers,
+	})
+}
+
+// PrintToCategoryHandler godoc
+// @Summary      Print order ticket for a specific category
+// @Description  Trigger printing of order items belonging to a category (e.g., kitchen, bar) (Roles: admin, manager, cashier, kitchen, bar)
+// @Tags         Printer
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Order ID" Format(uuid)
+// @Param        category path string true "Category" Enums(kitchen, bar)
+// @Success      200 {object} common.SuccessResponse "Ticket sent to printer"
+// @Failure      400 {object} common.ErrorResponse "Invalid order ID"
+// @Failure      500 {object} common.ErrorResponse "Failed to print ticket"
+// @x-roles      ["admin", "manager", "cashier", "kitchen", "bar"]
+// @Router       /orders/{id}/print/{category} [post]
+func (h *PrinterHandler) PrintToCategoryHandler(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	category := c.Params("category")
+	orderID, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(common.ErrorResponse{
+			Message: "Invalid order ID",
+			Error:   err.Error(),
+		})
+	}
+
+	ctx := c.RequestCtx()
+	err = h.service.PrintToCategory(ctx, orderID, category)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(common.ErrorResponse{
+			Message: "Failed to print " + category + " ticket",
+			Error:   err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(common.SuccessResponse{
+		Message: strings.ToUpper(category) + " ticket sent to printer",
 	})
 }

@@ -22,6 +22,8 @@ type ISettingsService interface {
 	GetPrinterSettings(ctx context.Context) (*PrinterSettingsResponse, error)
 	UpdatePrinterSettings(ctx context.Context, req UpdatePrinterSettingsRequest) (*PrinterSettingsResponse, error)
 	UpdateLogo(ctx context.Context, data []byte, filename string, contentType string) (string, error)
+	GetTaxSettings(ctx context.Context) (*TaxSettingsResponse, error)
+	UpdateTaxSettings(ctx context.Context, req UpdateTaxSettingsRequest) (*TaxSettingsResponse, error)
 }
 
 type SettingsService struct {
@@ -279,4 +281,70 @@ func (s *SettingsService) UpdatePrinterSettings(ctx context.Context, req UpdateP
 	)
 
 	return s.GetPrinterSettings(ctx)
+}
+
+func (s *SettingsService) GetTaxSettings(ctx context.Context) (*TaxSettingsResponse, error) {
+	settings, err := s.repo.GetSettings(ctx)
+	if err != nil {
+		s.log.Error("Failed to fetch settings", "error", err)
+		return nil, err
+	}
+
+	response := &TaxSettingsResponse{
+		TaxRate:           0.11,
+		ServiceChargeRate: 0.0,
+	}
+
+	for _, setting := range settings {
+		switch setting.Key {
+		case "tax_rate":
+			fmt.Sscanf(setting.Value, "%f", &response.TaxRate)
+		case "service_charge_rate":
+			fmt.Sscanf(setting.Value, "%f", &response.ServiceChargeRate)
+		}
+	}
+
+	return response, nil
+}
+
+func (s *SettingsService) UpdateTaxSettings(ctx context.Context, req UpdateTaxSettingsRequest) (*TaxSettingsResponse, error) {
+	txErr := s.store.ExecTx(ctx, func(tx pgx.Tx) error {
+		qtx := repository.New(tx)
+
+		_, err := qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+			Key:   "tax_rate",
+			Value: fmt.Sprintf("%f", req.TaxRate),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = qtx.UpsertSetting(ctx, repository.UpsertSettingParams{
+			Key:   "service_charge_rate",
+			Value: fmt.Sprintf("%f", req.ServiceChargeRate),
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		s.log.Error("Failed to update tax settings", "error", txErr)
+		return nil, txErr
+	}
+
+	// Activity Log
+	actorID, _ := ctx.Value("user_id").(uuid.UUID)
+	s.activitylog.Log(
+		ctx,
+		actorID,
+		activitylog_repo.LogActionTypeUPDATE,
+		activitylog_repo.LogEntityTypeSETTINGS,
+		"settings",
+		map[string]interface{}{"tax_rate": req.TaxRate, "service_charge_rate": req.ServiceChargeRate},
+	)
+
+	return s.GetTaxSettings(ctx)
 }

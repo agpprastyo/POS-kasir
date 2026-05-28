@@ -8,17 +8,45 @@ import (
 )
 
 type AppConfig struct {
-	Server         ServerConfig
-	DB             DbConfig
-	Logger         LoggerConfig
-	JWT            JwtConfig
-	CloudflareR2   CloudflareR2Config
-	Midtrans       MidtransConfig
-	Redis          RedisConfig
+	Server           ServerConfig
+	DB               DbConfig
+	Logger           LoggerConfig
+	JWT              JwtConfig
+	CloudflareR2     CloudflareR2Config
+	Midtrans         MidtransConfig
+	Redis            RedisConfig
+	Metrics          MetricsConfig
+	Alert            AlertConfig
 	AutoMigrate      bool
 	MigrationsPath   string
 	EnableDbWipe     bool
 	WipeCronSchedule string
+}
+
+type MetricsConfig struct {
+	Enabled bool
+	Path    string
+}
+
+type AlertConfig struct {
+	SlackEnabled    bool
+	SlackWebhookURL string
+	SlackChannel    string
+
+	DiscordEnabled    bool
+	DiscordWebhookURL string
+
+	TelegramEnabled  bool
+	TelegramBotToken string
+	TelegramChatID   string
+
+	EmailEnabled  bool
+	EmailSMTPHost string
+	EmailSMTPPort int
+	EmailFrom     string
+	EmailTo       string
+	EmailUsername string
+	EmailPassword string
 }
 
 type RedisConfig struct {
@@ -137,6 +165,30 @@ func Load() *AppConfig {
 			ExpirySec:    getInt64("R2_EXPIRY_SECONDS", 3600),
 			Endpoint:     getEnv("R2_ENDPOINT", ""),
 			UseSSL:       getBool("R2_USE_SSL", true),
+		},
+		Metrics: MetricsConfig{
+			Enabled: getBool("METRICS_ENABLED", true),
+			Path:    getEnv("METRICS_PATH", "/metrics"),
+		},
+		Alert: AlertConfig{
+			SlackEnabled:    getBool("ALERT_SLACK_ENABLED", false),
+			SlackWebhookURL: getEnv("ALERT_SLACK_WEBHOOK_URL", ""),
+			SlackChannel:    getEnv("ALERT_SLACK_CHANNEL", "#pos-alerts"),
+
+			DiscordEnabled:    getBool("ALERT_DISCORD_ENABLED", false),
+			DiscordWebhookURL: getEnv("ALERT_DISCORD_WEBHOOK_URL", ""),
+
+			TelegramEnabled:  getBool("ALERT_TELEGRAM_ENABLED", false),
+			TelegramBotToken: getEnv("ALERT_TELEGRAM_BOT_TOKEN", ""),
+			TelegramChatID:   getEnv("ALERT_TELEGRAM_CHAT_ID", ""),
+
+			EmailEnabled:  getBool("ALERT_EMAIL_ENABLED", false),
+			EmailSMTPHost: getEnv("ALERT_EMAIL_SMTP_HOST", "smtp.gmail.com"),
+			EmailSMTPPort: getInt("ALERT_EMAIL_SMTP_PORT", 587),
+			EmailFrom:     getEnv("ALERT_EMAIL_FROM", ""),
+			EmailTo:       getEnv("ALERT_EMAIL_TO", ""),
+			EmailUsername: getEnv("ALERT_EMAIL_USERNAME", ""),
+			EmailPassword: getEnv("ALERT_EMAIL_PASSWORD", ""),
 		},
 		AutoMigrate:      getBool("AUTO_MIGRATE", false),
 		MigrationsPath:   getEnv("MIGRATIONS_PATH", "file://./sqlc/migrations"),

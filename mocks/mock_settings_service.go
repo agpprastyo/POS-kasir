@@ -71,6 +71,21 @@ func (mr *MockISettingsServiceMockRecorder) GetPrinterSettings(ctx any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrinterSettings", reflect.TypeOf((*MockISettingsService)(nil).GetPrinterSettings), ctx)
 }
 
+// GetTaxSettings mocks base method.
+func (m *MockISettingsService) GetTaxSettings(ctx context.Context) (*settings.TaxSettingsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTaxSettings", ctx)
+	ret0, _ := ret[0].(*settings.TaxSettingsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTaxSettings indicates an expected call of GetTaxSettings.
+func (mr *MockISettingsServiceMockRecorder) GetTaxSettings(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTaxSettings", reflect.TypeOf((*MockISettingsService)(nil).GetTaxSettings), ctx)
+}
+
 // UpdateBranding mocks base method.
 func (m *MockISettingsService) UpdateBranding(ctx context.Context, req settings.UpdateBrandingRequest) (*settings.BrandingSettingsResponse, error) {
 	m.ctrl.T.Helper()
@@ -114,4 +129,19 @@ func (m *MockISettingsService) UpdatePrinterSettings(ctx context.Context, req se
 func (mr *MockISettingsServiceMockRecorder) UpdatePrinterSettings(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePrinterSettings", reflect.TypeOf((*MockISettingsService)(nil).UpdatePrinterSettings), ctx, req)
+}
+
+// UpdateTaxSettings mocks base method.
+func (m *MockISettingsService) UpdateTaxSettings(ctx context.Context, req settings.UpdateTaxSettingsRequest) (*settings.TaxSettingsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTaxSettings", ctx, req)
+	ret0, _ := ret[0].(*settings.TaxSettingsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateTaxSettings indicates an expected call of UpdateTaxSettings.
+func (mr *MockISettingsServiceMockRecorder) UpdateTaxSettings(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTaxSettings", reflect.TypeOf((*MockISettingsService)(nil).UpdateTaxSettings), ctx, req)
 }

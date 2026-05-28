@@ -48,3 +48,12 @@ WHERE id = $1 LIMIT 1;
 -- name: GetOpenShifts :many
 SELECT * FROM shifts
 WHERE status = 'open';
+
+-- name: GetCashSalesDuringShift :one
+-- Menghitung total transaksi penjualan (order net_total) yang dibayar tunai selama shift berlangsung
+SELECT COALESCE(SUM(o.net_total), 0)::bigint
+FROM orders o
+WHERE o.user_id = $1
+  AND o.created_at >= $2
+  AND o.payment_method_id = 1 -- PaymentMethodCash
+  AND o.status != 'cancelled';

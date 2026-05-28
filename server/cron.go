@@ -1,67 +1,31 @@
 package server
 
-import (
-	"POS-kasir/pkg/database/seeder"
-	"context"
-
-	"github.com/robfig/cron/v3"
-)
-
+// SetupCron initializes the cron scheduler and registers all configured jobs.
+//
+// This function is the orchestration point for all scheduled tasks. It:
+// 1. Creates a new CronScheduler instance
+// 2. Gets all jobs from the JobsRegistry
+// 3. Registers each job to the scheduler
+// 4. Starts the scheduler
+//
+// Jobs are defined using the CronJob interface and located in their respective
+// modules (e.g., internal/shift/job.go) or in server/jobs_*.go files for infrastructure jobs.
+// The JobsRegistry acts as a central factory for creating all jobs.
 func SetupCron(app *App, container *AppContainer) {
-	c := cron.New()
+	scheduler := NewCronScheduler(app)
 
-	// Auto-close shift at 03:00 every day
-	_, err := c.AddFunc("0 3 * * *", func() {
-		app.Logger.Info("Cron | Starting auto-close shifts job...")
-		err := container.ShiftService.AutoCloseShifts(context.Background())
-		if err != nil {
-			app.Logger.Errorf("Cron | Auto-close shifts job failed: %v", err)
-		} else {
-			app.Logger.Info("Cron | Auto-close shifts job completed successfully")
-		}
-	})
+	// Get all configured jobs from registry
+	registry := NewJobsRegistry(app, container)
+	jobs := registry.RegisterAll()
 
-	if err != nil {
-		app.Logger.Errorf("Failed to setup shift auto-close cron: %v", err)
+	if len(jobs) == 0 {
+		app.Logger.Warn("Cron | No jobs registered")
+		return
 	}
 
-	// Daily Database Reset (for portfolio demo consistency)
-	if app.Config.EnableDbWipe {
-		_, err = c.AddFunc(app.Config.WipeCronSchedule, func() {
-			app.Logger.Warn("Cron | Starting Scheduled Database Reset (WIPE and SEED)...")
-			ctx := context.Background()
+	// Register all jobs to the scheduler
+	registered := scheduler.RegisterJobs(jobs)
+	app.Logger.Infof("Cron | Registered %d out of %d jobs", registered, len(jobs))
 
-			// 1. Wipe
-			if err := app.DB.ResetDatabase(ctx); err != nil {
-				app.Logger.Errorf("Cron | Database reset FAILED during Wipe: %v", err)
-				return
-			}
-
-			// 2. Re-seed
-			if err := seeder.RunSeeders(
-				ctx,
-				app.DB.GetPool(),
-				container.UserRepo,
-				container.CategoryRepo,
-				container.PaymentMethodRepo,
-				container.CancellationReasonRepo,
-				app.R2,
-				app.Logger,
-			); err != nil {
-				app.Logger.Errorf("Cron | Database reset FAILED during Seeding: %v", err)
-				return
-			}
-
-			app.Logger.Info("Cron | Scheduled Database Reset completed successfully")
-		})
-
-		if err != nil {
-			app.Logger.Errorf("Failed to setup database reset cron: %v", err)
-		} else {
-			app.Logger.Infof("Cron | Database reset scheduled at: %s", app.Config.WipeCronSchedule)
-		}
-	}
-
-	c.Start()
-	app.Logger.Info("Cron | Scheduler started")
+	scheduler.Start()
 }

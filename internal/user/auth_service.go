@@ -298,10 +298,10 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
-			s.Log.Errorf("Login | Failed to find user by email 1: %v", req.Email)
+			s.Log.Errorf("Login | User not found: %v", req.Email)
 			return nil, common.ErrNotFound
 		default:
-			s.Log.Errorf("Login | Failed to find user by email 2: %v", req.Email)
+			s.Log.Errorf("Login | Database error fetching user: %v", err)
 			return nil, common.ErrInvalidCredentials
 		}
 	}
@@ -314,7 +314,7 @@ func (s *AthService) Login(ctx context.Context, req LoginRequest) (*LoginRespons
 
 	pass := utils.CheckPassword(user.PasswordHash, req.Password)
 	if !pass {
-		s.Log.Errorf("Login | Failed to find user by email: %v", req.Email)
+		s.Log.Warnf("Login | Invalid credentials attempt for user: %v", req.Email)
 		s.ActivityLogger.Log(
 			ctx,
 			user.ID,

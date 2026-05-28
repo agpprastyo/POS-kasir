@@ -144,8 +144,8 @@ func TestPrdService_CreateProduct(t *testing.T) {
 		mockStore.EXPECT().ExecTx(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, fn func(pgx.Tx) error) error {
 			mockTx.ExpectQuery("INSERT INTO products").
 				WithArgs(req.Name, pgxmock.AnyArg(), int64(req.Price), req.Stock, pgxmock.AnyArg()).
-				WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price"}).
-					AddRow(productID, req.Name, nil, int64(req.Price), req.Stock, time.Now(), time.Now(), nil, pgtype.Numeric{Valid: true}))
+				WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price", "print_category"}).
+					AddRow(productID, req.Name, nil, int64(req.Price), req.Stock, time.Now(), time.Now(), nil, pgtype.Numeric{Valid: true}, "cashier"))
 
 			mockTx.ExpectExec("INSERT INTO product_categories").WithArgs(productID, req.CategoryIDs[0]).WillReturnResult(pgxmock.NewResult("INSERT", 1))
 
@@ -321,7 +321,7 @@ func TestPrdService_RestoreProductsBulk(t *testing.T) {
 	t.Run("RestoreBulk_RepoError", func(t *testing.T) {
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockRepo.EXPECT().RestoreProductsBulk(gomock.Any(), gomock.Any()).Return(errors.New("repo err"))
-		
+
 		err := service.RestoreProductsBulk(ctx, req)
 		assert.Error(t, err)
 	})
@@ -928,7 +928,7 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		service := products.NewPrdService(nil, mockRepo, mockLogger, nil, nil)
 
 		product := products_repo.GetProductWithOptionsRow{ID: productID, Name: "Old"}
-		
+
 		t.Run("ClearCategoriesFail", func(t *testing.T) {
 			mockRepo.EXPECT().GetProductWithOptions(gomock.Any(), productID).Return(product, nil)
 			mockRepo.EXPECT().CheckCategoryExists(gomock.Any(), gomock.Any()).Return(true, nil)
@@ -967,7 +967,7 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		req := products.CreateProductOptionRequestStandalone{Name: "Option 1"}
 		mockRepo.EXPECT().GetProductWithOptions(gomock.Any(), productID).Return(products_repo.GetProductWithOptionsRow{}, pgx.ErrNoRows)
 		mockLogger.EXPECT().Warnf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-		
+
 		res, err := service.CreateProductOption(ctx, productID, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -982,9 +982,9 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		productID := uuid.New()
 		req := products.CreateProductOptionRequestStandalone{Name: "Option 1"}
 		mockRepo.EXPECT().GetProductWithOptions(gomock.Any(), productID).Return(products_repo.GetProductWithOptionsRow{}, nil)
-		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockRepo.EXPECT().CreateProductOption(gomock.Any(), gomock.Any()).Return(products_repo.ProductOption{}, errors.New("repo err"))
-		
+
 		res, err := service.CreateProductOption(ctx, productID, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -1000,9 +1000,9 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		optionID := uuid.New()
 		req := products.UpdateProductOptionRequest{Name: utils.StringPtr("New Name")}
 		mockRepo.EXPECT().GetProductOption(gomock.Any(), products_repo.GetProductOptionParams{ID: optionID, ProductID: productID}).Return(products_repo.ProductOption{}, nil)
-		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockRepo.EXPECT().UpdateProductOption(gomock.Any(), gomock.Any()).Return(products_repo.ProductOption{}, errors.New("repo err"))
-		
+
 		res, err := service.UpdateProductOption(ctx, productID, optionID, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -1020,7 +1020,7 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		mockRepo.EXPECT().GetProductOption(gomock.Any(), gomock.Any()).Return(products_repo.ProductOption{}, nil)
 		mockImgRepo.EXPECT().UploadImage(gomock.Any(), gomock.Any(), gomock.Any()).Return("", errors.New("upload fail"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-		
+
 		res, err := service.UploadProductOptionImage(ctx, productID, optionID, []byte("data"))
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -1039,7 +1039,7 @@ func TestPrdService_ServiceErrorCases(t *testing.T) {
 		mockImgRepo.EXPECT().UploadImage(gomock.Any(), gomock.Any(), gomock.Any()).Return("url", nil)
 		mockRepo.EXPECT().UpdateProductOption(gomock.Any(), gomock.Any()).Return(products_repo.ProductOption{}, errors.New("repo err"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-		
+
 		res, err := service.UploadProductOptionImage(ctx, productID, optionID, []byte("data"))
 		assert.Error(t, err)
 		assert.Nil(t, res)

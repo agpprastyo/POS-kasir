@@ -9,12 +9,20 @@ import (
 )
 
 func SetupRoutes(app *App, container *AppContainer) {
+	// Register Prometheus metrics endpoint (no auth required)
+	SetupMetricsEndpoint(app)
+
 	hltHandler := HealthHandler(app)
 	app.FiberApp.Get("/healthz", hltHandler)
 
 	api := app.FiberApp.Group("/api/v1")
 
-	api.Use(middleware.RateLimiter(app.RedisCache))
+	// Prometheus HTTP metrics middleware (must be before other middlewares to capture all requests)
+	if app.Config.Metrics.Enabled {
+		api.Use(middleware.PrometheusMiddleware())
+	}
+
+	api.Use(middleware.GlobalRateLimiter(app.RedisCache))
 
 	api.Use("/ws", func(c fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {
@@ -34,8 +42,8 @@ func SetupRoutes(app *App, container *AppContainer) {
 		client.ReadPump()
 	}))
 
-	api.Post("/auth/login", container.AuthHandler.LoginHandler)
-	api.Post("/auth/refresh", container.AuthHandler.RefreshHandler)
+	api.Post("/auth/login", middleware.StrictRateLimiter(app.RedisCache), container.AuthHandler.LoginHandler)
+	api.Post("/auth/refresh", middleware.StrictRateLimiter(app.RedisCache), container.AuthHandler.RefreshHandler)
 	api.Get("/auth/me", authMiddleware, container.AuthHandler.ProfileHandler)
 	api.Post("/auth/add", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleAdmin), container.AuthHandler.AddUserHandler)
 	api.Put("/auth/me/avatar", authMiddleware, container.AuthHandler.UpdateAvatarHandler)
@@ -96,7 +104,10 @@ func SetupRoutes(app *App, container *AppContainer) {
 
 	api.Post("/orders/:id/print", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.PrintInvoiceHandler)
 	api.Get("/orders/:id/print-data", authMiddleware, middleware.RoleMiddleware(middleware.UserRoleCashier), container.PrinterHandler.GetInvoiceDataHandler)
-	api.Post("/payments/midtrans-notification", container.OrderHandler.MidtransNotificationHandler)
+	api.Post("/payments/midtrans-notification", middleware.WebhookRateLimiter(app.RedisCache), container.OrderHandler.MidtransNotificationHandler)
+
+	// Web Vitals endpoint (no auth required — called from frontend)
+	api.Post("/metrics/web-vitals", middleware.MetricsRateLimiter(app.RedisCache), WebVitalsHandler())
 
 	api.Get("/reports/dashboard-summary", authMiddleware, container.ReportHandler.GetDashboardSummaryHandler)
 	api.Get("/reports/sales", authMiddleware, container.ReportHandler.GetSalesReportsHandler)
@@ -134,6 +145,9 @@ func SetupRoutes(app *App, container *AppContainer) {
 		settingsGroup.Put("/printer", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.SettingsHandler.UpdatePrinterSettingsHandler)
 		settingsGroup.Get("/printer/discover", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.PrinterHandler.DiscoverPrintersHandler)
 		settingsGroup.Post("/printer/test", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.PrinterHandler.TestPrintHandler)
+
+		settingsGroup.Get("/tax", container.SettingsHandler.GetTaxSettingsHandler)
+		settingsGroup.Put("/tax", middleware.RoleMiddleware(middleware.UserRoleAdmin), container.SettingsHandler.UpdateTaxSettingsHandler)
 	}
 
 	shiftGroup := api.Group("/shifts", authMiddleware)

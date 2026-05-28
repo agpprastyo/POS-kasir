@@ -16,7 +16,7 @@ const addProductStock = `-- name: AddProductStock :one
 UPDATE products
 SET stock = stock + $1
 WHERE id = $2
-RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold
 `
 
 type AddProductStockParams struct {
@@ -37,6 +37,8 @@ func (q *Queries) AddProductStock(ctx context.Context, arg AddProductStockParams
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }
@@ -125,18 +127,22 @@ INSERT INTO products (
     image_url,
     price,
     stock,
-    cost_price
+    cost_price,
+    print_category,
+    low_stock_threshold
 ) VALUES (
-             $1, $2, $3, $4, $5
-         ) RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+             $1, $2, $3, $4, $5, $6, $7
+         ) RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold
 `
 
 type CreateProductParams struct {
-	Name      string         `json:"name"`
-	ImageUrl  *string        `json:"image_url"`
-	Price     int64          `json:"price"`
-	Stock     int32          `json:"stock"`
-	CostPrice pgtype.Numeric `json:"cost_price"`
+	Name              string         `json:"name"`
+	ImageUrl          *string        `json:"image_url"`
+	Price             int64          `json:"price"`
+	Stock             int32          `json:"stock"`
+	CostPrice         pgtype.Numeric `json:"cost_price"`
+	PrintCategory     PrintCategory  `json:"print_category"`
+	LowStockThreshold int32          `json:"low_stock_threshold"`
 }
 
 // Queries for Products
@@ -149,6 +155,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		arg.Price,
 		arg.Stock,
 		arg.CostPrice,
+		arg.PrintCategory,
+		arg.LowStockThreshold,
 	)
 	var i Product
 	err := row.Scan(
@@ -161,6 +169,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }
@@ -211,7 +221,7 @@ const decreaseProductStock = `-- name: DecreaseProductStock :one
 UPDATE products
 SET stock = stock - $1
 WHERE id = $2
-RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold
 `
 
 type DecreaseProductStockParams struct {
@@ -232,6 +242,8 @@ func (q *Queries) DecreaseProductStock(ctx context.Context, arg DecreaseProductS
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }
@@ -249,7 +261,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
 
 const getDeletedProduct = `-- name: GetDeletedProduct :one
 SELECT
-    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
+    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price, p.print_category, p.low_stock_threshold,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -265,16 +277,18 @@ LIMIT 1
 `
 
 type GetDeletedProductRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	ImageUrl  *string            `json:"image_url"`
-	Price     int64              `json:"price"`
-	Stock     int32              `json:"stock"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
-	CostPrice pgtype.Numeric     `json:"cost_price"`
-	Options   interface{}        `json:"options"`
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	ImageUrl          *string            `json:"image_url"`
+	Price             int64              `json:"price"`
+	Stock             int32              `json:"stock"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice         pgtype.Numeric     `json:"cost_price"`
+	PrintCategory     PrintCategory      `json:"print_category"`
+	LowStockThreshold int32              `json:"low_stock_threshold"`
+	Options           interface{}        `json:"options"`
 }
 
 func (q *Queries) GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDeletedProductRow, error) {
@@ -290,6 +304,8 @@ func (q *Queries) GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDelet
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 		&i.Options,
 	)
 	return i, err
@@ -297,7 +313,7 @@ func (q *Queries) GetDeletedProduct(ctx context.Context, id uuid.UUID) (GetDelet
 
 const getProductByID = `-- name: GetProductByID :one
 SELECT
-    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
+    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price, p.print_category, p.low_stock_threshold,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -320,17 +336,19 @@ LIMIT 1
 `
 
 type GetProductByIDRow struct {
-	ID         uuid.UUID          `json:"id"`
-	Name       string             `json:"name"`
-	ImageUrl   *string            `json:"image_url"`
-	Price      int64              `json:"price"`
-	Stock      int32              `json:"stock"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
-	CostPrice  pgtype.Numeric     `json:"cost_price"`
-	Options    interface{}        `json:"options"`
-	Categories interface{}        `json:"categories"`
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	ImageUrl          *string            `json:"image_url"`
+	Price             int64              `json:"price"`
+	Stock             int32              `json:"stock"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice         pgtype.Numeric     `json:"cost_price"`
+	PrintCategory     PrintCategory      `json:"print_category"`
+	LowStockThreshold int32              `json:"low_stock_threshold"`
+	Options           interface{}        `json:"options"`
+	Categories        interface{}        `json:"categories"`
 }
 
 // Retrieves a product by its ID, including its options.
@@ -347,6 +365,8 @@ func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (GetProductB
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 		&i.Options,
 		&i.Categories,
 	)
@@ -473,7 +493,7 @@ func (q *Queries) GetProductOptionsByIDs(ctx context.Context, dollar_1 []uuid.UU
 
 const getProductWithOptions = `-- name: GetProductWithOptions :one
 SELECT
-    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price,
+    p.id, p.name, p.image_url, p.price, p.stock, p.created_at, p.updated_at, p.deleted_at, p.cost_price, p.print_category, p.low_stock_threshold,
     COALESCE(
             (SELECT json_agg(po.*)
              FROM product_options po
@@ -489,16 +509,18 @@ LIMIT 1
 `
 
 type GetProductWithOptionsRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	ImageUrl  *string            `json:"image_url"`
-	Price     int64              `json:"price"`
-	Stock     int32              `json:"stock"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
-	CostPrice pgtype.Numeric     `json:"cost_price"`
-	Options   interface{}        `json:"options"`
+	ID                uuid.UUID          `json:"id"`
+	Name              string             `json:"name"`
+	ImageUrl          *string            `json:"image_url"`
+	Price             int64              `json:"price"`
+	Stock             int32              `json:"stock"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
+	CostPrice         pgtype.Numeric     `json:"cost_price"`
+	PrintCategory     PrintCategory      `json:"print_category"`
+	LowStockThreshold int32              `json:"low_stock_threshold"`
+	Options           interface{}        `json:"options"`
 }
 
 // Retrieves a single product and aggregates its options into a JSON array.
@@ -517,13 +539,15 @@ func (q *Queries) GetProductWithOptions(ctx context.Context, id uuid.UUID) (GetP
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 		&i.Options,
 	)
 	return i, err
 }
 
 const getProductsByIDs = `-- name: GetProductsByIDs :many
-SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold FROM products
 WHERE id = ANY($1::uuid[])
 `
 
@@ -546,6 +570,8 @@ func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.CostPrice,
+			&i.PrintCategory,
+			&i.LowStockThreshold,
 		); err != nil {
 			return nil, err
 		}
@@ -558,7 +584,7 @@ func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []uuid.UUID) ([
 }
 
 const getProductsForUpdate = `-- name: GetProductsForUpdate :many
-SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price FROM products
+SELECT id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold FROM products
 WHERE id = ANY($1::uuid[])
 FOR UPDATE
 `
@@ -582,6 +608,8 @@ func (q *Queries) GetProductsForUpdate(ctx context.Context, dollar_1 []uuid.UUID
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.CostPrice,
+			&i.PrintCategory,
+			&i.LowStockThreshold,
 		); err != nil {
 			return nil, err
 		}
@@ -600,6 +628,7 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
+    p.print_category,
     COALESCE(
         (SELECT json_agg(c.*) 
          FROM product_categories pc 
@@ -628,13 +657,14 @@ type ListDeletedProductsParams struct {
 }
 
 type ListDeletedProductsRow struct {
-	ID         uuid.UUID          `json:"id"`
-	Name       string             `json:"name"`
-	Price      int64              `json:"price"`
-	Stock      int32              `json:"stock"`
-	ImageUrl   *string            `json:"image_url"`
-	Categories interface{}        `json:"categories"`
-	DeletedAt  pgtype.Timestamptz `json:"deleted_at"`
+	ID            uuid.UUID          `json:"id"`
+	Name          string             `json:"name"`
+	Price         int64              `json:"price"`
+	Stock         int32              `json:"stock"`
+	ImageUrl      *string            `json:"image_url"`
+	PrintCategory PrintCategory      `json:"print_category"`
+	Categories    interface{}        `json:"categories"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
 }
 
 func (q *Queries) ListDeletedProducts(ctx context.Context, arg ListDeletedProductsParams) ([]ListDeletedProductsRow, error) {
@@ -657,6 +687,7 @@ func (q *Queries) ListDeletedProducts(ctx context.Context, arg ListDeletedProduc
 			&i.Price,
 			&i.Stock,
 			&i.ImageUrl,
+			&i.PrintCategory,
 			&i.Categories,
 			&i.DeletedAt,
 		); err != nil {
@@ -713,6 +744,7 @@ SELECT
     p.price,
     p.stock,
     p.image_url,
+    p.print_category,
     COALESCE(
         (SELECT json_agg(c.*) 
          FROM product_categories pc 
@@ -740,12 +772,13 @@ type ListProductsParams struct {
 }
 
 type ListProductsRow struct {
-	ID         uuid.UUID   `json:"id"`
-	Name       string      `json:"name"`
-	Price      int64       `json:"price"`
-	Stock      int32       `json:"stock"`
-	ImageUrl   *string     `json:"image_url"`
-	Categories interface{} `json:"categories"`
+	ID            uuid.UUID     `json:"id"`
+	Name          string        `json:"name"`
+	Price         int64         `json:"price"`
+	Stock         int32         `json:"stock"`
+	ImageUrl      *string       `json:"image_url"`
+	PrintCategory PrintCategory `json:"print_category"`
+	Categories    interface{}   `json:"categories"`
 }
 
 // Lists products with filtering and pagination.
@@ -770,6 +803,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]L
 			&i.Price,
 			&i.Stock,
 			&i.ImageUrl,
+			&i.PrintCategory,
 			&i.Categories,
 		); err != nil {
 			return nil, err
@@ -834,19 +868,23 @@ SET
     image_url = COALESCE($2, image_url),
     price = COALESCE($3, price),
     stock = COALESCE($4, stock),
-    cost_price = COALESCE($5, cost_price)
+    cost_price = COALESCE($5, cost_price),
+    print_category = COALESCE($6, print_category),
+    low_stock_threshold = COALESCE($7, low_stock_threshold)
 WHERE
-    id = $6
-RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price
+    id = $8
+RETURNING id, name, image_url, price, stock, created_at, updated_at, deleted_at, cost_price, print_category, low_stock_threshold
 `
 
 type UpdateProductParams struct {
-	Name      *string        `json:"name"`
-	ImageUrl  *string        `json:"image_url"`
-	Price     *int64         `json:"price"`
-	Stock     *int32         `json:"stock"`
-	CostPrice pgtype.Numeric `json:"cost_price"`
-	ID        uuid.UUID      `json:"id"`
+	Name              *string           `json:"name"`
+	ImageUrl          *string           `json:"image_url"`
+	Price             *int64            `json:"price"`
+	Stock             *int32            `json:"stock"`
+	CostPrice         pgtype.Numeric    `json:"cost_price"`
+	PrintCategory     NullPrintCategory `json:"print_category"`
+	LowStockThreshold *int32            `json:"low_stock_threshold"`
+	ID                uuid.UUID         `json:"id"`
 }
 
 // Updates a product's details. Use COALESCE for optional fields.
@@ -857,6 +895,8 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.Price,
 		arg.Stock,
 		arg.CostPrice,
+		arg.PrintCategory,
+		arg.LowStockThreshold,
 		arg.ID,
 	)
 	var i Product
@@ -870,6 +910,8 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.CostPrice,
+		&i.PrintCategory,
+		&i.LowStockThreshold,
 	)
 	return i, err
 }

@@ -17,6 +17,7 @@ import (
 
 type IPrinterService interface {
 	PrintInvoice(ctx context.Context, orderID uuid.UUID) error
+	PrintToCategory(ctx context.Context, orderID uuid.UUID, category string) error
 	TestPrint(ctx context.Context) error
 	GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error)
 	DiscoverPrinters(ctx context.Context) ([]DiscoveredPrinter, error)
@@ -68,6 +69,66 @@ func (s *PrinterService) PrintInvoice(ctx context.Context, orderID uuid.UUID) er
 	defer p.Close()
 
 	return s.printInvoiceToPrinter(p, order, branding, cashierName, paymentMethodName)
+}
+
+func (s *PrinterService) PrintToCategory(ctx context.Context, orderID uuid.UUID, category string) error {
+	printerSettings, err := s.settingsService.GetPrinterSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get printer settings: %w", err)
+	}
+
+	// For now use the main printer connection, but we can extend this to use category-specific printers
+	order, _, _, _, err := s.prepareInvoiceData(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	// Filter items by category
+	var filteredItems []orders.OrderItemResponse
+	for _, item := range order.Items {
+		if strings.EqualFold(item.PrintCategory, category) {
+			filteredItems = append(filteredItems, item)
+		}
+	}
+
+	if len(filteredItems) == 0 {
+		s.log.Info("No items found for category, skipping print", "orderID", orderID, "category", category)
+		return nil
+	}
+
+	p, err := s.printerFactory(printerSettings.Connection)
+	if err != nil {
+		s.log.Error("Failed to connect to printer for category print", "connection", printerSettings.Connection, "category", category, "error", err)
+		return err
+	}
+	defer p.Close()
+
+	if err := p.Init(); err != nil {
+		return err
+	}
+
+	p.SetAlign(escpos.AlignCenter)
+	p.SetBold(true)
+	p.SetSize(escpos.DoubleHeightOn)
+	p.WriteString(strings.ToUpper(category) + " ORDER\n")
+	p.SetSize(escpos.NormalSize)
+	p.SetBold(false)
+	p.WriteString(fmt.Sprintf("Order #%s\n", order.ID.String()[len(order.ID.String())-4:]))
+	p.WriteString(fmt.Sprintf("Time: %s\n", time.Now().Format("15:04:05")))
+	p.WriteString("--------------------------------\n")
+
+	p.SetAlign(escpos.AlignLeft)
+	for _, item := range filteredItems {
+		p.WriteString(fmt.Sprintf("%dx %s\n", item.Quantity, item.ProductName))
+		for _, opt := range item.Options {
+			if opt.OptionName != "" {
+				p.WriteString("   + " + opt.OptionName + "\n")
+			}
+		}
+	}
+	p.WriteString("--------------------------------\n\n")
+
+	return p.Cut()
 }
 
 func (s *PrinterService) GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error) {

@@ -323,6 +323,21 @@ func (mr *MockOrderQuerierMockRecorder) GetOrderItemsByOrderID(ctx, orderID any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderItemsByOrderID", reflect.TypeOf((*MockOrderQuerier)(nil).GetOrderItemsByOrderID), ctx, orderID)
 }
 
+// GetOrderItemsByOrderIDs mocks base method.
+func (m *MockOrderQuerier) GetOrderItemsByOrderIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]repository.OrderItem, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrderItemsByOrderIDs", ctx, dollar_1)
+	ret0, _ := ret[0].([]repository.OrderItem)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrderItemsByOrderIDs indicates an expected call of GetOrderItemsByOrderIDs.
+func (mr *MockOrderQuerierMockRecorder) GetOrderItemsByOrderIDs(ctx, dollar_1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderItemsByOrderIDs", reflect.TypeOf((*MockOrderQuerier)(nil).GetOrderItemsByOrderIDs), ctx, dollar_1)
+}
+
 // GetOrderWithDetails mocks base method.
 func (m *MockOrderQuerier) GetOrderWithDetails(ctx context.Context, id uuid.UUID) (repository.GetOrderWithDetailsRow, error) {
 	m.ctrl.T.Helper()

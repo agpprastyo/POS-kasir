@@ -31,6 +31,11 @@ func (m *MockPrinterService) TestPrint(ctx context.Context) error {
 	return args.Error(0)
 }
 
+func (m *MockPrinterService) PrintToCategory(ctx context.Context, orderID uuid.UUID, category string) error {
+	args := m.Called(ctx, orderID, category)
+	return args.Error(0)
+}
+
 func (m *MockPrinterService) GetInvoiceData(ctx context.Context, orderID uuid.UUID) ([]byte, string, error) {
 	args := m.Called(ctx, orderID)
 	return args.Get(0).([]byte), args.String(1), args.Error(2)

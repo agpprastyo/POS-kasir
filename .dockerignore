@@ -5,14 +5,27 @@
 
 
 bin/
+app
 *.exe
 *.test
+
+screenshots/
+tmp/
+monitoring/
+mocks/
+analysis.md
+CRON_JOBS_*.md
+FILE_DEPENDENCY_MAP.md
+IMPLEMENTATION_*.md
+VISUAL_SUMMARY.md
+README.md
 
 web/node_modules
 web/build
 web/dist
 web/.output
 web/.svelte-kit
+web/.cache
 
 
 .env

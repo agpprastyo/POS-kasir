@@ -310,7 +310,7 @@ func (s *PrdService) DeleteProduct(ctx context.Context, productID uuid.UUID) err
 
 func (s *PrdService) GetProductByID(ctx context.Context, productID uuid.UUID) (*ProductResponse, error) {
 	fullProduct, err := s.repo.GetProductByID(ctx, productID)
-	s.log.Infof("Full product data: %+v", fullProduct)
+	// Removed noisy debug log: s.log.Infof("Full product data: %+v", fullProduct)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.log.Warnf("Product not found by ID", "productID", productID)
@@ -364,9 +364,10 @@ func (s *PrdService) UpdateProduct(ctx context.Context, productID uuid.UUID, req
 	}
 
 	updateParams := products_repo.UpdateProductParams{
-		ID:    productID,
-		Name:  req.Name,
-		Stock: req.Stock,
+		ID:                productID,
+		Name:              req.Name,
+		Stock:             req.Stock,
+		LowStockThreshold: req.LowStockThreshold,
 	}
 
 	if req.Price != nil {
@@ -583,14 +584,15 @@ func (s *PrdService) buildProductResponse(ctx context.Context, fullProduct produ
 		ID:         fullProduct.ID,
 		Name:       fullProduct.Name,
 		Categories: categories,
+		ImageURL:   fullProduct.ImageUrl,
 
-		ImageURL:  fullProduct.ImageUrl,
-		Price:     productPrice,
-		CostPrice: costPrice,
-		Stock:     fullProduct.Stock,
-		CreatedAt: fullProduct.CreatedAt.Time,
-		UpdatedAt: fullProduct.UpdatedAt.Time,
-		Options:   optionsResponse,
+		Price:             productPrice,
+		CostPrice:         costPrice,
+		Stock:             fullProduct.Stock,
+		LowStockThreshold: fullProduct.LowStockThreshold,
+		CreatedAt:         fullProduct.CreatedAt.Time,
+		UpdatedAt:         fullProduct.UpdatedAt.Time,
+		Options:           optionsResponse,
 	}, nil
 }
 
@@ -612,7 +614,7 @@ func (s *PrdService) ListProducts(ctx context.Context, req ListProductsRequest) 
 		SearchText: &req.Search,
 	}
 
-	s.log.Infof("list params list product: %+v", listParams)
+	// Removed noisy debug log: s.log.Infof("list params list product: %+v", listParams)
 
 	var wg sync.WaitGroup
 	var products []products_repo.ListProductsRow
@@ -692,10 +694,11 @@ func (s *PrdService) CreateProduct(ctx context.Context, req CreateProductRequest
 		numericCost.Scan(fmt.Sprintf("%f", req.CostPrice))
 
 		productParams := products_repo.CreateProductParams{
-			Name:      req.Name,
-			Price:     price,
-			Stock:     req.Stock,
-			CostPrice: numericCost,
+			Name:              req.Name,
+			Price:             price,
+			Stock:             req.Stock,
+			CostPrice:         numericCost,
+			LowStockThreshold: req.LowStockThreshold,
 		}
 
 		newProduct, err = qtx.CreateProduct(ctx, productParams)

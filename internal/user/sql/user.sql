@@ -127,9 +127,6 @@ SELECT
     EXISTS(SELECT 1 FROM users u WHERE u.email = sqlc.arg(email) AND u.deleted_at IS NULL) AS email_exists,
     EXISTS(SELECT 1 FROM users u WHERE u.username = sqlc.arg(username) AND u.deleted_at IS NULL) AS username_exists;
 
-
-
-
 -- name: UpdateRefreshToken :exec
 -- Memperbarui refresh token pengguna (Single Session Enforcement).
 UPDATE users

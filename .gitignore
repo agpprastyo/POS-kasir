@@ -35,3 +35,9 @@ tmp/*
 tmp/
 
 WORKFLOW.md
+
+# Monitoring data (Docker volumes may create local dirs)
+monitoring/grafana/data/
+monitoring/prometheus/data/
+monitoring/loki/data/
+monitoring/alertmanager/data/

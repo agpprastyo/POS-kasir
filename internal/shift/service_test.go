@@ -122,10 +122,11 @@ func TestShiftService_EndShift(t *testing.T) {
 		}, nil)
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(50000), nil).Times(1)
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(10000), nil).Times(1)
-		
-		expectedCashEnd := int64(140000)
+		mockRepo.EXPECT().GetCashSalesDuringShift(ctx, gomock.Any()).Return(int64(100000), nil).Times(1)
+
+		expectedCashEnd := int64(240000)
 		actualCashEnd := int64(135000)
-		
+
 		mockRepo.EXPECT().EndShift(ctx, gomock.Any()).Return(repository.Shift{
 			ID:              shiftID,
 			ExpectedCashEnd: &expectedCashEnd,
@@ -140,7 +141,7 @@ func TestShiftService_EndShift(t *testing.T) {
 		})
 
 		assert.NoError(t, err)
-		assert.Equal(t, int64(-5000), *resp.Difference)
+		assert.Equal(t, int64(-105000), *resp.Difference)
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
@@ -185,6 +186,7 @@ func TestShiftService_EndShift(t *testing.T) {
 		mockRepo.EXPECT().GetOpenShiftByUserID(ctx, userID).Return(repository.Shift{ID: shiftID}, nil)
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(10), nil)
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(0), errors.New("db error"))
+		mockRepo.EXPECT().GetCashSalesDuringShift(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any())
 		_, err := service.EndShift(ctx, userID, shift.EndShiftRequest{Password: password})
 		assert.Error(t, err)
@@ -194,6 +196,7 @@ func TestShiftService_EndShift(t *testing.T) {
 		mockRepo.EXPECT().GetUserPasswordHash(ctx, userID).Return(hash, nil)
 		mockRepo.EXPECT().GetOpenShiftByUserID(ctx, userID).Return(repository.Shift{ID: shiftID}, nil)
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(0), nil).Times(2)
+		mockRepo.EXPECT().GetCashSalesDuringShift(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
 		mockRepo.EXPECT().EndShift(ctx, gomock.Any()).Return(repository.Shift{}, errors.New("db error"))
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any())
 		_, err := service.EndShift(ctx, userID, shift.EndShiftRequest{Password: password})
@@ -292,6 +295,7 @@ func TestShiftService_AutoCloseShifts(t *testing.T) {
 		}, nil)
 		mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any())
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
+		mockRepo.EXPECT().GetCashSalesDuringShift(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
 		mockRepo.EXPECT().EndShift(ctx, gomock.Any()).Return(repository.Shift{}, nil)
 		mockCacheBase.EXPECT().Delete(gomock.Any()).Return(nil)
 
@@ -313,11 +317,12 @@ func TestShiftService_AutoCloseShifts(t *testing.T) {
 		}, nil)
 		mockLogger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 		mockRepo.EXPECT().GetCashTotalByShiftIDAndType(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
-		
+		mockRepo.EXPECT().GetCashSalesDuringShift(ctx, gomock.Any()).Return(int64(0), nil).AnyTimes()
+
 		// First fails, second succeeds
 		mockRepo.EXPECT().EndShift(ctx, gomock.Any()).Return(repository.Shift{}, errors.New("error")).Times(1)
 		mockLogger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-		
+
 		mockRepo.EXPECT().EndShift(ctx, gomock.Any()).Return(repository.Shift{}, nil).Times(1)
 		mockCacheBase.EXPECT().Delete(gomock.Any()).Return(nil)
 

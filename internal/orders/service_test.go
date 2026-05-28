@@ -200,10 +200,10 @@ func TestOrderService_CreateOrder(t *testing.T) {
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
 				"id", "name", "image_url", "price", "stock",
-				"created_at", "updated_at", "deleted_at", "cost_price",
+				"created_at", "updated_at", "deleted_at", "cost_price", "print_category",
 			}).AddRow(
 				productID, "Test Product", nil, int64(10000), int32(10),
-				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
+				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true}, "cashier",
 			))
 
 		// 3. BatchCreateOrderItems (INSERT INTO order_items)
@@ -638,8 +638,8 @@ func TestOrderService_ListOrders(t *testing.T) {
 		}, nil)
 		mockOrderRepo.EXPECT().CountOrders(gomock.Any(), gomock.Any()).Return(int64(1), nil)
 
-		// GetOrderItemsByOrderID for the order
-		mockOrderRepo.EXPECT().GetOrderItemsByOrderID(ctx, orderID).Return([]orders_repo.OrderItem{
+		// GetOrderItemsByOrderIDs for the order
+		mockOrderRepo.EXPECT().GetOrderItemsByOrderIDs(ctx, []uuid.UUID{orderID}).Return([]orders_repo.OrderItem{
 			{
 				ID:          uuid.New(),
 				OrderID:     orderID,
@@ -811,10 +811,10 @@ func TestOrderService_CancelOrder(t *testing.T) {
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
 				"id", "name", "image_url", "price", "stock",
-				"created_at", "updated_at", "deleted_at", "cost_price",
+				"created_at", "updated_at", "deleted_at", "cost_price", "print_category",
 			}).AddRow(
 				productID, "Test Product", nil, int64(10000), int32(10),
-				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
+				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true}, "cashier",
 			))
 
 		// 5. CreateStockHistory
@@ -968,10 +968,10 @@ func TestOrderService_UpdateOrderItems(t *testing.T) {
 			WithArgs(pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
 				"id", "name", "image_url", "price", "stock",
-				"created_at", "updated_at", "deleted_at", "cost_price",
+				"created_at", "updated_at", "deleted_at", "cost_price", "print_category",
 			}).AddRow(
 				productID, "Test Product", nil, int64(10000), int32(10),
-				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
+				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true}, "cashier",
 			))
 
 		// 4. qtyDiff=2 (3-1) > 0 → DecreaseProductStock (products_repo — 9 cols)
@@ -979,10 +979,10 @@ func TestOrderService_UpdateOrderItems(t *testing.T) {
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 			WillReturnRows(pgxmock.NewRows([]string{
 				"id", "name", "image_url", "price", "stock",
-				"created_at", "updated_at", "deleted_at", "cost_price",
+				"created_at", "updated_at", "deleted_at", "cost_price", "print_category",
 			}).AddRow(
 				productID, "Test Product", nil, int64(10000), int32(8),
-				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true},
+				now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true}, "cashier",
 			))
 
 		// 5. CreateStockHistory
@@ -1597,8 +1597,8 @@ func TestOrderService_RefundOrder(t *testing.T) {
 		// 5. AddProductStock (from products repo - returns 9 columns)
 		mockPgx.ExpectQuery("UPDATE products SET stock").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
-			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price"}).
-				AddRow(productID, "Test Product", nil, int64(20000), int32(10), now, now, nil, pgtype.Numeric{}))
+			WillReturnRows(pgxmock.NewRows([]string{"id", "name", "image_url", "price", "stock", "created_at", "updated_at", "deleted_at", "cost_price", "print_category"}).
+				AddRow(productID, "Test Product", nil, int64(10000), int32(10), now, now, nil, pgtype.Numeric{Int: big.NewInt(5000), Exp: 0, Valid: true}, "cashier"))
 
 		// 6. CreateStockHistory
 		mockPgx.ExpectQuery("INSERT INTO stock_history").

@@ -14,6 +14,8 @@ type Querier interface {
 	CreateCashTransaction(ctx context.Context, arg CreateCashTransactionParams) (CashTransaction, error)
 	CreateShift(ctx context.Context, arg CreateShiftParams) (Shift, error)
 	EndShift(ctx context.Context, arg EndShiftParams) (Shift, error)
+	// Menghitung total transaksi penjualan (order net_total) yang dibayar tunai selama shift berlangsung
+	GetCashSalesDuringShift(ctx context.Context, arg GetCashSalesDuringShiftParams) (int64, error)
 	GetCashTotalByShiftIDAndType(ctx context.Context, arg GetCashTotalByShiftIDAndTypeParams) (int64, error)
 	GetCashTransactionsByShiftID(ctx context.Context, shiftID uuid.UUID) ([]CashTransaction, error)
 	GetOpenShiftByUserID(ctx context.Context, userID uuid.UUID) (Shift, error)

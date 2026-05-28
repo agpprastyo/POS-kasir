@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCashTransaction = `-- name: CreateCashTransaction :one
@@ -116,6 +117,28 @@ func (q *Queries) EndShift(ctx context.Context, arg EndShiftParams) (Shift, erro
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getCashSalesDuringShift = `-- name: GetCashSalesDuringShift :one
+SELECT COALESCE(SUM(o.net_total), 0)::bigint
+FROM orders o
+WHERE o.user_id = $1
+  AND o.created_at >= $2
+  AND o.payment_method_id = 1 -- PaymentMethodCash
+  AND o.status != 'cancelled'
+`
+
+type GetCashSalesDuringShiftParams struct {
+	UserID    pgtype.UUID        `json:"user_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+// Menghitung total transaksi penjualan (order net_total) yang dibayar tunai selama shift berlangsung
+func (q *Queries) GetCashSalesDuringShift(ctx context.Context, arg GetCashSalesDuringShiftParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getCashSalesDuringShift, arg.UserID, arg.CreatedAt)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const getCashTotalByShiftIDAndType = `-- name: GetCashTotalByShiftIDAndType :one

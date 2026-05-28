@@ -47,9 +47,6 @@ func NewValidator() Validator {
 		return name
 	})
 
-	// Tambahkan custom validations di sini bila perlu
-	// v.RegisterValidation("password", passwordValidationFunc)
-
 	return &DefaultValidator{validate: v}
 }
 
@@ -59,13 +56,12 @@ func (v *DefaultValidator) Validate(i interface{}) error {
 	}
 	if err := v.validate.Struct(i); err != nil {
 		// convert to ValidationErrors when the error type is validator.ValidationErrors
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
+		if ve, ok := errors.AsType[validator.ValidationErrors](err); ok {
 			out := make(map[string]string, len(ve))
 			for _, fe := range ve {
 				// fe.Field() will be mapped to JSON tag because of RegisterTagNameFunc
 				field := fe.Field()
-				// build human friendly message (you can localize this later)
+				// build human-friendly message (you can localize this later)
 				out[field] = buildErrorMessage(fe)
 			}
 			return &ValidationErrors{Errors: out}
@@ -98,7 +94,7 @@ func buildErrorMessage(fe validator.FieldError) string {
 		return "must be a valid UUID"
 	case "url":
 		return "must be a valid URL"
-	
+
 	default:
 		return fe.Error() // fallback to a default message
 	}
